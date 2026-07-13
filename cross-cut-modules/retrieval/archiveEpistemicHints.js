@@ -1,7 +1,7 @@
 /**
  * Archive-derived epistemic hints independent of catalog signal mass.
  */
-import { COMPONENT_IDS } from '../resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../business_modules/resilience_scorer/index.js';
 
 /**
  * Per-component archive mention mass from RAG / hybrid hits (chunk count weighted by score).

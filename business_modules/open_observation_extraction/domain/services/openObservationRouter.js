@@ -4,7 +4,7 @@
 import { jsonrepair } from 'jsonrepair';
 import { HAIKU_MODEL } from '../../../../cross-cut-modules/agent/agentConfig.js';
 import { getDefaultLlmPort } from '../../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
-import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../../resilience_scorer/index.js';
 import { mapObservationToComponent } from '../../../../cross-cut-modules/retrieval/residualObservations.js';
 
 function openObsRoutingMode(env = process.env) {

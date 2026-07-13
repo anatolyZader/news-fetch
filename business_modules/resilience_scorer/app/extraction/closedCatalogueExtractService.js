@@ -10,7 +10,7 @@ import { stripTraceFields } from '../../infrastructure/claudeExtraction.js';
 import { attributeSignalScope } from '../../../../cross-cut-modules/geo/attributeSignalScope.js';
 import { attachSourceIdsToSignals } from '../../../../db/source_archive/attachSourceIds.js';
 import { archiveArtifactBeforeWrite } from '../../../../cross-cut-modules/log/index.js';
-import { closedSignalsDir } from '../../../../cross-cut-modules/resilience-contracts/index.js';
+import { closedSignalsDir } from '../../domain/contracts/index.js';
 import { isVisitsSourceType, normalizeVisitsSourceType } from '../../domain/services/signals/visitsSourceType.js';
 import { applyFieldReportSignalHygiene, applySignalTypeHygiene } from '../../domain/services/signals/signalTypeHygiene.js';
 

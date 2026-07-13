@@ -21,7 +21,7 @@ import { attributeSignalScope } from '../../../cross-cut-modules/geo/attributeSi
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import { buildArchiveSourceId } from '../../../db/source_archive/sourceId.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
-import { closedSignalsDir } from '../../../cross-cut-modules/resilience-contracts/index.js';
+import { closedSignalsDir } from '../../resilience_scorer/index.js';
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 const MAX_BODY_CHARS = 2000;

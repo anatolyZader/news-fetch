@@ -10,7 +10,10 @@ export {
   SIGNAL_CATALOG,
   SIGNAL_TYPES,
   SIGNAL_DOMAINS,
-  DEFAULT_SCORING_PRIORS,
+  SIGNAL_ALIASES,
+  canonicalizeSignalType,
+  validateSignalCatalog,
+  assertValidSignalCatalog,
 } from './signalCatalog.js';
 export { GROUNDING_TIER } from './groundingTier.js';
 export { isDmPhoneAllowed } from './gamingPolicy.js';

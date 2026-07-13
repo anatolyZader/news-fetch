@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { resolveStateStore } from '../persistence/domain/resolveStateStore.js';
 import { LEARNING_CAPTURE_KINDS } from '../learningCapture/kinds.js';
-import { COMPONENT_IDS } from '../resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../business_modules/resilience_scorer/index.js';
 
 const INVESTIGATION_KINDS = new Set([
   LEARNING_CAPTURE_KINDS.RESIDUAL_OBSERVATION,

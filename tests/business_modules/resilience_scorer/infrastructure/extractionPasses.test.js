@@ -11,7 +11,7 @@ import {
   buildDomainScopeSuffix,
   buildSelfCheckPrompt,
 } from '../../../../business_modules/resilience_scorer/infrastructure/extractionPasses.js';
-import { SIGNAL_CATALOG } from '../../../../cross-cut-modules/resilience-contracts/index.js';
+import { SIGNAL_CATALOG } from '../../../../business_modules/resilience_scorer/domain/contracts/index.js';
 
 function intersectDomainGroups(a, b) {
   return a.filter((x) => b.includes(x));

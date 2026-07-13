@@ -4,12 +4,12 @@
 import { PROMPT_VERSION, MODEL_CARD_REF } from '../../../cross-cut-modules/agent/index.js';
 import { buildEvidenceGraph } from '../../../cross-cut-modules/retrieval/evidenceGraph.js';
 import { buildPlannerContext } from '../../../cross-cut-modules/retrieval/plannerContextBuilder.js';
-import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../resilience_scorer/index.js';
 import {
   ASSESSMENT_SCHEMA_VERSION,
   createEmptyAssessmentV2,
   validateAssessmentV2,
-} from '../../../cross-cut-modules/resilience-contracts/assessmentV2.js';
+} from '../../resilience_scorer/index.js';
 import { buildAttentionItems } from '../../resilience_scorer/index.js';
 import { buildFallbackAssessment } from './componentSpecialistAgent.js';
 import { defaultPlan } from './plannerAgent.js';

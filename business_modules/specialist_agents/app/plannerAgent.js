@@ -12,14 +12,14 @@ import {
   compactPlannerContextForPrompt,
 } from '../../../cross-cut-modules/retrieval/compactAssessPrompts.js';
 import { PLANNER_TOOLS, ASSESSMENT_PLANNER_PROFILE } from '../../../cross-cut-modules/agent/profiles/assessment.profile.js';
-import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../resilience_scorer/index.js';
 import {
   buildGapClosureTasks,
   gapPlannerEnabled,
 } from '../../../cross-cut-modules/retrieval/plannerContextBuilder.js';
 import { shouldUseDeterministicPlanner } from '../domain/services/plannerPolicy.js';
 import { shouldAbstainFromInvestigation } from '../domain/services/investigationEpistemic.js';
-import { narrativeInvestigationPermissive } from '../../../cross-cut-modules/resilience-contracts/narrativeEpistemicMode.js';
+import { narrativeInvestigationPermissive } from '../../resilience_scorer/index.js';
 
 function investigationAbstentionOpts() {
   return { narrativePermissive: narrativeInvestigationPermissive() };

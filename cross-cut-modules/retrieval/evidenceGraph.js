@@ -2,7 +2,7 @@
  * Assemble retrieval hits and signals into an evidence graph for agent reasoning.
  */
 import { buildSignalRefRegistry, SIGNAL_TO_COMPONENTS } from '../../business_modules/resilience_scorer/index.js';
-import { COMPONENT_IDS } from '../resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../business_modules/resilience_scorer/index.js';
 import { mapObservationToComponent, observationText } from './residualObservations.js';
 
 const OOV_CLUSTER_CAP = 3;

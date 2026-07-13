@@ -1,5 +1,5 @@
 import { readResilienceHistory } from '../../../../business_modules/resilience_scorer/index.js';
-import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../domain/contracts/componentIds.js';
 
 function isoRangeInclusive(endIso, days) {
   const safeDays = Number.isFinite(days) && days > 0 ? Math.floor(days) : 1;

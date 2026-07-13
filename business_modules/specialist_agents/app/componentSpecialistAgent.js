@@ -21,7 +21,7 @@ import {
   adversarialSystemHint,
 } from '../domain/services/contestedRetrievalPolicy.js';
 import { shouldAbstainFromInvestigation } from '../domain/services/investigationEpistemic.js';
-import { narrativeInvestigationPermissive } from '../../../cross-cut-modules/resilience-contracts/narrativeEpistemicMode.js';
+import { narrativeInvestigationPermissive } from '../../resilience_scorer/index.js';
 import {
   buildComponentNarrative,
   buildOperatorQualitativeNarrative,

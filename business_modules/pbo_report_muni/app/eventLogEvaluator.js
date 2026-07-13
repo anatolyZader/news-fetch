@@ -8,7 +8,7 @@
  */
 
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
-import { RESILIENCE_COMPONENTS } from '../../../cross-cut-modules/resilience-contracts/index.js';
+import { RESILIENCE_COMPONENTS } from '../../resilience_scorer/index.js';
 import { formatEventsAsTable, CATEGORY_COMPONENT_HINTS } from '../domain/services/eventLogLoader.js';
 
 

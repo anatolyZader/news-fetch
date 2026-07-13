@@ -6,7 +6,7 @@ import {
   evidenceAnchorHref,
   evidenceAnchorId,
   isEvidenceAnchorHref,
-} from '../../../cross-cut-modules/resilience-contracts/evidenceAnchor.js';
+} from '../../../../../business_modules/resilience_scorer/domain/contracts/evidenceAnchor.js';
 
 describe('evidenceAnchor', () => {
   it('encodeRefForAnchor slugifies signal refs', () => {

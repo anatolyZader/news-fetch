@@ -1,1 +1,1 @@
-export { RESILIENCE_COMPONENTS } from '../../../cross-cut-modules/resilience-contracts/resilienceComponents.js';
+export { RESILIENCE_COMPONENTS } from './contracts/resilienceComponents.js';

@@ -1,10 +1,10 @@
 import {
   COMPONENTS_TABLE_HELP_MARKDOWN,
   EVIDENCE_LEVEL_INLINE_NOTE,
-} from '../../../cross-cut-modules/resilience-contracts/componentsTableGlossary.js';
+} from '../../../business_modules/resilience_scorer/domain/contracts/componentsTableGlossary.js';
 import { MarkdownArticle } from '../ui/MarkdownArticle.jsx';
 import { formatReportMarkdown } from '../lib/formatSourceCitations.js';
-import { apaAuthorFromUrl } from '../../../cross-cut-modules/resilience-contracts/apaCitationFormat.js';
+import { apaAuthorFromUrl } from '../../../business_modules/resilience_scorer/domain/contracts/apaCitationFormat.js';
 import PropTypes from 'prop-types';
 
 /**

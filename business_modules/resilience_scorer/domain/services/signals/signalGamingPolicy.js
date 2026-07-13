@@ -133,4 +133,4 @@ export function fieldProvenanceComplete(signal) {
   return Boolean(fp?.officer_id || localityKey);
 }
 
-export {isDmPhoneAllowed} from '../../../../../cross-cut-modules/resilience-contracts/gamingPolicy.js';
+export {isDmPhoneAllowed} from '../../contracts/gamingPolicy.js';

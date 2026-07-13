@@ -66,11 +66,14 @@ export function formatSignalCatalogSubset(domains) {
  */
 function formatEntryDisambiguation(entry) {
   const d = entry.disambiguation;
-  if (!d && !entry.example_evidence?.length && !entry.mirror) return '';
+  if (!d && !entry.example_evidence?.length && !entry.mirror && !entry.related?.length) return '';
 
   const lines = [`- \`${entry.type}\`:`];
   if (entry.mirror) {
-    lines.push(`  Mirror (if evidence fits better): \`${entry.mirror}\``);
+    lines.push(`  Mirror (opposite outcome): \`${entry.mirror}\``);
+  }
+  if (entry.related?.length) {
+    lines.push('  Related: ' + entry.related.map((t) => '`' + t + '`').join(', '));
   }
   if (d?.not_confused_with?.length) {
     lines.push('  NOT: ' + d.not_confused_with.map((t) => '`' + t + '`').join(', '));

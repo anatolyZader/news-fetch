@@ -1,0 +1,45 @@
+{
+  "fixtureCount": 1022,
+  "components": {
+    "narrative": {
+      "items": 220,
+      "pos": 37.705,
+      "neg": 2.44
+    },
+    "information_communication": {
+      "items": 130,
+      "pos": 31.228,
+      "neg": 2.386
+    },
+    "lifesaving_behavior": {
+      "items": 264,
+      "pos": 42.292,
+      "neg": 9.454
+    },
+    "functional_continuity": {
+      "items": 285,
+      "pos": 15.525,
+      "neg": 16.784
+    },
+    "community_capital": {
+      "items": 303,
+      "pos": 32.523,
+      "neg": 1.415
+    },
+    "leadership": {
+      "items": 169,
+      "pos": 15.841,
+      "neg": 5.143
+    },
+    "belonging_solidarity": {
+      "items": 298,
+      "pos": 26.356,
+      "neg": 2.928
+    },
+    "wellbeing_at_risk": {
+      "items": 346,
+      "pos": 10.991,
+      "neg": 31.012
+    }
+  }
+}

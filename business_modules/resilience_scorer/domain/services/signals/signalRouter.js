@@ -11,6 +11,9 @@ export {
   getSignalCatalogEntry,
   getScoringPriors,
   SIGNAL_TO_COMPONENTS,
+  SIGNAL_ROUTING_ROLES,
+  getRoutingRole,
+  canonicalizeSignalType,
 } from './signalCatalog.js';
 
 import { SIGNAL_TO_COMPONENTS } from './signalCatalog.js';

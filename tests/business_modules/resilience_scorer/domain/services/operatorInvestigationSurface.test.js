@@ -4,11 +4,11 @@ import {
   operatorSurfaceMode,
   operatorMaxClaims,
   shouldUseRichDeterministicPath,
-} from '../../../../../cross-cut-modules/resilience-contracts/operatorSurfaceMode.js';
+} from '../../../../../business_modules/resilience_scorer/domain/contracts/operatorSurfaceMode.js';
 import {
   groupPoolItemsBySource,
   poolItemSourceBucket,
-} from '../../../../../cross-cut-modules/resilience-contracts/evidencePoolGrouping.js';
+} from '../../../../../business_modules/resilience_scorer/domain/contracts/evidencePoolGrouping.js';
 import {
   assignOperatorEpistemicRole,
   attachRichOperatorSurface,

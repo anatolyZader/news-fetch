@@ -19,10 +19,16 @@ import {
 import { isRegionalReportScope, normalizeReportScopeId } from '../../../../cross-cut-modules/geo/reportScopeIds.js';
 import { DEFAULT_NORTH_SOURCE_TYPES } from '../services/signals/signalDistrictId.js';
 
-export const SCORING_MODEL_VERSION = 'v5';
+export const SCORING_MODEL_VERSION = 'v6';
 
 /** Human-maintained; bump SCORING_MODEL_VERSION when SIGNAL_TO_COMPONENTS changes materially. */
 export const SCORING_MODEL_CHANGELOG = [
+  {
+    version: 'v6',
+    date: '2026-07-13',
+    summary:
+      'Catalog v7: inferred-route discount (×0.5) on secondary component edges (SIGNAL_ROUTING_ROLES); response/coping signals no longer add positive wellbeing_at_risk mass (wellbeing_support_accessed rerouted to community_capital/functional_continuity; help_seeking, religious_coping, hostage_advocacy wellbeing edges dropped); population_survey_finding demoted to polarity-overridable fallback (info_comm edge dropped); leadership_visible_present alias removed from vocabulary and mapping (ingestion-only alias, canonicalized at scoring); mirror pairs restricted to reciprocal opposite-polarity twins.',
+  },
   {
     version: 'v5',
     date: '2026-05-19',

@@ -17,7 +17,7 @@ import { buildSystemTemplateToolList } from '../domain/tools/chatToolSchemas.js'
 import { chatAnalystToolsEnabled, chatConfirmActionsEnabled } from '../domain/chatConfig.js';
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import { UNTRUSTED_CONTENT_INSTRUCTION } from '../../../cross-cut-modules/security/index.js';
-import { operatorEpistemicOverlayEnabled } from '../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
+import { operatorEpistemicOverlayEnabled } from '../../resilience_scorer/index.js';
 import { semanticOutputGate } from '../../../cross-cut-modules/security/domain/services/semanticOutputGate.js';
 
 function buildSystemTemplate(ctx) {

@@ -1,4 +1,5 @@
 import { SIGNAL_TYPES, INTENSITY_LEVELS, PHASE_LEVELS, AFFECTED_SUBGROUPS, AFFECTED_SYSTEMS, POLARITY_OVERRIDE_SIGNAL_TYPES, AFFECTED_SYSTEM_SIGNAL_TYPES } from '../domain/services/signals/behaviorSignals.js';
+import { canonicalizeSignalType } from '../domain/contracts/signalCatalog.js';
 import { bufferOovCapture, LEARNING_CAPTURE_KINDS } from '../domain/services/oov/oovCapture.js';
 import { parseFieldReportTitleLocality } from '../../../cross-cut-modules/geo/localityCandidate.js';
 
@@ -78,6 +79,9 @@ function normalizeOptionalFields(s) {
 
 function isValidSignalCandidate(s, sourceLabel) {
   if (!s || typeof s !== 'object') return false;
+  // Legacy alias emissions land as their canonical type instead of dropping.
+  const canonical = canonicalizeSignalType(s.signal_type);
+  if (canonical !== s.signal_type) s.signal_type = canonical;
   if (!VALID_TYPES.has(s.signal_type)) {
     dropUnknownSignalType(s, sourceLabel);
     return false;

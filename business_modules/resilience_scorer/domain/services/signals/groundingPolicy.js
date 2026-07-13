@@ -5,7 +5,7 @@
  * @see docs/main_docu_files/RESILIENCE-ENGINE-REFERENCE.md §3 (Epistemic tiers and abstention)
  */
 
-import { GROUNDING_TIER } from '../../../../../cross-cut-modules/resilience-contracts/groundingTier.js';
+import { GROUNDING_TIER } from '../../contracts/groundingTier.js';
 import { CRITICAL_BYPASS_SIGNAL_TYPES } from '../../epistemic/highSalienceBypass.js';
 
 
@@ -119,4 +119,4 @@ export function groundingMetaFromEntailmentFail(signal) {
 
 export const UNVERIFIED_CRITICAL_GROUNDING_REASON = 'unverified_critical_grounding';
 
-export {GROUNDING_TIER} from '../../../../../cross-cut-modules/resilience-contracts/groundingTier.js';
+export {GROUNDING_TIER} from '../../contracts/groundingTier.js';

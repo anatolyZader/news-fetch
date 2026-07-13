@@ -1,7 +1,7 @@
 /**
  * Map assessment.v2 to legacy-compatible assessment shape for API/redaction.
  */
-import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../../resilience_scorer/index.js';
 import { deriveInstrumentState } from '../../../resilience_scorer/index.js';
 import { evidenceTreeFromGraph } from '../../../../cross-cut-modules/retrieval/evidenceGraph.js';
 

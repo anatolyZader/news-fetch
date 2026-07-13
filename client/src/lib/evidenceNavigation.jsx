@@ -1,6 +1,6 @@
 import { createContext, createElement, useCallback, useContext, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { isEvidenceAnchorHref } from '../../../cross-cut-modules/resilience-contracts/evidenceAnchor.js';
+import { isEvidenceAnchorHref } from '../../../business_modules/resilience_scorer/domain/contracts/evidenceAnchor.js';
 import { isSafeMarkdownHref } from './safeMarkdownHref.js';
 
 const EvidenceNavigationContext = createContext(null);

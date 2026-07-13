@@ -30,13 +30,13 @@ import {
   extractBatchEnabled,
   buildExtractionSystemParts,
   extractRationaleEnabled,
-} from '../../../cross-cut-modules/resilience-contracts/extractionPrompt.js';
+} from '../domain/contracts/extractionPrompt.js';
 import { runExtractionBatchCalls } from './extractionBatchRunner.js';
 import {
   partitionArticlesByExtractCache,
   remapMissBatchIndices,
   persistArticleExtractCache,
-} from '../../../cross-cut-modules/llm/cache/extractionCacheIntegration.js';
+} from './extractionCacheIntegration.js';
 
 const DEFAULT_EXTRACT_MODEL = process.env.RESILIENCE_EXTRACT_MODEL ?? 'claude-haiku-4-5-20251001';
 const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? 'claude-haiku-4-5-20251001';

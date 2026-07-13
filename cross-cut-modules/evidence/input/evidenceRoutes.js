@@ -17,7 +17,7 @@ import {
   canRunEvidenceLlmAnalysis,
   recordEvidenceLlmAnalysis,
 } from './evidenceAnalysisAccess.js';
-import { normalizeReportScope } from '../../resilience-contracts/index.js';
+import { normalizeReportScope } from '../../../business_modules/resilience_scorer/index.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app

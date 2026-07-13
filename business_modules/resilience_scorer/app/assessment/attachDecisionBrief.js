@@ -5,7 +5,7 @@ import {
   decisionBriefEnabled,
   generateDecisionBrief,
 } from '../../infrastructure/decisionBriefGenerator.js';
-import { operatorEpistemicOverlayEnabled } from '../../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
+import { operatorEpistemicOverlayEnabled } from '../../domain/contracts/operatorEpistemicOverlay.js';
 
 /**
  * @param {object} assessment — mutated in place when brief is generated

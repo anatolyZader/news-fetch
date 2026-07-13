@@ -1,7 +1,7 @@
 /**
  * Enrich epistemic profile for agent investigation (score mass vs investigation mass).
  */
-import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../../resilience_scorer/index.js';
 import { splitInvestigationMassEnabled } from '../../../../cross-cut-modules/agent/agentConfig.js';
 
 const INVESTIGATION_MASS_THRESHOLD = 1.2;

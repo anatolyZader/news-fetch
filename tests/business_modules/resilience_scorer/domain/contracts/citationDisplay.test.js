@@ -6,7 +6,7 @@ import {
   citationAuthorForSignal,
   buildCitationRegistryFromStored,
   proseHasResolvableCitations,
-} from '../../../cross-cut-modules/resilience-contracts/citationDisplay.js';
+} from '../../../../../business_modules/resilience_scorer/domain/contracts/citationDisplay.js';
 
 describe('citationDisplay', () => {
   it('sourceTypeCitationLabel maps field types to Field visit', () => {

@@ -5,7 +5,7 @@
  * prior same-day quarantine state, and elevated/critical abstention.
  */
 
-import { isSoftVoidWarning } from '../../../../../cross-cut-modules/resilience-contracts/softVoidReasons.js';
+import { isSoftVoidWarning } from '../../contracts/softVoidReasons.js';
 import {
   filterAnchorSignals,
   filterHardDigitalSignals,

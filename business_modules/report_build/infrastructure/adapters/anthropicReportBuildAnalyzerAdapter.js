@@ -1,6 +1,6 @@
 import { createAnthropicLlmPort } from '../../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { createLlmGateway } from '../../../../cross-cut-modules/llm/llmGateway.js';
-import { extractJsonArray, SIGNAL_TYPES } from '../../../../cross-cut-modules/resilience-contracts/index.js';
+import { extractJsonArray, SIGNAL_TYPES } from '../../../resilience_scorer/index.js';
 import {
   COMPONENT_IDS,
   SPREAD_VALUES,

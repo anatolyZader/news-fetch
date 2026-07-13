@@ -6,10 +6,17 @@ import {
   SIGNAL_CATALOG,
   SIGNAL_TYPES,
   SIGNAL_TO_COMPONENTS,
+  SIGNAL_ALIASES,
   DEFAULT_SCORING_PRIORS,
   getScoringPriors,
+  canonicalizeSignalType,
+  validateSignalCatalog,
+  assertValidSignalCatalog,
+  validateSignalRouting,
+  assertValidSignalRouting,
   assertCatalogPolarityCoherence,
 } from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalCatalog.js';
+import { COMPONENT_IDS } from '../../../../../business_modules/resilience_scorer/domain/contracts/componentIds.js';
 
 const V6_NEW_TYPES = [
   'self_evacuation_unauthorized',
@@ -92,8 +99,8 @@ const V5_NEW_TYPES = [
 ];
 
 describe('signalCatalog v6', () => {
-  it('has catalog version v6 and ~165 types', () => {
-    assert.equal(CATALOG_VERSION, 'v6');
+  it('has catalog version v7 and ~165 types', () => {
+    assert.equal(CATALOG_VERSION, 'v7');
     assert.ok(SIGNAL_TYPES.length >= 165, `expected >=165 types, got ${SIGNAL_TYPES.length}`);
   });
 
@@ -143,12 +150,75 @@ describe('signalCatalog v6', () => {
     assert.deepEqual(assertCatalogPolarityCoherence(), []);
   });
 
+  it('validateSignalCatalog (taxonomy) reports no errors or warnings and assert does not throw', () => {
+    assert.deepEqual(validateSignalCatalog(), { errors: [], warnings: [] });
+    assert.doesNotThrow(() => assertValidSignalCatalog());
+  });
+
+  it('validateSignalRouting (scoring policy) reports no errors or warnings and assert does not throw', () => {
+    assert.deepEqual(validateSignalRouting(), { errors: [], warnings: [] });
+    assert.doesNotThrow(() => assertValidSignalRouting());
+  });
+
+  it('has no duplicate signal types', () => {
+    const seen = new Set();
+    for (const entry of SIGNAL_CATALOG) {
+      assert.ok(!seen.has(entry.type), `duplicate type: ${entry.type}`);
+      seen.add(entry.type);
+    }
+  });
+
+  it('every mapping key is a canonical component id', () => {
+    const ids = new Set(COMPONENT_IDS);
+    for (const [type, mapping] of Object.entries(SIGNAL_TO_COMPONENTS)) {
+      for (const componentId of Object.keys(mapping)) {
+        assert.ok(ids.has(componentId), `${type}: unknown component ${componentId}`);
+      }
+    }
+  });
+
+  it('aliases are resolvable and never catalog entries or mappings', () => {
+    const types = new Set(SIGNAL_TYPES);
+    for (const [alias, canonical] of Object.entries(SIGNAL_ALIASES)) {
+      assert.ok(!types.has(alias), `alias listed as catalog type: ${alias}`);
+      assert.equal(SIGNAL_TO_COMPONENTS[alias], undefined, `alias has mapping: ${alias}`);
+      assert.ok(types.has(canonical), `alias target missing: ${canonical}`);
+      assert.equal(canonicalizeSignalType(alias), canonical);
+    }
+    assert.equal(canonicalizeSignalType('leadership_visible_present'), 'leadership_visible_presence');
+    assert.equal(canonicalizeSignalType('harm_to_population'), 'harm_to_population');
+  });
+
+  it('mirrors are reciprocal opposite-polarity pairs', () => {
+    const byType = Object.fromEntries(SIGNAL_CATALOG.map((e) => [e.type, e]));
+    for (const entry of SIGNAL_CATALOG) {
+      if (!entry.mirror) continue;
+      const target = byType[entry.mirror];
+      assert.ok(target, `${entry.type}: mirror target missing`);
+      assert.equal(target.mirror, entry.type, `${entry.type}: mirror not reciprocal`);
+      assert.notEqual(target.defaultPolarity, entry.defaultPolarity, `${entry.type}: mirror same polarity`);
+    }
+  });
+
+  it('getScoringPriors returns cloned arrays that cannot mutate defaults', () => {
+    const priors = getScoringPriors('information_clarity');
+    priors.allowed_intensities.push('invalid');
+    priors.expected_phases.push('invalid');
+    assert.deepEqual(DEFAULT_SCORING_PRIORS.allowed_intensities, ['light', 'moderate', 'severe']);
+    assert.deepEqual(DEFAULT_SCORING_PRIORS.expected_phases, ['anticipation', 'response', 'recovery']);
+  });
+
   it('routing fixes: compliance leadership spillover and harm primary-only', () => {
     assert.equal(SIGNAL_TO_COMPONENTS.compliance_follow_instructions.leadership, 0.3);
     assert.equal(SIGNAL_TO_COMPONENTS.non_compliance_ignore_guidelines.leadership, -0.3);
     assert.equal(SIGNAL_TO_COMPONENTS.harm_to_population.wellbeing_at_risk, -1.2);
     assert.equal(SIGNAL_TO_COMPONENTS.harm_to_population.narrative, undefined);
     assert.equal(SIGNAL_TO_COMPONENTS.protection_effective.narrative, 0.3);
-    assert.equal(SIGNAL_TO_COMPONENTS.religious_coping_practice.wellbeing_at_risk, 0.5);
+    // v7: coping/response signals no longer add positive wellbeing_at_risk mass
+    assert.equal(SIGNAL_TO_COMPONENTS.religious_coping_practice.wellbeing_at_risk, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.help_seeking_behavior.wellbeing_at_risk, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.hostage_family_advocacy.wellbeing_at_risk, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.wellbeing_support_accessed.wellbeing_at_risk, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.wellbeing_support_accessed.community_capital, 0.5);
   });
 });

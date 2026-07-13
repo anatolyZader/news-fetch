@@ -1,7 +1,7 @@
 /**
  * Planner context — gaps, media anomalies, OOV summary, exploration candidates.
  */
-import { COMPONENT_IDS } from '../resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../business_modules/resilience_scorer/index.js';
 import { classifyGap } from './evidenceGraph.js';
 import { detectArchiveAnomalies } from './archiveEpistemicHints.js';
 

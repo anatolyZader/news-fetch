@@ -8,7 +8,7 @@
  */
 
 import { THIN_EVIDENCE_INSTRUMENT } from '../../epistemic/thinEvidencePolicy.js';
-import { isSoftVoidWarning } from '../../../../../cross-cut-modules/resilience-contracts/softVoidReasons.js';
+import { isSoftVoidWarning } from '../../contracts/softVoidReasons.js';
 import { classifyKind, isInfoNoise } from './actionCompassKinds.js';
 import { scoreAction, selectWithKindDiversity } from './actionCompassRanking.js';
 import { buildGroundingContext } from './actionCompassGrounding.js';

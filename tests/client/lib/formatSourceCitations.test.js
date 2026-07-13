@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatApaCitationDate } from '../../../cross-cut-modules/resilience-contracts/apaCitationFormat.js';
+import { formatApaCitationDate } from '../../../business_modules/resilience_scorer/domain/contracts/apaCitationFormat.js';
 import {
   formatReadableCitations,
   formatReportMarkdown,

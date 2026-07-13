@@ -5,14 +5,14 @@ import {
   apaAuthorFromUrl,
   formatApaCitationDate,
   formatApaCitationsInMarkdown,
-} from '../../../cross-cut-modules/resilience-contracts/apaCitationFormat.js';
+} from '../../../business_modules/resilience_scorer/domain/contracts/apaCitationFormat.js';
 import {
   buildCitationRegistryFromStored,
-} from '../../../cross-cut-modules/resilience-contracts/citationDisplay.js';
+} from '../../../business_modules/resilience_scorer/domain/contracts/citationDisplay.js';
 import {
   linkPlainApaParentheticals,
   resolveInlineSignalCitations,
-} from '../../../cross-cut-modules/resilience-contracts/inlineCitationResolve.js';
+} from '../../../business_modules/resilience_scorer/domain/contracts/inlineCitationResolve.js';
 
 const GENERIC_SOURCE = /^source$/i;
 const SIGNAL_REF = /\[S\d+\]/g;
@@ -182,5 +182,5 @@ export function formatEvidenceMarkdown(
 }
 
 // Re-export for tests that assert author resolution
-export { apaAuthorLabel } from '../../../cross-cut-modules/resilience-contracts/apaCitationFormat.js';
+export { apaAuthorLabel } from '../../../business_modules/resilience_scorer/domain/contracts/apaCitationFormat.js';
 export { GENERIC_SOURCE };

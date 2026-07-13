@@ -2,7 +2,7 @@
  * Build per-component signal pools for the operator narrative pipeline from the
  * full narrative scope (not scoring-partition-only signals).
  */
-import { COMPONENT_IDS } from '../../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { buildDuplicateOccurrenceIndex } from '../../epistemic/massContribution.js';
 import { collectComponentItems } from '../../epistemic/componentItems.js';
 import { defaultSignalWeights } from '../signals/signalWeights.js';

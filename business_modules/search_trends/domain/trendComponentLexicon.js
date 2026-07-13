@@ -3,7 +3,7 @@
  * No extra Trends API calls — pattern match only.
  */
 
-import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/index.js';
+import { COMPONENT_IDS } from '../../resilience_scorer/index.js';
 
 /** @type {Record<string, readonly string[]>} */
 export const COMPONENT_LEXICON_PATTERNS = Object.freeze({

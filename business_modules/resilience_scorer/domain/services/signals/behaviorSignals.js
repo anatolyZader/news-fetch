@@ -39,7 +39,7 @@ export {
 
 export {
   COMPONENT_IDS,
-} from '../../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+} from '../../contracts/componentIds.js';
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 

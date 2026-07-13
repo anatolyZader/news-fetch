@@ -7,7 +7,7 @@ import { summarizeConfidence } from '../domain/services/signals/behaviorSignals.
 import {
   COMPONENTS_TABLE_HELP_MARKDOWN,
   EVIDENCE_LEVEL_INLINE_NOTE,
-} from '../../../cross-cut-modules/resilience-contracts/componentsTableGlossary.js';
+} from '../domain/contracts/componentsTableGlossary.js';
 import {
   dashIfNull,
   formatComponentScoreLine,

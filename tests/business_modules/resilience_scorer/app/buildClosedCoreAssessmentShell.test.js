@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildClosedCoreAssessmentShell } from '../../../../business_modules/resilience_scorer/app/assessment/buildClosedCoreAssessmentShell.js';
-import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../../../business_modules/resilience_scorer/domain/contracts/componentIds.js';
 
 describe('buildClosedCoreAssessmentShell', () => {
   it('preserves scores and leaves narratives empty', () => {

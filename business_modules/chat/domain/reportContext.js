@@ -4,7 +4,7 @@
 import { buildPboIndex } from './pboIndex.js';
 import { listReportDates, listSignalMeta } from './signalLookup.js';
 import { wrapUntrustedBlock } from '../../../cross-cut-modules/security/index.js';
-import { DISPLAY_VIEWS } from '../../../cross-cut-modules/resilience-contracts/index.js';
+import { DISPLAY_VIEWS } from '../../resilience_scorer/index.js';
 import {
   deriveInstrumentState,
   operatorAssessmentSummary,

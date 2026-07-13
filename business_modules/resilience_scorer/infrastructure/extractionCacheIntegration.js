@@ -1,18 +1,18 @@
 /**
  * Per-article extraction cache partition and persistence.
  */
-import { CATALOG_VERSION } from '../../resilience-contracts/signalCatalog.js';
+import { CATALOG_VERSION } from '../domain/contracts/signalCatalog.js';
 import {
   EXTRACT_PROMPT_VERSION,
   extractionCacheEnabled,
-} from '../../resilience-contracts/extractionPrompt.js';
-import { getMultipassMode } from './extractionCacheConfig.js';
-import { logLlmCacheHit } from '../llmGateway.js';
+} from '../domain/contracts/extractionPrompt.js';
+import { getMultipassMode } from '../../../cross-cut-modules/llm/cache/extractionCacheConfig.js';
+import { logLlmCacheHit } from '../../../cross-cut-modules/llm/llmGateway.js';
 import {
   articleContentHash,
   buildExtractCacheKey,
   getExtractionCacheStore,
-} from './extractionCacheStore.js';
+} from '../../../cross-cut-modules/llm/cache/extractionCacheStore.js';
 
 /**
  * @param {object[]} articles

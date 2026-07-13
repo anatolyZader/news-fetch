@@ -1,7 +1,7 @@
 /**
  * Claude tool schemas for chat agent.
  */
-import { operatorEpistemicOverlayEnabled } from '../../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
+import { operatorEpistemicOverlayEnabled } from '../../../resilience_scorer/index.js';
 import { pboReviewRagEnabled } from '../../../../cross-cut-modules/retrieval/ragConfig.js';
 
 export const SOURCE_TYPE_ENUM = [

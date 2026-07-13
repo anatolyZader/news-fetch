@@ -31,7 +31,7 @@ import {
   stampPboSignalSourceIds,
 } from '../../../db/source_archive/archivePboMunicipality.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
-import { closedSignalsDir } from '../../../cross-cut-modules/resilience-contracts/index.js';
+import { closedSignalsDir } from '../../resilience_scorer/index.js';
 import { pboDashboardDayToExtractUnits } from '../app/pboDashboardToExtractUnits.js';
 import {
   getDefaultResilienceLlmPort,

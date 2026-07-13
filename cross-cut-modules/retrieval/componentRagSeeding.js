@@ -1,7 +1,7 @@
 /**
  * Per-component RAG seeding for assessment evidence graph bootstrap.
  */
-import { COMPONENT_IDS } from '../resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../business_modules/resilience_scorer/index.js';
 import { applyRetrievalPolicies } from './retrievalPolicies.js';
 
 const COMPONENT_RAG_QUERIES = Object.freeze({

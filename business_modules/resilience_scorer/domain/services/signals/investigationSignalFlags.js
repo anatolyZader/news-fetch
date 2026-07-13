@@ -1,7 +1,7 @@
 /**
  * Signal-native presence and salience flags for investigation enrichment.
  */
-import { COMPONENT_IDS } from '../../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { applySourceCap } from '../../epistemic/evidenceCaps.js';
 import { buildDuplicateOccurrenceIndex } from '../../epistemic/massContribution.js';
 import { collectComponentItems } from '../../epistemic/componentItems.js';

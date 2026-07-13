@@ -12,20 +12,20 @@ import {
   operatorSurfaceMode,
   operatorEvidenceChars,
   operatorMaxClaims,
-} from '../../../../../cross-cut-modules/resilience-contracts/operatorSurfaceMode.js';
+} from '../../contracts/operatorSurfaceMode.js';
 import {
   buildCitationRegistryFromStored,
   proseHasResolvableCitations,
   apaSourceFromSignalEntry,
-} from '../../../../../cross-cut-modules/resilience-contracts/citationDisplay.js';
+} from '../../contracts/citationDisplay.js';
 import {
   evidenceAnchorHref,
   evidenceAnchorId,
-} from '../../../../../cross-cut-modules/resilience-contracts/evidenceAnchor.js';
+} from '../../contracts/evidenceAnchor.js';
 import {
   linkPlainApaParentheticals,
-} from '../../../../../cross-cut-modules/resilience-contracts/inlineCitationResolve.js';
-import { formatApaCitationDate } from '../../../../../cross-cut-modules/resilience-contracts/apaCitationFormat.js';
+} from '../../contracts/inlineCitationResolve.js';
+import { formatApaCitationDate } from '../../contracts/apaCitationFormat.js';
 import { buildDeterministicNarrativeFromClaims } from './operatorInvestigationSurface.js';
 import { resolveInlineSignalCitations } from '../narrativeGrounding/inlineCitationResolver.js';
 

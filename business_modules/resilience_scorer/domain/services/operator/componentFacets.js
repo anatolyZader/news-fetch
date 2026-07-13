@@ -86,7 +86,7 @@ export const COMPONENT_FACETS = {
 
   community_capital: {
     mobilization:        ['resource_mobilization', 'community_volunteering', 'self_organization',
-                          'civil_society_mobilization', 'digital_mutual_aid'],
+                          'civil_society_mobilization', 'digital_mutual_aid', 'wellbeing_support_accessed'],
     local_capacity:      ['local_capacity_demonstrated', 'resource_shortage', 'volunteer_donor_fatigue'],
     external_dependency: ['dependency_on_external_aid', 'international_aid_arrival', 'international_aid_withdrawal'],
     collective_action:   ['rapid_mobilization', 'delayed_mobilization', 'conflict_resolution',
@@ -98,7 +98,7 @@ export const COMPONENT_FACETS = {
     mutual_aid: ['solidarity_help_others', 'community_volunteering', 'interfaith_solidarity', 'digital_mutual_aid'],
     cohesion:   ['social_isolation', 'conflict_or_tension', 'cultural_continuity', 'interfaith_tension',
                  'commemoration_event_observed', 'memorialization_conflict'],
-    inclusion:  ['self_organization', 'wellbeing_support_accessed', 'bridging_capital_demonstrated'],
+    inclusion:  ['self_organization', 'bridging_capital_demonstrated'],
     exclusion:  ['inequitable_resource_access', 'information_inclusivity_gap', 'social_isolation',
                  'bridging_capital_failure', 'prosocial_norm_violation'],
     bridging:   ['bridging_capital_demonstrated', 'bridging_capital_failure', 'help_seeking_behavior',
@@ -109,7 +109,7 @@ export const COMPONENT_FACETS = {
     physical_harm:          ['harm_to_population', 'near_miss_reported'],
     psychological_distress: ['psychological_distress', 'fear_expression', 'child_distress'],
     affect_balance:         ['calm_confidence', 'fear_expression', 'positive_wellbeing_marker'],
-    care_access:            ['wellbeing_support_accessed', 'information_inclusivity_present',
+    care_access:            ['information_inclusivity_present',
                              'information_inclusivity_gap', 'school_psychosocial_support_active',
                              'school_psychosocial_support_gap'],
     equity:                 ['inequitable_resource_access', 'equitable_resource_distribution', 'educational_equity_gap'],
@@ -117,6 +117,6 @@ export const COMPONENT_FACETS = {
                              'sleep_disruption_population', 'substance_use_uptick'],
     population_evidence:    ['population_survey_finding', 'sleep_disruption_population'],
     sensitive_harm:         ['domestic_violence_indicator', 'suicide_self_harm_indicator'],
-    hostage:                ['hostage_uncertainty_distress', 'hostage_return_event', 'hostage_family_advocacy'],
+    hostage:                ['hostage_uncertainty_distress', 'hostage_return_event'],
   },
 };

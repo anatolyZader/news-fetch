@@ -2,7 +2,7 @@ import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { closedCoreNarrate } from '../../../../business_modules/resilience_scorer/app/assessment/closedCoreNarrate.js';
-import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../../../business_modules/resilience_scorer/domain/contracts/componentIds.js';
 
 const envBackup = {};
 

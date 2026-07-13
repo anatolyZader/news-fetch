@@ -6,10 +6,10 @@
 import {
   DISPLAY_VIEWS,
   
-} from '../../../../../cross-cut-modules/resilience-contracts/displayViews.js';
+} from '../../contracts/displayViews.js';
 import { deriveThinEvidencePolicy, isThinEvidencePolicyEnabled, deriveAssessmentEpistemicPolicy } from '../../epistemic/thinEvidencePolicy.js';
 import { narrativeGroundingMinScore } from '../narrativeGrounding/groundingConfig.js';
-import { isSoftVoidWarning } from '../../../../../cross-cut-modules/resilience-contracts/softVoidReasons.js';
+import { isSoftVoidWarning } from '../../contracts/softVoidReasons.js';
 
 
 
@@ -430,4 +430,4 @@ export function narrativeIncludesScores() {
   return v === '1' || v === 'true' || v === 'yes';
 }
 
-export {resolveDisplayView, DISPLAY_VIEWS} from '../../../../../cross-cut-modules/resilience-contracts/displayViews.js';
+export {resolveDisplayView, DISPLAY_VIEWS} from '../../contracts/displayViews.js';

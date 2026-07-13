@@ -21,7 +21,7 @@ import {
   archiveNaftaliWeek,
   stampNaftaliSignalSourceIds,
 } from '../../../db/source_archive/archiveNaftaliWeek.js';
-import { closedSignalsDir } from '../../../cross-cut-modules/resilience-contracts/index.js';
+import { closedSignalsDir } from '../../resilience_scorer/index.js';
 import { naftaliWeekToExtractUnits } from '../app/naftaliDashboardToExtractUnits.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');

@@ -2,7 +2,7 @@
  * Rule-based chat context_slice selection (no extra LLM call).
  * Env: CHAT_CONTEXT_TIERING (set 0 to disable — always full context).
  */
-import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../resilience_scorer/index.js';
 import { chatCompactToolLoopEnabled } from '../../../cross-cut-modules/agent/agentConfig.js';
 
 /** @typedef {'full'|'compare'|'hub'|'minimal'|'component'|'standard'|'temporal'} ContextSlice */

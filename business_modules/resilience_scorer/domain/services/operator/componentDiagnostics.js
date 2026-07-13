@@ -1,9 +1,9 @@
 /**
  * Finalize-time component diagnostics: evidence partitions, two-axis states, operator display.
  */
-import { COMPONENT_IDS } from '../../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { shouldAbstainFromInvestigation } from '../../../../specialist_agents/index.js';
-import { narrativeInvestigationPermissive } from '../../../../../cross-cut-modules/resilience-contracts/narrativeEpistemicMode.js';
+import { narrativeInvestigationPermissive } from '../../contracts/narrativeEpistemicMode.js';
 import { FIELD_SOURCE_TYPES } from '../dataVoid/sourceChannels.js';
 import { contributionForSignal } from '../../epistemic/massContribution.js';
 import { SIGNAL_TO_COMPONENTS } from '../signals/signalRouter.js';

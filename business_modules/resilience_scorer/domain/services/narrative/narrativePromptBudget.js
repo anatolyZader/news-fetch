@@ -1,7 +1,7 @@
 /**
  * Preflight token budgeting and degrade ladder for closed-core / hybrid narrative LLM calls.
  */
-import { COMPONENT_IDS } from '../../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { RESILIENCE_COMPONENTS } from '../../resilienceComponents.js';
 import { buildFullSignalDigest, narrativeDigestEvidenceChars, narrativeDigestSignalCap } from './buildFullSignalDigest.js';
 import {

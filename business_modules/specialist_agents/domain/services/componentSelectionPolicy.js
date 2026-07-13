@@ -1,9 +1,9 @@
 /**
  * Which components receive a specialist run vs hard abstention.
  */
-import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../../resilience_scorer/index.js';
 import { shouldAbstainFromInvestigation } from './investigationEpistemic.js';
-import { narrativeInvestigationPermissive } from '../../../../cross-cut-modules/resilience-contracts/narrativeEpistemicMode.js';
+import { narrativeInvestigationPermissive } from '../../../resilience_scorer/index.js';
 
 function investigationAbstentionOpts() {
   return { narrativePermissive: narrativeInvestigationPermissive() };

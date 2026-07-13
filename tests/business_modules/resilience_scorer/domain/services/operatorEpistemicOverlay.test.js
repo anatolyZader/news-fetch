@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   operatorEpistemicOverlayEnabled,
   stripOperatorGuidancePayload,
-} from '../../../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
+} from '../../../../../business_modules/resilience_scorer/domain/contracts/operatorEpistemicOverlay.js';
 
 describe('operatorEpistemicOverlay', () => {
   it('operatorEpistemicOverlayEnabled is true by default', () => {

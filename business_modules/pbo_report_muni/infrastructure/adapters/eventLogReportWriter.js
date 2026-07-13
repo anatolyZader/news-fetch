@@ -5,7 +5,7 @@
 
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { RESILIENCE_COMPONENTS } from '../../../../cross-cut-modules/resilience-contracts/index.js';
+import { RESILIENCE_COMPONENTS } from '../../../resilience_scorer/index.js';
 
 const COMPONENT_MAP = Object.fromEntries(RESILIENCE_COMPONENTS.map((c) => [c.id, c]));
 

@@ -5,16 +5,17 @@ import {
 } from '../../../../business_modules/resilience_scorer/domain/services/signals/signalRouter.js';
 import { evaluateHighSalienceBypass } from '../../../../business_modules/resilience_scorer/domain/epistemic/highSalienceBypass.js';
 
-export { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+export { COMPONENT_IDS } from '../../domain/contracts/componentIds.js';
 export {
   RELIABILITY_WEIGHT,
   buildDuplicateOccurrenceIndex,
-  duplicateArticleFactor, contributionForSignal, effectiveWeightForSignal, round3,
+  duplicateArticleFactor, contributionForSignal, effectiveWeightForSignal, routedBaseWeight, round3,
 } from '../../../../business_modules/resilience_scorer/domain/epistemic/massContribution.js';
 export { sourceCapWasApplied } from '../../../../business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js';
 import {
   contributionForSignal,
   effectiveWeightForSignal,
+  routedBaseWeight,
   round3,
 } from '../../../../business_modules/resilience_scorer/domain/epistemic/massContribution.js';
 
@@ -284,8 +285,9 @@ export function computeFacets(componentId, allComponentSignals, _totalArticles) 
     let negative = 0;
     for (const s of subset) {
       const signalType = s.signal_type ?? s.type;
-      const w = SIGNAL_TO_COMPONENTS[signalType]?.[componentId];
-      if (w == null) continue;
+      const rawW = SIGNAL_TO_COMPONENTS[signalType]?.[componentId];
+      if (rawW == null) continue;
+      const w = routedBaseWeight(signalType, componentId, rawW);
       const effectiveW = effectiveWeightForSignal(s, signalType, w);
       const c = contributionForSignal(s, w);
       if (effectiveW >= 0) positive += c;

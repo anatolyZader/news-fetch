@@ -1,7 +1,7 @@
 /**
  * Press-only mention mass per component (information environment metric).
  */
-import { COMPONENT_IDS } from '../../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { defaultSignalWeights, resolveSignalWeights } from './signalWeights.js';
 
 const PRESS_SOURCE_TYPES = new Set(['news', 'radio']);

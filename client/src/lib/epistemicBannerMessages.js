@@ -1,4 +1,4 @@
-import { isSoftVoidWarning } from '../../../cross-cut-modules/resilience-contracts/softVoidReasons.js';
+import { isSoftVoidWarning } from '../../../business_modules/resilience_scorer/domain/contracts/softVoidReasons.js';
 
 /**
  * Derive epistemic status banner messages for the report UI.

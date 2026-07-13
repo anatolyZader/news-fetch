@@ -3,6 +3,7 @@ import {
   duplicateArticleFactor,
   effectiveWeightForSignal,
   massBySignalType,
+  routedBaseWeight,
 } from './scoringShared.js';
 
 /**
@@ -23,7 +24,7 @@ export function collectComponentItems(componentId, scoringSignals, duplicateInde
     const signalType = signal.signal_type ?? signal.type;
     const mapping = signalWeights[signalType];
     if (mapping == null || (componentId in mapping) === false) continue;
-    const baseWeight = mapping[componentId];
+    const baseWeight = routedBaseWeight(signalType, componentId, mapping[componentId]);
     const effectiveWeight = effectiveWeightForSignal(signal, signalType, baseWeight);
     const preDuplicate = contributionForSignal(signal, baseWeight);
     const k = duplicateIndex.get(signal) ?? 1;
@@ -58,7 +59,7 @@ export function buildBatchPreCapMassByType(scoringSignals, duplicateIndex, signa
     const mapping = signalWeights[signalType];
     if (mapping == null) continue;
     const firstComponent = Object.keys(mapping)[0];
-    const baseWeight = mapping[firstComponent];
+    const baseWeight = routedBaseWeight(signalType, firstComponent, mapping[firstComponent]);
     const preDuplicate = contributionForSignal(signal, baseWeight);
     const k = duplicateIndex.get(signal) ?? 1;
     batchPreCapItems.push({

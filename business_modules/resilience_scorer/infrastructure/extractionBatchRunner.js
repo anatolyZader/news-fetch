@@ -7,7 +7,7 @@ import {
   extractMaxTokens,
   EXTRACT_PROMPT_ID,
   EXTRACT_PROMPT_VERSION,
-} from '../../../cross-cut-modules/resilience-contracts/extractionPrompt.js';
+} from '../domain/contracts/extractionPrompt.js';
 /**
  * @param {Array<{ customId: string, model: string, system: string, userContent: string, label: string }>} calls
  */

@@ -19,7 +19,7 @@ import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import IconButton from '@mui/material/IconButton';
-import { evidenceAnchorId } from '../../../cross-cut-modules/resilience-contracts/evidenceAnchor.js';
+import { evidenceAnchorId } from '../../../business_modules/resilience_scorer/domain/contracts/evidenceAnchor.js';
 import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
 import {
   formatNarrativeMarkdown,

@@ -1,7 +1,7 @@
 /**
  * Cross-component consistency — grounded contradictions between component assessments.
  */
-import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../../resilience_scorer/index.js';
 
 const NEGATIVE_SEVERITY = new Set(['high', 'critical']);
 const POSITIVE_OPERATOR = new Set(['stable', 'improving']);

@@ -59,6 +59,20 @@ export const AFFECTED_SYSTEMS = [
   'other',
 ];
 
+/**
+ * Instance-level polarity-override whitelist (scoring policy).
+ *
+ * Semantics of `polarity_override` (a field on extracted signal INSTANCES, not
+ * on catalog entries):
+ * - Allowed only for the types listed here; validation strips it elsewhere.
+ * - Valid values: 'positive' | 'negative'.
+ * - When the override contradicts the entry's defaultPolarity, scoring flips
+ *   the sign of the routing weights for that instance (see
+ *   effectiveWeightForSignal in ../../epistemic/massContribution.js).
+ * - Use for types whose label describes a spectrum (trust, routine, coping)
+ *   where the evidence itself decides direction; prefer explicit mirror pairs
+ *   when a natural opposite type exists.
+ */
 export const POLARITY_OVERRIDE_SIGNAL_TYPES = new Set([
   'social_isolation',
   'dependency_on_external_aid',
@@ -72,6 +86,9 @@ export const POLARITY_OVERRIDE_SIGNAL_TYPES = new Set([
   'institutional_trust',
   'media_trust',
   'inter_group_trust',
+  // Survey findings can be positive (high compliance, high confidence);
+  // the extractor sets polarity_override from the measured direction.
+  'population_survey_finding',
 ]);
 
 export const AFFECTED_SYSTEM_SIGNAL_TYPES = new Set([

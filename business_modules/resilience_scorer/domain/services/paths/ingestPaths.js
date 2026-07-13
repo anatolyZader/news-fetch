@@ -2,7 +2,7 @@
  * Canonical filesystem paths for pipeline ingest artifacts (relative to repo root).
  */
 import { resolve } from 'node:path';
-import { closedSignalsDir } from '../../../../../cross-cut-modules/resilience-contracts/index.js';
+import { closedSignalsDir } from '../../contracts/index.js';
 import { resolveRepoRoot } from './repoRoot.js';
 
 // rootDir kept for call-site compatibility; closedSignalsDir resolves via import.meta.url

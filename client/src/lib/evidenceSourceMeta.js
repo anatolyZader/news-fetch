@@ -6,7 +6,7 @@ import {
   inferPoolSourceTypeFromArticleSource,
   normalizePoolSourceType,
   poolItemSourceBucket,
-} from '../../../cross-cut-modules/resilience-contracts/evidencePoolGrouping.js';
+} from '../../../business_modules/resilience_scorer/domain/contracts/evidencePoolGrouping.js';
 const READABLE_CITATION_DATE = /,\s*\d{1,2}\s+[A-Za-z]{3}\s+\d{4}\s*$/;
 const MARKDOWN_LINK = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/;
 const READABLE_CITATION_TAIL = /\s*\(([^)]+)\)\s*$/;

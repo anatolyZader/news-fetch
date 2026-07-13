@@ -5,12 +5,12 @@
 import {
   groupPoolItemsBySource,
   normalizePoolSourceType,
-} from '../../../../../cross-cut-modules/resilience-contracts/evidencePoolGrouping.js';
+} from '../../contracts/evidencePoolGrouping.js';
 import {
   operatorEvidenceChars,
   operatorHighlightPerSource,
   operatorSurfaceMode,
-} from '../../../../../cross-cut-modules/resilience-contracts/operatorSurfaceMode.js';
+} from '../../contracts/operatorSurfaceMode.js';
 import { buildDuplicateOccurrenceIndex } from '../../epistemic/massContribution.js';
 import { collectComponentItems } from '../../epistemic/componentItems.js';
 import { defaultSignalWeights } from '../signals/signalWeights.js';

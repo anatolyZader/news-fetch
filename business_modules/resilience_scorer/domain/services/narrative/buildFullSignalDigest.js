@@ -2,7 +2,7 @@
  * Mass-ranked, article-deduped signal pools for the operator narrative pipeline only.
  * Agent assessment uses compact evidence-graph claims; narrative uses this digest.
  */
-import { COMPONENT_IDS } from '../../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { buildDuplicateOccurrenceIndex } from '../../epistemic/massContribution.js';
 import { collectComponentItems } from '../../epistemic/componentItems.js';
 import { defaultSignalWeights } from '../signals/signalWeights.js';

@@ -31,8 +31,8 @@ import {
   ASSESSMENT_SCHEMA_VERSION,
   createEmptyAssessmentV2,
   validateAssessmentV2,
-} from '../../../cross-cut-modules/resilience-contracts/assessmentV2.js';
-import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/componentIds.js';
+} from '../../resilience_scorer/index.js';
+import { COMPONENT_IDS } from '../../resilience_scorer/index.js';
 import { runPlannerAgent } from './plannerAgent.js';
 import { runComponentSpecialist } from './componentSpecialistAgent.js';
 import { runCriticChecks, applyCriticRepair } from './criticAgent.js';

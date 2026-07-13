@@ -20,7 +20,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { closedSignalsDir } from '../../../../../cross-cut-modules/resilience-contracts/index.js';
+import { closedSignalsDir } from '../../../domain/contracts/index.js';
 
 const __dirname = resolve(fileURLToPath(import.meta.url), '..');
 const ROOT = resolve(__dirname, '../../../../..');

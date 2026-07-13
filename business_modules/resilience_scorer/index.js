@@ -1,25 +1,14 @@
 /**
  * Public facade for the resilience module.
  *
- * Other business modules MUST import shared taxonomy/constants from
- * cross-cut-modules/resilience-contracts, and operational capabilities via
- * injected ports wired in composition.
+ * Other business modules and cross-cut modules MUST import resilience
+ * taxonomy/constants from this facade (domain/contracts lives inside this
+ * module), and operational capabilities via injected ports wired in
+ * composition.
  */
 
-// --- Shared contracts (re-export for backward compatibility) ---
-export {
-  RESILIENCE_COMPONENTS,
-  COMPONENT_IDS,
-  SIGNAL_TYPES,
-  SIGNAL_CATALOG,
-  CATALOG_VERSION,
-  GROUNDING_TIER,
-  isDmPhoneAllowed,
-  extractJson,
-  DISPLAY_VIEWS,
-  resolveDisplayView,
-  normalizeReportScope,
-} from '../../cross-cut-modules/resilience-contracts/index.js';
+// --- Resilience contracts (domain/contracts barrel) ---
+export * from './domain/contracts/index.js';
 
 // --- Display tier / report shaping (domain) ---
 export {
@@ -42,11 +31,11 @@ export { buildActionCompass, actionCompassEnabled } from './domain/services/acti
 export {
   operatorEpistemicOverlayEnabled,
   stripOperatorGuidancePayload,
-} from '../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
+} from './domain/contracts/operatorEpistemicOverlay.js';
 export {
   narrativeEpistemicMode,
   narrativeInvestigationPermissive,
-} from '../../cross-cut-modules/resilience-contracts/narrativeEpistemicMode.js';
+} from './domain/contracts/narrativeEpistemicMode.js';
 export {
   operatorSurfaceMode,
   richSurfaceDeterministicOnly,
@@ -54,12 +43,12 @@ export {
   operatorEvidenceChars,
   operatorMaxClaims,
   operatorHighlightPerSource,
-} from '../../cross-cut-modules/resilience-contracts/operatorSurfaceMode.js';
+} from './domain/contracts/operatorSurfaceMode.js';
 export {
   groupPoolItemsBySource,
   poolItemSourceBucket,
   normalizePoolSourceType,
-} from '../../cross-cut-modules/resilience-contracts/evidencePoolGrouping.js';
+} from './domain/contracts/evidencePoolGrouping.js';
 export {
   isOpenExtractParallelEnabled,
   isOpenPipelineLegacyEnabled,

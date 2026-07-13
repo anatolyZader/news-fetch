@@ -1,7 +1,7 @@
 /**
  * Extraction prompt versioning and stable prompt blocks (cache-friendly layout).
  */
-import { promptCacheEnabledForFeature } from '../llm/promptCacheConfig.js';
+import { promptCacheEnabledForFeature } from '../../../../cross-cut-modules/llm/promptCacheConfig.js';
 
 export const EXTRACT_PROMPT_VERSION = 'extract-v3';
 export const EXTRACT_PROMPT_ID = 'signal-extraction';

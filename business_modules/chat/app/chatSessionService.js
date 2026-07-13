@@ -3,7 +3,7 @@
  */
 
 import { buildChatSystemHint } from '../../../cross-cut-modules/evidence/input/submissionHelpers.js';
-import { resolveDisplayView } from '../../../cross-cut-modules/resilience-contracts/index.js';
+import { resolveDisplayView } from '../../resilience_scorer/index.js';
 
 /**
  * @param {object} opts

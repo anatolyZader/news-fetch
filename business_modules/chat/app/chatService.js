@@ -20,7 +20,7 @@ import { runDeterministicChatFallback } from './chatDeterministicFallback.js';
 import { ragPipelineEnabled } from '../../../cross-cut-modules/retrieval/index.js';
 import { reportIndexHelpers } from '../../../cross-cut-modules/retrieval/reportIndexHelpers.js';
 import { METRIC } from '../../../cross-cut-modules/monitoring/domain/metricNames.js';
-import { DISPLAY_VIEWS } from '../../../cross-cut-modules/resilience-contracts/index.js';
+import { DISPLAY_VIEWS } from '../../resilience_scorer/index.js';
 
 const MAX_HISTORY_MESSAGES = 20;
 

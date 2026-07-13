@@ -1,1 +1,1 @@
-export { extractJson, extractJsonArray } from '../../../cross-cut-modules/resilience-contracts/jsonExtract.js';
+export { extractJson, extractJsonArray } from '../domain/contracts/jsonExtract.js';

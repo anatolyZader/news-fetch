@@ -27,6 +27,7 @@ import {
   resolveSignalWeights,
 } from './scoringOverrides.js';
 import { evaluatePresenceGates } from '../../../../business_modules/resilience_scorer/domain/epistemic/presenceGates.js';
+import { canonicalizeSignalType } from '../../../../business_modules/resilience_scorer/domain/services/signals/signalRouter.js';
 
 const PRESS_SOURCE_TYPES = new Set(['news', 'radio']);
 
@@ -265,10 +266,18 @@ export function scoreComponents(signals, {
   const signalWeights = resolveSignalWeights(defaultSignalWeights(), weightOverlay);
   const tuningTable = resolveComponentTuning(defaultComponentTuning(), tuningOverlay);
 
-  const results = {};
-  const duplicateIndex = buildDuplicateOccurrenceIndex(signals);
+  // Legacy alias-typed signals (older stored batches) score as their canonical
+  // type — also collapses alias+canonical pairs onto one duplicate-discount key.
+  const canonicalSignals = (signals ?? []).map((s) => {
+    const rawType = s?.signal_type ?? s?.type;
+    const canonical = canonicalizeSignalType(rawType);
+    return canonical === rawType ? s : { ...s, signal_type: canonical, type: canonical };
+  });
 
-  const scoringSignals = (signals ?? []).filter((s) => {
+  const results = {};
+  const duplicateIndex = buildDuplicateOccurrenceIndex(canonicalSignals);
+
+  const scoringSignals = canonicalSignals.filter((s) => {
     if (s?.metricsEligible === false) return false;
     if (s?.metricsEligible === true) return true;
     return metricsEligible(s, { epistemicGeoV2 });
@@ -300,7 +309,7 @@ export function scoreComponents(signals, {
     });
   }
 
-  const mediaMass = computeMediaMentionMass(mediaSignals ?? signals, signalWeights);
+  const mediaMass = computeMediaMentionMass(mediaSignals ?? canonicalSignals, signalWeights);
 
   for (const id of COMPONENT_IDS) {
     if (results[id]) {

@@ -14,7 +14,7 @@ import {
   loadPipelineConfig,
   mergeLoadedSignalFiles,
 } from '../assessment/assessSignalsHelpers.js';
-import { closedSignalsDir } from '../../../../cross-cut-modules/resilience-contracts/index.js';
+import { closedSignalsDir } from '../../domain/contracts/index.js';
 import {
   buildPipelineIngestPlan,
   parsePipelineDateArg,

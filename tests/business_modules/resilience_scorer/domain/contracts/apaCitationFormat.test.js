@@ -7,7 +7,7 @@ import {
   formatApaParenthetical,
   formatApaCitationPart,
   apaAuthorLabel,
-} from '../../../cross-cut-modules/resilience-contracts/apaCitationFormat.js';
+} from '../../../../../business_modules/resilience_scorer/domain/contracts/apaCitationFormat.js';
 
 describe('apaCitationFormat', () => {
   it('formatApaCitationDate returns DD Mon YYYY', () => {

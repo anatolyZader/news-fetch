@@ -22,8 +22,8 @@ import {
 import {
   extractJsonArray,
   SIGNAL_TYPES,
-} from '../../../cross-cut-modules/resilience-contracts/index.js';
-import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/componentIds.js';
+} from '../../resilience_scorer/index.js';
+import { COMPONENT_IDS } from '../../resilience_scorer/index.js';
 import {
   SPREAD_VALUES,
   SOURCE_BASIS_VALUES,

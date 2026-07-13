@@ -7,7 +7,7 @@ import {
   buildCoreExtractionStablePrefix,
   coreExtractionStablePrefixCharBudget,
   LEGACY_STABLE_PREFIX_CHAR_BASELINE,
-} from '../../../cross-cut-modules/resilience-contracts/extractionPrompt.js';
+} from '../../../business_modules/resilience_scorer/domain/contracts/extractionPrompt.js';
 import {
   formatSignalCatalog,
   formatDisambiguationBlock,

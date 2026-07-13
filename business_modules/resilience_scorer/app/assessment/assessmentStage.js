@@ -13,7 +13,7 @@ import { salienceContextFromDataVoid } from '../../domain/epistemic/highSalience
 import { attachEpistemicToAssessment } from '../../domain/services/dataVoidIndex.js';
 import { detectSemanticPatterns } from '../../domain/services/patternDetection/semanticPatternAlerts.js';
 import { buildOperatorRecommendations } from '../../domain/services/patternDetection/operatorRecommendations.js';
-import { operatorEpistemicOverlayEnabled } from '../../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
+import { operatorEpistemicOverlayEnabled } from '../../domain/contracts/operatorEpistemicOverlay.js';
 import { attachInvestigationDiagnostics } from '../../domain/services/operator/componentDiagnostics.js';
 import { countAndLogDefaultNorthSignals, evaluateDefaultNorthGate } from '../../domain/services/signals/scopeAttributionMetrics.js';
 import { buildNorthClusterNarrativesFromSignals } from '../../domain/services/narrative/northClusterNarrative.js';
@@ -23,7 +23,7 @@ import {
 } from '../../domain/services/narrative/narrativeScopeSignals.js';
 import { finalizeOperatorNarrativeSurface } from '../../domain/services/operator/operatorNarrativeSurface.js';
 import { attachRichOperatorSurface } from '../../domain/services/operator/operatorInvestigationSurface.js';
-import { shouldUseRichDeterministicPath } from '../../../../cross-cut-modules/resilience-contracts/operatorSurfaceMode.js';
+import { shouldUseRichDeterministicPath } from '../../domain/contracts/operatorSurfaceMode.js';
 import {
   getSocialQuarantineDecision,
 } from '../../domain/services/socialQuarantineOverrides.js';

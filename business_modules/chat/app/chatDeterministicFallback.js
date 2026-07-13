@@ -5,7 +5,7 @@ import { resolveChatContextTier } from '../domain/chatContextTier.js';
 import { handleChatToolCall } from './chatToolHandlers.js';
 import { createChatToolContext } from './createChatToolContext.js';
 import { extractMunicipalityFromMessage } from '../domain/municipalityResolve.js';
-import { operatorEpistemicOverlayEnabled } from '../../../cross-cut-modules/resilience-contracts/operatorEpistemicOverlay.js';
+import { operatorEpistemicOverlayEnabled } from '../../resilience_scorer/index.js';
 
 function planCompareToolCalls(reportData, assessmentDate) {
   const dates = reportData?.report_dates ?? reportData?.available_dates ?? [];

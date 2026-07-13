@@ -4,7 +4,7 @@
 
 import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
-import { COMPONENT_IDS } from '../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../domain/contracts/componentIds.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamWithProgress } from './claudeExtraction.js';
 import { narrativeFactsMaxTokens } from '../domain/services/narrativeGrounding/groundingConfig.js';

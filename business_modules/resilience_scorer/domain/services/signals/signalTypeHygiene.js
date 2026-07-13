@@ -1,20 +1,16 @@
 /**
  * Cross-source post-extract signal_type corrections (news, radio, field, PBO).
  */
+import { canonicalizeSignalType } from '../../contracts/signalCatalog.js';
 
-/** @type {Record<string, string>} */
-export const FIELD_REPORT_SIGNAL_TYPE_ALIASES = {
-  leadership_visible_present: 'leadership_visible_presence',
-  non_compliance: 'compliance_partial',
-};
+export { SIGNAL_ALIASES as FIELD_REPORT_SIGNAL_TYPE_ALIASES } from '../../contracts/signalCatalog.js';
 
 /**
  * @param {string | null | undefined} type
  * @returns {string}
  */
 export function resolveSignalTypeAlias(type) {
-  const raw = String(type ?? '').trim();
-  return FIELD_REPORT_SIGNAL_TYPE_ALIASES[raw] ?? raw;
+  return canonicalizeSignalType(type);
 }
 
 /**

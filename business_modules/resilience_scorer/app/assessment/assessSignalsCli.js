@@ -60,7 +60,7 @@ import {
 } from '../../domain/epistemic/assessmentMethodology.js';
 import { computeDataVoidIndex } from '../../domain/services/dataVoidIndex.js';
 import { attachInvestigationDiagnostics } from '../../domain/services/operator/componentDiagnostics.js';
-import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../domain/contracts/componentIds.js';
 import { runScoringPipeline } from './scoringPipelinePrep.js';
 import { attachDecisionBrief } from './attachDecisionBrief.js';
 import { salienceContextFromDataVoid } from '../../domain/epistemic/highSalienceBypass.js';
@@ -77,7 +77,7 @@ import { createSourceArchive } from '../../../../db/source_archive/createSourceA
 import { archiveProbeRecords } from '../../../../db/source_archive/archiveProbeRecords.js';
 import { createRetrievalService } from '../../../../cross-cut-modules/retrieval/createRetrievalService.js';
 import { createSignalBundlePort } from './createSignalBundlePort.js';
-import { closedSignalsDir } from '../../../../cross-cut-modules/resilience-contracts/index.js';
+import { closedSignalsDir } from '../../domain/contracts/index.js';
 import { loadOpenObservationsForAssess } from './loadOpenObservationsForAssess.js';
 import { isOmissionAuditEnabled } from '../../domain/services/oov/openExtractConfig.js';
 import { verifyOpenEvidenceClaims } from '../../domain/services/signals/openEvidenceVerification.js';

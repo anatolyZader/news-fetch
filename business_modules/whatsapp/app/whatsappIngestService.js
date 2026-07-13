@@ -14,7 +14,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { isAllowedGroup, isDmMessage, parseWebhookEntry } from '../domain/services/whatsappMessageFilter.js';
-import { isDmPhoneAllowed } from '../../../cross-cut-modules/resilience-contracts/index.js';
+import { isDmPhoneAllowed } from '../../resilience_scorer/index.js';
 import { buildAnalysisReply } from '../domain/services/hebrewResponseBuilder.js';
 import { normalizeInboundMessage } from '../domain/conversation/inboundMessageNormalizer.js';
 import { transition } from '../domain/conversation/conversationStateMachine.js';

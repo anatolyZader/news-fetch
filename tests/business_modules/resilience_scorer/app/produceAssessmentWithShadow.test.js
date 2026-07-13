@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
 import { produceAssessmentWithShadow } from '../../../../business_modules/resilience_scorer/app/assessment/produceAssessmentWithShadow.js';
-import { COMPONENT_IDS } from '../../../../cross-cut-modules/resilience-contracts/componentIds.js';
+import { COMPONENT_IDS } from '../../../../business_modules/resilience_scorer/domain/contracts/componentIds.js';
 const signal = {
   article_index: 1,
   article_url: 'https://example.com/a',

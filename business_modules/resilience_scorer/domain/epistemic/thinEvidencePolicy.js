@@ -4,7 +4,7 @@
  */
 
 import { UNVERIFIED_CRITICAL_GROUNDING_REASON } from '../services/signals/groundingPolicy.js';
-import { isSoftVoidWarning } from '../../../../cross-cut-modules/resilience-contracts/softVoidReasons.js';
+import { isSoftVoidWarning } from '../contracts/softVoidReasons.js';
 
 export const THIN_EVIDENCE_INSTRUMENT = Object.freeze({
   insufficient_data: 'insufficient_data',

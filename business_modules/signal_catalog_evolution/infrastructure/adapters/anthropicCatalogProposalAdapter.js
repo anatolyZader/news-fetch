@@ -3,7 +3,7 @@
  */
 import { resolveLlmPort } from '../../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { catalogProposalLlmEnabled } from '../../../../cross-cut-modules/retrieval/ragConfig.js';
-import { extractJson } from '../../../../cross-cut-modules/resilience-contracts/index.js';
+import { extractJson } from '../../../resilience_scorer/index.js';
 
 const MODEL = 'claude-haiku-4-5-20251001';
 

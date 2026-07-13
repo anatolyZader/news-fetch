@@ -12,8 +12,9 @@ import {
 } from '../../../cross-cut-modules/llm/cache/extractionCacheStore.js';
 import {
   partitionArticlesByExtractCache,
-} from '../../../cross-cut-modules/llm/cache/extractionCacheIntegration.js';
-import { EXTRACT_PROMPT_VERSION } from '../../../cross-cut-modules/resilience-contracts/extractionPrompt.js';
+} from '../../../business_modules/resilience_scorer/infrastructure/extractionCacheIntegration.js';
+import { EXTRACT_PROMPT_VERSION } from '../../../business_modules/resilience_scorer/domain/contracts/extractionPrompt.js';
+import { CATALOG_VERSION } from '../../../business_modules/resilience_scorer/domain/contracts/signalCatalog.js';
 
 describe('extractionCacheStore', () => {
   it('stores and retrieves signals by cache key', () => {
@@ -22,7 +23,7 @@ describe('extractionCacheStore', () => {
     const store = createExtractionCacheStore(dbPath);
     const key = buildExtractCacheKey({
       contentHash: 'abc123',
-      catalogVersion: 'v6',
+      catalogVersion: CATALOG_VERSION,
       promptVersion: 'extract-v1',
       contentKind: 'news',
       domainGroup: 'A',
@@ -31,7 +32,7 @@ describe('extractionCacheStore', () => {
     });
     store.putCachedSignals(key, {
       contentHash: 'abc123',
-      catalogVersion: 'v6',
+      catalogVersion: CATALOG_VERSION,
       promptVersion: 'extract-v1',
       contentKind: 'news',
       domainGroup: 'A',
@@ -61,7 +62,7 @@ describe('partitionArticlesByExtractCache', () => {
       const hash = articleContentHash(art);
       const key = buildExtractCacheKey({
         contentHash: hash,
-        catalogVersion: 'v6',
+        catalogVersion: CATALOG_VERSION,
         promptVersion: EXTRACT_PROMPT_VERSION,
         contentKind: 'news',
         domainGroup: null,
@@ -70,7 +71,7 @@ describe('partitionArticlesByExtractCache', () => {
       });
       store.putCachedSignals(key, {
         contentHash: hash,
-        catalogVersion: 'v6',
+        catalogVersion: CATALOG_VERSION,
         promptVersion: EXTRACT_PROMPT_VERSION,
         contentKind: 'news',
         model: 'claude-haiku-4-5-20251001',

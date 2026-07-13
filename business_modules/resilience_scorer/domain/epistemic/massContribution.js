@@ -2,7 +2,7 @@
  * Operator-side signal mass (contribution) — shared with diagnostics and caps.
  */
 import { getOutletReliabilityMultiplier } from '../services/outlets/outletReliabilityPriors.js';
-import { getScoringPriors, getSignalCatalogEntry } from '../services/signals/signalRouter.js';
+import { getScoringPriors, getSignalCatalogEntry, getRoutingRole } from '../services/signals/signalRouter.js';
 import {
   INTENSITY_WEIGHT,
   POLARITY_OVERRIDE_SIGNAL_TYPES,
@@ -78,6 +78,28 @@ function effectiveIntensityKey(signal, signalType) {
 
 export function round3(n) {
   return Math.round(n * 1000) / 1000;
+}
+
+const INFERRED_ROUTE_DISCOUNT_DEFAULT = 0.5;
+
+function inferredRouteDiscount() {
+  const raw = Number.parseFloat(
+    process.env.RESILIENCE_INFERRED_ROUTE_DISCOUNT ?? String(INFERRED_ROUTE_DISCOUNT_DEFAULT),
+  );
+  return Number.isFinite(raw) && raw >= 0 && raw <= 1 ? raw : INFERRED_ROUTE_DISCOUNT_DEFAULT;
+}
+
+/**
+ * Base routing weight after the inferred-route discount: 'inferred' edges are
+ * causal associations, not direct observations, and must not carry the same
+ * evidence mass as primary edges (see SIGNAL_ROUTING_ROLES in the contracts).
+ * @param {string} signalType
+ * @param {string} componentId
+ * @param {number} baseWeight
+ */
+export function routedBaseWeight(signalType, componentId, baseWeight) {
+  if (getRoutingRole(signalType, componentId) === 'primary') return baseWeight;
+  return baseWeight * inferredRouteDiscount();
 }
 
 /** Effective component weight after optional instance-level polarity override. */
