@@ -242,7 +242,15 @@ export async function reportRoutes(app, opts) {
             `No ${scope}-scoped report found. Run assess-signals with --scope ${scope} after signal files exist.`,
         });
       }
-      return reply.send({ found: false });
+      return reply.send({
+        found: false,
+        code: 'national_report_not_found',
+        hint: 'national_report_not_found',
+        scope,
+        message: dateParam
+          ? `No national report found for ${dateParam}${runParam ? ` (run ${runParam})` : ''}.`
+          : 'No national report found for today. Run assess-signals to generate one.',
+      });
     }
     const display_view = resolveDisplayView({
       queryView: request.query?.view,

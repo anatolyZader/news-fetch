@@ -15,6 +15,7 @@
   "app.moreMenu": "More actions",
   "app.noReportYet": "No assessment is available yet. Generate one on the server and refresh this page.",
   "app.northReportMissingHint": "No north report is available for today. Generate one with: npm run assess-signals -- --date YYYY-MM-DD --scope north (the news-only pipeline does not produce a north artifact).",
+  "app.nationalReportMissingHint": "This report could not be loaded — it may no longer be available, or your selection may be out of date. Try picking a different report from the menu, or refresh the page.",
   "app.openDataSources": "Choose data source",
   "app.openFullDocs": "Open full docs",
   "app.openReportContents": "Open report contents",

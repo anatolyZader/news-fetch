@@ -335,6 +335,13 @@ function DailyAssessmentLoadStatus({
       </Alert>
     );
   }
+  if (!report && reportMissingHint === 'national_report_not_found') {
+    return (
+      <Alert severity="info" variant="outlined" sx={(theme) => ({ marginBottom: theme.spacing(1) })}>
+        {t('app.nationalReportMissingHint')}
+      </Alert>
+    );
+  }
   if (!report && !reportMissingHint) {
     return (
       <Typography
@@ -600,12 +607,18 @@ function AppShell() {
   );
   const [scopeSwitchNotice, setScopeSwitchNotice] = useState(null);
   const { editions: availableReportEditions, loading: editionsLoading } = useReportEditions(reportScope, accessToken);
+  // A `selectedReportEdition` restored from localStorage may no longer exist (report list
+  // pruned/renamed since); once editions have loaded, only trust it if it's still present —
+  // otherwise fall back to the newest available edition instead of fetching a dead date/run.
   const effectiveReportEdition = useMemo(() => {
-    if (selectedReportEdition) return selectedReportEdition;
+    if (selectedReportEdition
+      && (editionsLoading || availableReportEditions.some((e) => editionsMatch(e, selectedReportEdition)))) {
+      return selectedReportEdition;
+    }
     const first = availableReportEditions[0];
     if (!first) return null;
     return { date: first.date, run_id: first.run_id ?? null };
-  }, [selectedReportEdition, availableReportEditions]);
+  }, [selectedReportEdition, availableReportEditions, editionsLoading]);
   const {
     report,
     scoreBySource,

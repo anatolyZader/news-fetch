@@ -15,6 +15,7 @@
   "app.moreMenu": "פעולות נוספות",
   "app.noReportYet": "אין הערכה זמינה עדיין. יש ליצור הערכה בשרת ולרענן את הדף.",
   "app.northReportMissingHint": "אין דוח צפון להיום. ליצירה: npm run assess-signals -- --date YYYY-MM-DD --scope north (ניתוח חדשות בלבד אינו מייצר דוח צפון).",
+  "app.nationalReportMissingHint": "לא ניתן היה לטעון דוח זה — ייתכן שהוא אינו זמין עוד, או שהבחירה שלך אינה מעודכנת. נסו לבחור דוח אחר מהתפריט, או רעננו את הדף.",
   "app.openDataSources": "בחירת מקור נתונים",
   "app.openFullDocs": "פתח את התיעוד המלא",
   "app.openReportContents": "פתח תוכן דוח",
