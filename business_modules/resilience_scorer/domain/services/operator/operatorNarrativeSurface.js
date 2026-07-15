@@ -170,6 +170,18 @@ function proseIncludesRef(prose, ref, componentId) {
  * @param {string|null|undefined} reportDate
  * @returns {string}
  */
+function missingCitationForRef(prose, ref, registry, componentId, dateLabel) {
+  if (proseIncludesRef(prose, ref, componentId)) return null;
+  const entry = registry.byRef.get(ref);
+  if (!entry) return null;
+  const source = apaSourceFromSignalEntry(entry);
+  if (!source?.author) return null;
+  return {
+    label: `${source.author}, ${dateLabel}`,
+    markdown: `[${source.author}](${evidenceAnchorHref(componentId, ref)}), ${dateLabel}`,
+  };
+}
+
 function syncMissingClaimCitations(prose, comp, registry, reportDate) {
   const componentId = comp?.component_id;
   const dateLabel = formatApaCitationDate(reportDate);
@@ -180,14 +192,9 @@ function syncMissingClaimCitations(prose, comp, registry, reportDate) {
   const missingByLabel = new Map();
   for (const claim of comp.narrative_claims ?? comp.claims ?? []) {
     for (const ref of claim.signal_refs ?? claim.evidence_refs ?? []) {
-      if (proseIncludesRef(prose, ref, componentId)) continue;
-      const entry = registry.byRef.get(ref);
-      if (!entry) continue;
-      const source = apaSourceFromSignalEntry(entry);
-      if (!source?.author) continue;
-      const label = `${source.author}, ${dateLabel}`;
-      if (!missingByLabel.has(label)) {
-        missingByLabel.set(label, `[${source.author}](${evidenceAnchorHref(componentId, ref)}), ${dateLabel}`);
+      const missing = missingCitationForRef(prose, ref, registry, componentId, dateLabel);
+      if (missing && !missingByLabel.has(missing.label)) {
+        missingByLabel.set(missing.label, missing.markdown);
       }
     }
   }
