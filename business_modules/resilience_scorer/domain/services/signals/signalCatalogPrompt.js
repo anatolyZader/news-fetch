@@ -19,20 +19,19 @@ export const DISAMBIGUATION_PRIORITY_TYPES = [
   'political_distrust',
   'resilience_narrative_positive',
   'resilience_narrative_negative',
-  'rumor_spread',
   'non_compliance_due_to_distrust',
   'evacuation_displacement',
   'self_evacuation_unauthorized',
   'population_survey_finding',
   'early_warning_system_failure',
-  'early_warning_system_effective',
   'connectivity_outage',
   'institutional_abandonment_perception',
-  'infrastructure_damage_acute',
   'routine_disruption',
   'wellbeing_support_gap',
   'information_inclusivity_gap',
   'feedback_channel_blocked',
+  'system_overload',
+  'social_isolation',
 ];
 
 /**
@@ -69,14 +68,14 @@ export function formatSignalCatalogSubset(domains) {
  */
 function formatEntryDisambiguation(entry) {
   const d = entry.disambiguation;
-  if (!d && !entry.example_evidence?.length && !entry.mirror && !entry.related?.length) return '';
+  if (!d?.not_confused_with?.length && !d?.accept_patterns?.length && !d?.reject_patterns?.length
+    && !entry.example_evidence?.length) return '';
 
   const lines = [`- \`${entry.type}\`:`];
-  if (entry.mirror) {
-    lines.push(`  MIRROR: \`${entry.mirror}\``);
-  }
-  // `related` is deliberately NOT emitted: it's a loose association with no
-  // polarity implication — the weakest guidance per char in a hard-budgeted prefix.
+  // `mirror` and `related` are deliberately NOT emitted here: mirror pairs feed
+  // the E5 self-check hint (formatMirrorSelfCheckHint), and `related` is a loose
+  // association with no polarity implication — neither earns boundary-block
+  // chars in the hard-budgeted stable prefix.
   if (d?.not_confused_with?.length) {
     lines.push('  NOT: ' + d.not_confused_with.map((t) => '`' + t + '`').join(', '));
   }

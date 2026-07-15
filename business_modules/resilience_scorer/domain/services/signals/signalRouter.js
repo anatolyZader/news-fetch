@@ -16,7 +16,7 @@ export {
   canonicalizeSignalType,
 } from './signalCatalog.js';
 
-import { SIGNAL_TO_COMPONENTS } from './signalCatalog.js';
+import { SIGNAL_TO_COMPONENTS, canonicalizeSignalType } from './signalCatalog.js';
 
 /**
  * @param {string} signalType
@@ -24,7 +24,7 @@ import { SIGNAL_TO_COMPONENTS } from './signalCatalog.js';
  * @returns {number | undefined}
  */
 export function getComponentWeight(signalType, componentId) {
-  return SIGNAL_TO_COMPONENTS[signalType]?.[componentId];
+  return SIGNAL_TO_COMPONENTS[canonicalizeSignalType(signalType)]?.[componentId];
 }
 
 /**
@@ -32,7 +32,7 @@ export function getComponentWeight(signalType, componentId) {
  * @returns {Record<string, number> | undefined}
  */
 export function getComponentWeightsForSignal(signalType) {
-  return SIGNAL_TO_COMPONENTS[signalType];
+  return SIGNAL_TO_COMPONENTS[canonicalizeSignalType(signalType)];
 }
 
 /**

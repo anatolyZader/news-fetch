@@ -14,7 +14,12 @@ import {
 import { buildDuplicateOccurrenceIndex } from '../../epistemic/massContribution.js';
 import { collectComponentItems } from '../../epistemic/componentItems.js';
 import { defaultSignalWeights } from '../signals/signalWeights.js';
-import { getComponentWeight, getRoutingRole, hasStrongComponentLink } from '../signals/signalRouter.js';
+import {
+  canonicalizeSignalType,
+  getComponentWeight,
+  getRoutingRole,
+  hasStrongComponentLink,
+} from '../signals/signalRouter.js';
 import { SIGNAL_PROVENANCE } from '../signals/evidenceEligibility.js';
 import { buildRefKey } from '../narrativeGrounding/signalRefRegistry.js';
 import { comparePoolItems, inferredPoolRenderMode, routingLabelSuffix } from './routingLabel.js';
@@ -81,7 +86,8 @@ export function poolItemFromSignal(signal, role, maxChars, componentId) {
   if (!evidence) return null;
   const url = signal?.article_url;
   const cleanUrl = url && url !== '(no url)' && url !== 'null' ? url : null;
-  const signalType = signal?.signal_type ?? signal?.type ?? null;
+  const rawType = signal?.signal_type ?? signal?.type ?? null;
+  const signalType = rawType ? canonicalizeSignalType(rawType) : null;
   return {
     ref: buildRefKey(signal),
     evidence,

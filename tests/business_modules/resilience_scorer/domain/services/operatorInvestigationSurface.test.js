@@ -297,6 +297,20 @@ describe('routing rationale on evidence items', () => {
     assert.equal(pool.length, 2, 'pool itself keeps inferred items');
   });
 
+  it('alias-typed signals (stored legacy bundles) reach the pool canonicalized', () => {
+    const aliasSignal = {
+      signal_type: 'leadership_visible_present', // legacy alias of leadership_visible_presence
+      source_type: 'pbo',
+      article_url: 'https://example.com/pbo',
+      evidence: 'ראש הרשות נוכח ופעיל בשטח.',
+      metricsEligible: true,
+    };
+    const pool = poolFor('leadership', [aliasSignal]);
+    assert.equal(pool.length, 1);
+    assert.equal(pool[0].signal_type, 'leadership_visible_presence');
+    assert.equal(pool[0].routing_role, 'primary');
+  });
+
   it('routingLabelSuffix and comparePoolItems behave on edge cases', () => {
     assert.equal(routingLabelSuffix({}), '');
     assert.equal(routingLabelSuffix({ signal_type: 'x' }), ' `x · primary`');

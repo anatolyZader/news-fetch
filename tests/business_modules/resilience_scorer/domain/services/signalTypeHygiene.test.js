@@ -142,7 +142,7 @@ describe('signalTypeHygiene', () => {
 
   it('resolveSignalTypeAlias canonicalizes known aliases', () => {
     assert.equal(resolveSignalTypeAlias('leadership_visible_present'), 'leadership_visible_presence');
-    assert.equal(resolveSignalTypeAlias('non_compliance'), 'compliance_partial');
+    assert.equal(resolveSignalTypeAlias('non_compliance'), 'non_compliance_ignore_guidelines');
     assert.equal(resolveSignalTypeAlias('compliance_enter_shelter'), 'compliance_enter_shelter');
   });
 
@@ -187,7 +187,7 @@ describe('signalTypeHygiene', () => {
     ]);
     assert.equal(out.length, 2);
     assert.equal(out[0].signal_type, 'leadership_visible_presence');
-    assert.equal(out[1].signal_type, 'compliance_partial');
+    assert.equal(out[1].signal_type, 'non_compliance_ignore_guidelines');
     assert.ok(!out[1].evidence.includes('avg='));
   });
 });

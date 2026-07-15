@@ -247,6 +247,49 @@ describe('signalCatalog v8', () => {
     assert.ok(pos.disambiguation.not_confused_with.includes('solidarity_help_others'));
   });
 
+  it('epoch 2026-07-15c routing edits', () => {
+    // Sub-gate types raised past the 0.5 render gate.
+    assert.equal(SIGNAL_TO_COMPONENTS.ecosystem_stress.functional_continuity, -0.5);
+    assert.equal(SIGNAL_TO_COMPONENTS.ecosystem_stress.wellbeing_at_risk, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.equitable_resource_distribution.wellbeing_at_risk, 0.5);
+    assert.equal(getRoutingRole('equitable_resource_distribution', 'wellbeing_at_risk'), 'primary');
+    assert.equal(SIGNAL_TO_COMPONENTS.historical_analogy_frame.narrative, -0.5);
+    // Noise edges dropped.
+    assert.equal(SIGNAL_TO_COMPONENTS.adaptive_practice.narrative, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.innovation_under_constraint.narrative, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.routine_maintenance.narrative, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.child_distress.belonging_solidarity, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.domestic_violence_indicator.belonging_solidarity, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.interpersonal_trust.information_communication, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.reservist_family_strain.belonging_solidarity, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.suicide_self_harm_indicator.narrative, undefined);
+    // Alias repoint: negative-named alias no longer folds into a positive type.
+    assert.equal(canonicalizeSignalType('non_compliance'), 'non_compliance_ignore_guidelines');
+    // New civil-order type with routing and priors.
+    assert.ok(SIGNAL_CATALOG.find((s) => s.type === 'public_order_breakdown'));
+    assert.equal(SIGNAL_TO_COMPONENTS.public_order_breakdown.community_capital, -0.6);
+    assert.equal(getScoringPriors('public_order_breakdown').temporal_half_life_days, 21);
+    // Decay priors for episodic high-frequency types.
+    assert.equal(getScoringPriors('service_disruption').temporal_half_life_days, 14);
+    assert.equal(getScoringPriors('compliance_enter_shelter').temporal_half_life_days, 14);
+    assert.equal(getScoringPriors('information_actionable_effective').temporal_half_life_days, 21);
+  });
+
+  it('epoch 2026-07-15c mirror pairs are reciprocal', () => {
+    const byType = Object.fromEntries(SIGNAL_CATALOG.map((s) => [s.type, s]));
+    const pairs = [
+      ['compliance_follow_instructions', 'non_compliance_ignore_guidelines'],
+      ['service_continuity', 'service_disruption'],
+      ['information_clarity', 'information_confusion'],
+      ['inequitable_resource_access', 'equitable_resource_distribution'],
+      ['coordination_success', 'coordination_failure'],
+    ];
+    for (const [a, b] of pairs) {
+      assert.equal(byType[a].mirror, b, `${a} should mirror ${b}`);
+      assert.equal(byType[b].mirror, a, `${b} should mirror ${a}`);
+    }
+  });
+
   it('epoch 2026-07-15b routing edits', () => {
     // Cohesion-decline misuse reaches belonging as a visible inferred edge.
     assert.equal(SIGNAL_TO_COMPONENTS.resilience_narrative_negative.belonging_solidarity, -0.5);

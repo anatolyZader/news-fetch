@@ -6,6 +6,7 @@ import {
   duplicateArticleFactor,
   effectiveWeightForSignal,
 } from './massContribution.js';
+import { canonicalizeSignalType } from '../services/signals/signalRouter.js';
 
 /**
  * @param {string} componentId
@@ -19,7 +20,9 @@ export function collectComponentItems(componentId, scoringSignals, duplicateInde
   const sourceSet = new Set();
 
   for (const signal of scoringSignals) {
-    const signalType = signal.signal_type ?? signal.type;
+    // Stored bundles may carry legacy alias types (e.g. leadership_visible_present);
+    // scoring canonicalizes up-front but this pool path receives raw signals.
+    const signalType = canonicalizeSignalType(signal.signal_type ?? signal.type);
     const mapping = signalWeights[signalType];
     if (mapping == null || (componentId in mapping) === false) continue;
     const baseWeight = mapping[componentId];
