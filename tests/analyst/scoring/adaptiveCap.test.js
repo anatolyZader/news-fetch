@@ -1,8 +1,14 @@
-import { describe, it } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert';
 
 import { applySourceCap, sourceCapWasApplied } from '../../../business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js';
 import { scoreComponents } from '../../../business_modules/resilience_scorer/analyst/scoring/index.js';
+
+beforeEach(() => {
+  // Pin default thresholds — the host env may carry temporary cap overrides.
+  delete process.env.RESILIENCE_SOURCE_TYPE_CAP;
+  delete process.env.RESILIENCE_ARTICLE_SOURCE_CAP;
+});
 
 function makeItems() {
   // Same source_type (source_type layer skipped), two outlets with a 0.57/0.43

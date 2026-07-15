@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   operatorSurfaceMode,
@@ -15,7 +15,13 @@ import {
   attachRichInvestigationPool,
   buildDeterministicNarrativeFromClaims,
   buildComponentInvestigationPool,
+  buildHighlightedEvidenceFromPool,
 } from '../../../../../business_modules/resilience_scorer/domain/services/operator/operatorInvestigationSurface.js';
+import {
+  comparePoolItems,
+  inferredPoolRenderMode,
+  routingLabelSuffix,
+} from '../../../../../business_modules/resilience_scorer/domain/services/operator/routingLabel.js';
 import { SIGNAL_PROVENANCE } from '../../../../../business_modules/resilience_scorer/domain/services/signals/evidenceEligibility.js';
 import {
   finalizeOperatorNarrativeSurface,
@@ -215,5 +221,92 @@ describe('operatorInvestigationSurface', () => {
     assert.match(prose, /Scored line/);
     assert.match(prose, /Context line/);
     assert.match(prose, /National or regional context/);
+  });
+});
+
+function poolFor(componentId, signals) {
+  return buildComponentInvestigationPool(componentId, signals, {
+    scoringSet: new Set(signals),
+    quarantineSet: new Set(),
+    maxChars: 500,
+  });
+}
+
+describe('routing rationale on evidence items', () => {
+  beforeEach(() => {
+    // Pin the default render mode — the host env may carry overrides.
+    delete process.env.RESILIENCE_POOL_INFERRED_RENDER;
+  });
+
+  const helpSignal = {
+    signal_type: 'solidarity_help_others',
+    source_type: 'field',
+    article_url: 'https://example.com/help',
+    evidence: 'שכנים הביאו אוכל לקשישים שלא הגיעו למקלט.',
+    metricsEligible: true,
+  };
+  const distressSignal = {
+    signal_type: 'psychological_distress',
+    source_type: 'news',
+    article_url: 'https://example.com/distress',
+    evidence: 'תושבת מדווחת על טראומה מצטברת וחוסר שינה כרוני.',
+    metricsEligible: true,
+  };
+
+  it('pool items carry routing_role and routing_weight for their component edge', () => {
+    const wellbeing = poolFor('wellbeing_at_risk', [helpSignal]);
+    assert.equal(wellbeing.length, 1);
+    assert.equal(wellbeing[0].routing_role, 'inferred');
+    assert.equal(wellbeing[0].routing_weight, 0.7);
+
+    const belonging = poolFor('belonging_solidarity', [helpSignal]);
+    assert.equal(belonging[0].routing_role, 'primary');
+    assert.equal(belonging[0].routing_weight, 1);
+  });
+
+  it('pool orders primary-edge items before inferred', () => {
+    const pool = poolFor('wellbeing_at_risk', [helpSignal, distressSignal]);
+    assert.equal(pool.length, 2);
+    assert.equal(pool[0].routing_role, 'primary');
+    assert.equal(pool[0].signal_type, 'psychological_distress');
+    assert.equal(pool[1].routing_role, 'inferred');
+  });
+
+  it('highlighted markdown appends the rationale label after the source link (RTL-safe)', () => {
+    const pool = poolFor('wellbeing_at_risk', [helpSignal, distressSignal]);
+    const items = buildHighlightedEvidenceFromPool(pool);
+    const inferred = items.find((i) => i.signal_type === 'solidarity_help_others');
+    const primary = items.find((i) => i.signal_type === 'psychological_distress');
+    assert.ok(inferred.markdown.endsWith('`solidarity_help_others · inferred +0.7`'));
+    assert.ok(primary.markdown.includes('`psychological_distress · primary -1`'));
+    assert.ok(inferred.markdown.includes('[source](https://example.com/help)'));
+    assert.ok(inferred.markdown.indexOf('[source]') < inferred.markdown.indexOf('`solidarity'));
+  });
+
+  it('RESILIENCE_POOL_INFERRED_RENDER=hide drops inferred items from highlights only', () => {
+    const pool = poolFor('wellbeing_at_risk', [helpSignal, distressSignal]);
+    process.env.RESILIENCE_POOL_INFERRED_RENDER = 'hide';
+    try {
+      assert.equal(inferredPoolRenderMode(), 'hide');
+      const items = buildHighlightedEvidenceFromPool(pool);
+      assert.equal(items.length, 1);
+      assert.equal(items[0].signal_type, 'psychological_distress');
+    } finally {
+      delete process.env.RESILIENCE_POOL_INFERRED_RENDER;
+    }
+    assert.equal(pool.length, 2, 'pool itself keeps inferred items');
+  });
+
+  it('routingLabelSuffix and comparePoolItems behave on edge cases', () => {
+    assert.equal(routingLabelSuffix({}), '');
+    assert.equal(routingLabelSuffix({ signal_type: 'x' }), ' `x · primary`');
+    assert.ok(comparePoolItems(
+      { routing_role: 'primary', contribution: 0.1 },
+      { routing_role: 'inferred', contribution: 9 },
+    ) < 0);
+    assert.ok(comparePoolItems(
+      { routing_role: 'primary', contribution: 1 },
+      { routing_role: 'primary', contribution: 2 },
+    ) > 0);
   });
 });

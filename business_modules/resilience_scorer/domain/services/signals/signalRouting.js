@@ -156,7 +156,9 @@ export const SIGNAL_TO_COMPONENTS = {
   recovery_setback: { functional_continuity: -0.9, narrative: -0.3, community_capital: -0.3 },
   religious_coping_practice: { belonging_solidarity: +0.7, narrative: +0.5 },
   reservist_family_strain: { wellbeing_at_risk: -0.8, community_capital: -0.3, belonging_solidarity: -0.2 },
-  resilience_narrative_negative: { narrative: -1 },
+  // Epoch 2026-07-15b: secondary belonging edge — historically misused for
+  // cohesion-decline observations, which must reach the belonging pool too.
+  resilience_narrative_negative: { narrative: -1, belonging_solidarity: -0.5 },
   resilience_narrative_positive: { narrative: +1 },
   resource_allocation_opacity: { community_capital: -0.7, leadership: -0.4, wellbeing_at_risk: -0.4 },
   resource_allocation_transparency: { community_capital: +0.7, leadership: +0.4, wellbeing_at_risk: +0.3 },
@@ -178,7 +180,9 @@ export const SIGNAL_TO_COMPONENTS = {
   service_disruption: { functional_continuity: -1.5, wellbeing_at_risk: -0.4 },
   sleep_disruption_population: { wellbeing_at_risk: -0.7 },
   social_isolation: { belonging_solidarity: -1, wellbeing_at_risk: -0.8 },
-  solidarity_help_others: { belonging_solidarity: +1, wellbeing_at_risk: +0.7, community_capital: +0.6, narrative: +0.3 },
+  // Epoch 2026-07-15b: dropped narrative +0.3 — helping acts are not
+  // narrative-story evidence and only inflated narrative signal counts.
+  solidarity_help_others: { belonging_solidarity: +1, wellbeing_at_risk: +0.7, community_capital: +0.6 },
   substance_use_uptick: { wellbeing_at_risk: -0.6 },
   suicide_self_harm_indicator: { wellbeing_at_risk: -1, narrative: -0.3 },
   supply_chain_disruption: { functional_continuity: -0.9, community_capital: -0.4 },
@@ -189,6 +193,7 @@ export const SIGNAL_TO_COMPONENTS = {
   unsafe_gathering: { lifesaving_behavior: -0.9 },
   volunteer_donor_fatigue: { community_capital: -0.7 },
   wellbeing_support_accessed: { community_capital: +0.5, functional_continuity: +0.4 },
+  wellbeing_support_gap: { wellbeing_at_risk: -0.8, community_capital: -0.3 },
   workplace_flexibility_response: { functional_continuity: +0.6, wellbeing_at_risk: +0.5 },
 };
 
@@ -210,6 +215,8 @@ const ADDITIONAL_PRIMARY_EDGES = {
   connectivity_outage: ['information_communication'],
   evacuation_displacement: ['wellbeing_at_risk'],
   moral_injury_narrative: ['wellbeing_at_risk'],
+  // "The state forgot us" is a direct observation of leadership trust, not spillover.
+  institutional_abandonment_perception: ['leadership'],
 };
 
 /** @type {Record<string, Record<string, 'primary'|'inferred'>>} */

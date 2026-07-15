@@ -35,6 +35,7 @@ export const SCORING_PRIORS_BY_TYPE = {
   domestic_violence_indicator: {"expected_phases":["response","recovery"],"intensity_floor":"moderate","expects_quantification":false},
   suicide_self_harm_indicator: {"expected_phases":["response","recovery"],"intensity_floor":"moderate","expects_quantification":false},
   population_survey_finding: { expects_quantification: true, allowed_intensities: ['moderate', 'severe'] },
+  wellbeing_support_gap: { time_horizon: 'cumulative', temporal_half_life_days: 21 },
   complacency_or_normalization: {"expected_phases":["response","recovery"],"time_horizon":"cumulative","phase_mismatch_discount":0.85,"temporal_half_life_days":14},
   environmental_damage_acute: { expected_phases: ['response', 'recovery'], temporal_half_life_days: 30 },
   hostage_return_event: { expected_phases: ['response', 'recovery'], temporal_half_life_days: 30 },

@@ -14,9 +14,10 @@ import {
 import { buildDuplicateOccurrenceIndex } from '../../epistemic/massContribution.js';
 import { collectComponentItems } from '../../epistemic/componentItems.js';
 import { defaultSignalWeights } from '../signals/signalWeights.js';
-import { hasStrongComponentLink } from '../signals/signalRouter.js';
+import { getComponentWeight, getRoutingRole, hasStrongComponentLink } from '../signals/signalRouter.js';
 import { SIGNAL_PROVENANCE } from '../signals/evidenceEligibility.js';
 import { buildRefKey } from '../narrativeGrounding/signalRefRegistry.js';
+import { comparePoolItems, inferredPoolRenderMode, routingLabelSuffix } from './routingLabel.js';
 
 const CONTEXT_PROVENANCES = new Set([
   SIGNAL_PROVENANCE.macro_national,
@@ -71,13 +72,16 @@ function clipEvidence(signal, maxChars) {
  * @param {object} signal
  * @param {'scored' | 'context_only' | 'quarantined' | 'investigation_only'} role
  * @param {number} maxChars
+ * @param {string} [componentId] When given, stamps the routing rationale
+ *   (routing_role/routing_weight) for the edge that put this signal here.
  * @returns {object|null}
  */
-export function poolItemFromSignal(signal, role, maxChars) {
+export function poolItemFromSignal(signal, role, maxChars, componentId) {
   const evidence = clipEvidence(signal, maxChars);
   if (!evidence) return null;
   const url = signal?.article_url;
   const cleanUrl = url && url !== '(no url)' && url !== 'null' ? url : null;
+  const signalType = signal?.signal_type ?? signal?.type ?? null;
   return {
     ref: buildRefKey(signal),
     evidence,
@@ -86,7 +90,11 @@ export function poolItemFromSignal(signal, role, maxChars) {
     url: cleanUrl,
     operator_epistemic_role: role,
     signal_provenance: signal?.signalProvenance ?? null,
-    signal_type: signal?.signal_type ?? signal?.type ?? null,
+    signal_type: signalType,
+    routing_role: componentId && signalType ? getRoutingRole(signalType, componentId) : null,
+    routing_weight: componentId && signalType
+      ? getComponentWeight(signalType, componentId) ?? null
+      : null,
   };
 }
 
@@ -118,11 +126,12 @@ export function buildComponentInvestigationPool(componentId, narrativeScopeSigna
     const signalType = item.signal?.signal_type ?? item.signal?.type;
     if (!hasStrongComponentLink(signalType, componentId)) continue;
     const role = assignOperatorEpistemicRole(item.signal, scoringSet, quarantineSet);
-    const entry = poolItemFromSignal(item.signal, role, maxChars);
+    const entry = poolItemFromSignal(item.signal, role, maxChars, componentId);
     if (!entry || seenRefs.has(entry.ref)) continue;
     seenRefs.add(entry.ref);
     pool.push({ ...entry, contribution: Math.abs(item.contribution) });
   }
+  pool.sort(comparePoolItems);
   return pool;
 }
 
@@ -158,20 +167,22 @@ export function buildDeterministicNarrativeFromClaims(claims) {
  */
 export function buildHighlightedEvidenceFromPool(pool) {
   const perSource = operatorHighlightPerSource();
+  const hideInferred = inferredPoolRenderMode() === 'hide';
   const bySource = groupPoolItemsBySource(pool);
   const highlighted = [];
   for (const { items } of bySource) {
-    const sorted = [...items].sort(
-      (a, b) => (b.contribution ?? 0) - (a.contribution ?? 0),
-    );
+    const eligible = hideInferred
+      ? items.filter((item) => item.routing_role !== 'inferred')
+      : items;
+    const sorted = [...eligible].sort(comparePoolItems);
     for (const item of sorted.slice(0, perSource)) {
       const rest = stripContributionField(item);
       const url = item.url;
-      const md = url ? `- ${item.evidence} [source](${url})` : `- ${item.evidence}`;
+      const base = url ? `- ${item.evidence} [source](${url})` : `- ${item.evidence}`;
       highlighted.push({
         ...rest,
         text: item.evidence,
-        markdown: md,
+        markdown: `${base}${routingLabelSuffix(item)}`,
       });
     }
   }

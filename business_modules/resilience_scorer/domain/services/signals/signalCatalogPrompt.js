@@ -30,6 +30,7 @@ export const DISAMBIGUATION_PRIORITY_TYPES = [
   'institutional_abandonment_perception',
   'infrastructure_damage_acute',
   'routine_disruption',
+  'wellbeing_support_gap',
 ];
 
 /**

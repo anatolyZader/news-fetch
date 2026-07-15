@@ -57,6 +57,10 @@ function assessmentForMarkdown(assessment) {
     components: (assessment.components ?? []).map((c) => ({
       ...c,
       narrative: c.narrative_operator ?? c.narrative,
+      // Section writer prepends its own "- "; operator bullets already carry one.
+      evidence: c.evidence_operator?.length
+        ? c.evidence_operator.map((e) => String(e).replace(/^-\s+/, ''))
+        : c.evidence,
     })),
   };
 }

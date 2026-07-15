@@ -1,6 +1,5 @@
 /**
- * Closed-vocabulary signal catalog — the shared extraction TAXONOMY: which
- * signal types exist, how the LLM distinguishes them, and how legacy names
+ * Closed-vocabulary signal catalog — the shared extraction TAXONOMY: which signal types exist, how the LLM distinguishes them, and how legacy names
  * canonicalize. Scoring policy (component routing weights, routing roles,
  * scoring priors, polarity-override whitelist) is owned by the
  * resilience_scorer business module (domain/services/signals/signalRouting.js,
@@ -23,7 +22,7 @@
  *   defaultPolarity, scoring flips the sign of the routing weights.
  */
 
-export const CATALOG_VERSION = 'v7';
+export const CATALOG_VERSION = 'v8';
 
 /**
  * Legacy type-name aliases accepted at ingestion. Aliases are NOT catalog
@@ -117,7 +116,7 @@ export const SIGNAL_CATALOG = [
     example_evidence: ['Residents brought food to elderly neighbors who could not reach shelters'],
   },
   { type: 'community_volunteering', domain: 'social', signal_class: 'behavior', label: 'Organized or spontaneous volunteering', defaultPolarity: 'positive' },
-  { type: 'social_isolation', domain: 'social', signal_class: 'behavior', label: 'Residents withdraw, are isolated, or excluded', defaultPolarity: 'negative', mirror: 'solidarity_help_others' },
+  { type: 'social_isolation', domain: 'social', signal_class: 'behavior', label: 'Residents withdraw, are isolated, or excluded — including observed weakening of community ties, cohesion, or mutual involvement', defaultPolarity: 'negative', mirror: 'solidarity_help_others' },
   { type: 'conflict_or_tension', domain: 'social', signal_class: 'behavior', label: 'Reported conflicts, scapegoating, or inter-group tension', defaultPolarity: 'negative' },
   { type: 'conflict_resolution', domain: 'social', signal_class: 'behavior', indicator_kind: 'response', label: 'Community actors resolve conflicts constructively, enabling cooperation (mediation, compromise, de-escalation)', defaultPolarity: 'positive' },
   { type: 'religious_coping_practice', domain: 'social', signal_class: 'behavior', indicator_kind: 'response', label: 'Faith-based communal coping (prayer assemblies, tehillim groups, ritualized mourning)', defaultPolarity: 'positive' },
@@ -217,7 +216,11 @@ export const SIGNAL_CATALOG = [
     example_evidence: ['Residents self-evacuated from Kiryat Shmona before the municipality issued orders'],
   },
   { type: 'displacement_resolved', domain: 'continuity', signal_class: 'event', label: 'Evacuees return home or displacement is visibly resolved (mirror of evacuation_displacement)', defaultPolarity: 'positive', mirror: 'evacuation_displacement' },
-  { type: 'system_overload', domain: 'continuity', signal_class: 'structural_state', label: 'Systems (healthcare, emergency, infrastructure) are overwhelmed', defaultPolarity: 'negative', mirror: 'system_resilience_under_load' },
+  { type: 'system_overload', domain: 'continuity', signal_class: 'structural_state', label: 'Systems (healthcare, emergency, infrastructure) are overwhelmed', defaultPolarity: 'negative', mirror: 'system_resilience_under_load',
+    disambiguation: {
+      accept_patterns: ['municipal welfare or social-services department reports it cannot meet demand'],
+    },
+  },
   { type: 'system_resilience_under_load', domain: 'continuity', signal_class: 'structural_state', label: 'A named system continues operating effectively despite documented elevated demand or disruption', defaultPolarity: 'positive', mirror: 'system_overload' },
   { type: 'economic_continuity', domain: 'continuity', signal_class: 'structural_state', label: 'Local economic activity (employment, business, commerce) sustains during the emergency', defaultPolarity: 'positive' },
   { type: 'economic_disruption', domain: 'continuity', signal_class: 'structural_state', label: 'Local economic activity is disrupted: business closures, lost income, employment freeze due to the emergency', defaultPolarity: 'negative',
@@ -258,18 +261,18 @@ export const SIGNAL_CATALOG = [
     },
   },
   { type: 'calm_confidence', domain: 'narrative', signal_class: 'attitude', label: 'Residents express calm, confidence, or sense of control', defaultPolarity: 'positive' },
-  { type: 'resilience_narrative_positive', domain: 'narrative', signal_class: 'narrative', label: 'Residents describe the community as coping effectively', defaultPolarity: 'positive',
+  { type: 'resilience_narrative_positive', domain: 'narrative', signal_class: 'narrative', label: 'Residents explicitly characterize the community\'s collective coping ("we are managing/strong") — collective self-assessment statements ONLY, never the concrete facts behind them', defaultPolarity: 'positive',
     disambiguation: {
-      not_confused_with: ['service_continuity', 'routine_maintenance', 'leadership_clear_guidance'],
+      not_confused_with: ['service_continuity', 'routine_maintenance', 'leadership_clear_guidance', 'solidarity_help_others', 'calm_confidence', 'system_resilience_under_load'],
       accept_patterns: ['residents here say we are managing fine despite the rockets'],
-      reject_patterns: ['official declaring national spirit', 'list of closed businesses or empty streets'],
+      reject_patterns: ['official declaring national spirit', 'list of closed businesses or empty streets', 'concrete helping act → solidarity_help_others', 'functioning service or institution → service_continuity / system_resilience_under_load'],
     },
   },
-  { type: 'resilience_narrative_negative', domain: 'narrative', signal_class: 'narrative', label: 'Residents contradict or reject the official coping narrative', defaultPolarity: 'negative',
+  { type: 'resilience_narrative_negative', domain: 'narrative', signal_class: 'narrative', label: 'Residents reject the coping story or describe the collective spirit as broken — collective self-assessment statements ONLY, never the concrete conditions behind them', defaultPolarity: 'negative',
     disambiguation: {
-      not_confused_with: ['political_distrust', 'institutional_abandonment_perception', 'service_disruption'],
-      accept_patterns: ['the spirit in the north has broken', 'residents feel abandoned by the state'],
-      reject_patterns: ['politician demanding policy change without community mood framing'],
+      not_confused_with: ['political_distrust', 'institutional_abandonment_perception', 'service_disruption', 'social_isolation', 'conflict_or_tension', 'bridging_capital_failure', 'system_overload', 'inequitable_resource_access', 'protective_infrastructure_absent', 'wellbeing_support_gap'],
+      accept_patterns: ['the spirit in the north has broken'],
+      reject_patterns: ['politician demanding policy change without community mood framing', 'observed decline in community ties or mutual involvement → social_isolation / conflict_or_tension', 'welfare or social-services capacity assessment → system_overload / wellbeing_support_gap', 'shelter or protection gaps → protective_infrastructure_absent / preparedness_gap_identified', 'elderly or vulnerable left without support → inequitable_resource_access / wellbeing_support_gap', 'feeling abandoned by the state → institutional_abandonment_perception'],
     },
   },
   { type: 'institutional_abandonment_perception', domain: 'narrative', signal_class: 'narrative', label: 'Residents describe feeling abandoned or forgotten by state institutions during the emergency', defaultPolarity: 'negative', related: ['resilience_narrative_positive'],
@@ -311,7 +314,15 @@ export const SIGNAL_CATALOG = [
     },
   },
   { type: 'psychological_distress', domain: 'wellbeing', signal_class: 'attitude', label: 'Named individual or survey reports accumulated trauma, PTSD, grief, or chronic sleep disruption — distinct from situational fear', defaultPolarity: 'negative' },
-  { type: 'wellbeing_support_accessed', domain: 'wellbeing', signal_class: 'structural_state', indicator_kind: 'response', label: 'Individuals or groups access psychological support, trauma care, or community wellbeing programs', defaultPolarity: 'positive' },
+  { type: 'wellbeing_support_accessed', domain: 'wellbeing', signal_class: 'structural_state', indicator_kind: 'response', label: 'Individuals or groups access psychological support, trauma care, or community wellbeing programs', defaultPolarity: 'positive', mirror: 'wellbeing_support_gap' },
+  { type: 'wellbeing_support_gap', domain: 'wellbeing', signal_class: 'structural_state', label: 'At-risk individuals or groups cannot access needed psychological, welfare, or care support (unstaffed welfare services, elderly without care, trauma care unavailable)', defaultPolarity: 'negative', mirror: 'wellbeing_support_accessed',
+    disambiguation: {
+      not_confused_with: ['wellbeing_support_accessed', 'resource_shortage', 'inequitable_resource_access', 'resilience_narrative_negative'],
+      accept_patterns: ['welfare department says it cannot reach homebound elderly', 'no entity holds a complete picture of elderly and disabled residents'],
+      reject_patterns: ['support exists but is distributed unequally across subgroups → inequitable_resource_access', 'general supply shortage not specific to care/support → resource_shortage'],
+    },
+    example_evidence: ['Social services director: there is no body in the community with a full picture of elderly and special-needs residents'],
+  },
   { type: 'inequitable_resource_access', domain: 'wellbeing', signal_class: 'structural_state', label: 'Unequal access to safety/resources/services across subgroups (disparities, exclusion of vulnerable populations)', defaultPolarity: 'negative' },
   { type: 'equitable_resource_distribution', domain: 'wellbeing', signal_class: 'structural_state', label: 'Resources/support are distributed fairly based on needs (equity-aware allocation, non-disparate access)', defaultPolarity: 'positive' },
   { type: 'child_distress', domain: 'wellbeing', signal_class: 'attitude', label: 'Children-specific psychological distress (regression, separation anxiety, school refusal) — distinct from general psychological_distress', defaultPolarity: 'negative' },

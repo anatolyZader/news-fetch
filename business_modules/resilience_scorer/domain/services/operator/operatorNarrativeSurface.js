@@ -28,6 +28,8 @@ import {
 import { formatApaCitationDate } from '../../contracts/apaCitationFormat.js';
 import { buildDeterministicNarrativeFromClaims } from './operatorInvestigationSurface.js';
 import { resolveInlineSignalCitations } from '../narrativeGrounding/inlineCitationResolver.js';
+import { getComponentWeight, getRoutingRole } from '../signals/signalRouter.js';
+import { routingLabelSuffix } from './routingLabel.js';
 
 export const INSUFFICIENT_SYNTHESIS_NARRATIVE =
   'Insufficient LLM synthesis — see supporting evidence below.';
@@ -491,19 +493,26 @@ function formatEvidenceBullet(text, url) {
  * @param {string|null|undefined} [fallbackText]
  * @returns {object|null}
  */
-function structuredItemFromSignal(signal, fallbackText, refOverride = null) {
+function structuredItemFromSignal(signal, fallbackText, refOverride = null, componentId = null) {
   const text = String(signal?.evidence ?? fallbackText ?? '').trim().slice(0, maxEvidenceLineChars());
   if (!text) return null;
   const meta = metaFromSignal(signal);
   const ref = refOverride ?? (signal ? buildRefKey(signal) : null);
-  return {
+  const signalType = signal?.signal_type ?? signal?.type ?? null;
+  const item = {
     text,
     ref,
     source_type: meta.source_type,
     article_source: meta.article_source,
     url: meta.url,
-    markdown: formatEvidenceBullet(text, meta.url),
+    signal_type: signalType,
+    routing_role: componentId && signalType ? getRoutingRole(signalType, componentId) : null,
+    routing_weight: componentId && signalType
+      ? getComponentWeight(signalType, componentId) ?? null
+      : null,
   };
+  item.markdown = `${formatEvidenceBullet(text, meta.url)}${routingLabelSuffix(item)}`;
+  return item;
 }
 
 /**
@@ -514,7 +523,7 @@ function structuredItemFromSignal(signal, fallbackText, refOverride = null) {
 function structuredItemsFromClaim(claim, comp) {
   const refs = claim.signal_refs ?? claim.evidence_refs ?? [];
   const fromRefs = refs
-    .map((ref) => structuredItemFromSignal(resolveSignalForRef(ref, comp), null, ref))
+    .map((ref) => structuredItemFromSignal(resolveSignalForRef(ref, comp), null, ref, comp?.component_id))
     .filter(Boolean);
   if (fromRefs.length > 0) return fromRefs;
 

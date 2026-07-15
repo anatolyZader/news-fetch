@@ -293,6 +293,24 @@ function componentEvidenceSource(c) {
 }
 
 /**
+ * Routing rationale suffix carried on structured evidence items (stamped by
+ * resilience_scorer's operator surface). Markdown is rebuilt from text+url
+ * after translation, so the label must be re-appended or it is lost.
+ * @param {{ signal_type?: string|null, routing_role?: string|null, routing_weight?: number|null }} e
+ * @returns {string}
+ */
+function routingLabelSuffix(e) {
+  if (!e?.signal_type) return '';
+  const role = e.routing_role ?? 'primary';
+  let weightPart = '';
+  if (Number.isFinite(e.routing_weight)) {
+    const sign = e.routing_weight > 0 ? '+' : '';
+    weightPart = ` ${sign}${e.routing_weight}`;
+  }
+  return ` \`${e.signal_type} · ${role}${weightPart}\``;
+}
+
+/**
  * @param {object} c
  * @param {boolean} useEvidenceField
  * @param {object[]} translatedStructured
@@ -415,7 +433,8 @@ export async function getTranslatedReport(report, lang) {
         const originalText = e.textOriginal ?? e.text ?? '';
         const translatedText = row?.text || originalText;
         const url = e.url ?? null;
-        const markdown = url ? `- ${translatedText} [source](${url})` : `- ${translatedText}`;
+        const base = url ? `- ${translatedText} [source](${url})` : `- ${translatedText}`;
+        const markdown = `${base}${routingLabelSuffix(e)}`;
         return { ...e, textOriginal: originalText, text: translatedText, markdown };
       });
       const translatedNarrative = chunk.narrative ?? narrativeSource;

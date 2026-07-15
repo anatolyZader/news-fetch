@@ -15,6 +15,7 @@ import {
   validateSignalRouting,
   assertValidSignalRouting,
   assertCatalogPolarityCoherence,
+  getRoutingRole,
 } from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalCatalog.js';
 import { COMPONENT_IDS } from '../../../../../business_modules/resilience_scorer/domain/contracts/componentIds.js';
 
@@ -99,8 +100,8 @@ const V5_NEW_TYPES = [
 ];
 
 describe('signalCatalog v6', () => {
-  it('has catalog version v7 and ~165 types', () => {
-    assert.equal(CATALOG_VERSION, 'v7');
+  it('has catalog version v8 and ~165 types', () => {
+    assert.equal(CATALOG_VERSION, 'v8');
     assert.ok(SIGNAL_TYPES.length >= 165, `expected >=165 types, got ${SIGNAL_TYPES.length}`);
   });
 
@@ -220,5 +221,42 @@ describe('signalCatalog v6', () => {
     assert.equal(SIGNAL_TO_COMPONENTS.hostage_family_advocacy.wellbeing_at_risk, undefined);
     assert.equal(SIGNAL_TO_COMPONENTS.wellbeing_support_accessed.wellbeing_at_risk, undefined);
     assert.equal(SIGNAL_TO_COMPONENTS.wellbeing_support_accessed.community_capital, 0.5);
+  });
+});
+
+describe('signalCatalog v8', () => {
+  it('adds wellbeing_support_gap as reciprocal mirror with routing and priors', () => {
+    const gap = SIGNAL_CATALOG.find((s) => s.type === 'wellbeing_support_gap');
+    const accessed = SIGNAL_CATALOG.find((s) => s.type === 'wellbeing_support_accessed');
+    assert.ok(gap, 'wellbeing_support_gap missing from catalog');
+    assert.equal(gap.defaultPolarity, 'negative');
+    assert.equal(gap.mirror, 'wellbeing_support_accessed');
+    assert.equal(accessed.mirror, 'wellbeing_support_gap');
+    assert.equal(SIGNAL_TO_COMPONENTS.wellbeing_support_gap.wellbeing_at_risk, -0.8);
+    assert.equal(SIGNAL_TO_COMPONENTS.wellbeing_support_gap.community_capital, -0.3);
+    assert.equal(getScoringPriors('wellbeing_support_gap').time_horizon, 'cumulative');
+  });
+
+  it('restricts resilience_narrative_* to collective self-assessment via disambiguation', () => {
+    const neg = SIGNAL_CATALOG.find((s) => s.type === 'resilience_narrative_negative');
+    const pos = SIGNAL_CATALOG.find((s) => s.type === 'resilience_narrative_positive');
+    assert.ok(neg.disambiguation.not_confused_with.includes('social_isolation'));
+    assert.ok(neg.disambiguation.not_confused_with.includes('wellbeing_support_gap'));
+    assert.ok(!neg.disambiguation.accept_patterns.some((p) => p.includes('abandoned by the state')),
+      'abandonment accept-pattern conflicts with institutional_abandonment_perception');
+    assert.ok(pos.disambiguation.not_confused_with.includes('solidarity_help_others'));
+  });
+
+  it('epoch 2026-07-15b routing edits', () => {
+    // Cohesion-decline misuse reaches belonging as a visible inferred edge.
+    assert.equal(SIGNAL_TO_COMPONENTS.resilience_narrative_negative.belonging_solidarity, -0.5);
+    assert.equal(getRoutingRole('resilience_narrative_negative', 'belonging_solidarity'), 'inferred');
+    // Positive twin intentionally NOT mirrored (would flood belonging with mass).
+    assert.equal(SIGNAL_TO_COMPONENTS.resilience_narrative_positive.belonging_solidarity, undefined);
+    // Helping acts are not narrative-story evidence.
+    assert.equal(SIGNAL_TO_COMPONENTS.solidarity_help_others.narrative, undefined);
+    // Abandonment perception is a direct leadership-trust observation.
+    assert.equal(getRoutingRole('institutional_abandonment_perception', 'leadership'), 'primary');
+    assert.equal(SIGNAL_TO_COMPONENTS.institutional_abandonment_perception.leadership, -0.5);
   });
 });
