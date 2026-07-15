@@ -11,6 +11,7 @@ export const FIELD_PROVENANCE_FIELDS = [
 
 const FIELD_SOURCE_TYPES = new Set([
   'field',
+  'visits', // canonical assess-time alias of 'field' (see visitsSourceType.js)
   'field_whatsapp',
   'pbo',
   'pbo_regional',

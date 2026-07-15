@@ -27,6 +27,7 @@ export const SOFT_DIGITAL_SOURCE_TYPES = new Set([
 
 export const FIELD_SOURCE_TYPES = new Set([
   'field',
+  'visits', // canonical assess-time alias of 'field' (see visitsSourceType.js)
   'field_whatsapp',
   'pbo',
   'pbo_regional',
@@ -49,6 +50,7 @@ export const CAP_EXEMPT_SOURCE_TYPES = new Set([
   'pbo_regional',
   'naftali',
   'field',
+  'visits', // canonical assess-time alias of 'field' (see visitsSourceType.js)
 ]);
 
 const ALL_DIGITAL_CHANNELS = [...DIGITAL_SOURCE_TYPES];

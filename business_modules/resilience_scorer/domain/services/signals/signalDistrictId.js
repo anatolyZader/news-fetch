@@ -10,6 +10,7 @@ import {
  */
 export const DEFAULT_NORTH_SOURCE_TYPES = Object.freeze([
   'field',
+  'visits', // canonical assess-time alias of 'field' (see visitsSourceType.js)
   'field_whatsapp',
   'pbo',
   'pbo_regional',

@@ -163,7 +163,9 @@ function buildComponentScoreResult({
     source_diversity:        sourceSet.size,
     signal_class_mix:        computeSignalClassMix(cappedItems),
     derived_indicators:      computeDerivedIndicators(id, cappedItems, batchMassByType),
-    source_cap_binding:      sourceCapBinding,
+    // Binding requires material effect: the cap must have moved the score,
+    // not merely grazed a contribution (see sourceCapWasApplied note).
+    source_cap_binding:      sourceCapBinding && suppressionDelta != null && suppressionDelta !== 0,
     signals:                 enrichedSignals,
     facets:                  computeFacets(id, enrichedSignals, totalArticles),
   };

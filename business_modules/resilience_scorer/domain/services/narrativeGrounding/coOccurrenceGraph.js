@@ -4,7 +4,7 @@
 
 import { signalArticleKey } from './signalRefRegistry.js';
 
-const FIELD_FAMILY = new Set(['field', 'pbo', 'pbo_regional', 'naftali', 'whatsapp']);
+const FIELD_FAMILY = new Set(['field', 'visits', 'pbo', 'pbo_regional', 'naftali', 'whatsapp']);
 
 /**
  * @param {{ byRef: Map<string, object> }} registry

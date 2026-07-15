@@ -82,7 +82,7 @@ export function applyWhatsappSenderCaps(signals, env = process.env) {
 export function applyFieldCorroborationGaming(signals) {
   const list = Array.isArray(signals) ? signals : [];
   const hasNonWaField = list.some((s) =>
-    ['field', 'pbo', 'pbo_regional', 'naftali'].includes(s?.source_type),
+    ['field', 'visits', 'pbo', 'pbo_regional', 'naftali'].includes(s?.source_type),
   );
   const hasNewsRadio = list.some((s) => ['news', 'radio'].includes(s?.source_type));
 

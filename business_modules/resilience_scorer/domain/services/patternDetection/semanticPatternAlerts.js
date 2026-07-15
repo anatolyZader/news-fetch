@@ -3,7 +3,7 @@
  */
 
 const OFFICIAL_SOURCE_TYPES = new Set(['radio', 'news', 'pbo', 'pbo_regional', 'naftali']);
-const LOCAL_SOURCE_TYPES = new Set(['whatsapp', 'social', 'field', 'field_whatsapp']);
+const LOCAL_SOURCE_TYPES = new Set(['whatsapp', 'social', 'field', 'visits', 'field_whatsapp']);
 
 const CLARITY_TYPES = new Set([
   'information_clarity',

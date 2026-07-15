@@ -1,9 +1,15 @@
-import { describe, it } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { applySourceCap, applyPboSettlementCap } from '../../../../../business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js';
 
 describe('evidenceCaps', () => {
+  beforeEach(() => {
+    // Pin default thresholds — the host env may carry temporary cap overrides.
+    delete process.env.RESILIENCE_SOURCE_TYPE_CAP;
+    delete process.env.RESILIENCE_ARTICLE_SOURCE_CAP;
+  });
+
   it('applyPboSettlementCap limits one settlement dominance', () => {
     const items = [
       { signal: { source_type: 'pbo', article_source: 'pbo-abelin' }, contribution: 6, polarity: '+' },

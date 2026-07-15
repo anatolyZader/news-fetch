@@ -175,7 +175,9 @@ function syncMissingClaimCitations(prose, comp, registry, reportDate) {
   const dateLabel = formatApaCitationDate(reportDate);
   if (!prose || !componentId || !dateLabel || !registry?.byRef?.size) return prose;
 
-  const missing = [];
+  // Dedup by visible label (author + date), not the full link string — anchors
+  // differ per signal, so identical-looking labels would otherwise repeat.
+  const missingByLabel = new Map();
   for (const claim of comp.narrative_claims ?? comp.claims ?? []) {
     for (const ref of claim.signal_refs ?? claim.evidence_refs ?? []) {
       if (proseIncludesRef(prose, ref, componentId)) continue;
@@ -183,13 +185,15 @@ function syncMissingClaimCitations(prose, comp, registry, reportDate) {
       if (!entry) continue;
       const source = apaSourceFromSignalEntry(entry);
       if (!source?.author) continue;
-      missing.push(`[${source.author}](${evidenceAnchorHref(componentId, ref)}), ${dateLabel}`);
+      const label = `${source.author}, ${dateLabel}`;
+      if (!missingByLabel.has(label)) {
+        missingByLabel.set(label, `[${source.author}](${evidenceAnchorHref(componentId, ref)}), ${dateLabel}`);
+      }
     }
   }
-  if (missing.length === 0) return prose;
-  const unique = [...new Set(missing)];
+  if (missingByLabel.size === 0) return prose;
   const trimmed = prose.trim().replace(/\.\s*$/, '');
-  return `${trimmed} (${unique.join('; ')}).`;
+  return `${trimmed} (${[...missingByLabel.values()].join('; ')}).`;
 }
 
 function applyCitationResolverToField(text, registry, reportDate, componentId = null, comp = null) {

@@ -24,7 +24,7 @@ const HIGH_TRUST_EVIDENCE = new Set([
   'direct_evidence',
 ]);
 
-const TRUSTED_SOURCE_TYPES = new Set(['field', 'field_whatsapp', 'pbo']);
+const TRUSTED_SOURCE_TYPES = new Set(['field', 'visits', 'field_whatsapp', 'pbo']);
 
 /** Curated types where a lone verified report must not be suppressed. */
 export const CRITICAL_BYPASS_SIGNAL_TYPES = new Set([
@@ -77,7 +77,7 @@ export function findDominantContributor(items) {
 
 function effectiveScope(signal) {
   if (signal.scope_level) return signal.scope_level;
-  return signal.source_type === 'field' || signal.source_type === 'field_whatsapp' ? 'repeated_pattern' : 'single_case';
+  return signal.source_type === 'field' || signal.source_type === 'visits' || signal.source_type === 'field_whatsapp' ? 'repeated_pattern' : 'single_case';
 }
 
 function hasCriticalStakes(signal) {

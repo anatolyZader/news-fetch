@@ -29,7 +29,7 @@ export const RELIABILITY_WEIGHT = {
   observational_evidence: 0.75,
 };
 
-const FIELD_SOURCE_TYPES = new Set(['field', 'field_whatsapp', 'pbo', 'pbo_regional', 'naftali']);
+const FIELD_SOURCE_TYPES = new Set(['field', 'visits', 'field_whatsapp', 'pbo', 'pbo_regional', 'naftali']);
 const PRESS_SOURCE_TYPES = new Set(['news', 'radio']);
 
 const OUTLET_PRIOR_APPLIES_TO = new Set([
@@ -60,7 +60,7 @@ function isGeoVerifiedPress(signal) {
 }
 
 function defaultScopeLevel(signal) {
-  const isField = signal.source_type === 'field' || signal.source_type === 'field_whatsapp';
+  const isField = signal.source_type === 'field' || signal.source_type === 'visits' || signal.source_type === 'field_whatsapp';
   if (isField || isFieldFamilySource(signal)) return 'repeated_pattern';
   if (isGeoVerifiedPress(signal)) return 'repeated_pattern';
   return 'single_case';
