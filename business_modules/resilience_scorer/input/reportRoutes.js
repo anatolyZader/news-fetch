@@ -70,6 +70,31 @@ function attachScoreBySourceIfMissing(store, getCachedReportFn, report, { bodySc
   return { ...report, score_by_source: redactScoreBySource(cached.score_by_source, view) };
 }
 
+function reportNotFoundPayload(scope, dateParam, runParam) {
+  if (isRegionalReportScope(scope)) {
+    return {
+      found: false,
+      code: 'regional_requires_assess_signals',
+      hint: 'regional_requires_assess_signals',
+      scope,
+      message:
+        `No ${scope}-scoped report found. Run assess-signals with --scope ${scope} after signal files exist.`,
+    };
+  }
+  let message = 'No national report found for today. Run assess-signals to generate one.';
+  if (dateParam) {
+    const runSuffix = runParam ? ` (run ${runParam})` : '';
+    message = `No national report found for ${dateParam}${runSuffix}.`;
+  }
+  return {
+    found: false,
+    code: 'national_report_not_found',
+    hint: 'national_report_not_found',
+    scope,
+    message,
+  };
+}
+
 /**
  * @param {import('fastify').FastifyInstance} app
  * @param {object} opts
@@ -232,25 +257,7 @@ export async function reportRoutes(app, opts) {
       runId: runParam || undefined,
     });
     if (!data) {
-      if (isRegionalReportScope(scope)) {
-        return reply.send({
-          found: false,
-          code: 'regional_requires_assess_signals',
-          hint: 'regional_requires_assess_signals',
-          scope,
-          message:
-            `No ${scope}-scoped report found. Run assess-signals with --scope ${scope} after signal files exist.`,
-        });
-      }
-      return reply.send({
-        found: false,
-        code: 'national_report_not_found',
-        hint: 'national_report_not_found',
-        scope,
-        message: dateParam
-          ? `No national report found for ${dateParam}${runParam ? ` (run ${runParam})` : ''}.`
-          : 'No national report found for today. Run assess-signals to generate one.',
-      });
+      return reply.send(reportNotFoundPayload(scope, dateParam, runParam));
     }
     const display_view = resolveDisplayView({
       queryView: request.query?.view,

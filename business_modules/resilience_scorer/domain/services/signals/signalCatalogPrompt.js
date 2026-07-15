@@ -71,7 +71,7 @@ function formatEntryDisambiguation(entry) {
 
   const lines = [`- \`${entry.type}\`:`];
   if (entry.mirror) {
-    lines.push(`  Mirror (opposite outcome): \`${entry.mirror}\``);
+    lines.push(`  MIRROR: \`${entry.mirror}\``);
   }
   if (entry.related?.length) {
     lines.push('  Related: ' + entry.related.map((t) => '`' + t + '`').join(', '));
@@ -85,8 +85,12 @@ function formatEntryDisambiguation(entry) {
   for (const p of d?.reject_patterns ?? []) {
     lines.push(`  REJECT: ${p}`);
   }
-  for (const ex of entry.example_evidence ?? []) {
-    lines.push(`  EXAMPLE: ${ex}`);
+  // EXAMPLE duplicates ACCEPT's role as a positive exemplar — emit it only
+  // when no accept_patterns exist (the stable prefix has a hard char budget).
+  if (!d?.accept_patterns?.length) {
+    for (const ex of entry.example_evidence ?? []) {
+      lines.push(`  EXAMPLE: ${ex}`);
+    }
   }
   return lines.join('\n');
 }
@@ -116,9 +120,9 @@ export function formatDisambiguationBlock(opts = {}) {
   }
 
   return (
-    'Catalog-driven boundaries (types with explicit disambiguation metadata):\n' +
+    'Catalog-driven boundaries:\n' +
     `${blocks.join('\n')}\n\n` +
-    'For all other types, follow domain labels and mirror pairs in the catalog list.\n'
+    'Other types: follow catalog labels and mirror pairs.\n'
   );
 }
 
