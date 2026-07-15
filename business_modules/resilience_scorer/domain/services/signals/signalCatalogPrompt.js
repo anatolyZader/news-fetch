@@ -31,6 +31,8 @@ export const DISAMBIGUATION_PRIORITY_TYPES = [
   'infrastructure_damage_acute',
   'routine_disruption',
   'wellbeing_support_gap',
+  'information_inclusivity_gap',
+  'feedback_channel_blocked',
 ];
 
 /**
@@ -73,9 +75,8 @@ function formatEntryDisambiguation(entry) {
   if (entry.mirror) {
     lines.push(`  MIRROR: \`${entry.mirror}\``);
   }
-  if (entry.related?.length) {
-    lines.push('  Related: ' + entry.related.map((t) => '`' + t + '`').join(', '));
-  }
+  // `related` is deliberately NOT emitted: it's a loose association with no
+  // polarity implication — the weakest guidance per char in a hard-budgeted prefix.
   if (d?.not_confused_with?.length) {
     lines.push('  NOT: ' + d.not_confused_with.map((t) => '`' + t + '`').join(', '));
   }
