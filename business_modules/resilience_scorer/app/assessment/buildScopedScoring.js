@@ -127,13 +127,14 @@ export async function buildScopedScoring(targetDate, days, allSignals, totalArti
   } catch (err) {
     if (err?.code === 'empty_scoped_evidence') {
       const suffix = formatDaysSuffix(days);
-      throw new Error(`No signal files contained ${reportScope.label} evidence for ${targetDate}${suffix}.`);
+      throw new Error(`No signal files contained ${reportScope.label} evidence for ${targetDate}${suffix}.`, { cause: err });
     }
     if (err?.code === 'default_north_threshold_exceeded') {
       const gate = err.gate ?? {};
       throw new Error(
         `Default-north fallback ${gate.pct ?? '?'}% exceeds threshold ${gate.thresholdPct ?? '?'}% `
         + `(${gate.count ?? '?'} signals) — fix extractor district_id or set RESILIENCE_DEFAULT_NORTH_GATE_BLOCK=0`,
+        { cause: err },
       );
     }
     throw err;
