@@ -1,6 +1,11 @@
 /**
  * Compact resilience report basenames: {scope}-{days}-{DDMMYY}-{HHmm}
  * e.g. north-3-230526-1545  → north scope, 3-day window ending 2026-05-23, run at 15:45 UTC
+ *
+ * Unlike its siblings in paths/ (which resolve absolute paths from repoRoot),
+ * this module is filename format + parsing only, by design: callers pass an
+ * already-resolved reportsDir and it works on basenames/regexes (compact + 3
+ * legacy formats).
  */
 import { join } from 'node:path';
 import { resolveStateStore } from '../../../../../cross-cut-modules/persistence/domain/resolveStateStore.js';

@@ -3,7 +3,7 @@
  * Shared post-extraction assessment: scope → investigate → score → narrate → post-metadata.
  * Used by assess-signals CLI and runResilienceAssessment (score before narrate).
  */
-import { scopeAndPartitionSignals } from './assessmentPipeline.js';
+import { scopeAndPartitionSignals } from './signalScopePartition.js';
 import { prepareInvestigationSignals, prepareScoringSignals } from './prepareSignals.js';
 import { runScoringPipeline } from './scoringPipelinePrep.js';
 import { deriveInvestigationEpistemicContext } from '../../domain/epistemic/investigationEpistemicContext.js';

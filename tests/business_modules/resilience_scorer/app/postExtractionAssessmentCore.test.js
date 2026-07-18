@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { scopeAndPartitionSignals } from '../../../../business_modules/resilience_scorer/app/assessment/assessmentPipeline.js';
+import { scopeAndPartitionSignals } from '../../../../business_modules/resilience_scorer/app/assessment/signalScopePartition.js';
 import { prepareInvestigationSignals, prepareScoringSignals } from '../../../../business_modules/resilience_scorer/app/assessment/prepareSignals.js';
 import { runScoringPipeline } from '../../../../business_modules/resilience_scorer/app/assessment/scoringPipelinePrep.js';
 import { attachInvestigationDiagnostics } from '../../../../business_modules/resilience_scorer/domain/services/operator/componentDiagnostics.js';

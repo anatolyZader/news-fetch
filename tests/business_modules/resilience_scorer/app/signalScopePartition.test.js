@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import {
   filterCasualtyNoiseFromAnalysisSignals,
   scopeAndPartitionSignals,
-} from '../../../../business_modules/resilience_scorer/app/assessment/assessmentPipeline.js';
+} from '../../../../business_modules/resilience_scorer/app/assessment/signalScopePartition.js';
 
-describe('assessmentPipeline.scopeAndPartitionSignals', () => {
+describe('signalScopePartition.scopeAndPartitionSignals', () => {
   it('returns national scoped signals unchanged for national scope', () => {
     const signals = [{ signal_type: 'foo', evidence: 'test signal', scopeDecision: { inScope: true } }];
     const out = scopeAndPartitionSignals(signals, 'national');
