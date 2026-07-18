@@ -4,12 +4,10 @@
 
 import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
-import { withLlmRetry } from '../../../cross-cut-modules/llm/withLlmRetry.js';
-import { isTokenOverflowError } from '../domain/services/narrative/narrativePromptBudget.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { COMPONENT_IDS } from '../domain/contracts/componentIds.js';
 import { extractJson } from './claudeJsonHelpers.js';
-import { streamWithProgress } from './claudeExtraction.js';
+import { streamMessageWithRetry } from './llmStreamCall.js';
 import { narrativeFactsMaxTokens } from '../domain/services/narrativeGrounding/groundingConfig.js';
 import { chunkComponentIds } from '../domain/services/narrative/narrativePromptBudget.js';
 import {
@@ -24,15 +22,6 @@ const DEFAULT_FACTS_MODEL = process.env.RESILIENCE_NARRATIVE_FACTS_MODEL
 
 const VALID_RELATIONS = new Set(['parallel', 'same_article_only', 'none']);
 
-// Token overflow is deterministic — rethrow immediately so the pipeline's
-// overflow-rebudget escalation handles it instead of burning retries.
-function factsRetryOpts(label) {
-  return {
-    shouldRetry: (err) => !isTokenOverflowError(err),
-    onRetry: (err, attempt, wait) =>
-      console.error(`  ⚠ ${label} attempt ${attempt} failed (${err.message}) — retrying in ${wait / 1000}s...`),
-  };
-}
 
 function buildFactsSystemPrompt() {
   return (
@@ -116,25 +105,21 @@ function validateFactsOutput(parsed, registry) {
 async function extractFactsForShard(registry, componentIds, opts, shardLabel) {
   const { onUsage, retrievedSpansBlock = '', epistemicBlock = '', promptBudget } = opts;
   const port = resolveLlmPort(opts);
-  const message = await withLlmRetry(async () => {
-    const stream = await Promise.resolve(port.stream({
-      model: DEFAULT_FACTS_MODEL,
-      max_tokens: narrativeFactsMaxTokens(),
-      temperature: 0,
-      system: buildFactsSystemPrompt(),
-      messages: [{
-        role: 'user',
-        content: formatFactsUserMessageForComponents(registry, componentIds, retrievedSpansBlock, epistemicBlock),
-      }],
-      callContext: {
-        feature: 'narrative_facts',
-        purpose: shardLabel ?? '[Step 2 — Facts]',
-        promptBudget,
-      },
-    }));
-    await streamWithProgress(stream, shardLabel ?? '[Step 2 — Facts]');
-    return stream.finalMessage();
-  }, factsRetryOpts(shardLabel ?? '[Step 2 — Facts]'));
+  const message = await streamMessageWithRetry(port, {
+    model: DEFAULT_FACTS_MODEL,
+    max_tokens: narrativeFactsMaxTokens(),
+    temperature: 0,
+    system: buildFactsSystemPrompt(),
+    messages: [{
+      role: 'user',
+      content: formatFactsUserMessageForComponents(registry, componentIds, retrievedSpansBlock, epistemicBlock),
+    }],
+    callContext: {
+      feature: 'narrative_facts',
+      purpose: shardLabel ?? '[Step 2 — Facts]',
+      promptBudget,
+    },
+  }, { label: shardLabel ?? '[Step 2 — Facts]' });
   if (onUsage) {
     onUsage({ label: shardLabel ?? '[Step 2 — Facts]', model: DEFAULT_FACTS_MODEL, usage: message.usage });
   }
@@ -186,18 +171,14 @@ export async function extractNarrativeFacts(scoredComponents, opts = {}) {
   if (registry.refCount === 0) return {};
 
   const port = resolveLlmPort(opts);
-  const message = await withLlmRetry(async () => {
-    const stream = await Promise.resolve(port.stream({
-      model: DEFAULT_FACTS_MODEL,
-      max_tokens: narrativeFactsMaxTokens(),
-      temperature: 0,
-      system: buildFactsSystemPrompt(),
-      messages: [{ role: 'user', content: formatFactsUserMessage(registry, retrievedSpansBlock, epistemicBlock) }],
-      callContext: { feature: 'narrative_facts', purpose: '[Step 2 — Facts]' },
-    }));
-    await streamWithProgress(stream, '[Step 2 — Facts]');
-    return stream.finalMessage();
-  }, factsRetryOpts('[Step 2 — Facts]'));
+  const message = await streamMessageWithRetry(port, {
+    model: DEFAULT_FACTS_MODEL,
+    max_tokens: narrativeFactsMaxTokens(),
+    temperature: 0,
+    system: buildFactsSystemPrompt(),
+    messages: [{ role: 'user', content: formatFactsUserMessage(registry, retrievedSpansBlock, epistemicBlock) }],
+    callContext: { feature: 'narrative_facts', purpose: '[Step 2 — Facts]' },
+  }, { label: '[Step 2 — Facts]' });
   if (onUsage) {
     onUsage({ label: '[Step 2 — Facts]', model: DEFAULT_FACTS_MODEL, usage: message.usage });
   }

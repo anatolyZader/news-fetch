@@ -1,5 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { SONNET_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
+import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { summarizeConfidence } from '../domain/services/signals/behaviorSignals.js';
 import { overallScore } from '../app/scoringFacade.js';
@@ -25,12 +25,11 @@ import {
 } from '../domain/services/narrativeGrounding/index.js';
 import { topContributorsFromScored } from '../domain/services/operator/topContributors.js';
 import { extractJson } from './claudeJsonHelpers.js';
-import { streamWithProgress } from './claudeExtraction.js';
+import { streamMessageWithRetry } from './llmStreamCall.js';
 import { extractNarrativeFacts } from './narrativeFactsExtract.js';
 import { buildNarrativeRetrievalContext } from './narrativeRetrievalContext.js';
 import { judgeNarrativeRelations, formatJudgeFeedback } from './narrativeRelationJudge.js';
 
-const client = new Anthropic();
 const DEFAULT_NARRATIVE_MODEL = process.env.RESILIENCE_NARRATIVE_MODEL ?? SONNET_MODEL;
 
 // ─── Step 2: Narrative generation ─────────────────────────────────────────────
@@ -716,17 +715,17 @@ async function buildNarrativeGenerationContext(scoredComponents, date, totalArti
   return { systemPrompt, meta, claimsByComponent, registry };
 }
 
-async function fetchNarrativeJson(systemPrompt, date, totalArticles, feedback, attempt, onUsage, claimsByComponent) {
+async function fetchNarrativeJson(systemPrompt, date, totalArticles, feedback, attempt, onUsage, claimsByComponent, llmOpts) {
   const label = attempt > 1 ? `[Step 2 — Narratives] (retry ${attempt})` : '[Step 2 — Narratives]';
   const userContent = buildNarrativeUserMessage(date, totalArticles, feedback);
-  const stream = client.messages.stream({
+  const port = resolveLlmPort(llmOpts ?? {});
+  const message = await streamMessageWithRetry(port, {
     model: DEFAULT_NARRATIVE_MODEL,
     max_tokens: 16000,
     system: systemPrompt,
     messages: [{ role: 'user', content: userContent }],
-  });
-  await streamWithProgress(stream, label);
-  const message = await stream.finalMessage();
+    callContext: { feature: 'narrative_generation', purpose: label },
+  }, { label });
   if (onUsage) onUsage({ label: '[Step 2 — Narratives]', model: DEFAULT_NARRATIVE_MODEL, usage: message.usage });
   const textBlock = message.content.find((b) => b.type === 'text');
   if (!textBlock) throw new Error('Step 2: no text block');
@@ -788,7 +787,7 @@ function mergeGroundingIntoNarratives(narratives, grounding) {
 async function processNarrativeAttempt(ctx, attempt, maxRetries) {
   const { systemPrompt, meta, claimsByComponent, registry, scoredComponents, date, totalArticles, onUsage, pipelineDegrade } = ctx;
   let narratives = await fetchNarrativeJson(
-    systemPrompt, date, totalArticles, ctx.feedback, attempt, onUsage, claimsByComponent,
+    systemPrompt, date, totalArticles, ctx.feedback, attempt, onUsage, claimsByComponent, ctx.llmOpts,
   );
   if (!isNarrativeGroundingEnabled()) {
     return buildAssessmentPayload(narratives, scoredComponents, meta);
@@ -838,6 +837,8 @@ export async function generateNarrativesLegacy(
     oovCaptureCount = 0,
     socialChannelQuarantine = null,
     retrievalService = null,
+    llmPort = null,
+    client = null,
   } = {},
 ) {
   const setup = await buildNarrativeGenerationContext(scoredComponents, date, totalArticles, {
@@ -865,6 +866,7 @@ export async function generateNarrativesLegacy(
     date,
     totalArticles,
     onUsage,
+    llmOpts: { llmPort, client },
     feedback: '',
     pipelineDegrade,
   };
@@ -880,17 +882,6 @@ export async function generateNarrativesLegacy(
       await new Promise((r) => setTimeout(r, 5000 * attempt));
     }
   }
-}
-
-export async function generateNarratives(
-  scoredComponents,
-  allSignals,
-  date,
-  totalArticles,
-  opts = {},
-) {
-  const { closedCoreNarrate } = await import('../app/closedCoreNarrate.js');
-  return closedCoreNarrate(scoredComponents, allSignals, date, totalArticles, opts);
 }
 
 export { buildAssessmentPayload };

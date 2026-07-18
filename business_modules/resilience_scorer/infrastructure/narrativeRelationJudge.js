@@ -5,10 +5,8 @@
 
 import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
-import { withLlmRetry } from '../../../cross-cut-modules/llm/withLlmRetry.js';
-import { isTokenOverflowError } from '../domain/services/narrative/narrativePromptBudget.js';
 import { extractJson } from './claudeJsonHelpers.js';
-import { streamWithProgress } from './claudeExtraction.js';
+import { streamMessageWithRetry } from './llmStreamCall.js';
 import { resolveRef } from '../domain/services/narrativeGrounding/index.js';
 import { narrativeJudgeMaxTokens } from '../domain/services/narrativeGrounding/groundingConfig.js';
 
@@ -20,15 +18,6 @@ function batchJudgeEnabled() {
   return process.env.RESILIENCE_NARRATIVE_JUDGE_BATCH !== '0';
 }
 
-// Token overflow is deterministic — rethrow immediately so the pipeline's
-// overflow-rebudget escalation handles it instead of burning retries.
-function judgeRetryOpts(label) {
-  return {
-    shouldRetry: (err) => !isTokenOverflowError(err),
-    onRetry: (err, attempt, wait) =>
-      console.error(`  ⚠ ${label} attempt ${attempt} failed (${err.message}) — retrying in ${wait / 1000}s...`),
-  };
-}
 
 function buildJudgeSystemPrompt() {
   return (
@@ -114,18 +103,14 @@ async function judgeComponentClaimsBatch(claims, comp, registry, opts = {}) {
     blocks;
 
   const maxTokens = narrativeJudgeMaxTokens(claims.length);
-  const message = await withLlmRetry(async () => {
-    const stream = await Promise.resolve(port.stream({
-      model: DEFAULT_JUDGE_MODEL,
-      max_tokens: maxTokens,
-      temperature: 0,
-      system: buildJudgeSystemPrompt(),
-      messages: [{ role: 'user', content: userContent }],
-      callContext: { feature: 'narrative_judge', purpose: `[Step 2 — Judge batch ${comp.component_id}]` },
-    }));
-    if (!opts.skipProgress) await streamWithProgress(stream, `[Step 2 — Judge batch ${comp.component_id}]`);
-    return stream.finalMessage();
-  }, judgeRetryOpts(`[Step 2 — Judge batch ${comp.component_id}]`));
+  const message = await streamMessageWithRetry(port, {
+    model: DEFAULT_JUDGE_MODEL,
+    max_tokens: maxTokens,
+    temperature: 0,
+    system: buildJudgeSystemPrompt(),
+    messages: [{ role: 'user', content: userContent }],
+    callContext: { feature: 'narrative_judge', purpose: `[Step 2 — Judge batch ${comp.component_id}]` },
+  }, { label: `[Step 2 — Judge batch ${comp.component_id}]`, skipProgress: opts.skipProgress });
   if (opts.onUsage) {
     opts.onUsage({
       label: `[Step 2 — Judge batch ${comp.component_id}]`,
@@ -163,18 +148,14 @@ async function judgeOneNarrativeClaim(claim, comp, registry, opts = {}) {
   if (!claim?.text) return null;
   const port = resolveLlmPort(opts);
   const userContent = formatClaimForJudge(claim, registry);
-  const message = await withLlmRetry(async () => {
-    const stream = await Promise.resolve(port.stream({
-      model: DEFAULT_JUDGE_MODEL,
-      max_tokens: 512,
-      temperature: 0,
-      system: buildPerClaimSystemPrompt(),
-      messages: [{ role: 'user', content: userContent }],
-      callContext: { feature: 'narrative_judge', purpose: '[Step 2 — Judge]' },
-    }));
-    if (!opts.skipProgress) await streamWithProgress(stream, '[Step 2 — Judge]');
-    return stream.finalMessage();
-  }, judgeRetryOpts('[Step 2 — Judge]'));
+  const message = await streamMessageWithRetry(port, {
+    model: DEFAULT_JUDGE_MODEL,
+    max_tokens: 512,
+    temperature: 0,
+    system: buildPerClaimSystemPrompt(),
+    messages: [{ role: 'user', content: userContent }],
+    callContext: { feature: 'narrative_judge', purpose: '[Step 2 — Judge]' },
+  }, { label: '[Step 2 — Judge]', skipProgress: opts.skipProgress });
   if (opts.onUsage) {
     opts.onUsage({ label: '[Step 2 — Judge]', model: DEFAULT_JUDGE_MODEL, usage: message.usage });
   }
