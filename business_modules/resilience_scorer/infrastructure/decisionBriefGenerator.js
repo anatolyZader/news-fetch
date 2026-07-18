@@ -2,6 +2,7 @@
  * Single-shot LLM generation for operator decision brief JSON.
  */
 import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
+import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import {
   buildDecisionBriefSystemPrompt,
@@ -18,7 +19,7 @@ export function decisionBriefEnabled() {
 export function decisionBriefModel() {
   return process.env.RESILIENCE_DECISION_BRIEF_MODEL
     ?? process.env.RESILIENCE_VALIDATION_EXPLAIN_MODEL
-    ?? 'claude-haiku-4-5-20251001';
+    ?? HAIKU_MODEL;
 }
 
 /**

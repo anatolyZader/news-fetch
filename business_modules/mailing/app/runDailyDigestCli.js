@@ -18,20 +18,15 @@ import 'dotenv/config';
 import { bootstrapDefaultStateStore } from '../../../cross-cut-modules/persistence/bootstrapStateStore.js';
 
 bootstrapDefaultStateStore();
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createMailingPreferencesStore } from '../infrastructure/mailingPreferencesStore.js';
 import { createMailingResendAdapter } from '../infrastructure/adapters/mailingResendAdapter.js';
 import { createMailingService } from '../app/mailingService.js';
 import { createReportReadPort } from '../../resilience_scorer/index.js';
 import { createEvidenceStore } from '../../../db/persistence/evidenceStore.js';
 import { getTranslatedReport } from '../../translation/index.js';
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(__dirname, '../../..');
-const sqlitePath = process.env.SQLITE_PATH?.trim()
-  ? resolve(process.env.SQLITE_PATH.trim())
-  : resolve(repoRoot, 'db', 'app.sqlite');
+const sqlitePath = resolveSqlitePath();
 
 function isMailingConfigured() {
   if (process.env.MAILING_ENABLED === 'false') return false;

@@ -17,6 +17,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import { persistOriginalSources } from '../../../db/source_archive/persistOriginals.js';
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import {
@@ -187,7 +188,7 @@ try {
 
     // Persist to DB
     try {
-      const sqlitePath = resolve(process.cwd(), process.env.SQLITE_PATH?.trim() || 'db/app.sqlite');
+      const sqlitePath = resolveSqlitePath();
       const archive = createSourceArchive(sqlitePath);
       const { archived } = persistOriginalSources(archive, result.items);
       archive.close();

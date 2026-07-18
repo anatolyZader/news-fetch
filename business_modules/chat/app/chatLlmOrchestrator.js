@@ -185,7 +185,7 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
 export async function generateChatTitle(seedText, opts = {}) {
   const text = String(seedText ?? '').trim();
   if (!text) return null;
-  const model = 'claude-haiku-4-5-20251001';
+  const model = HAIKU_MODEL;
   const response = await getDefaultLlmPort().createMessage({
     model,
     max_tokens: 24,

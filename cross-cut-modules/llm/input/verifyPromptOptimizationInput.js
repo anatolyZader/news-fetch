@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
 import { createAnthropicLlmPort } from '../anthropicLlmAdapter.js';
+import { HAIKU_MODEL } from '../modelIds.js';
 import { createLlmGateway } from '../llmGateway.js';
 import { readJsonlRecords } from '../../log/infrastructure/jsonlLog.js';
 import { resolveLlmInvocationsPath } from '../llmInvocationLog.js';
@@ -95,7 +96,7 @@ export async function runOfflineSmoke(opts = {}) {
     const port = createLlmGateway(createAnthropicLlmPort({ client: createOfflineMockClient() }));
 
     await port.runToolLoop({
-      model: 'claude-haiku-4-5-20251001',
+      model: HAIKU_MODEL,
       system: { stable: STABLE_SYSTEM, dynamic: 'user context for verify' },
       messages: [{ role: 'user', content: 'Run lookup for test.' }],
       tools: [{
@@ -149,7 +150,7 @@ export async function runLiveSmoke(opts = {}) {
 
   try {
     await port.runToolLoop({
-      model: 'claude-haiku-4-5-20251001',
+      model: HAIKU_MODEL,
       system: { stable: STABLE_SYSTEM, dynamic: 'Live verify probe.' },
       messages: [{ role: 'user', content: 'Reply with one short sentence only. No tools needed.' }],
       tools: [],

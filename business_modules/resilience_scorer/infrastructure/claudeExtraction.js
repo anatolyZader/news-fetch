@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import {
   isMultipassEnabled,
   getMultipassGroupKeys,
@@ -38,8 +39,8 @@ import {
   persistArticleExtractCache,
 } from './extractionCacheIntegration.js';
 
-const DEFAULT_EXTRACT_MODEL = process.env.RESILIENCE_EXTRACT_MODEL ?? 'claude-haiku-4-5-20251001';
-const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? 'claude-haiku-4-5-20251001';
+const DEFAULT_EXTRACT_MODEL = process.env.RESILIENCE_EXTRACT_MODEL ?? HAIKU_MODEL;
+const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? HAIKU_MODEL;
 
 // ─── Signal catalog formatter (re-exported from domain) ─────────────────────
 

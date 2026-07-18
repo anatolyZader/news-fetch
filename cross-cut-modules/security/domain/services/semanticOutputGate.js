@@ -6,13 +6,12 @@
  */
 
 import { cosineSim } from '../../../vector_index/vectorMath.js';
+import { envFlagOn } from '../../../config/envFlags.js';
 
 const DEFAULT_EMBED_MODEL = 'text-embedding-3-small';
 
 function gateEnabled() {
-  const v = process.env.RESILIENCE_SEMANTIC_OUTPUT_GATE_ENABLED;
-  if (v == null || v === '') return false;
-  return v === '1' || v === 'true' || v === 'on';
+  return envFlagOn(process.env, 'RESILIENCE_SEMANTIC_OUTPUT_GATE_ENABLED');
 }
 
 function embeddingApiKey() {

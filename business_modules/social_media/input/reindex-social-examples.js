@@ -1,10 +1,7 @@
 #!/usr/bin/env node
 import 'dotenv/config';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
-
-const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 
 function getArg(argv, flag) {
   const i = argv.indexOf(flag);
@@ -13,7 +10,7 @@ function getArg(argv, flag) {
 
 async function main() {
   const days = Number.parseInt(getArg(process.argv, '--days') ?? '30', 10) || 30;
-  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
+  const sqlitePath = resolveSqlitePath();
   const svc = createRetrievalService({ dbPath: sqlitePath });
   const r = await svc.socialExamplesIndexWriter.reindexSocialExamples({ days });
   svc.rebuildFts();

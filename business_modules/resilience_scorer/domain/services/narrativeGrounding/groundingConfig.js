@@ -1,6 +1,7 @@
 /**
  * Env toggles for narrative grounding stack.
  */
+import { envFlagOn } from '../../../../../cross-cut-modules/config/envFlags.js';
 
 export function isNarrativeGroundingEnabled() {
   return String(process.env.RESILIENCE_NARRATIVE_GROUNDING ?? '1').trim() !== '0';
@@ -38,8 +39,7 @@ export function narrativeJudgeMaxTokens(claimCount = 1) {
 }
 
 export function isNarrativeGroundingBlockEnabled() {
-  const v = process.env.RESILIENCE_NARRATIVE_GROUNDING_BLOCK;
-  return v === '1' || v === 'true' || v === 'on';
+  return envFlagOn(process.env, 'RESILIENCE_NARRATIVE_GROUNDING_BLOCK');
 }
 
 export const EVIDENCE_OVERLAP_MIN = 0.7;

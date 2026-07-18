@@ -22,6 +22,7 @@ import { persistOriginalSources } from '../../../db/source_archive/persistOrigin
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 import { articlesToArchiveItems } from '../../../db/source_archive/articlesToArchiveItems.js';
 import { loadMarkdownArticlesFromFile } from '../../../db/source_archive/markdownArticles.js';
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 
 const args = process.argv.slice(2);
 const getArg = (flag) => { const idx = args.indexOf(flag); return idx >= 0 ? args[idx + 1] : null; };
@@ -122,7 +123,7 @@ console.error(`Wrote ${count} field-report visits to ${outputPath}`);
 
 try {
   const repoRoot = resolve(dirname(outputPath), '../../..');
-  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(repoRoot, 'db', 'app.sqlite');
+  const sqlitePath = resolveSqlitePath(process.env, repoRoot);
   const parsed = loadMarkdownArticlesFromFile(resolve(outputPath));
   const archive = createSourceArchive(sqlitePath);
   const items = articlesToArchiveItems(parsed, {

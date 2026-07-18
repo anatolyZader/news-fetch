@@ -8,7 +8,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { resilienceReportsDir, resilienceAuditsDir, resolveReportJsonPathForDate } from '../index.js';
+import { resilienceReportsDir, resilienceAuditsDir, resolveReportJsonPathForDate, divergenceArtifactPath } from '../index.js';
 
 const ROOT = resolve(fileURLToPath(new URL('../../../', import.meta.url)));
 
@@ -69,7 +69,7 @@ const validationPath = join(
 );
 const validation = loadJson(validationPath);
 
-const divergencePath = join(ROOT, 'business_modules/resilience_scorer/analyst/data/shadow', `divergence-${scope}-${date}.json`);
+const divergencePath = divergenceArtifactPath(scope, date, ROOT);
 const divergence = loadJson(divergencePath);
 
 console.log(`\n=== Pipeline audit: ${date} (${scope}) ===\n`);

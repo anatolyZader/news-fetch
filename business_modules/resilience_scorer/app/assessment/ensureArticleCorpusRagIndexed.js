@@ -4,6 +4,7 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { ragPipelineEnabled } from '../../../../cross-cut-modules/retrieval/ragConfig.js';
+import { resolveSqlitePath } from '../../../../cross-cut-modules/config/sqlitePath.js';
 import { createSourceArchive } from '../../../../db/source_archive/createSourceArchive.js';
 import { persistOriginalSources } from '../../../../db/source_archive/persistOriginals.js';
 import { buildMdSourceIdFromPath } from '../../../../db/source_archive/sourceId.js';
@@ -102,9 +103,7 @@ export async function ensureArticleCorpusRagIndexed(params) {
   let skipped = 0;
   let datesTouched = 0;
 
-  const dbPath = sqlitePath
-    ?? process.env.SQLITE_PATH?.trim()
-    ?? resolve(repoRoot, 'db', 'app.sqlite');
+  const dbPath = sqlitePath ?? resolveSqlitePath(process.env, repoRoot);
 
   const archive = createSourceArchive(dbPath);
   let ftsDirty = false;

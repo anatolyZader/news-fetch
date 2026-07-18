@@ -4,16 +4,7 @@
  */
 export { isOpenPipelineExtractEnabled } from '../../../../open_observation_extraction/index.js';
 import { isOpenPipelineExtractEnabled } from '../../../../open_observation_extraction/index.js';
-
-function envFlagOn(env, name) {
-  const v = env[name];
-  return v === '1' || v === 'true' || v === 'on';
-}
-
-function envFlagOff(env, name) {
-  const v = env[name];
-  return v === '0' || v === 'false' || v === 'off';
-}
+import { envFlagOn, envFlagOff } from '../../../../../cross-cut-modules/config/envFlags.js';
 
 /**
  * STAGE-1 extraction-vocabulary axis: when true, closed-catalogue and open-vocabulary

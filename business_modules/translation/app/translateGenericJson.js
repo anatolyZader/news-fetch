@@ -1,4 +1,5 @@
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { SONNET_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { jsonrepair } from 'jsonrepair';
 import { calcInvocationCostUsd } from '../../../cross-cut-modules/budget/index.js';
 import { appendCostLog } from '../../../cross-cut-modules/log/index.js';
@@ -11,7 +12,7 @@ import { translationSystemPrompt } from './translationTermRag.js';
 import { buildReportSystemPrompt } from './translationGlossary.js';
 
 const LANG_NAMES = { en: 'English', he: 'Hebrew', ru: 'Russian' };
-const MODEL = 'claude-sonnet-4-6';
+const MODEL = SONNET_MODEL;
 
 const GENERIC_SYSTEM = {
   he: `You translate JSON string values into modern Israeli Hebrew for civil-defense operator UI. Preserve URLs, markdown links, IDs, and numbers. Return ONLY valid JSON with the exact same structure.`,

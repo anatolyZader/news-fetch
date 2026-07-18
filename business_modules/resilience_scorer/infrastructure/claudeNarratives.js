@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { SONNET_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { summarizeConfidence } from '../domain/services/signals/behaviorSignals.js';
 import { overallScore } from '../app/scoringFacade.js';
@@ -30,7 +31,7 @@ import { buildNarrativeRetrievalContext } from './narrativeRetrievalContext.js';
 import { judgeNarrativeRelations, formatJudgeFeedback } from './narrativeRelationJudge.js';
 
 const client = new Anthropic();
-const DEFAULT_NARRATIVE_MODEL = process.env.RESILIENCE_NARRATIVE_MODEL ?? 'claude-sonnet-4-6';
+const DEFAULT_NARRATIVE_MODEL = process.env.RESILIENCE_NARRATIVE_MODEL ?? SONNET_MODEL;
 
 // ─── Step 2: Narrative generation ─────────────────────────────────────────────
 

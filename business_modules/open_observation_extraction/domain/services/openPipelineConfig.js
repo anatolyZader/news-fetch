@@ -1,9 +1,8 @@
 /**
  * Extract-stage flags for parallel pipeline open observations.
  */
+import { envFlagOn } from '../../../../cross-cut-modules/config/envFlags.js';
 
 export function isOpenPipelineExtractEnabled(env = process.env) {
-  const v = env.RESILIENCE_OPEN_EXTRACT_PARALLEL;
-  if (v == null || v === '') return false;
-  return v === '1' || v === 'true' || v === 'on';
+  return envFlagOn(env, 'RESILIENCE_OPEN_EXTRACT_PARALLEL');
 }

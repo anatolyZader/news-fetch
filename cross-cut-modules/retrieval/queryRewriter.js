@@ -3,6 +3,7 @@
  */
 import { ragQueryRewriteEnabled } from './ragConfig.js';
 import { getDefaultLlmPort } from '../llm/anthropicLlmAdapter.js';
+import { HAIKU_MODEL } from '../llm/modelIds.js';
 
 /**
  * @param {{
@@ -37,7 +38,7 @@ export async function rewriteQueryForRetrieval(input, deps = {}) {
     (transcript ? `Conversation:\n${transcript}\n\n` : '') +
     `Latest user message: ${message}\n\nRewrite as a search query.`;
 
-  const model = 'claude-haiku-4-5-20251001';
+  const model = HAIKU_MODEL;
   try {
     const response = await llmPort.createMessage({
       model,

@@ -3,6 +3,7 @@
  */
 import { jsonrepair } from 'jsonrepair';
 import { resolveLlmPort } from '../../../../cross-cut-modules/llm/resolveLlmPort.js';
+import { HAIKU_MODEL } from '../../../../cross-cut-modules/llm/modelIds.js';
 import { IOpenExtractionPort } from '../../domain/ports/IOpenExtractionPort.js';
 import {
   buildOpenExtractionPrompt,
@@ -13,7 +14,7 @@ import { normalizeObservations } from '../../domain/services/observationSchema.j
 const DEFAULT_MODEL = process.env.SIGNALS_EXTRACTION_MODEL
   ?? process.env.GENERIC_EXTRACTION_MODEL
   ?? process.env.RESILIENCE_EXTRACT_MODEL
-  ?? 'claude-haiku-4-5-20251001';
+  ?? HAIKU_MODEL;
 
 const BATCH_SIZE = 8;
 

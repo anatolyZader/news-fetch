@@ -8,6 +8,7 @@
  */
 
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { RESILIENCE_COMPONENTS } from '../../resilience_scorer/index.js';
 import { formatEventsAsTable, CATEGORY_COMPONENT_HINTS } from '../domain/services/eventLogLoader.js';
 
@@ -94,7 +95,7 @@ async function streamWithProgress(stream, label) {
   process.stderr.write(' done\n');
 }
 
-const MODEL_CLASSIFY = 'claude-haiku-4-5-20251001';
+const MODEL_CLASSIFY = HAIKU_MODEL;
 const MODEL_SYNTHESIZE = 'claude-opus-4-6';
 
 // ─── Step 1: Event classification ────────────────────────────────────────────

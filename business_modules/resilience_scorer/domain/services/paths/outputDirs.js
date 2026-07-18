@@ -25,3 +25,16 @@ export function resilienceAuditsDir(rootDir) {
 export function epistemicProfilesDir(rootDir) {
   return resolve(resolveRepoRoot(rootDir), 'business_modules/resilience_scorer/data/epistemic_profiles');
 }
+
+/**
+ * Consumed by business_modules/specialist_agents/infrastructure/adapters/shadowArtifactsFileAdapter.js
+ * (specialist-agent offline eval tooling) via this module's index.js facade.
+ */
+export function analystShadowDir(rootDir) {
+  return resolve(resolveRepoRoot(rootDir), 'business_modules/resilience_scorer/analyst/data/shadow');
+}
+
+/** Shadow-scoring divergence artifact for a scope + date. */
+export function divergenceArtifactPath(scope, date, rootDir) {
+  return resolve(analystShadowDir(rootDir), `divergence-${scope}-${date}.json`);
+}

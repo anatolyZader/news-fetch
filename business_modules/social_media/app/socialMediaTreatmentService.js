@@ -3,6 +3,7 @@ import { validateOsintBundle } from '../domain/services/osintBundleValidator.js'
 import { attributeSignalScope } from '../../../cross-cut-modules/geo/attributeSignalScope.js';
 import { archiveSocialFindings, stampSocialSignalSourceIds } from '../../../db/source_archive/archiveSocialFindings.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -64,9 +65,7 @@ export function createSocialMediaTreatmentService({ persistencePort }) {
 
       let stampedSignals = signals;
       try {
-        const sqlitePath = process.env.SQLITE_PATH?.trim()
-          ? resolve(process.env.SQLITE_PATH.trim())
-          : resolve(REPO_ROOT, 'db', 'app.sqlite');
+        const sqlitePath = resolveSqlitePath(process.env, REPO_ROOT);
         const archive = createSourceArchive(sqlitePath);
         const moduleRef = `business_modules/social_media/data/signals-social-${date}.json`;
         const { archived, idMap } = archiveSocialFindings(archive, treated.findings, date, { moduleRef });

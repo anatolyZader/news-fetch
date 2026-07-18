@@ -7,6 +7,7 @@
 import 'dotenv/config';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { resolveSqlitePath } from '../../cross-cut-modules/config/sqlitePath.js';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { createSourceArchive } from '../source_archive/createSourceArchive.js';
 import { createRetrievalService } from '../../cross-cut-modules/retrieval/index.js';
@@ -150,9 +151,7 @@ async function main() {
   const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
   const today = getTodayInTimezone(timezone);
   const dates = datesInWindow(today, days);
-  const sqlitePath = process.env.SQLITE_PATH?.trim()
-    ? resolve(process.env.SQLITE_PATH.trim())
-    : resolve(repoRoot, 'db', 'app.sqlite');
+  const sqlitePath = resolveSqlitePath(process.env, repoRoot);
 
   const retrievalService = createRetrievalService({ dbPath: sqlitePath, timezone });
   const archive = createSourceArchive(sqlitePath, { retrievalIndexer: retrievalService });

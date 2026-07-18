@@ -22,6 +22,7 @@ import { createSourceArchive } from '../../../db/source_archive/createSourceArch
 import { buildArchiveSourceId } from '../../../db/source_archive/sourceId.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 import { closedSignalsDir } from '../../resilience_scorer/index.js';
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 const MAX_BODY_CHARS = 2000;
@@ -145,7 +146,7 @@ function buildArchiveItems(articles, date) {
 }
 
 async function archiveRegionalPboArticles(articles, date, signals) {
-  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
+  const sqlitePath = resolveSqlitePath(process.env, REPO_ROOT);
   const retrievalService = createRetrievalService({ dbPath: sqlitePath });
   const archive = createSourceArchive(sqlitePath, { retrievalIndexer: retrievalService });
   const { items, indexToSourceId } = buildArchiveItems(articles, date);

@@ -1,8 +1,8 @@
 /**
  * SQLite-backed LLM extraction response cache.
  */
-import { resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import { resolveSqlitePath } from '../../config/sqlitePath.js';
 import { createHash } from 'node:crypto';
 
 const DDL = `
@@ -69,7 +69,7 @@ export function buildExtractCacheKey(parts) {
  * @param {string} [dbPath]
  */
 export function createExtractionCacheStore(dbPath) {
-  const path = dbPath ?? resolve(process.env.SQLITE_PATH?.trim() || resolve(process.cwd(), 'db', 'app.sqlite'));
+  const path = dbPath ?? resolveSqlitePath();
   const db = new DatabaseSync(path);
   db.exec(DDL);
 

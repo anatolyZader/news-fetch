@@ -29,15 +29,14 @@ import { createFfmpegDirectStreamAdapter } from '../infrastructure/adapters/ffmp
 import { createScheduledStreamCaptureScheduler } from '../app/scheduledStreamCaptureScheduler.js';
 import { defaultStreamCapturesDir } from '../infrastructure/scheduledStreamCaptureDataPaths.js';
 import { OpenaiTranscriptionAdapter, AudioIngestService } from '../../audio/index.js';
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 
 const execFileAsync = promisify(execFile);
 const LOG_PREFIX = '[stream-capture]';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const sqlitePath = process.env.SQLITE_PATH?.trim()
-  ? resolve(process.env.SQLITE_PATH.trim())
-  : resolve(__dirname, '..', '..', '..', 'db', 'app.sqlite');
+const sqlitePath = resolveSqlitePath();
 
 const capturesBaseDir = process.env.RECORDINGS_DIR?.trim()
   ? resolve(process.env.RECORDINGS_DIR.trim())

@@ -42,11 +42,10 @@ import {
   pipelineOpenObservationsPath,
 } from '../../resilience_scorer/index.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
-const SQLITE_PATH = process.env.SQLITE_PATH?.trim()
-  ? resolve(process.env.SQLITE_PATH.trim())
-  : resolve(REPO_ROOT, 'db', 'app.sqlite');
+const SQLITE_PATH = resolveSqlitePath(process.env, REPO_ROOT);
 
 function outputFileName(districtId, date) {
   return districtId === 'north'

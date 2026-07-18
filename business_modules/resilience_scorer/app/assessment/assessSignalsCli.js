@@ -51,6 +51,7 @@ import {
 import { summarizeGeoCoverage, summarizeGeoQuality } from '../../../../cross-cut-modules/geo/signalGeoSummary.js';
 import { enrichSignalsGeoIfNeeded } from '../../../../cross-cut-modules/geo/enrichSignalsGeoIfNeeded.js';
 import { runPostExtractionAssessmentCore } from './assessmentStage.js';
+import { resolveSqlitePath } from '../../../../cross-cut-modules/config/sqlitePath.js';
 import { ensureArticleCorpusRagIndexed } from './ensureArticleCorpusRagIndexed.js';
 import {
   buildAssessmentMethodology,
@@ -161,7 +162,7 @@ function mergeConnectivityProbeSignals(allSignals, sourceTypesSeen, targetDate) 
 
 function archiveProbeRecordsForDate(targetDate) {
   try {
-    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
+    const sqlitePath = resolveSqlitePath(process.env, REPO_ROOT);
     const archive = createSourceArchive(sqlitePath);
     const records = loadProbeRecordsForDate(targetDate, 'national');
     const n = archiveProbeRecords(archive, records, targetDate);
@@ -174,7 +175,7 @@ function archiveProbeRecordsForDate(targetDate) {
 
 function createSourceArchiveSafe() {
   try {
-    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
+    const sqlitePath = resolveSqlitePath(process.env, REPO_ROOT);
     return createSourceArchive(sqlitePath);
   } catch (err) {
     console.error(`  ⚠ Source archive unavailable: ${err.message}`);
@@ -184,7 +185,7 @@ function createSourceArchiveSafe() {
 
 function createRetrievalServiceSafe() {
   try {
-    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
+    const sqlitePath = resolveSqlitePath(process.env, REPO_ROOT);
     return createRetrievalService({ dbPath: sqlitePath });
   } catch (err) {
     console.error(`  ⚠ Retrieval service unavailable: ${err.message}`);
@@ -620,9 +621,7 @@ async function attachPboCompletenessSummary(assessment, targetDate) {
   try {
     const pboReviewService = createDefaultPboReportReviewService({
       repoRoot: REPO_ROOT,
-      sqlitePath: process.env.SQLITE_PATH?.trim()
-        ? resolve(process.env.SQLITE_PATH.trim())
-        : resolve(REPO_ROOT, 'db', 'app.sqlite'),
+      sqlitePath: resolveSqlitePath(process.env, REPO_ROOT),
     });
     assessment.pbo_municipal_completeness = await pboReviewService.buildAssessmentSummary(targetDate);
   } catch (err) {

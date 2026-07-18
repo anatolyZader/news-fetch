@@ -3,11 +3,8 @@
  * CLI: pipeline run status from SQLite metadata.
  * Usage: node business_modules/resilience_scorer/input/pipeline-status.js --date 2026-06-02
  */
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createPipelineRunStore } from '../../../db/persistence/pipelineRunStore.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 
 function getArg(name) {
   const i = process.argv.indexOf(name);
@@ -15,9 +12,7 @@ function getArg(name) {
 }
 
 const date = getArg('--date') ?? new Date().toISOString().slice(0, 10);
-const sqlitePath = process.env.SQLITE_PATH?.trim()
-  ? resolve(process.env.SQLITE_PATH.trim())
-  : resolve(__dirname, '../../../db', 'app.sqlite');
+const sqlitePath = resolveSqlitePath();
 
 const store = createPipelineRunStore(sqlitePath);
 const runs = store.listByDate(date);

@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { createDefaultPboReportReviewService } from '../app/createPboReviewWiring.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 import { createPboHistoricalSearchService } from '../app/pboHistoricalSearchService.js';
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -29,9 +30,7 @@ function parseArgs(argv) {
 }
 
 const { date, force, dryRun, query, municipality } = parseArgs(process.argv.slice(2));
-const sqlitePath = process.env.SQLITE_PATH?.trim()
-  ? resolve(process.env.SQLITE_PATH.trim())
-  : resolve(repoRoot, 'db', 'app.sqlite');
+const sqlitePath = resolveSqlitePath(process.env, repoRoot);
 
 try {
   if (query) {

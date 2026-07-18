@@ -44,15 +44,10 @@
  */
 
 import 'dotenv/config';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createScheduledStreamCaptureJobStore } from '../infrastructure/scheduledStreamCaptureJobStore.js';
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-const sqlitePath = process.env.SQLITE_PATH?.trim()
-  ? resolve(process.env.SQLITE_PATH.trim())
-  : resolve(__dirname, '..', '..', '..', 'db', 'app.sqlite');
+const sqlitePath = resolveSqlitePath();
 
 const store = createScheduledStreamCaptureJobStore(sqlitePath);
 

@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { getNaftaliDashboardSync } from '../app/naftaliService.js';
 import { attributeSignalScope } from '../../../cross-cut-modules/geo/attributeSignalScope.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 import {
   archiveNaftaliWeek,
   stampNaftaliSignalSourceIds,
@@ -156,9 +157,7 @@ async function writeWeekBundle(week, outDir) {
   let stampedSignals = signals;
 
   try {
-    const sqlitePath = process.env.SQLITE_PATH?.trim()
-      ? resolve(process.env.SQLITE_PATH.trim())
-      : resolve(REPO_ROOT, 'db', 'app.sqlite');
+    const sqlitePath = resolveSqlitePath(process.env, REPO_ROOT);
     const archive = createSourceArchive(sqlitePath);
     const { archived, responseMap } = archiveNaftaliWeek(archive, week);
     archive.close();

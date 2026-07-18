@@ -1,6 +1,7 @@
 /**
  * Validated environment profiles (development vs production).
  */
+import { resolveSqlitePath } from './sqlitePath.js';
 
 const PROFILES = {
   development: {
@@ -43,7 +44,7 @@ export function loadAppConfig(env = process.env) {
     authRequired,
     trustProxy,
     enableSwagger,
-    sqlitePath: env.SQLITE_PATH?.trim() || 'db/app.sqlite',
+    sqlitePath: resolveSqlitePath(env),
     timezone: env.TZ_ARTICLES || 'Asia/Jerusalem',
     serveStatic: env.SERVE_STATIC !== 'false',
     otelEnabled: env.OTEL_ENABLED === 'true',

@@ -1,4 +1,5 @@
 import { getDefaultLlmPort, createAnthropicLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { createLlmGateway } from '../../../cross-cut-modules/llm/llmGateway.js';
 import { jsonrepair } from 'jsonrepair';
 import {
@@ -14,7 +15,7 @@ import {
 } from '../../../cross-cut-modules/retrieval/fieldRetrieval.js';
 import { socialClassifyRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
 
-const MODEL = 'claude-haiku-4-5-20251001';
+const MODEL = HAIKU_MODEL;
 const BATCH_SIZE = 25;
 
 const CLASSIFIER_SYSTEM = `You are a strict relevance classifier for community resilience behavioral analysis in Israel. For each social post, decide whether the text describes concrete, observable behavior of the Israeli civilian population under current emergency conditions.

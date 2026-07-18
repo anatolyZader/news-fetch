@@ -13,6 +13,7 @@
  */
 
 import { createAnthropicLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { createLlmGateway } from '../../../cross-cut-modules/llm/llmGateway.js';
 import { attachGeoToSignalsAndStructured } from '../../../cross-cut-modules/geo/attachGeoToSignals.js';
 import {
@@ -306,7 +307,7 @@ export function createWhatsAppResilienceAnalyzer({
 
   async function callModel({ system, userContent, maxTokens }) {
     const response = await llmPort.createMessage({
-      model: 'claude-haiku-4-5-20251001',
+      model: HAIKU_MODEL,
       max_tokens: maxTokens,
       temperature: 0,
       system,

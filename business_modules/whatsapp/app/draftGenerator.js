@@ -10,6 +10,7 @@
  */
 
 import { createAnthropicLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { createLlmGateway } from '../../../cross-cut-modules/llm/llmGateway.js';
 import { buildDraftUserContent } from '../../report_build/index.js';
 
@@ -46,7 +47,7 @@ export function createDraftGenerator({ anthropicApiKey }) {
     async generate(structuredState, turnHistory, ragContext = null) {
       const userContent = buildDraftUserContent(structuredState, turnHistory, ragContext);
       const response = await llmPort.createMessage({
-        model: 'claude-haiku-4-5-20251001',
+        model: HAIKU_MODEL,
         max_tokens: 800,
         temperature: 0.2,
         system: SYSTEM_PROMPT,

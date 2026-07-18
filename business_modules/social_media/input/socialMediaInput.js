@@ -16,6 +16,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createSocialMediaService } from '../app/socialMediaService.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 config({ path: resolve(REPO_ROOT, '.env') });
@@ -146,7 +147,7 @@ async function runCommand(cmd, service, date, opts) {
 }
 
 const { cmd, opts } = parseArgs(process.argv);
-const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
+const sqlitePath = resolveSqlitePath(process.env, REPO_ROOT);
 let retrievalService = null;
 if (cmd === 'gather-daily') {
   retrievalService = createRetrievalService({ dbPath: sqlitePath });

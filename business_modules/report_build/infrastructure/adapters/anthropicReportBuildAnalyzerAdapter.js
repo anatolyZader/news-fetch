@@ -1,4 +1,5 @@
 import { createAnthropicLlmPort } from '../../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { HAIKU_MODEL } from '../../../../cross-cut-modules/llm/modelIds.js';
 import { createLlmGateway } from '../../../../cross-cut-modules/llm/llmGateway.js';
 import { extractJsonArray, SIGNAL_TYPES } from '../../../resilience_scorer/index.js';
 import {
@@ -210,7 +211,7 @@ export function createAnthropicReportBuildAnalyzerAdapter({ anthropicApiKey, bui
   const port = createLlmGateway(createAnthropicLlmPort({ apiKey: anthropicApiKey }));
   const interactiveSystemPrompt = buildSignalExtractionSystemPrompt('whatsapp_interactive');
 
-  const model = 'claude-haiku-4-5-20251001';
+  const model = HAIKU_MODEL;
 
   async function callModel({ system, userContent, maxTokens, onUsage, label }) {
     const response = await port.createMessage({

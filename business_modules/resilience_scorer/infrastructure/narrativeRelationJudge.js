@@ -4,6 +4,7 @@
  */
 
 import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
+import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamWithProgress } from './claudeExtraction.js';
 import { resolveRef } from '../domain/services/narrativeGrounding/index.js';
@@ -11,7 +12,7 @@ import { narrativeJudgeMaxTokens } from '../domain/services/narrativeGrounding/g
 
 const DEFAULT_JUDGE_MODEL = process.env.RESILIENCE_NARRATIVE_JUDGE_MODEL
   ?? process.env.RESILIENCE_SELF_CHECK_MODEL
-  ?? 'claude-haiku-4-5-20251001';
+  ?? HAIKU_MODEL;
 
 function batchJudgeEnabled() {
   return process.env.RESILIENCE_NARRATIVE_JUDGE_BATCH !== '0';

@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { SONNET_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { jsonrepair } from 'jsonrepair';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
@@ -79,7 +80,7 @@ async function writeDiskCache(report, lang, translatedReport) {
       ...translatedReport,
       _translation_meta: {
         schema: 'v6',
-        model: 'claude-sonnet-4-6',
+        model: SONNET_MODEL,
         fields: {
           cross_component_synthesis: true,
           components_narrative: true,
@@ -192,7 +193,7 @@ async function translateSocialChunk(payload, lang, langName) {
   if (!system) throw new Error(`Unsupported social translation language: ${lang}`);
 
   const message = await getDefaultLlmPort().createMessage({
-    model: 'claude-sonnet-4-6',
+    model: SONNET_MODEL,
     max_tokens: 8000,
     system,
     messages: [{
@@ -406,7 +407,7 @@ export async function getTranslatedReport(report, lang) {
     { input_tokens: 0, output_tokens: 0 },
   );
 
-  const translationModel = 'claude-sonnet-4-6';
+  const translationModel = SONNET_MODEL;
   const costUsd = calcInvocationCostUsd(translationModel, totalUsage);
   appendCostLog({
     script: `translation-${lang}`,

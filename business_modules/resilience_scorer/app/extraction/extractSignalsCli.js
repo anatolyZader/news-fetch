@@ -24,6 +24,7 @@ import { createRunTrace } from '../../../../cross-cut-modules/log/index.js';
 import { archiveMarkdownFiles } from './archiveMarkdownFromMd.js';
 import { attachSourceIdsToArticles } from '../../../../db/source_archive/attachSourceIds.js';
 import { createRetrievalService } from '../../../../cross-cut-modules/retrieval/createRetrievalService.js';
+import { resolveSqlitePath } from '../../../../cross-cut-modules/config/sqlitePath.js';
 import {
   runExtractionStage,
   indexExtractStoryClusters,
@@ -129,7 +130,7 @@ export async function runExtractSignalsCli() {
   const filePaths = resolveExtractFilePaths(filesArg);
 
   const { onUsage, getTotal } = createCostTracker({ label: 'extract-signals' });
-  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
+  const sqlitePath = resolveSqlitePath(process.env, REPO_ROOT);
   const retrievalService = await archiveExtractSources(filePaths, {
     date,
     sourceType,

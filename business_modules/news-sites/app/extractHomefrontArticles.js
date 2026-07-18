@@ -13,12 +13,14 @@ import { existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { relative } from 'node:path';
 
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { preFilterByRelevance, homefrontPrefilterMode } from './homefrontRelevanceFilter.js';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import { persistOriginalSources } from '../../../db/source_archive/persistOriginals.js';
 import { buildMdSourceIdFromPath } from '../../../db/source_archive/sourceId.js';
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '../../..');
@@ -194,7 +196,7 @@ function parsePrefilterIndices(text, label) {
 
 async function preFilterBatch(batch, batchOffset, batchNum, totalBatches, onUsage) {
   const titleList = buildBatchTitleList(batch, batchOffset);
-  const model = 'claude-haiku-4-5-20251001';
+  const model = HAIKU_MODEL;
   const label = totalBatches > 1 ? `[pre-filter batch ${batchNum}/${totalBatches}]` : '[pre-filter]';
   const message = await createAnthropicMessageWithRetry({ model, label, batch, titleList });
 
@@ -327,7 +329,7 @@ export async function runExtractHomefrontArticles(opts = {}) {
     console.log(`  → rolling file ${outPath} updated`);
   }
 
-  const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(repoRoot, 'db', 'app.sqlite');
+  const sqlitePath = resolveSqlitePath(process.env, repoRoot);
   try {
     const archive = createSourceArchive(sqlitePath);
     const relMd = relative(repoRoot, datedOutPath).replaceAll('\\', '/');

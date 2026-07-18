@@ -15,6 +15,7 @@ import { buildAssessmentWindowMetadata } from './assessment/assessSignalsHelpers
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPipelineRunStore } from '../../../db/persistence/pipelineRunStore.js';
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 import { createPipelineRunTracker } from './pipeline/pipelineRunTracker.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -29,11 +30,7 @@ function resolvePipelineRunStore(options) {
   if (process.env.PIPELINE_RUN_TRACKING === '0') {
     return null;
   }
-  const sqlitePath = process.env.SQLITE_PATH?.trim();
-  const dbPath = sqlitePath
-    ? resolve(sqlitePath)
-    : resolve(process.cwd(), 'db', 'app.sqlite');
-  return createPipelineRunStore(dbPath);
+  return createPipelineRunStore(resolveSqlitePath());
 }
 
 function batchItemsToArticles(batch) {

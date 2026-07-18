@@ -2,6 +2,7 @@
  * Chat tool handlers — (toolName, input, ctx) => string | Promise<string>
  */
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { loadSignals, searchSignals, formatSignals, compareReports } from '../domain/signalLookup.js';
 import { formatComponentEvidenceBundle } from '../domain/componentEvidenceBundle.js';
 import {
@@ -128,7 +129,7 @@ async function generateBrief(input, reportData, pboLookup, costRecorder = null) 
     ? `Focus the brief on the municipality: ${municipality}.`
     : 'Produce an overall situation brief covering all components.';
 
-  const model = 'claude-haiku-4-5-20251001';
+  const model = HAIKU_MODEL;
   const response = await getDefaultLlmPort().createMessage({
     model,
     max_tokens: 3000,

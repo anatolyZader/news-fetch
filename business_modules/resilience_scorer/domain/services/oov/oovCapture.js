@@ -3,6 +3,7 @@
  */
 import { resolve } from 'node:path';
 import { resolveStateStore } from '../../../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
+import { envFlagOn, envFlagOff } from '../../../../../cross-cut-modules/config/envFlags.js';
 import { resilienceCapturesDir } from '../paths/outputDirs.js';
 
 function getStore(deps = {}) {
@@ -21,17 +22,12 @@ export function isLearningCaptureEnabled(env = process.env) {
  * @param {NodeJS.ProcessEnv} [env]
  */
 export function isResidualCaptureEnabled(env = process.env) {
-  if (env.RESILIENCE_RESIDUAL_CAPTURE === '0'
-    || env.RESILIENCE_RESIDUAL_CAPTURE === 'false'
-    || env.RESILIENCE_RESIDUAL_CAPTURE === 'off') {
-    return false;
-  }
-  const v = env.RESILIENCE_RESIDUAL_CAPTURE;
-  if (v === '1' || v === 'true' || v === 'on') return true;
+  if (envFlagOff(env, 'RESILIENCE_RESIDUAL_CAPTURE')) return false;
+  if (envFlagOn(env, 'RESILIENCE_RESIDUAL_CAPTURE')) return true;
+  if (envFlagOff(env, 'RESILIENCE_OMISSION_AUDIT')) return false;
   const omission = env.RESILIENCE_OMISSION_AUDIT;
-  if (omission === '0' || omission === 'false' || omission === 'off') return false;
   if (omission == null || omission === '') return true;
-  return omission === '1' || omission === 'true' || omission === 'on';
+  return envFlagOn(env, 'RESILIENCE_OMISSION_AUDIT');
 }
 
 /**

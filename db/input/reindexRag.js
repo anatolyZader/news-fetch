@@ -5,14 +5,10 @@
  * Usage: node db/input/reindexRag.js [--days 14]
  */
 import 'dotenv/config';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createSourceArchive } from '../source_archive/createSourceArchive.js';
 import { createRetrievalService } from '../../cross-cut-modules/retrieval/index.js';
 import { getTodayInTimezone } from '../../utils/dateUtils.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(__dirname, '../..');
+import { resolveSqlitePath } from '../../cross-cut-modules/config/sqlitePath.js';
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -37,9 +33,7 @@ async function main() {
   const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
   const today = getTodayInTimezone(timezone);
   const dates = datesInWindow(today, days);
-  const sqlitePath = process.env.SQLITE_PATH?.trim()
-    ? resolve(process.env.SQLITE_PATH.trim())
-    : resolve(repoRoot, 'db', 'app.sqlite');
+  const sqlitePath = resolveSqlitePath();
 
   const retrievalService = createRetrievalService({ dbPath: sqlitePath, timezone });
   const archive = createSourceArchive(sqlitePath);

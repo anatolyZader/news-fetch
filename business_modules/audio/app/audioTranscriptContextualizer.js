@@ -10,6 +10,7 @@
  */
 
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import {
   retrieveAudioSceneContext,
   formatAudioSceneContextBlock,
@@ -21,7 +22,7 @@ const CHUNK_CHARS = 8000;
 /** Min words for a speaker turn to be kept (drops filler/back-channel). */
 const MIN_TURN_WORDS = 4;
 /** Model for scene segmentation + translation. */
-const MODEL = 'claude-haiku-4-5-20251001';
+const MODEL = HAIKU_MODEL;
 
 // ─── Stage 1: Deterministic cleaning ─────────────────────────────────────────
 

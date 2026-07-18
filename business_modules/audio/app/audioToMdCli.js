@@ -16,6 +16,7 @@ import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cro
 import { OpenaiTranscriptionAdapter } from '../infrastructure/adapters/openaiTranscriptionAdapter.js';
 import { AudioIngestService } from '../app/audioIngestService.js';
 import { archiveMarkdownFiles } from '../../resilience_scorer/index.js';
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -64,7 +65,7 @@ try {
   });
   console.error(`Wrote ${result.articleBlocks} transcript block(s) (${result.segmentCount} segments) → ${result.outPath}`);
   try {
-    const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(REPO_ROOT, 'db', 'app.sqlite');
+    const sqlitePath = resolveSqlitePath(process.env, REPO_ROOT);
     const n = await archiveMarkdownFiles([result.outPath], {
       date,
       source_type: 'radio',

@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { createRetrievalService } from '../../cross-cut-modules/retrieval/createRetrievalService.js';
 import { searchProductDocs } from '../../cross-cut-modules/retrieval/docsRetrieval.js';
 import { DOCS_INDEX_DATE } from '../../cross-cut-modules/retrieval/docsIndexWriter.js';
+import { resolveSqlitePath } from '../../cross-cut-modules/config/sqlitePath.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../..');
@@ -97,9 +98,7 @@ async function runDocsSuite(svc, fixtures) {
 }
 
 async function main() {
-  const sqlitePath = process.env.SQLITE_PATH?.trim()
-    ? resolve(process.env.SQLITE_PATH.trim())
-    : resolve(repoRoot, 'db', 'app.sqlite');
+  const sqlitePath = resolveSqlitePath(process.env, repoRoot);
 
   process.env.RAG_PIPELINE_ENABLED = process.env.RAG_PIPELINE_ENABLED ?? '1';
   process.env.DOCS_RAG_ENABLED = process.env.DOCS_RAG_ENABLED ?? '1';

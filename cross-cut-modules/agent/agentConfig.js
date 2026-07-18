@@ -1,6 +1,7 @@
 /**
  * Agent runtime configuration from environment.
  */
+import { envFlagOn, envFlagOff } from '../config/envFlags.js';
 
 let _deprecatedAgentFlagLogged = false;
 
@@ -28,33 +29,23 @@ export function assessmentForceDeterministic() {
   return process.env.RESILIENCE_ASSESSMENT_AGENT === '0';
 }
 
-function envFlagOn(name, env = process.env) {
-  const v = env[name];
-  return v === '1' || v === 'true' || v === 'on';
-}
-
-function envFlagOff(name, env = process.env) {
-  const v = env[name];
-  return v === '0' || v === 'false' || v === 'off';
-}
-
 export function isOmissionAuditModeEnabled(env = process.env) {
   const v = env.RESILIENCE_OMISSION_AUDIT;
   if (v == null || v === '') return true;
-  if (envFlagOff('RESILIENCE_OMISSION_AUDIT', env)) return false;
-  return envFlagOn('RESILIENCE_OMISSION_AUDIT', env);
+  if (envFlagOff(env, 'RESILIENCE_OMISSION_AUDIT')) return false;
+  return envFlagOn(env, 'RESILIENCE_OMISSION_AUDIT');
 }
 
 export function isAssessmentAgentLegacyEnabled(env = process.env) {
-  return envFlagOn('RESILIENCE_ASSESSMENT_AGENT_LEGACY', env);
+  return envFlagOn(env, 'RESILIENCE_ASSESSMENT_AGENT_LEGACY');
 }
 
 export function isClosedCoreAssessEnabled(env = process.env) {
   if (isAssessmentAgentLegacyEnabled(env)) return false;
   const v = env.RESILIENCE_CLOSED_CORE_ASSESS;
   if (v == null || v === '') return true;
-  if (envFlagOff('RESILIENCE_CLOSED_CORE_ASSESS', env)) return false;
-  return envFlagOn('RESILIENCE_CLOSED_CORE_ASSESS', env);
+  if (envFlagOff(env, 'RESILIENCE_CLOSED_CORE_ASSESS')) return false;
+  return envFlagOn(env, 'RESILIENCE_CLOSED_CORE_ASSESS');
 }
 
 export function shouldSkipAssessmentAgent({ dailyBudgetExceeded = false } = {}) {
@@ -162,9 +153,7 @@ export function residualForAgentEnabled() {
 
 export function openObsForAgentEnabled() {
   if (isOmissionAuditModeEnabled()) return false;
-  const v = process.env.RESILIENCE_OPEN_OBS_FOR_AGENT;
-  if (v == null || v === '') return false;
-  return v === '1' || v === 'true' || v === 'on';
+  return envFlagOn(process.env, 'RESILIENCE_OPEN_OBS_FOR_AGENT');
 }
 
 export function investigationOovEnabled() {
@@ -183,8 +172,7 @@ export function contestedAdversarialEnabled() {
   return envFlagEnabled('RESILIENCE_ASSESS_CONTESTED_ADVERSARIAL');
 }
 
-export const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
-export const SONNET_MODEL = 'claude-sonnet-4-6';
+export { HAIKU_MODEL, SONNET_MODEL } from '../llm/modelIds.js';
 
 export const PROMPT_VERSION = 'assessment-v1.2';
 export const MODEL_CARD_REF = 'MODEL-CARD.md#assessment-agent';

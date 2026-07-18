@@ -3,6 +3,7 @@
  */
 
 import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
+import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { COMPONENT_IDS } from '../domain/contracts/componentIds.js';
 import { extractJson } from './claudeJsonHelpers.js';
@@ -17,7 +18,7 @@ import {
 
 const DEFAULT_FACTS_MODEL = process.env.RESILIENCE_NARRATIVE_FACTS_MODEL
   ?? process.env.RESILIENCE_SELF_CHECK_MODEL
-  ?? 'claude-haiku-4-5-20251001';
+  ?? HAIKU_MODEL;
 
 const VALID_RELATIONS = new Set(['parallel', 'same_article_only', 'none']);
 

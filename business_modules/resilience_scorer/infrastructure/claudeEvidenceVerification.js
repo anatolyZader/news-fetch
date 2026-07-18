@@ -1,4 +1,5 @@
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import {
   verifyEvidenceAgainstArticle,
   tokenize,
@@ -18,7 +19,7 @@ import {
 } from '../domain/services/signals/groundingPolicy.js';
 import { recordOutletTelemetry } from '../domain/services/outlets/outletReputationDecay.js';
 
-const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? 'claude-haiku-4-5-20251001';
+const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? HAIKU_MODEL;
 
 const SHORT_BODY_CHARS = 80;
 const SHORT_EVIDENCE_TOKENS = 8;

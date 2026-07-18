@@ -1,4 +1,5 @@
 import { createAnthropicLlmPort } from '../../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { HAIKU_MODEL } from '../../../../cross-cut-modules/llm/modelIds.js';
 import { createLlmGateway } from '../../../../cross-cut-modules/llm/llmGateway.js';
 
 const SYSTEM_PROMPT =
@@ -105,7 +106,7 @@ export function createAnthropicReportBuildSuggestAdapter({ anthropicApiKey }) {
       const text = String(last?.text ?? '').trim();
       if (!text) return emptyOutput();
 
-      const model = 'claude-haiku-4-5-20251001';
+      const model = HAIKU_MODEL;
       const response = await port.createMessage({
         model,
         max_tokens: 650,

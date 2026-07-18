@@ -1,12 +1,10 @@
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createLogger } from '../../../cross-cut-modules/log/index.js';
+import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
 import { translationTermRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
 import { buildTranslationTermBlock } from '../../../cross-cut-modules/retrieval/translationTermRetrieval.js';
 import { createRetrievalService } from '../../../cross-cut-modules/retrieval/createRetrievalService.js';
 
 const log = createLogger('translation');
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('../../../cross-cut-modules/retrieval/createRetrievalService.js').ReturnType<createRetrievalService> | null} */
 let translationRetrievalSvc = null;
@@ -25,10 +23,7 @@ export function resetTranslationRetrievalForTests() {
 function getTranslationRetrieval() {
   if (!translationTermRagEnabled()) return null;
   if (!translationRetrievalSvc) {
-    const sqlitePath = process.env.SQLITE_PATH?.trim()
-      ? resolve(process.env.SQLITE_PATH.trim())
-      : resolve(__dirname, '../../../db/app.sqlite');
-    translationRetrievalSvc = createRetrievalService({ dbPath: sqlitePath });
+    translationRetrievalSvc = createRetrievalService({ dbPath: resolveSqlitePath() });
   }
   return translationRetrievalSvc;
 }
