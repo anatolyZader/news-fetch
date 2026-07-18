@@ -5,7 +5,7 @@ import {
   applyEpistemicGate,
   applyScoreAbstention,
 } from '../../../../../business_modules/resilience_scorer/domain/services/dataVoidIndex.js';
-import { scoreComponents } from '../../../../../business_modules/resilience_scorer/analyst/scoring/index.js';
+import { scoreComponents } from '../../../../../business_modules/resilience_scorer/analyst/index.js';
 import {
   deriveAssessmentEpistemicPolicy,
   deriveThinEvidencePolicy,

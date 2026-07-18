@@ -11,7 +11,7 @@ import {
   deriveThinEvidencePolicy,
   THIN_EVIDENCE_INSTRUMENT,
 } from '../../../../../business_modules/resilience_scorer/domain/epistemic/thinEvidencePolicy.js';
-import { scoreComponents } from '../../../../../business_modules/resilience_scorer/analyst/scoring/index.js';
+import { scoreComponents } from '../../../../../business_modules/resilience_scorer/analyst/index.js';
 import { contributionForSignal } from '../../../../../business_modules/resilience_scorer/domain/epistemic/massContribution.js';
 import { GROUNDING_TIER } from '../../../../../business_modules/resilience_scorer/domain/services/signals/groundingPolicy.js';
 

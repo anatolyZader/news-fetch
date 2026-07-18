@@ -186,7 +186,7 @@ Optional ingest RAG when `RESILIENCE_EXTRACT_RAG_ENABLED` (see [RAG.md](./RAG.md
 - `daily_reports/assessment-agent-trace-{traceId}.jsonl` — per-assess agent audit trail
 - Markdown report paths as configured
 
-The per-report `shadow-scores-*.json` / `divergence-*.json` write and the SQLite validation review queue upsert that used to run here have been retired along with the analyst-facing validation/drift tooling that consumed them. The deterministic `analyst/scoring/` engine itself still runs every assess (via `scoringFacade.js`) to produce the headline score; `computeDivergence`/`writeShadowArtifacts` now live only in `specialist_agents/` for offline agent-quality eval (`db/input/agentEval.js`), unrelated to this per-report write path.
+The per-report `shadow-scores-*.json` / `divergence-*.json` write and the SQLite validation review queue upsert that used to run here have been retired along with the analyst-facing validation/drift tooling that consumed them. The deterministic `analyst/` engine itself still runs every assess (via `scoringFacade.js`) to produce the headline score; `computeDivergence`/`writeShadowArtifacts` now live only in `specialist_agents/` for offline agent-quality eval (`db/input/agentEval.js`), unrelated to this per-report write path.
 
 **Cost script id:** `assess-signals` (includes agent LLM rounds under assess budget governor).
 

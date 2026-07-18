@@ -5,7 +5,7 @@ import {
   scoreComponents,
   overallScore,
   COMPONENT_TUNING,
-} from '../../../business_modules/resilience_scorer/app/scoringFacade.js';
+} from '../../business_modules/resilience_scorer/app/scoringFacade.js';
 
 describe('scoringFacade', () => {
   it('returns scored component shape from analyst scoring', () => {

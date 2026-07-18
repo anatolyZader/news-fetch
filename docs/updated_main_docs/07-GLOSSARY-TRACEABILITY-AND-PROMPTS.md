@@ -39,7 +39,7 @@
 | **Instrument** | Operator-facing evidence-quality readout (sufficiency, contested, significant delta, status) that replaces the headline score. |
 | **`display_view` (operator/analyst)** | API/UI redaction tier. Operators never see numeric scores; analysts (allow-listed) do. |
 | **Headline 1-10 / `overall_resilience_score`** | The de-emphasized deterministic score. Computed via `scoringFacade.js`, used as a shadow/analyst artifact, set to null and redacted for operators. |
-| **Shadow scoring** | The deterministic component/overall score (`analyst/scoring/`, via `scoringFacade.js`) computed on every assess run — the load-bearing headline score, hidden from operators and visible to analysts. The separate per-report divergence-vs-agent artifact and analyst calibration UI (drift, validation review) have been retired; an unrelated offline agent-quality-eval divergence check remains in `specialist_agents/` for engineering use only. |
+| **Shadow scoring** | The deterministic component/overall score (`analyst/`, via `scoringFacade.js`) computed on every assess run — the load-bearing headline score, hidden from operators and visible to analysts. The separate per-report divergence-vs-agent artifact and analyst calibration UI (drift, validation review) have been retired; an unrelated offline agent-quality-eval divergence check remains in `specialist_agents/` for engineering use only. |
 | **OOV capture** | Out-of-vocabulary observations buffered for the closed catalog. |
 | **`business_modules/resilience_scorer/data/reports/`** | Output directory for assessment artifacts (`.md`, `-brief.md`, `.json`). |
 | **report_build** | Interactive field-report drafting module (input source), distinct from the daily assessment. |
@@ -61,7 +61,7 @@
 | Assessment agent | `business_modules/specialist_agents/app/assessmentOrchestrator.js` (`runAssessmentAgent`) | `assessmentV2` (claims, synthesis, brief) |
 | Planner / specialist / critic / synthesizer | `plannerAgent.js` / `componentSpecialistAgent.js` / `criticAgent.js` / `synthesizerAgent.js` | plan, component assessments, repairs, synthesis |
 | Evidence graph | `cross-cut-modules/retrieval/evidenceGraph.js` (`buildEvidenceGraph`) | per-component claims graph |
-| Shadow score (de-emphasized) | `business_modules/resilience_scorer/app/scoringFacade.js` (-> `business_modules/resilience_scorer/analyst/scoring/`) | numeric scores (visible to analysts only) |
+| Shadow score (de-emphasized) | `business_modules/resilience_scorer/app/scoringFacade.js` (-> `business_modules/resilience_scorer/analyst/`) | numeric scores (visible to analysts only) |
 | Score abstention gate | `business_modules/resilience_scorer/domain/services/dataVoid/epistemicGate.js` | null score + `epistemic_abstention` |
 | Operator instrument + redaction | `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js` | instrument; operator redaction |
 | Display view | `cross-cut-modules/resilience-contracts/displayViews.js` | operator vs analyst |

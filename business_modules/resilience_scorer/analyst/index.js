@@ -4,10 +4,10 @@
  */
 export {
   scoreComponents,
-  overallScore,
   COMPONENT_TUNING,
   resolveSignalWeights,
   resolveComponentTuning,
-  enrichWithCalibrationPenalty,
-  enrichWithWeightSensitivity,
-} from './scoring/index.js';
+} from './scoreComponentsOrchestrator.js';
+export { overallScore } from './overallScore.js';
+export { enrichWithCalibrationPenalty } from './calibrationPenalty.js';
+export { enrichWithWeightSensitivity } from './weightSensitivity.js';

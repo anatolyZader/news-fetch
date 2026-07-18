@@ -3,7 +3,7 @@
  */
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { analystShadowDir } from '../../../resilience_scorer/analyst/domain/services/artifactPaths.js';
+import { analystShadowDir } from '../../../resilience_scorer/index.js';
 
 /**
  * @param {object} params

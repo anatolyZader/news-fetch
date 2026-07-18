@@ -6,7 +6,7 @@ Read this before any file under `business_modules/resilience_scorer/` or `specia
 
 - `index.js` — public facade; read first
 - `app/resilienceAnalysisService.js` — `runResilienceAssessment`
-- `app/scoringFacade.js` — **only** bridge into `analyst/scoring/` for headline /10
+- `app/scoringFacade.js` — **only** bridge into `analyst/` for headline /10
 - `domain/epistemic/` — operator caps + mass (not headline scoring)
 - `input/extract-signals.js`, `input/assess-signals.js` — pipeline CLIs (`app/extraction/extractSignalsCli.js`, `app/assessment/assessSignalsCli.js`)
 - `input/run-pipeline.js` — unified ingest+assess orchestrator CLI (`npm run pipeline:run -- --preset 8comp-3`)

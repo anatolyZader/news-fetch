@@ -1,4 +1,4 @@
-import { applySourceCap } from '../../../../business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js';
+import { applySourceCap } from '../../../business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js';
 import { scoreFromItems, applySaliencePostScoringPolicy } from './scoringShared.js';
 
 export function buildBootstrapSample(items, n, rng) {

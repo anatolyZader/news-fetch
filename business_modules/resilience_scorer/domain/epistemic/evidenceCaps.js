@@ -24,7 +24,7 @@
  *
  * Downstream: scoring runs once on raw items and once on capped items;
  * the difference feeds `suppression_delta` / `source_cap_binding` on the
- * component (see analyst/scoring/scoreComponentsOrchestrator.js), which in
+ * component (see analyst/scoreComponentsOrchestrator.js), which in
  * turn drives operator display caveats and narrative suppression compliance.
  */
 import { CAP_EXEMPT_SOURCE_TYPES } from '../services/dataVoid/sourceChannels.js';

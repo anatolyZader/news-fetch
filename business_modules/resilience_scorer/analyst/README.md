@@ -17,11 +17,11 @@ have been retired — only the scoring engine remains here.
 | Need | Import |
 |------|--------|
 | Headline scoring from operator pipeline | `business_modules/resilience_scorer/app/scoringFacade.js` only |
-| Direct analyst tooling | `business_modules/resilience_scorer/analyst/scoring/` |
+| Direct analyst tooling | `business_modules/resilience_scorer/analyst/` |
 
 ## Boundaries
 
-- `analyst/scoring/` may import `business_modules/resilience_scorer/domain/epistemic/`
+- `analyst/` may import `business_modules/resilience_scorer/domain/epistemic/`
 - `business_modules/resilience_scorer/**` must not import `business_modules/resilience_scorer/analyst/**` except `scoringFacade.js` (see `.dependency-cruiser.cjs`)
 - `client/**` must not import `business_modules/resilience_scorer/analyst/**`
 

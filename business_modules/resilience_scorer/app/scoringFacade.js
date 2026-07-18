@@ -1,5 +1,5 @@
 /**
- * Single allowed bridge from operator resilience code into analyst/scoring.
+ * Single allowed bridge from operator resilience code into analyst/ (headline scoring engine).
  */
 export {
   scoreComponents,
@@ -9,4 +9,4 @@ export {
   resolveComponentTuning,
   enrichWithCalibrationPenalty,
   enrichWithWeightSensitivity,
-} from '../analyst/scoring/index.js';
+} from '../analyst/index.js';

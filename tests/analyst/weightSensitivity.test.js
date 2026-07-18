@@ -1,16 +1,16 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { scoreComponents } from '../../../business_modules/resilience_scorer/analyst/scoring/index.js';
+import { scoreComponents } from '../../business_modules/resilience_scorer/analyst/index.js';
 import {
   buildWeightSensitivityBand,
   computeWeightSensitivity,
   shouldComputeWeightSensitivity,
-} from '../../../business_modules/resilience_scorer/analyst/scoring/weightSensitivity.js';
+} from '../../business_modules/resilience_scorer/analyst/weightSensitivity.js';
 import {
   defaultSignalWeights,
   perturbWeights,
-} from '../../../business_modules/resilience_scorer/analyst/scoring/scoringOverrides.js';
+} from '../../business_modules/resilience_scorer/analyst/scoringOverrides.js';
 
 describe('weightSensitivity', () => {
   it('perturbWeights is deterministic for a fixed seed', () => {

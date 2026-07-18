@@ -1,8 +1,8 @@
 import { beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert';
 
-import { applySourceCap, sourceCapWasApplied } from '../../../business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js';
-import { scoreComponents } from '../../../business_modules/resilience_scorer/analyst/scoring/index.js';
+import { applySourceCap, sourceCapWasApplied } from '../../business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js';
+import { scoreComponents } from '../../business_modules/resilience_scorer/analyst/index.js';
 
 beforeEach(() => {
   // Pin default thresholds — the host env may carry temporary cap overrides.

@@ -38,7 +38,7 @@ Docs and operators should treat the refactor as a change in **what is primary**,
 | **Epistemic input** | Scored components only | `computeEpistemicProfile` + **`enrichProfileForInvestigation`** |
 | **Evidence assembly** | Signals in narrative prompt | **`buildEvidenceGraph`** (signals + RAG hits + OOV/residual + gaps) |
 | **Output schema** | Legacy `assessment.components[].narrative` | **Assessment v2** → **`mapAssessmentV2ToLegacy`** (`assessmentV2Mapper.js`) for API compatibility |
-| **Shadow path** | Scores were primary | **`scoreComponents` still runs** every assess (`scoringFacade.js` → `analyst/scoring/`) to produce the headline score kept on the report; the per-report `shadow-scores-*.json` / `divergence-*.json` artifact write has been retired |
+| **Shadow path** | Scores were primary | **`scoreComponents` still runs** every assess (`scoringFacade.js` → `analyst/`) to produce the headline score kept on the report; the per-report `shadow-scores-*.json` / `divergence-*.json` artifact write has been retired |
 | **Trace / audit** | Cost log only | **`assessment-agent-trace-{id}.jsonl`** |
 | **Degrade ladder** | — | Agent skip/failure → `runDeterministicAssessment` → `loadCachedAssessmentFallback`; `assessment_degraded` on report |
 
