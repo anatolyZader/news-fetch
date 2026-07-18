@@ -1,5 +1,7 @@
 /**
- * Calibration methodology metadata (operator audit — mirrors analyst trust math).
+ * Calibration trust math — single source of truth. The analyst engine's
+ * calibrationPenalty.js imports these (domain must not import analyst/, so the
+ * shared math lives here); do not fork a copy on either side of the quarantine.
  */
 
 const DEFAULT_TIER3_MIN = 30;

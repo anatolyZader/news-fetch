@@ -1,5 +1,8 @@
 /**
- * Headline tuning reference (operator audit docs — mirrors analyst COMPONENT_TUNING).
+ * Headline tuning constants (tanhK/certM) — single source of truth.
+ * The analyst scoring engine imports these (analyst/ may import
+ * domain/epistemic/ per analyst/README.md); do not fork a copy on either side
+ * of the quarantine.
  */
 export const COMPONENT_TUNING = {
   narrative: { tanhK: 1.8, certM: 1.4 },
@@ -12,10 +15,12 @@ export const COMPONENT_TUNING = {
   wellbeing_at_risk: { tanhK: 2.5, certM: 2 },
 };
 
+export const DEFAULT_TUNING = { tanhK: 2.5, certM: 2 };
+
 /**
  * @param {string} componentId
  * @returns {{ certM: number, tanhK?: number }}
  */
 export function certaintyTuningFor(componentId) {
-  return COMPONENT_TUNING[componentId] ?? { certM: 2, tanhK: 2.5 };
+  return COMPONENT_TUNING[componentId] ?? DEFAULT_TUNING;
 }

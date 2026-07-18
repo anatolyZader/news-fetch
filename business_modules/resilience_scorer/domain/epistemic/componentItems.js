@@ -1,5 +1,10 @@
 /**
  * Per-component contribution item collection (operator epistemic layer).
+ *
+ * NOT the same as analyst/scoreSingleComponent.js#collectComponentItems, which
+ * skips alias canonicalization (done upstream in scoring) and routes base
+ * weights through routedBaseWeight(). Keep them separate — merging changes
+ * behavior on one side.
  */
 import {
   contributionForSignal,

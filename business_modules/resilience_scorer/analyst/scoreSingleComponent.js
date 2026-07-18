@@ -9,6 +9,10 @@ import {
 /**
  * Collect per-component contribution items and coverage sets from eligible signals.
  *
+ * NOT the same as domain/epistemic/componentItems.js#collectComponentItems (the
+ * operator pool path): that one canonicalizes legacy alias types up-front and
+ * uses the raw mapping weight instead of routedBaseWeight(). Keep them separate.
+ *
  * @param {string} componentId
  * @param {Array} scoringSignals
  * @param {WeakMap} duplicateIndex

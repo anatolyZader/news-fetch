@@ -1,37 +1,28 @@
-import { COMPONENT_FACETS } from '../../../business_modules/resilience_scorer/domain/services/operator/componentFacets.js';
+import { COMPONENT_FACETS } from '../domain/services/signals/componentFacets.js';
 import {
   SIGNAL_TO_COMPONENTS,
   getSignalCatalogEntry,
-} from '../../../business_modules/resilience_scorer/domain/services/signals/signalRouter.js';
-import { evaluateHighSalienceBypass } from '../../../business_modules/resilience_scorer/domain/epistemic/highSalienceBypass.js';
+} from '../domain/services/signals/signalRouter.js';
+import { evaluateHighSalienceBypass } from '../domain/epistemic/highSalienceBypass.js';
 
 export { COMPONENT_IDS } from '../domain/contracts/componentIds.js';
 export {
   RELIABILITY_WEIGHT,
   buildDuplicateOccurrenceIndex,
   duplicateArticleFactor, contributionForSignal, effectiveWeightForSignal, routedBaseWeight, round3,
-} from '../../../business_modules/resilience_scorer/domain/epistemic/massContribution.js';
-export { sourceCapWasApplied } from '../../../business_modules/resilience_scorer/domain/epistemic/evidenceCaps.js';
+} from '../domain/epistemic/massContribution.js';
+export { sourceCapWasApplied } from '../domain/epistemic/evidenceCaps.js';
 import {
   contributionForSignal,
   effectiveWeightForSignal,
   routedBaseWeight,
   round3,
-} from '../../../business_modules/resilience_scorer/domain/epistemic/massContribution.js';
+} from '../domain/epistemic/massContribution.js';
 
 
-export const COMPONENT_TUNING = {
-  narrative:                 { tanhK: 1.8, certM: 1.4 },
-  information_communication: { tanhK: 2.5, certM: 2 },
-  lifesaving_behavior:       { tanhK: 3.2, certM: 2.6 },
-  functional_continuity:     { tanhK: 2.5, certM: 2 },
-  community_capital:         { tanhK: 2.2, certM: 1.8 },
-  leadership:                { tanhK: 2.2, certM: 1.8 },
-  belonging_solidarity:      { tanhK: 1.8, certM: 1.4 },
-  wellbeing_at_risk:          { tanhK: 2.5, certM: 2 },
-};
+import { COMPONENT_TUNING, DEFAULT_TUNING } from '../domain/epistemic/certaintyTuning.js';
 
-export const DEFAULT_TUNING = { tanhK: 2.5, certM: 2 };
+export { COMPONENT_TUNING, DEFAULT_TUNING };
 
 export const BOOTSTRAP_SAMPLES = 200;
 export const BOOTSTRAP_SEED = 0x9e3779b1;
