@@ -7,4 +7,9 @@
 import 'dotenv/config';
 import { runIngestConnectivityProbesCli } from '../app/assessment/ingestConnectivityProbesCli.js';
 
-runIngestConnectivityProbesCli(process.argv.slice(2));
+try {
+  await runIngestConnectivityProbesCli(process.argv.slice(2));
+} catch (err) {
+  console.error('ingest-connectivity-probes failed:', err.message);
+  process.exit(1);
+}

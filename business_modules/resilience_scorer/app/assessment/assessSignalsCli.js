@@ -124,32 +124,31 @@ function loadPriorReports(targetDate, n = 2) {
 
 function assertApiKey() {
   if (!process.env.ANTHROPIC_API_KEY) {
-    console.error('Error: ANTHROPIC_API_KEY is not set');
-    process.exit(1);
+    throw new Error('ANTHROPIC_API_KEY is not set');
   }
 }
 
-function exitIfNoSignalBundles(bundlePort, discovery, useObservations) {
+function assertSignalBundles(bundlePort, discovery, useObservations) {
   if (bundlePort.hasAnySource(discovery)) return;
   if (useObservations) {
-    console.error('No observation bundles found. Run: npm run extract-observations -- ...');
-  } else {
-    console.error('No signals directories found. Run extract-signals.js first.');
+    throw new Error('No observation bundles found. Run: npm run extract-observations -- ...');
   }
-  process.exit(1);
+  throw new Error('No signals directories found. Run extract-signals.js first.');
 }
 
-function exitIfNoLoadedSignalFiles(loadedFiles, useObservations, targetDate, days) {
+function assertLoadedSignalFiles(loadedFiles, useObservations, targetDate, days) {
   if (loadedFiles.length > 0) return;
   const suffix = formatDaysSuffix(days);
   if (useObservations) {
-    console.error(`No mapped observation bundles for ${targetDate}${suffix}.`);
-    console.error('Ensure observations have suggested_catalog_types matching SIGNAL_CATALOG.');
-  } else {
-    console.error(`No signal files found for ${targetDate}${suffix}.`);
-    console.error(`Expected files like: signals/signals-news-${targetDate}.json`);
+    throw new Error(
+      `No mapped observation bundles for ${targetDate}${suffix}. ` +
+      'Ensure observations have suggested_catalog_types matching SIGNAL_CATALOG.',
+    );
   }
-  process.exit(1);
+  throw new Error(
+    `No signal files found for ${targetDate}${suffix}. ` +
+    `Expected files like: signals/signals-news-${targetDate}.json`,
+  );
 }
 
 function mergeConnectivityProbeSignals(allSignals, sourceTypesSeen, targetDate) {
@@ -226,11 +225,11 @@ async function loadPreparedSignals(targetDate, days, bundleOpts = {}) {
 
   const discovery = bundlePort.discoverBundles({ targetDate, days, enabledSources });
 
-  exitIfNoSignalBundles(bundlePort, discovery, useObservations);
+  assertSignalBundles(bundlePort, discovery, useObservations);
 
   const loadedFiles = bundlePort.loadBundles(discovery, { targetDate, enabledSources });
 
-  exitIfNoLoadedSignalFiles(loadedFiles, useObservations, targetDate, days);
+  assertLoadedSignalFiles(loadedFiles, useObservations, targetDate, days);
 
   let { allSignals, totalArticles, sourceFiles, sourceTypesSeen } = mergeLoadedSignalFiles(loadedFiles, { targetDate });
   allSignals = mergeConnectivityProbeSignals(allSignals, sourceTypesSeen, targetDate);
@@ -377,16 +376,14 @@ async function buildScopedScoring(targetDate, days, allSignals, totalArticles, r
   } catch (err) {
     if (err?.code === 'empty_scoped_evidence') {
       const suffix = formatDaysSuffix(days);
-      console.error(`No signal files contained ${reportScope.label} evidence for ${targetDate}${suffix}.`);
-      process.exit(1);
+      throw new Error(`No signal files contained ${reportScope.label} evidence for ${targetDate}${suffix}.`);
     }
     if (err?.code === 'default_north_threshold_exceeded') {
       const gate = err.gate ?? {};
-      console.error(
+      throw new Error(
         `Default-north fallback ${gate.pct ?? '?'}% exceeds threshold ${gate.thresholdPct ?? '?'}% `
         + `(${gate.count ?? '?'} signals) — fix extractor district_id or set RESILIENCE_DEFAULT_NORTH_GATE_BLOCK=0`,
       );
-      process.exit(1);
     }
     throw err;
   }

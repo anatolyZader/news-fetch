@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
+import { withLlmRetry } from '../../../cross-cut-modules/llm/withLlmRetry.js';
 import {
   isMultipassEnabled,
   getMultipassGroupKeys,
@@ -524,11 +525,6 @@ function extractUserLabelForSignals(contentKind) {
   if (contentKind === 'field_report') return 'expert field report documents';
   return 'news articles';
 }
-function haikuRetryWaitMs(err, attempt) {
-  const is429 = err.message?.includes('429') || err.status === 429;
-  return is429 ? 90000 : 5000 * attempt;
-}
-
 async function fetchHaikuSignalsOnce(batchLabel, modelId, system, userContent, usageCallback, callContextExtra = {}) {
   const llmPort = getDefaultLlmPort();
   const maxTokens = extractMaxTokens();
@@ -580,29 +576,26 @@ async function fetchMissArticlesSignals({
     `Extract all behavioral signals from these Israeli ${extractUserLabelForSignals(contentKind)}:\n\n` +
     formatArticlesForPrompt(prepared);
 
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      const label = attempt > 1 ? `${batchLabel} (retry ${attempt})` : batchLabel;
-      const { signals: raw, rejected } = await fetchHaikuSignalsOnce(label, modelId, system, userContent, usageCallback);
-      const llmSignals = remapMissBatchIndices(raw, origIndexByMiss);
-      persistArticleExtractCache(llmSignals, articles, {
-        model: modelId,
-        contentKind,
-        domainGroupKey,
-        cacheDbPath: extractOpts.cacheDbPath,
-      });
-      if (extractOpts.trace?.enabled && rejected.length) {
-        extractOpts.trace.event('rejected', { batch: batchLabel, items: rejected });
-      }
-      return llmSignals;
-    } catch (err) {
-      if (attempt === retries) throw err;
-      const wait = haikuRetryWaitMs(err, attempt);
-      console.error(`  ⚠ ${batchLabel} attempt ${attempt} failed (${err.message}) — retrying in ${wait / 1000}s...`);
-      await new Promise((r) => setTimeout(r, wait));
+  return withLlmRetry(async (attempt) => {
+    const label = attempt > 1 ? `${batchLabel} (retry ${attempt})` : batchLabel;
+    const { signals: raw, rejected } = await fetchHaikuSignalsOnce(label, modelId, system, userContent, usageCallback);
+    const llmSignals = remapMissBatchIndices(raw, origIndexByMiss);
+    persistArticleExtractCache(llmSignals, articles, {
+      model: modelId,
+      contentKind,
+      domainGroupKey,
+      cacheDbPath: extractOpts.cacheDbPath,
+    });
+    if (extractOpts.trace?.enabled && rejected.length) {
+      extractOpts.trace.event('rejected', { batch: batchLabel, items: rejected });
     }
-  }
-  return [];
+    return llmSignals;
+  }, {
+    retries,
+    onRetry: (err, attempt, wait) => {
+      console.error(`  ⚠ ${batchLabel} attempt ${attempt} failed (${err.message}) — retrying in ${wait / 1000}s...`);
+    },
+  });
 }
 
 async function callHaikuExtraction(articles, {
