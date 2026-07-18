@@ -28,14 +28,6 @@ export function getComponentWeight(signalType, componentId) {
 }
 
 /**
- * @param {string} signalType
- * @returns {Record<string, number> | undefined}
- */
-export function getComponentWeightsForSignal(signalType) {
-  return SIGNAL_TO_COMPONENTS[canonicalizeSignalType(signalType)];
-}
-
-/**
  * Whether a signal type has a primary (non-spillover) link to a component.
  * @param {string} signalType
  * @param {string} componentId

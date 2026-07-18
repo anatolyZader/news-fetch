@@ -5,7 +5,6 @@ import {
   hasExplicitSignalDistrictId,
   isDefaultNorthFallbackEnabled,
   isDefaultNorthSource,
-  isLegacyNorthStructuredSource,
   signalDistrictId,
 } from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalDistrictId.js';
 
@@ -19,11 +18,6 @@ describe('signalDistrictId', () => {
     assert.equal(signalDistrictId({ source_type: 'naftali' }), 'north');
     assert.equal(isDefaultNorthSource('field_whatsapp'), true);
     assert.equal(hasExplicitSignalDistrictId({ source_type: 'naftali' }), false);
-  });
-
-  it('isLegacyNorthStructuredSource is an alias for isDefaultNorthSource (backward-compat)', () => {
-    assert.equal(isLegacyNorthStructuredSource('field_whatsapp'), true);
-    assert.equal(isLegacyNorthStructuredSource('news'), false);
   });
 
   it('returns null for news without district_id', () => {

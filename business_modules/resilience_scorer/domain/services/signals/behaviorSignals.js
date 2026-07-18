@@ -22,7 +22,6 @@ export {
   SIGNAL_TYPES,
   getScoringPriors,
   getSignalCatalogEntry,
-  assertCatalogPolarityCoherence,
 } from './signalCatalog.js';
 
 export {

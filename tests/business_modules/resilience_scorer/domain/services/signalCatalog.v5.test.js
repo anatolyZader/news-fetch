@@ -14,7 +14,6 @@ import {
   assertValidSignalCatalog,
   validateSignalRouting,
   assertValidSignalRouting,
-  assertCatalogPolarityCoherence,
   getRoutingRole,
 } from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalCatalog.js';
 import { COMPONENT_IDS } from '../../../../../business_modules/resilience_scorer/domain/contracts/componentIds.js';
@@ -145,10 +144,6 @@ describe('signalCatalog v6', () => {
     assert.ok(harm.expects_quantification);
     const generic = getScoringPriors('information_clarity');
     assert.deepEqual(generic.expected_phases, DEFAULT_SCORING_PRIORS.expected_phases);
-  });
-
-  it('assertCatalogPolarityCoherence returns no warnings', () => {
-    assert.deepEqual(assertCatalogPolarityCoherence(), []);
   });
 
   it('validateSignalCatalog (taxonomy) reports no errors or warnings and assert does not throw', () => {

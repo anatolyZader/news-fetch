@@ -1,8 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { summarizeConfidence } from '../domain/services/signals/behaviorSignals.js';
-import { overallScore, scoreComponents } from '../app/scoringFacade.js';
-import { salienceContextFromDataVoid } from '../domain/epistemic/highSalienceBypass.js';
+import { overallScore } from '../app/scoringFacade.js';
 import { computeNorrisCapacities } from '../domain/epistemic/norrisCapacities.js';
 import { narrativeIncludesScores } from '../domain/services/operator/assessmentDisplayTier.js';
 import {
@@ -891,27 +890,6 @@ export async function generateNarratives(
 ) {
   const { closedCoreNarrate } = await import('../app/closedCoreNarrate.js');
   return closedCoreNarrate(scoredComponents, allSignals, date, totalArticles, opts);
-}
-
-// Backwards-compat: synthesizeComponents wraps score + narrate
-export async function synthesizeComponents(signals, date, totalArticles, {
-  onUsage,
-  onProgress,
-  contentKind,
-  dataVoid = null,
-  salienceContext = null,
-} = {}) {
-  const scored = scoreComponents(signals, {
-    totalArticles,
-    salienceContext: salienceContext ?? salienceContextFromDataVoid(dataVoid),
-  });
-  return generateNarratives(scored, signals, date, totalArticles, {
-    onUsage,
-    onProgress,
-    contentKind,
-    dataVoid,
-    narrativeScopeSignals: signals,
-  });
 }
 
 export { buildAssessmentPayload };

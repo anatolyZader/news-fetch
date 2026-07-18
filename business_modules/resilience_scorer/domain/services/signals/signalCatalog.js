@@ -16,7 +16,6 @@ export {
   getRoutingRole,
   validateSignalRouting,
   assertValidSignalRouting,
-  assertCatalogPolarityCoherence,
 } from './signalRouting.js';
 export {
   DEFAULT_SCORING_PRIORS,

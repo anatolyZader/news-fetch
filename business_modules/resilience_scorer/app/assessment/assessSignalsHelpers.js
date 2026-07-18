@@ -62,10 +62,6 @@ export function parseSignalBundleFilename(filename) {
   };
 }
 
-/** @deprecated use parseSignalBundleFilename */
-export const SIGNAL_FILE_PATTERN = STANDARD_BUNDLE_FILENAME_PATTERN;
-
-
 function buildRecencySource(sortedFiles, sourceType, targetDate, targetDates, retainLast) {
   const inWindow = [];
   for (const f of sortedFiles) {

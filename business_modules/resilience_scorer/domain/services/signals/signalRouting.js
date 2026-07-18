@@ -18,7 +18,6 @@ import {
   SIGNAL_TYPES,
   SIGNAL_ALIASES,
   canonicalizeSignalType,
-  validateSignalCatalog,
 } from '../../contracts/signalCatalog.js';
 import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { SCORING_PRIORS_BY_TYPE } from './scoringPriors.js';
@@ -347,14 +346,4 @@ export function assertValidSignalRouting() {
   if (errors.length > 0) {
     throw new Error(`Invalid signal routing:\n${errors.join('\n')}`);
   }
-}
-
-/**
- * @deprecated use validateSignalCatalog() (taxonomy) + validateSignalRouting() (scoring).
- * @returns {string[]} combined error + warning messages
- */
-export function assertCatalogPolarityCoherence() {
-  const catalog = validateSignalCatalog();
-  const routing = validateSignalRouting();
-  return [...catalog.errors, ...routing.errors, ...catalog.warnings, ...routing.warnings];
 }

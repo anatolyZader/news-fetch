@@ -104,11 +104,6 @@ export function scopeDecisionForSignal(signal, targetScopeId = ISRAEL_NATIONAL_D
   };
 }
 
-/** @deprecated use scopeDecisionForSignal(signal, 'north') */
-export function isNorthSignal(signal) {
-  return scopeDecisionForSignal(signal, 'north').isScopeRelevant;
-}
-
 export function filterSignalsForScope(signals, scope) {
   const scopeId = normalizeReportScopeId(scope);
   const out = (signals ?? []).map((s) => {

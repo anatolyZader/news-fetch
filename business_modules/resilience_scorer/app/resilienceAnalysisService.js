@@ -260,5 +260,3 @@ export async function runResilienceAssessment(batch, options = {}) {
     },
   };
 }
-
-export const runAssessment = runResilienceAssessment;

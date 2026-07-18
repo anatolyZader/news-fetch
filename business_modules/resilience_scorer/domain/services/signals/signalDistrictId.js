@@ -18,9 +18,6 @@ export const DEFAULT_NORTH_SOURCE_TYPES = Object.freeze([
   'whatsapp',
 ]);
 
-/** @deprecated Use DEFAULT_NORTH_SOURCE_TYPES */
-export const LEGACY_NORTH_STRUCTURED_SOURCE_TYPES = DEFAULT_NORTH_SOURCE_TYPES;
-
 const DEFAULT_NORTH_SET = new Set(DEFAULT_NORTH_SOURCE_TYPES);
 
 /**
@@ -41,9 +38,6 @@ export function isDefaultNorthSource(sourceType) {
   const st = String(sourceType ?? '').trim().toLowerCase();
   return st !== '' && DEFAULT_NORTH_SET.has(st);
 }
-
-/** @deprecated Use isDefaultNorthSource */
-export const isLegacyNorthStructuredSource = isDefaultNorthSource;
 
 /**
  * Explicit district on signal, or default-north for north-only structured source types.
