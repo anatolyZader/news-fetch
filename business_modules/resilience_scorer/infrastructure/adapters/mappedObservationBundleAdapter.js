@@ -6,7 +6,7 @@ import {
   buildTargetDates,
   dateOffset,
   temporalWeightForOffset,
-} from '../../app/assessment/assessSignalsHelpers.js';
+} from '../../domain/services/paths/assessmentWindow.js';
 import { mapObservationsToSignals } from '../../domain/services/signals/catalogMappingService.js';
 
 /**

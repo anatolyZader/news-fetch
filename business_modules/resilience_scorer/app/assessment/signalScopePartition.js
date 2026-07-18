@@ -4,7 +4,11 @@
 import { isRegionalReportScope } from '../../../../cross-cut-modules/geo/reportScopeIds.js';
 import { createDefaultReportScopePolicy } from '../../infrastructure/adapters/defaultReportScopePolicyAdapter.js';
 
-const defaultScopePolicy = createDefaultReportScopePolicy();
+let defaultScopePolicy = null;
+function getDefaultScopePolicy() {
+  defaultScopePolicy ??= createDefaultReportScopePolicy();
+  return defaultScopePolicy;
+}
 import {
   annotateSignalsEpistemics,
   partitionMacroSignals,
@@ -48,7 +52,7 @@ export function filterCasualtyNoiseFromAnalysisSignals(signals) {
  * @param {string} reportScopeId
  * @param {import('../domain/ports/IReportScopePolicy.js').IReportScopePolicy} [scopePolicy]
  */
-export function scopeAndPartitionSignals(allSignals, reportScopeId, scopePolicy = defaultScopePolicy) {
+export function scopeAndPartitionSignals(allSignals, reportScopeId, scopePolicy = getDefaultScopePolicy()) {
   const cleaned = filterCasualtyNoiseFromAnalysisSignals(allSignals);
   const annotated = annotateScopeDecisions(cleaned, reportScopeId);
   let scopedSignals = scopePolicy.filterSignalsForScope(annotated, reportScopeId);

@@ -110,6 +110,17 @@ module.exports = {
       to: { path: '^business_modules/resilience_scorer/analyst/' },
     },
     {
+      name: 'infrastructure-no-app',
+      severity: 'error',
+      comment:
+        'Infrastructure must not import app/ (depend on domain/ports only) — sole exception: app/scoringFacade.js, the sanctioned layer-neutral bridge into analyst/. Scoped to resilience_scorer for now: chat/ and translation/ carry pre-existing infra→app edges (see docs/reviews/resilience_scorer-review-2026-07-18.md).',
+      from: { path: '^business_modules/resilience_scorer/infrastructure/' },
+      to: {
+        path: '^business_modules/resilience_scorer/app/',
+        pathNot: ['^business_modules/resilience_scorer/app/scoringFacade\\.js$'],
+      },
+    },
+    {
       name: 'input-no-own-domain-or-infrastructure',
       severity: 'error',
       comment: 'Option B: input/ may only delegate to app/ or index.js (not own domain/ or infrastructure/)',

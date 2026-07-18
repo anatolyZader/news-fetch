@@ -16,7 +16,7 @@ import {
   listReportJsonFilenamesForDate,
 } from '../domain/services/paths/reportNames.js';
 import { readCostBreakdownForDate as readCostBreakdownForDateFromLog } from '../../../cross-cut-modules/log/index.js';
-import { inferAssessmentWindowFromSourceFiles } from '../app/assessment/assessSignalsHelpers.js';
+import { inferAssessmentWindowFromSourceFiles } from '../domain/services/paths/assessmentWindow.js';
 import { resilienceReportsDir } from '../domain/services/paths/outputDirs.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');

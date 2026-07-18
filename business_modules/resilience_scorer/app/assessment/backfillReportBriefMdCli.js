@@ -5,8 +5,6 @@ import { buildMarkdown, buildSignalAppendix } from '../../infrastructure/reportW
 import { resilienceReportsDir } from '../../domain/services/paths/outputDirs.js';
 import { isResilienceReportFilename, isNationalReportFilename } from '../../domain/services/paths/reportNames.js';
 
-const reportsDir = resilienceReportsDir();
-
 function shouldSkipBrief(jsonPath, briefPath, force) {
   if (force || !existsSync(briefPath)) return false;
   try {
@@ -16,7 +14,7 @@ function shouldSkipBrief(jsonPath, briefPath, force) {
   }
 }
 
-function processReportJson(name, force) {
+function processReportJson(reportsDir, name, force) {
   const jsonPath = resolve(reportsDir, name);
   const briefPath = jsonPath.replace(/\.json$/i, '-brief.md');
   if (shouldSkipBrief(jsonPath, briefPath, force)) {
@@ -52,6 +50,7 @@ function processReportJson(name, force) {
 export function runBackfillReportBriefMdCli(argv = process.argv.slice(2)) {
   const force = argv.includes('--force');
   const allScopes = argv.includes('--all-scopes');
+  const reportsDir = resilienceReportsDir();
 
   let written = 0;
   let skipped = 0;
@@ -61,7 +60,7 @@ export function runBackfillReportBriefMdCli(argv = process.argv.slice(2)) {
     if (!isResilienceReportFilename(name)) continue;
     if (!allScopes && !isNationalReportFilename(name)) continue;
 
-    const outcome = processReportJson(name, force);
+    const outcome = processReportJson(reportsDir, name, force);
     if (outcome === 'written') written += 1;
     if (outcome === 'skipped') skipped += 1;
   }
