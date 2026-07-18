@@ -9,13 +9,11 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resilienceReportsDir, resilienceAuditsDir, resolveReportJsonPathForDate, divergenceArtifactPath } from '../index.js';
+import { getArg as getArgFrom } from '../app/cliArgs.js';
 
 const ROOT = resolve(fileURLToPath(new URL('../../../', import.meta.url)));
 
-function getArg(name) {
-  const i = process.argv.indexOf(name);
-  return i >= 0 ? process.argv[i + 1] : null;
-}
+const getArg = (name) => getArgFrom(process.argv, name);
 
 function loadJson(path) {
   if (!existsSync(path)) return null;

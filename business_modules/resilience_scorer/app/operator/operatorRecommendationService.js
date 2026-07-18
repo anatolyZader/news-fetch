@@ -1,5 +1,5 @@
 /**
- * Parse and validate operator recommendation requests; query pending recommendations.
+ * Parse and validate operator recommendation requests.
  */
 import { normalizeReportScope } from '../../domain/services/signals/regionSignalFilter.js';
 import { parseRecommendationAction } from '../../domain/value_objects/recommendationAction.js';
@@ -23,12 +23,4 @@ export function parseOperatorRecommendationRequest(input = {}) {
   }
 
   return { ok: true, recommendationId, scope, reportDate, action, rationale };
-}
-
-/**
- * @param {object} assessment
- * @returns {Array<object>}
- */
-export function pendingOperatorRecommendations(assessment) {
-  return (assessment?.operator_recommendations ?? []).filter((r) => r.status === 'pending');
 }

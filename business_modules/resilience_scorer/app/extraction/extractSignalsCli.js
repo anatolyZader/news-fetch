@@ -29,21 +29,11 @@ import {
   runExtractionStage,
   indexExtractStoryClusters,
 } from './extractionStage.js';
+import { CONTENT_KIND } from './contentKinds.js';
+import { getArg } from '../cliArgs.js';
+import { normalizeVisitsSourceType } from '../../domain/services/signals/visitsSourceType.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
-
-const CONTENT_KIND = {
-  news: 'news',
-  radio: 'audio',
-  field: 'field_report',
-  visits: 'field_report',
-  whatsapp: 'whatsapp',
-};
-
-function normalizeExtractSourceType(sourceType) {
-  if (sourceType === 'field') return 'visits';
-  return sourceType;
-}
 
 function isSourceEnabled(sourceType) {
   const cfgPath = resolve('pipeline-config.json');
@@ -59,19 +49,15 @@ function isSourceEnabled(sourceType) {
 }
 
 function parseExtractCliArgs(argv) {
-  const getArg = (flag) => {
-    const i = argv.indexOf(flag);
-    return i >= 0 ? argv[i + 1] : null;
-  };
   return {
-    sourceType: getArg('--source-type'),
-    filesArg: getArg('--files'),
-    date: getArg('--date') ?? new Date().toISOString().slice(0, 10),
+    sourceType: getArg(argv, '--source-type'),
+    filesArg: getArg(argv, '--files'),
+    date: getArg(argv, '--date') ?? new Date().toISOString().slice(0, 10),
   };
 }
 
 function exitIfInvalidExtractCli({ sourceType, filesArg }) {
-  const canonical = normalizeExtractSourceType(sourceType);
+  const canonical = normalizeVisitsSourceType(sourceType);
   if (!sourceType || !CONTENT_KIND[canonical]) {
     console.error('Usage: extract-signals.js --source-type news|radio|visits|field|whatsapp --files <csv> --date YYYY-MM-DD');
     process.exit(1);
@@ -122,7 +108,7 @@ async function archiveExtractSources(filePaths, { date, sourceType, sqlitePath, 
 export async function runExtractSignalsCli() {
   const cli = parseExtractCliArgs(process.argv.slice(2));
   exitIfInvalidExtractCli(cli);
-  const sourceType = normalizeExtractSourceType(cli.sourceType);
+  const sourceType = normalizeVisitsSourceType(cli.sourceType);
   const { filesArg, date } = cli;
 
   checkDailyBudget();

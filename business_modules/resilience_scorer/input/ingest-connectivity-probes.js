@@ -10,6 +10,6 @@ import { runIngestConnectivityProbesCli } from '../app/assessment/ingestConnecti
 try {
   await runIngestConnectivityProbesCli(process.argv.slice(2));
 } catch (err) {
-  console.error('ingest-connectivity-probes failed:', err.message);
+  console.error('ingest-connectivity-probes failed:', err?.message ?? err);
   process.exit(1);
 }

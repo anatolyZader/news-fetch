@@ -20,8 +20,9 @@ import { createPipelineRunTracker } from './pipeline/pipelineRunTracker.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
-/** Aligned with infrastructure/mdReportsLoader.js body cap */
-export const MAX_BODY_CHARS = 2000;
+import { MAX_BODY_CHARS } from './extraction/contentBatchFromMdArticles.js';
+
+export { MAX_BODY_CHARS };
 
 function resolvePipelineRunStore(options) {
   if (options.pipelineRunStore !== undefined) {

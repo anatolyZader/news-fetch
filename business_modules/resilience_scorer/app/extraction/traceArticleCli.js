@@ -22,10 +22,9 @@ import {
   splitNumberedSections,
   parseSectionMeta,
 } from '../../../../cross-cut-modules/markdown/markdownArticleSections.js';
-
-const MAX_BODY_CHARS = 2000;
-
-const CONTENT_KIND = { news: 'news', radio: 'audio', field: 'field_report' };
+import { CONTENT_KIND } from './contentKinds.js';
+import { MAX_BODY_CHARS } from './contentBatchFromMdArticles.js';
+import { getArg, hasFlag } from '../cliArgs.js';
 
 const NUMBERED_SECTION_RE = /^##\s+\d+\.\s/m;
 
@@ -86,21 +85,16 @@ export function buildArticlesFromInput({ content, title = null, source = null, u
 }
 
 function parseTraceArticleArgs(argv) {
-  const getArg = (flag) => {
-    const i = argv.indexOf(flag);
-    return i >= 0 ? argv[i + 1] : null;
-  };
-  const hasFlag = (flag) => argv.includes(flag);
   return {
-    file: getArg('--file'),
-    text: getArg('--text'),
-    sourceType: getArg('--source-type') ?? 'news',
-    date: getArg('--date') ?? new Date().toISOString().slice(0, 10),
-    title: getArg('--title'),
-    source: getArg('--source'),
-    url: getArg('--url'),
-    all: hasFlag('--all'),
-    noRationale: hasFlag('--no-rationale'),
+    file: getArg(argv, '--file'),
+    text: getArg(argv, '--text'),
+    sourceType: getArg(argv, '--source-type') ?? 'news',
+    date: getArg(argv, '--date') ?? new Date().toISOString().slice(0, 10),
+    title: getArg(argv, '--title'),
+    source: getArg(argv, '--source'),
+    url: getArg(argv, '--url'),
+    all: hasFlag(argv, '--all'),
+    noRationale: hasFlag(argv, '--no-rationale'),
   };
 }
 
@@ -130,7 +124,7 @@ export async function runTraceArticleCli() {
 
   const contentKind = CONTENT_KIND[cli.sourceType];
   if (!contentKind) {
-    console.error('Usage: trace-article.js --file <path> --source-type news|radio|field [--date YYYY-MM-DD]');
+    console.error('Usage: trace-article.js --file <path> --source-type news|radio|visits|field|whatsapp [--date YYYY-MM-DD]');
     process.exit(1);
   }
 

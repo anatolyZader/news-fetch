@@ -14,6 +14,6 @@ import { runTraceArticleCli } from '../app/extraction/traceArticleCli.js';
 try {
   await runTraceArticleCli();
 } catch (err) {
-  console.error('trace-article failed:', err.message);
+  console.error('trace-article failed:', err?.message ?? err);
   process.exit(1);
 }

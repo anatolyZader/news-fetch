@@ -9,6 +9,6 @@ import { runExtractSignalsCli } from '../app/extraction/extractSignalsCli.js';
 try {
   await runExtractSignalsCli();
 } catch (err) {
-  console.error('extract-signals failed:', err.message);
+  console.error('extract-signals failed:', err?.message ?? err);
   process.exit(1);
 }

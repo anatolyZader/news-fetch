@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { join, resolve } from 'node:path';
 
 import { getTodayInTimezone, validateDate } from '../../../../utils/dateUtils.js';
+import { getArg, hasFlag as hasFlagIn } from '../cliArgs.js';
 import { normalizeReportScopeId } from '../../../../cross-cut-modules/geo/reportScopeIds.js';
 import { resilienceReportsDir } from '../../domain/services/paths/outputDirs.js';
 import {
@@ -63,11 +64,8 @@ export function assertAssessOnlySafe(opts, rootDir) {
  * @param {string[]} argv
  */
 export function parsePipelineCliArgs(argv) {
-  const getFlag = (name) => {
-    const i = argv.indexOf(name);
-    return i >= 0 ? argv[i + 1] : null;
-  };
-  const hasFlag = (name) => argv.includes(name);
+  const getFlag = (name) => getArg(argv, name);
+  const hasFlag = (name) => hasFlagIn(argv, name);
 
   let positionalDate = null;
   for (const arg of argv) {

@@ -1,13 +1,10 @@
 import { loadConnectivityProbeSignals } from '../../infrastructure/adapters/connectivityProbeFileAdapter.js';
+import { getArg } from '../cliArgs.js';
 
 function parseArgs(argv) {
-  const getArg = (name) => {
-    const i = argv.indexOf(name);
-    return i >= 0 ? argv[i + 1] : null;
-  };
   return {
-    date: getArg('--date') ?? new Date().toISOString().slice(0, 10),
-    scope: getArg('--scope') ?? 'national',
+    date: getArg(argv, '--date') ?? new Date().toISOString().slice(0, 10),
+    scope: getArg(argv, '--scope') ?? 'national',
   };
 }
 

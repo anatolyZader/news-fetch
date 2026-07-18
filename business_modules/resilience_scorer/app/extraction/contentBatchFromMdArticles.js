@@ -5,6 +5,10 @@
  * @param {Array<{ title: string, url?: string, publishedAt?: string, source?: string, body: string, sourceFile: string }>} rawArticles
  * @param {{ reportDate: string, contentKind?: 'news'|'audio', priorAssessments?: object[], sourceRunId?: string }} meta
  */
+
+/** Aligned with infrastructure/mdReportsLoader.js body cap. */
+export const MAX_BODY_CHARS = 2000;
+
 export function contentBatchFromMdArticles(rawArticles, meta) {
   const { reportDate, contentKind = 'news', priorAssessments, sourceRunId } = meta;
   return {

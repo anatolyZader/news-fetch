@@ -5,15 +5,11 @@
  */
 import { createPipelineRunStore } from '../../../db/persistence/pipelineRunStore.js';
 import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
-
-function getArg(name) {
-  const i = process.argv.indexOf(name);
-  return i >= 0 ? process.argv[i + 1] : null;
-}
+import { getArg } from '../app/cliArgs.js';
 
 // Missing --date intentionally defaults to today (status-of-today is the common ask);
 // pipeline-run-audit.js requires an explicit --date because audits target a specific run.
-const date = getArg('--date') ?? new Date().toISOString().slice(0, 10);
+const date = getArg(process.argv, '--date') ?? new Date().toISOString().slice(0, 10);
 
 try {
   const store = createPipelineRunStore(resolveSqlitePath());
@@ -31,6 +27,6 @@ try {
     }
   }
 } catch (err) {
-  console.error('pipeline-status failed:', err.message);
+  console.error('pipeline-status failed:', err?.message ?? err);
   process.exit(1);
 }

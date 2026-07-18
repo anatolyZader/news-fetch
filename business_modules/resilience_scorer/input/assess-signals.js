@@ -13,6 +13,6 @@ import { runAssessSignalsCli } from '../app/assessment/assessSignalsCli.js';
 try {
   await runAssessSignalsCli();
 } catch (err) {
-  console.error('assess-signals failed:', err.message);
+  console.error('assess-signals failed:', err?.message ?? err);
   process.exit(1);
 }

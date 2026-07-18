@@ -7,8 +7,8 @@ import { ragPipelineEnabled } from '../../../../cross-cut-modules/retrieval/ragC
 import { resolveSqlitePath } from '../../../../cross-cut-modules/config/sqlitePath.js';
 import { createSourceArchive } from '../../../../db/source_archive/createSourceArchive.js';
 import { persistOriginalSources } from '../../../../db/source_archive/persistOriginals.js';
-import { buildMdSourceIdFromPath } from '../../../../db/source_archive/sourceId.js';
 import { buildTargetDates } from './assessSignalsHelpers.js';
+import { mdArticlesToArchiveItems } from '../extraction/archiveMarkdownFromMd.js';
 import { newsArticlesPath } from '../../domain/services/paths/ingestPaths.js';
 import { loadMdFile } from '../../infrastructure/mdReportsLoader.js';
 
@@ -43,19 +43,12 @@ async function indexArticlesForDate(params, date) {
 
   const abs = resolve(mdPath);
   const { articles } = loadMdFile(abs);
-  const items = articles
-    .filter((a) => String(a.body ?? '').trim())
-    .map((a, i) => ({
-      source_id: buildMdSourceIdFromPath(repoRoot, abs, i + 1),
-      date,
-      source_type: 'news',
-      source_label: a.source ?? '',
-      source_url: a.url ?? '',
-      title: a.title ?? '',
-      body: String(a.body ?? '').trim(),
-      published_at: a.publishedAt ?? date,
-      module_ref: abs,
-    }));
+  const items = mdArticlesToArchiveItems(articles, {
+    repoRoot,
+    absPath: abs,
+    date,
+    source_type: 'news',
+  });
 
   if (items.length === 0) return { indexed: 0, skipped: 0, touched: true };
 

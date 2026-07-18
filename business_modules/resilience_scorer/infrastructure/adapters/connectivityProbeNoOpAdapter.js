@@ -2,7 +2,7 @@
  * No-op connectivity probe adapter.
  */
 
-/** @returns {import('./IConnectivityProbePort.js').IConnectivityProbePort} */
+/** @returns {import('../../domain/ports/IConnectivityProbePort.js').IConnectivityProbePort} */
 export function createConnectivityProbeNoOpAdapter() {
   return {
     loadProbesForDate() {

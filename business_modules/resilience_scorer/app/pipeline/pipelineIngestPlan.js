@@ -503,14 +503,6 @@ export function buildPipelineIngestPlan(opts) {
 }
 
 /**
- * @param {string} configPath absolute path to pipeline-config.json
- */
-export function loadPipelineEnabledSources(configPath) {
-  const { enabledSources } = loadPipelineConfig(configPath);
-  return enabledSources;
-}
-
-/**
  * Replay abort when nothing can be ingested and no bundles exist in window.
  * @param {ReturnType<typeof buildPipelineIngestPlan>['steps']} steps
  */

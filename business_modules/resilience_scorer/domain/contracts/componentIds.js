@@ -1,11 +1,4 @@
-/** Canonical resilience component ids (Home Front Command framework). */
-export const COMPONENT_IDS = [
-  'narrative',
-  'information_communication',
-  'lifesaving_behavior',
-  'functional_continuity',
-  'community_capital',
-  'leadership',
-  'belonging_solidarity',
-  'wellbeing_at_risk',
-];
+import { RESILIENCE_COMPONENTS } from './resilienceComponents.js';
+
+/** Canonical resilience component ids (Home Front Command framework), derived from the framework objects. */
+export const COMPONENT_IDS = RESILIENCE_COMPONENTS.map((c) => c.id);

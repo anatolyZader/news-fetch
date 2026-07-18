@@ -127,6 +127,7 @@ export async function runAssessSignalsCli() {
     repoRoot: REPO_ROOT,
   });
 
+  const sourceArchive = createSourceArchiveSafe();
   const scoring = await buildScopedScoring(
     targetDate,
     days,
@@ -138,7 +139,7 @@ export async function runAssessSignalsCli() {
     prepared.openObservations ?? [],
     { onUsage, openObservationsSummary: prepared.openObservationsSummary,
       retrievalService: prepared.retrievalService,
-      sourceArchive: createSourceArchiveSafe(),
+      sourceArchive,
       dailyBudgetExceeded: budgetStatus.exceeded },
   );
 
@@ -158,7 +159,7 @@ export async function runAssessSignalsCli() {
     totalArticles: prepared.totalArticles,
     scoring,
     retrievalService: prepared.retrievalService,
-    sourceArchive: createSourceArchiveSafe(),
+    sourceArchive,
     dailyBudgetExceeded: budgetStatus.exceeded,
   });
 }
