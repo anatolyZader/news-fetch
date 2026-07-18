@@ -5,21 +5,57 @@
  * resilience_scorer business module (domain/services/signals/signalRouting.js,
  * scoringPriors.js, signalInstanceSchema.js).
  *
- * Semantic fields:
- * - mirror: the reciprocal opposite-polarity twin of this type (same phenomenon,
- *   inverted outcome). Used for extraction self-checks. Validated: target must
- *   exist, mirror back, and have opposite defaultPolarity.
- * - related: confusable or adjacent types with NO polarity implication (loose
- *   associations formerly stored in `mirror`).
- * - indicator_kind: 'state' (condition of the population), 'response' (action
- *   taken to address a condition), 'capacity' (ability to respond). Response
- *   and capacity indicators must not positively route into wellbeing_at_risk —
- *   treatment uptake is not evidence of wellbeing (enforced by the scorer's
- *   routing validator).
- * - polarity_override (signal INSTANCE field, not catalog): for whitelisted
- *   types (resilience_scorer signalInstanceSchema.js), an extracted signal may
- *   carry polarity_override: 'positive'|'negative'; when it contradicts
- *   defaultPolarity, scoring flips the sign of the routing weights.
+ * Every field is load-bearing for a specific downstream consumer — see the
+ * SignalCatalogEntry typedef below before adding/removing fields.
+ *
+ * Note: polarity_override is a signal INSTANCE field, not a catalog field: for
+ * whitelisted types (signalInstanceSchema.js), an extracted signal may carry
+ * polarity_override: 'positive'|'negative'; when it contradicts
+ * defaultPolarity, scoring flips the sign of the routing weights.
+ */
+
+/**
+ * One closed-vocabulary signal type. Who reads what:
+ *
+ * @typedef {object} SignalCatalogEntry
+ * @property {string} type
+ *   Machine id — what the extraction LLM outputs, what keys the
+ *   SIGNAL_TO_COMPONENTS routing weights (signalRouting.js), and what evidence
+ *   anchors/citations reference. Legacy spellings resolve via SIGNAL_ALIASES.
+ * @property {string} label
+ *   The DEFINITION the extraction LLM reads — rendered into the Haiku system
+ *   prompt (signalCatalogPrompt.js) and shown in client citations
+ *   (citationDisplay.js). Editing a label changes extraction behavior.
+ * @property {keyof typeof SIGNAL_DOMAINS} domain
+ *   Thematic grouping: sections the extraction prompt and lets
+ *   extractionPasses.js run focused per-domain-group passes (smaller prompts,
+ *   cheaper calls).
+ * @property {'behavior'|'attitude'|'structural_state'|'narrative'|'event'|'capacity'} signal_class
+ *   Scoring analytics: analyst class-mix / behavior_to_attitude_ratio
+ *   (scoringShared.js); only 'event'-class types can trigger the high-salience
+ *   bypass (highSalienceBypass.js).
+ * @property {'positive'|'negative'} defaultPolarity
+ *   Scoring direction: massContribution.js flips routing-weight sign when an
+ *   instance polarity_override contradicts it; signalRouting.js validates
+ *   weight-sign coherence; socialChannelQuarantine.js derives +/− from it.
+ * @property {string} [mirror]
+ *   Reciprocal opposite-polarity twin (same phenomenon, inverted outcome).
+ *   Feeds the extraction self-check hint (signalCatalogPrompt.js). Validated:
+ *   target must exist, mirror back, and have opposite defaultPolarity.
+ * @property {string[]} [related]
+ *   Maintainer breadcrumbs: confusable/adjacent types with NO polarity
+ *   implication. Deliberately NOT emitted into prompts and unused at runtime;
+ *   validated so targets can't rot (validateSignalCatalog).
+ * @property {'state'|'response'|'capacity'} [indicator_kind]
+ *   'state' (condition of the population), 'response' (action taken to address
+ *   a condition), 'capacity' (ability to respond). Response/capacity types
+ *   must not positively route into wellbeing_at_risk — treatment uptake is not
+ *   evidence of wellbeing (enforced by the routing validator).
+ * @property {object} [disambiguation]
+ *   Boundary guidance (vs-other-types) emitted into the extraction prompt's
+ *   boundaries block (signalCatalogPrompt.js buildDisambiguationBlock).
+ * @property {string[]} [example_evidence]
+ *   Few-shot evidence examples for the extraction prompt's boundaries block.
  */
 
 export const CATALOG_VERSION = 'v8';

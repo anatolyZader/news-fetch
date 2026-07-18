@@ -20,7 +20,13 @@ Read this before any file under `business_modules/resilience_scorer/` or `specia
 
 ## Ports (`domain/ports/`)
 
-`IResilienceLlmPort`, `IReportReadPort`, `IGeoEnrichmentPort`, `ISignalBundlePort`, `IConnectivityProbePort`, `IPipelineRunStore`, `IReportScopePolicy`
+`IResilienceLlmPort`, `IReportReadPort`, `IGeoEnrichmentPort`, `ISignalBundlePort`, `IConnectivityProbePort`, `IPipelineRunStore`, `IReportScopePolicy`, `IReportWritePort`, `IReportDisplayPort`
+
+## Layer conventions (do not "fix")
+
+- **`domain/contracts/` is the isomorphic client-safe layer** — the React client imports citation/display helpers (`citationDisplay`, `apaCitationFormat`, `inlineCitationResolve`, …) from these paths directly. Presentation-looking code here is deliberate; do not move it into `services/`.
+- **`infrastructure/` must not import `app/`** (depcruise rule `infrastructure-no-app`); sole exception `app/scoringFacade.js`, the layer-neutral analyst bridge. Shared window/bundle helpers live in `domain/services/paths/{assessmentWindow,signalBundles}.js`.
+- **Headline tuning + calibration trust math single-source in `domain/epistemic/`** (`certaintyTuning.js`, `calibrationMethodology.js`); `analyst/` imports them — never fork a copy on the analyst side.
 
 ## Do not read
 
