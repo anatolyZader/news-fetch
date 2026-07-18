@@ -3,6 +3,7 @@
  */
 import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
+import { withLlmRetry } from '../../../cross-cut-modules/llm/withLlmRetry.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import {
   buildDecisionBriefSystemPrompt,
@@ -76,7 +77,7 @@ export async function generateDecisionBrief(assessment, opts = {}) {
   const model = decisionBriefModel();
   const port = resolveLlmPort(opts);
 
-  const response = await port.createMessage({
+  const response = await withLlmRetry(() => port.createMessage({
     model,
     max_tokens: 2000,
     temperature: 0,
@@ -86,6 +87,9 @@ export async function generateDecisionBrief(assessment, opts = {}) {
       content: buildDecisionBriefUserPrompt(payload),
     }],
     callContext: { feature: 'decision_brief', purpose: 'decision-brief' },
+  }), {
+    onRetry: (err, attempt, wait) =>
+      console.error(`  ⚠ decision-brief attempt ${attempt} failed (${err.message}) — retrying in ${wait / 1000}s...`),
   });
 
   if (opts.onUsage && response.usage) {

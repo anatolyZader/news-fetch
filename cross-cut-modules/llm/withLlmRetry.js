@@ -15,15 +15,18 @@ export function llmRetryWaitMs(err, attempt) {
  * @param {number} [opts.retries] total attempts (not extra retries)
  * @param {(err: Error, attempt: number) => number} [opts.waitMs]
  * @param {(err: Error, attempt: number, waitMs: number) => void} [opts.onRetry]
+ * @param {(err: Error) => boolean} [opts.shouldRetry] return false to rethrow immediately
+ *   (e.g. deterministic errors like token overflow that a retry cannot fix)
  * @returns {Promise<T>} last attempt's error is rethrown
  */
-export async function withLlmRetry(fn, { retries = 3, waitMs = llmRetryWaitMs, onRetry } = {}) {
+export async function withLlmRetry(fn, { retries = 3, waitMs = llmRetryWaitMs, onRetry, shouldRetry } = {}) {
   let lastErr;
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       return await fn(attempt);
     } catch (err) {
       lastErr = err;
+      if (shouldRetry && !shouldRetry(err)) throw err;
       if (attempt === retries) break;
       const wait = waitMs(err, attempt);
       onRetry?.(err, attempt, wait);

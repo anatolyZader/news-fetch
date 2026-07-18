@@ -3,6 +3,8 @@
  */
 import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { SONNET_MODEL } from '../../../cross-cut-modules/agent/agentConfig.js';
+import { withLlmRetry } from '../../../cross-cut-modules/llm/withLlmRetry.js';
+import { isTokenOverflowError } from '../domain/services/narrative/narrativePromptBudget.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamWithProgress } from './claudeExtraction.js';
@@ -242,19 +244,27 @@ async function invokePolishStream(params) {
     },
   );
 
-  const stream = await Promise.resolve(port.stream({
-    model: DEFAULT_POLISH_MODEL,
-    max_tokens: polishMaxTokens(),
-    temperature: 0,
-    system: buildPolishSystemPrompt({ includeSynthesis, synthesisOnly }),
-    messages: [{ role: 'user', content: userContent }],
-    callContext: {
-      feature: 'narrative_polish',
-      purpose: progressLabel ?? '[Step 3 — Polish]',
-    },
-  }));
-  if (!opts.skipProgress) await streamWithProgress(stream, progressLabel ?? '[Step 3 — Polish]');
-  const message = await stream.finalMessage();
+  // Token overflow is deterministic — rethrow immediately so the pipeline's
+  // overflow-rebudget escalation handles it instead of burning retries.
+  const message = await withLlmRetry(async () => {
+    const stream = await Promise.resolve(port.stream({
+      model: DEFAULT_POLISH_MODEL,
+      max_tokens: polishMaxTokens(),
+      temperature: 0,
+      system: buildPolishSystemPrompt({ includeSynthesis, synthesisOnly }),
+      messages: [{ role: 'user', content: userContent }],
+      callContext: {
+        feature: 'narrative_polish',
+        purpose: progressLabel ?? '[Step 3 — Polish]',
+      },
+    }));
+    if (!opts.skipProgress) await streamWithProgress(stream, progressLabel ?? '[Step 3 — Polish]');
+    return stream.finalMessage();
+  }, {
+    shouldRetry: (err) => !isTokenOverflowError(err),
+    onRetry: (err, attempt, wait) =>
+      console.error(`  ⚠ ${progressLabel ?? '[Step 3 — Polish]'} attempt ${attempt} failed (${err.message}) — retrying in ${wait / 1000}s...`),
+  });
   if (opts.onUsage) {
     opts.onUsage({
       label: progressLabel ?? '[Step 3 — Polish]',
