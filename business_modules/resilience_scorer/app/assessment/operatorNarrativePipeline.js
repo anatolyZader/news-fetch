@@ -13,7 +13,7 @@ import {
   buildDigestStubClaims,
   mergeAgentClaimsWithFacts,
   supplementFactsWithDigestStubs,
-} from '../../domain/services/narrative/buildNarrativeScoredComponents.js';
+} from '../../domain/services/narrative/narrativeClaims.js';
 import {
   buildSignalRefRegistry,
   validateNarrativeOutput,

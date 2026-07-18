@@ -5,8 +5,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { scopeAndPartitionSignals } from '../../../../business_modules/resilience_scorer/app/assessment/assessmentPipeline.js';
-import { prepareInvestigationSignals } from '../../../../business_modules/resilience_scorer/app/assessment/prepareInvestigationSignals.js';
-import { prepareScoringSignals } from '../../../../business_modules/resilience_scorer/app/assessment/prepareScoringSignals.js';
+import { prepareInvestigationSignals, prepareScoringSignals } from '../../../../business_modules/resilience_scorer/app/assessment/prepareSignals.js';
 import { runScoringPipeline } from '../../../../business_modules/resilience_scorer/app/assessment/scoringPipelinePrep.js';
 import { attachInvestigationDiagnostics } from '../../../../business_modules/resilience_scorer/domain/services/operator/componentDiagnostics.js';
 import { runPostExtractionAssessmentCore } from '../../../../business_modules/resilience_scorer/app/assessment/assessmentStage.js';

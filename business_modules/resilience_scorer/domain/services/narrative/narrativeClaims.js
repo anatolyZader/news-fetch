@@ -1,69 +1,8 @@
 /**
- * Build per-component signal pools for the operator narrative pipeline from the
- * full narrative scope (not scoring-partition-only signals).
+ * Claim normalization and merging helpers for the operator narrative pipeline.
  */
 import { COMPONENT_IDS } from '../../contracts/componentIds.js';
-import { buildDuplicateOccurrenceIndex } from '../../epistemic/massContribution.js';
-import { collectComponentItems } from '../../epistemic/componentItems.js';
-import { defaultSignalWeights } from '../signals/signalWeights.js';
 import { buildRefKey } from '../narrativeGrounding/signalRefRegistry.js';
-
-const SUPPRESSION_KEYS = [
-  'suppression_delta',
-  'source_cap_binding',
-  'floor_clamped',
-  'suppression_breakdown',
-  'score_raw',
-  'score_headline',
-  'score',
-  'positive_evidence',
-  'negative_evidence',
-  'derived_indicators',
-];
-
-/**
- * @param {object|null|undefined} scoredFull
- * @param {string} componentId
- * @returns {object}
- */
-function suppressionSliceFromScored(scoredFull, componentId) {
-  const scored = scoredFull?.[componentId];
-  if (!scored || typeof scored !== 'object') return {};
-  const out = {};
-  for (const key of SUPPRESSION_KEYS) {
-    if (scored[key] != null) out[key] = scored[key];
-  }
-  return out;
-}
-
-/**
- * @param {object[]} narrativeScopeSignals
- * @param {Record<string, object>|null} [scoredFull]
- * @returns {Record<string, { signals: object[], signal_count: number }>}
- */
-export function buildNarrativeScoredComponents(narrativeScopeSignals, scoredFull = null) {
-  const signals = narrativeScopeSignals ?? [];
-  const signalWeights = defaultSignalWeights();
-  const duplicateIndex = buildDuplicateOccurrenceIndex(signals);
-  const out = {};
-
-  for (const componentId of COMPONENT_IDS) {
-    const { items } = collectComponentItems(componentId, signals, duplicateIndex, signalWeights);
-    const componentSignals = items.map((item) => {
-      const signal = { ...item.signal };
-      if (item.polarity === '-') signal._polarity = '-';
-      return signal;
-    });
-
-    out[componentId] = {
-      ...suppressionSliceFromScored(scoredFull, componentId),
-      signals: componentSignals,
-      signal_count: componentSignals.length,
-    };
-  }
-
-  return out;
-}
 
 /**
  * Normalize agent assessment claims to narrative_claims shape.

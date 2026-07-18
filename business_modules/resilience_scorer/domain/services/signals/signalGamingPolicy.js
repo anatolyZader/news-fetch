@@ -1,5 +1,7 @@
 /**
  * Anti-gaming policy for citizen-sourced and high-volume signals.
+ * Distinct from probeCorroborationPolicy.js: this caps per-sender/per-type volume;
+ * that one measures distinct-source corroboration against a minimum threshold.
  */
 
 

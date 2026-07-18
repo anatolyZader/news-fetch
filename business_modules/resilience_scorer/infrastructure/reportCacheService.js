@@ -42,6 +42,9 @@ function compareGeneratedAt(candidateAt, bestAt) {
 }
 
 /**
+ * Serve-best heuristic: critical flag → generatedAt → articles → mtime.
+ * Intentionally different from reportHistoryReader.pickBestReportRecord, which
+ * ignores critical/generatedAt so trend history is not skewed by critical re-runs.
  * @param {{ critical: boolean, generatedAt: string | null, articles: number }} meta
  * @param {number} mtimeMs
  * @param {{ critical: boolean, generatedAt: string | null, articles: number, mtime: number }} best

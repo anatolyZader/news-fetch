@@ -87,9 +87,11 @@ function buildAllHistoricalSource(sortedFiles, sourceType, targetDate) {
 }
 
 function buildRecencySources(sortedField, sortedRoot, sortedSocial, targetDate, targetDates, bundleCap) {
+  // 'field' is a legacy alias of 'visits' (see visitsSourceType.js) — same bundle set under both keys.
+  const fieldVisitBundles = buildAllHistoricalSource(sortedField, 'visits', targetDate);
   return {
-    visits: buildAllHistoricalSource(sortedField, 'visits', targetDate),
-    field: buildAllHistoricalSource(sortedField, 'visits', targetDate),
+    visits: fieldVisitBundles,
+    field: fieldVisitBundles,
     pbo: buildRecencySource(sortedRoot, 'pbo', targetDate, targetDates, bundleCap),
     pbo_regional: buildRecencySource(sortedRoot, 'pbo_regional', targetDate, targetDates, bundleCap),
     naftali: buildRecencySource(sortedRoot, 'naftali', targetDate, targetDates, 1),

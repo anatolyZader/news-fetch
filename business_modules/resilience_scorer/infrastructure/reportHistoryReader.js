@@ -46,6 +46,10 @@ function indexReportCandidatesByDate(names, ctx) {
 }
 
 /**
+ * Trend-history heuristic: most complete record per date (articles → mtime).
+ * Intentionally different from reportCacheService.isBetterReportCandidate, which
+ * also weighs the critical flag and generatedAt when picking the report to serve.
+ * (findLatestReportFile below is a third heuristic: lexical filename sort = latest run.)
  * @param {Array<{ path: string, mtime: number }>} candidates
  */
 function pickBestReportRecord(candidates) {

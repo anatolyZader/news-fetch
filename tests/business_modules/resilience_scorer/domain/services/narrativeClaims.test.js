@@ -2,13 +2,12 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  buildNarrativeScoredComponents,
   mergeAgentClaimsWithFacts,
   mergeClaimsLists,
   agentClaimsForComponent,
   buildDigestStubClaims,
   supplementFactsWithDigestStubs,
-} from '../../../../../business_modules/resilience_scorer/domain/services/narrative/buildNarrativeScoredComponents.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/narrative/narrativeClaims.js';
 import { buildSignalRefRegistry } from '../../../../../business_modules/resilience_scorer/domain/services/narrativeGrounding/signalRefRegistry.js';
 
 const fearSignal = {
@@ -22,25 +21,6 @@ const complianceSignal = {
   article_url: 'https://example.com/compliance',
   evidence: 'High shelter compliance during alerts',
 };
-
-describe('buildNarrativeScoredComponents', () => {
-  it('groups narrative scope signals by component weight mapping', () => {
-    const scored = buildNarrativeScoredComponents([fearSignal, complianceSignal], {
-      narrative: { suppression_delta: 2, score_raw: 9, score: 7 },
-    });
-
-    assert.ok(scored.narrative.signals.length >= 1);
-    assert.ok(scored.lifesaving_behavior.signals.length >= 1);
-    assert.equal(scored.narrative.suppression_delta, 2);
-    assert.equal(scored.narrative.signal_count, scored.narrative.signals.length);
-  });
-
-  it('returns empty signal pools for unmapped components', () => {
-    const scored = buildNarrativeScoredComponents([]);
-    assert.equal(scored.narrative.signal_count, 0);
-    assert.equal(scored.leadership.signal_count, 0);
-  });
-});
 
 describe('mergeAgentClaimsWithFacts', () => {
   it('prefers agent claims and fills gaps from facts pass', () => {
@@ -96,7 +76,10 @@ describe('mergeAgentClaimsWithFacts', () => {
   });
 
   it('supplementFactsWithDigestStubs fills empty facts when signals exist', () => {
-    const scored = buildNarrativeScoredComponents([fearSignal, complianceSignal]);
+    const scored = {
+      narrative: { signals: [fearSignal] },
+      lifesaving_behavior: { signals: [complianceSignal] },
+    };
     const registry = buildSignalRefRegistry(scored);
     const stubs = buildDigestStubClaims(scored, registry);
 

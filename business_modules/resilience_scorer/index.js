@@ -189,7 +189,6 @@ export {
   runOperatorNarrativePipeline,
   applyOperatorNarrativeToAssessment,
 } from './app/assessment/operatorNarrativePipeline.js';
-export { buildNarrativeScoredComponents } from './domain/services/narrative/buildNarrativeScoredComponents.js';
 export {
   finalizeOperatorNarrativeSurface,
   resolveOperatorComponentNarrative,

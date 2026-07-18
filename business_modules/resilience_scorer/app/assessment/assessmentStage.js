@@ -4,8 +4,7 @@
  * Used by assess-signals CLI and runResilienceAssessment (score before narrate).
  */
 import { scopeAndPartitionSignals } from './assessmentPipeline.js';
-import { prepareInvestigationSignals } from './prepareInvestigationSignals.js';
-import { prepareScoringSignals } from './prepareScoringSignals.js';
+import { prepareInvestigationSignals, prepareScoringSignals } from './prepareSignals.js';
 import { runScoringPipeline } from './scoringPipelinePrep.js';
 import { deriveInvestigationEpistemicContext } from '../../domain/epistemic/investigationEpistemicContext.js';
 import { resilienceReportsDir } from '../../domain/services/paths/outputDirs.js';

@@ -12,6 +12,24 @@ import { CRITICAL_BYPASS_SIGNAL_TYPES } from '../../epistemic/highSalienceBypass
 
 const DEFAULT_WEAK_WEIGHT = 0.35;
 
+/** Minimum entailment/containment score per evidence type (LLM and embedding verifiers). */
+export const ENTAILMENT_THRESHOLDS = {
+  direct_quote_named_person: 0.7,
+  named_survey_statistic: 0.5,
+  named_institutional_fact: 0.5,
+  observational_reported_fact: 0.4,
+};
+
+const DEFAULT_ENTAILMENT_THRESHOLD = 0.4;
+
+/**
+ * @param {string | undefined | null} evidenceType
+ * @returns {number}
+ */
+export function entailmentThresholdFor(evidenceType) {
+  return ENTAILMENT_THRESHOLDS[evidenceType] ?? DEFAULT_ENTAILMENT_THRESHOLD;
+}
+
 export function isGroundingTieredVerifyEnabled() {
   return process.env.RESILIENCE_GROUNDING_TIERED_VERIFY !== '0';
 }

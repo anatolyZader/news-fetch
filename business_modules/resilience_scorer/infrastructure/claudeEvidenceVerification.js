@@ -14,17 +14,11 @@ import {
   
   isCriticalForGrounding,
   isGroundingTieredVerifyEnabled,
+  entailmentThresholdFor,
 } from '../domain/services/signals/groundingPolicy.js';
 import { recordOutletTelemetry } from '../domain/services/outlets/outletReputationDecay.js';
 
 const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? 'claude-haiku-4-5-20251001';
-
-const ENTAILMENT_THRESHOLDS = {
-  direct_quote_named_person: 0.7,
-  named_survey_statistic: 0.5,
-  named_institutional_fact: 0.5,
-  observational_reported_fact: 0.4,
-};
 
 const SHORT_BODY_CHARS = 80;
 const SHORT_EVIDENCE_TOKENS = 8;
@@ -51,9 +45,6 @@ export function splitParagraphs(body) {
   return merged;
 }
 
-function entailmentThreshold(evidenceType) {
-  return ENTAILMENT_THRESHOLDS[evidenceType] ?? 0.4;
-}
 
 export function isShortEvidence(signal) {
   return tokenize(resolveQuoteText(signal)).length <= SHORT_EVIDENCE_TOKENS;
@@ -76,7 +67,7 @@ export function shouldQueueEntailmentCheck(signal, primaryResult, articleBody) {
   const sim = primaryResult?.sim;
   if (typeof sim !== 'number' || Number.isNaN(sim)) return false;
 
-  const t = entailmentThreshold(signal?.evidence_type ?? 'observational_reported_fact');
+  const t = entailmentThresholdFor(signal?.evidence_type ?? 'observational_reported_fact');
   const low = Number.parseFloat(process.env.RESILIENCE_NLI_BORDERLINE_LOW ?? String(t * 0.65));
   const borderlineLow = Number.isFinite(low) ? Math.max(0.05, Math.min(t - 0.01, low)) : t * 0.65;
   return sim >= borderlineLow && sim < t;

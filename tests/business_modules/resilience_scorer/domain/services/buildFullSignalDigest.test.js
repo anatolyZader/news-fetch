@@ -6,7 +6,7 @@ import {
   narrativeDigestSignalCap,
   narrativeDigestEvidenceChars,
 } from '../../../../../business_modules/resilience_scorer/domain/services/narrative/buildFullSignalDigest.js';
-import { buildDigestStubClaims } from '../../../../../business_modules/resilience_scorer/domain/services/narrative/buildNarrativeScoredComponents.js';
+import { buildDigestStubClaims } from '../../../../../business_modules/resilience_scorer/domain/services/narrative/narrativeClaims.js';
 import { buildSignalRefRegistry } from '../../../../../business_modules/resilience_scorer/domain/services/narrativeGrounding/signalRefRegistry.js';
 
 const envBackup = {};

@@ -4,6 +4,8 @@
  * security:trusted-vendor-fetch
  */
 
+import { entailmentThresholdFor } from '../domain/services/signals/groundingPolicy.js';
+
 const DEFAULT_EMBED_MODEL = 'text-embedding-3-small';
 
 /** Evidence types that require literal grounding — no embedding cosine rescue. */
@@ -95,13 +97,7 @@ export async function maybeRescueEvidenceWithEmbedding(signal, articleBody, prim
   if (isEmbeddingRescueSkippedForType(evidenceType)) {
     return { ok: false, reason: 'embedding_skipped_type', skipped: true };
   }
-  const thresholds = {
-    direct_quote_named_person: 0.7,
-    named_survey_statistic: 0.5,
-    named_institutional_fact: 0.5,
-    observational_reported_fact: 0.4,
-  };
-  const containmentThreshold = opts.containmentThreshold ?? thresholds[evidenceType] ?? 0.4;
+  const containmentThreshold = opts.containmentThreshold ?? entailmentThresholdFor(evidenceType);
   const borderlineLow = Number.parseFloat(
     process.env.RESILIENCE_EMBED_BORDERLINE_LOW ?? String(containmentThreshold * 0.72),
   );

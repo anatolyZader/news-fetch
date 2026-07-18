@@ -51,6 +51,37 @@ function mergeOovRecords(fileRecords, runRecords) {
 }
 
 /**
+ * Shared prelude for both burst evaluators: merged capture records + cluster options.
+ * Returns null when learning capture is disabled (evaluators run on empty records).
+ * @param {string} date
+ * @param {object} opts
+ */
+function prepareOovEvaluation(date, opts) {
+  if (!isLearningCaptureEnabled()) return null;
+
+  const capturesDir = opts.capturesDir ?? opts.reportsDir;
+  const fileRecords = loadOovCaptureRecordsForDate(date, capturesDir);
+  const runRecords = getOovRunBuffer().filter((r) => {
+    const day = r.timestamp?.slice(0, 10);
+    return !day || day === date;
+  });
+  const records = mergeOovRecords(fileRecords, runRecords);
+
+  const embedFn = embeddingsEnabled()
+    ? (text) => embedText(text)
+    : undefined;
+
+  return {
+    records,
+    clusterOpts: {
+      ...opts,
+      embedFn,
+      digitalDarkness: opts.digitalDarkness === true,
+    },
+  };
+}
+
+/**
  * @param {string} date
  * @param {object} [opts]
  * @param {string} [opts.capturesDir]
@@ -71,27 +102,9 @@ function mergeOovRecords(fileRecords, runRecords) {
  * }>}
  */
 export async function evaluateOovBurst(date, opts = {}) {
-  if (!isLearningCaptureEnabled()) {
-    return evaluateDynamicOovClusters([], opts);
-  }
-
-  const capturesDir = opts.capturesDir ?? opts.reportsDir;
-  const fileRecords = loadOovCaptureRecordsForDate(date, capturesDir);
-  const runRecords = getOovRunBuffer().filter((r) => {
-    const day = r.timestamp?.slice(0, 10);
-    return !day || day === date;
-  });
-  const records = mergeOovRecords(fileRecords, runRecords);
-
-  const embedFn = embeddingsEnabled()
-    ? (text) => embedText(text)
-    : undefined;
-
-  return evaluateDynamicOovClusters(records, {
-    ...opts,
-    embedFn,
-    digitalDarkness: opts.digitalDarkness === true,
-  });
+  const prep = prepareOovEvaluation(date, opts);
+  if (!prep) return evaluateDynamicOovClusters([], opts);
+  return evaluateDynamicOovClusters(prep.records, prep.clusterOpts);
 }
 
 /**
@@ -100,27 +113,9 @@ export async function evaluateOovBurst(date, opts = {}) {
  * @param {object} [opts]
  */
 export async function evaluateInvestigationBurst(date, opts = {}) {
-  if (!isLearningCaptureEnabled()) {
-    return evaluateInvestigationOovClusters([], opts);
-  }
-
-  const capturesDir = opts.capturesDir ?? opts.reportsDir;
-  const fileRecords = loadOovCaptureRecordsForDate(date, capturesDir);
-  const runRecords = getOovRunBuffer().filter((r) => {
-    const day = r.timestamp?.slice(0, 10);
-    return !day || day === date;
-  });
-  const records = mergeOovRecords(fileRecords, runRecords);
-
-  const embedFn = embeddingsEnabled()
-    ? (text) => embedText(text)
-    : undefined;
-
-  return evaluateInvestigationOovClusters(records, {
-    ...opts,
-    embedFn,
-    digitalDarkness: opts.digitalDarkness === true,
-  });
+  const prep = prepareOovEvaluation(date, opts);
+  if (!prep) return evaluateInvestigationOovClusters([], opts);
+  return evaluateInvestigationOovClusters(prep.records, prep.clusterOpts);
 }
 
 

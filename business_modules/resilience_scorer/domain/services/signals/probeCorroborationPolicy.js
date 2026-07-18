@@ -1,5 +1,7 @@
 /**
  * File-based connectivity probe trust policy (Option D — no live HTTP).
+ * Distinct from signalGamingPolicy.js: this measures distinct-source corroboration
+ * against a minimum threshold; that one caps per-sender/per-type volume.
  */
 
 import { createHmac, timingSafeEqual } from 'node:crypto';
