@@ -21,7 +21,7 @@ import {
   comparePoolItems,
   inferredPoolRenderMode,
   routingLabelSuffix,
-} from '../../../../../business_modules/resilience_scorer/domain/services/operator/routingLabel.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/operator/evidenceFormatting.js';
 import { SIGNAL_PROVENANCE } from '../../../../../business_modules/resilience_scorer/domain/services/signals/evidenceEligibility.js';
 import {
   finalizeOperatorNarrativeSurface,

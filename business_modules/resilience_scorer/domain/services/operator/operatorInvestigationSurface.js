@@ -22,7 +22,7 @@ import {
 } from '../signals/signalRouter.js';
 import { SIGNAL_PROVENANCE } from '../signals/evidenceEligibility.js';
 import { buildRefKey } from '../narrativeGrounding/signalRefRegistry.js';
-import { comparePoolItems, inferredPoolRenderMode, routingLabelSuffix } from './routingLabel.js';
+import { comparePoolItems, inferredPoolRenderMode, routingLabelSuffix } from './evidenceFormatting.js';
 
 const CONTEXT_PROVENANCES = new Set([
   SIGNAL_PROVENANCE.macro_national,

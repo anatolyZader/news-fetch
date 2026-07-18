@@ -12,7 +12,8 @@ import { attachSourceIdsToSignals } from '../../../../db/source_archive/attachSo
 import { archiveArtifactBeforeWrite } from '../../../../cross-cut-modules/log/index.js';
 import { closedSignalsDir } from '../../domain/contracts/index.js';
 import { isVisitsSourceType, normalizeVisitsSourceType } from '../../domain/services/signals/visitsSourceType.js';
-import { applyFieldReportSignalHygiene, applySignalTypeHygiene } from '../../domain/services/signals/signalTypeHygiene.js';
+import { applySignalTypeHygiene } from '../../domain/services/signals/signalTypeHygiene.js';
+import { applyFieldReportSignalHygiene } from '../../domain/services/signals/fieldReportHygiene.js';
 
 function attachArticleDatesToSignals(signals, articles) {
   return (signals ?? []).map((s) => {

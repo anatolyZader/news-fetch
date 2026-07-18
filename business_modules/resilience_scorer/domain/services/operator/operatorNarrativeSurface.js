@@ -8,11 +8,7 @@ import {
   buildRefKey,
   buildSignalRefRegistry,
 } from '../narrativeGrounding/signalRefRegistry.js';
-import {
-  operatorSurfaceMode,
-  operatorEvidenceChars,
-  operatorMaxClaims,
-} from '../../contracts/operatorSurfaceMode.js';
+import { operatorMaxClaims } from '../../contracts/operatorSurfaceMode.js';
 import {
   buildCitationRegistryFromStored,
   proseHasResolvableCitations,
@@ -29,23 +25,23 @@ import {
 import { formatApaCitationDate } from '../../contracts/apaCitationFormat.js';
 import { buildDeterministicNarrativeFromClaims } from './operatorInvestigationSurface.js';
 import { getComponentWeight, getRoutingRole } from '../signals/signalRouter.js';
-import { routingLabelSuffix } from './routingLabel.js';
+import {
+  formatEvidenceBullet,
+  isRichSurfaceMode,
+  maxEvidenceLineChars,
+  metaFromSignal,
+  resolveSignalForRef,
+  routingLabelSuffix,
+  sourceMetaFromClaim,
+  stripTrailingSignalRefs,
+  urlFromClaim,
+} from './evidenceFormatting.js';
 
 export const INSUFFICIENT_SYNTHESIS_NARRATIVE =
   'Insufficient LLM synthesis — see supporting evidence below.';
 
 const MAX_CLAIMS_IN_PROSE = 3;
 const MAX_RICH_FALLBACK_CLAIMS = 12;
-const MAX_EVIDENCE_LINE_CHARS = 480;
-const SIGNAL_REF_TRAILING = /\s*(?:\[S\d+\])+\s*$/;
-
-function isRichSurfaceMode() {
-  return operatorSurfaceMode() === 'rich';
-}
-
-function maxEvidenceLineChars() {
-  return isRichSurfaceMode() ? operatorEvidenceChars() : MAX_EVIDENCE_LINE_CHARS;
-}
 
 function maxClaimsInProse() {
   if (!isRichSurfaceMode()) return MAX_CLAIMS_IN_PROSE;
@@ -315,177 +311,6 @@ function claimsForComponent(comp) {
   if (fromAgent.length > 0) return fromAgent;
   const raw = comp.narrative_claims ?? comp.claims ?? [];
   return Array.isArray(raw) ? raw.filter((c) => c?.text) : [];
-}
-
-/**
- * @param {string} refKey
- * @returns {string|null}
- */
-const URL_FROM_REF_KEY = /@url:(.+)$/;
-
-function urlFromRefKey(refKey) {
-  const s = String(refKey ?? '');
-  const match = URL_FROM_REF_KEY.exec(s);
-  if (!match) return null;
-  const url = match[1].trim();
-  if (!url || url === '(no url)' || url === 'null') return null;
-  return url;
-}
-
-/**
- * @param {object} comp
- * @returns {object[]}
- */
-function signalPoolsFromComponent(comp) {
-  const poolItems = (comp?.operator_investigation_pool ?? []).map((item) => ({
-    signal_type: item.signal_type,
-    type: item.signal_type,
-    evidence: item.evidence,
-    article_url: item.url,
-    source_type: item.source_type,
-    article_source: item.article_source,
-    signalProvenance: item.signal_provenance,
-  }));
-  return [
-    ...poolItems,
-    ...(comp?.signals ?? []),
-    ...(comp?.top_contributors ?? []),
-  ];
-}
-
-/**
- * @param {string} ref
- * @param {object} comp
- * @returns {object|null}
- */
-function resolveSignalForRef(ref, comp) {
-  const refKey = String(ref ?? '').trim();
-  if (!refKey) return null;
-  const pool = signalPoolsFromComponent(comp);
-  for (const signal of pool) {
-    if (buildRefKey(signal) === refKey) return signal;
-  }
-  const idxMatch = /^(.+)@idx:(\d+)$/.exec(refKey);
-  if (idxMatch) {
-    const [, signalType, idxStr] = idxMatch;
-    const articleIndex = Number(idxStr);
-    const byIdx = pool.find(
-      (s) => (s?.signal_type ?? s?.type) === signalType && s?.article_index === articleIndex,
-    );
-    if (byIdx) return byIdx;
-  }
-  const url = urlFromRefKey(refKey);
-  if (url) {
-    return pool.find((s) => s?.article_url === url) ?? null;
-  }
-  return null;
-}
-
-/**
- * @param {object|null|undefined} signal
- * @returns {string|null}
- */
-function urlFromSignal(signal) {
-  const url = signal?.article_url;
-  if (!url || url === '(no url)' || url === 'null') return null;
-  return url;
-}
-
-/**
- * @param {string} text
- * @returns {string}
- */
-function stripTrailingSignalRefs(text) {
-  return String(text ?? '').replace(SIGNAL_REF_TRAILING, '').trim();
-}
-
-/**
- * @param {object|null|undefined} signal
- * @returns {{ source_type: string|null, article_source: string|null, url: string|null }}
- */
-function metaFromSignal(signal) {
-  if (!signal) return { source_type: null, article_source: null, url: null };
-  return {
-    source_type: normalizeSourceType(signal.source_type),
-    article_source: signal.article_source ?? null,
-    url: urlFromSignal(signal),
-  };
-}
-
-/**
- * @param {object} claim
- * @param {object} [comp]
- * @returns {string|null}
- */
-function urlFromClaim(claim, comp) {
-  const refs = claim.signal_refs ?? claim.evidence_refs ?? [];
-  for (const ref of refs) {
-    const url = urlFromRefKey(ref);
-    if (url) return url;
-    if (comp) {
-      const signalUrl = urlFromSignal(resolveSignalForRef(ref, comp));
-      if (signalUrl) return signalUrl;
-    }
-  }
-  return null;
-}
-
-/**
- * @param {string|null|undefined} sourceType
- * @returns {string|null}
- */
-function normalizeSourceType(sourceType) {
-  const st = String(sourceType ?? '').trim().toLowerCase();
-  if (!st) return null;
-  if (st === 'news' || st === 'press') return 'press';
-  if (st === 'field' || st === 'visits') return 'field';
-  return st;
-}
-
-/**
- * @param {object} claim
- * @param {object} comp
- * @returns {{ source_type: string|null, article_source: string|null }}
- */
-function sourceMetaFromClaim(claim, comp) {
-  if (claim?.source_type) {
-    return {
-      source_type: normalizeSourceType(claim.source_type),
-      article_source: claim.article_source ?? null,
-    };
-  }
-  const refs = claim.signal_refs ?? claim.evidence_refs ?? [];
-  for (const ref of refs) {
-    const signal = resolveSignalForRef(ref, comp);
-    if (signal) return metaFromSignal(signal);
-  }
-  const url = urlFromClaim(claim, comp);
-  for (const signal of signalPoolsFromComponent(comp)) {
-    if (url && signal?.article_url && signal.article_url === url) {
-      return metaFromSignal(signal);
-    }
-  }
-  if (url) {
-    try {
-      const host = new URL(url).hostname.replace(/^www\./, '');
-      return { source_type: null, article_source: host || null };
-    } catch {
-      return { source_type: null, article_source: null };
-    }
-  }
-  return { source_type: null, article_source: null };
-}
-
-/**
- * @param {string} text
- * @param {string|null} url
- * @returns {string}
- */
-function formatEvidenceBullet(text, url) {
-  const body = String(text ?? '').trim().slice(0, maxEvidenceLineChars());
-  if (!body) return '';
-  if (url) return `- ${body} [source](${url})`;
-  return `- ${body}`;
 }
 
 /**

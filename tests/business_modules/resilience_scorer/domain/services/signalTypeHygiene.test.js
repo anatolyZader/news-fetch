@@ -6,11 +6,13 @@ import {
   rewriteMisclassifiedSignalType,
   shouldDropNonResilienceCasualtySignal,
   isBareHazardTickerEvidence,
+  resolveSignalTypeAlias,
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalTypeHygiene.js';
+import {
   applyFieldReportSignalHygiene,
   isTrivialFieldReportEvidence,
-  resolveSignalTypeAlias,
   stripFieldReportScoreBlob,
-} from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalTypeHygiene.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/fieldReportHygiene.js';
 
 describe('signalTypeHygiene', () => {
   const holySepulcherEvidence =

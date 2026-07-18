@@ -62,6 +62,32 @@ function rebudgetPlan(plan, params) {
 }
 
 /**
+ * Run an LLM pass, escalating the context budget on token overflow.
+ * @param {object} opts
+ * @param {object} opts.plan
+ * @param {object} opts.pipelineParams
+ * @param {string} opts.label — pass name used in overflow log lines
+ * @param {(activePlan: object) => Promise<object|null>} opts.attempt
+ * @param {(activePlan: object) => object|null} opts.overflowFallback — result when rebudget lands on skipLlm or retries are exhausted
+ * @returns {Promise<object|null>}
+ */
+async function runWithOverflowRebudget({ plan, pipelineParams, label, attempt, overflowFallback }) {
+  let activePlan = plan;
+
+  for (let overflowRetry = 0; overflowRetry <= MAX_OVERFLOW_RETRIES; overflowRetry += 1) {
+    try {
+      return await attempt(activePlan);
+    } catch (err) {
+      if (!isTokenOverflowError(err) || overflowRetry >= MAX_OVERFLOW_RETRIES) throw err;
+      console.error(`[operator-narrative] ${label} token overflow — escalating budget (${err.message})`);
+      activePlan = rebudgetPlan(activePlan, pipelineParams);
+      if (activePlan.skipLlm) return overflowFallback(activePlan);
+    }
+  }
+  return overflowFallback(activePlan);
+}
+
+/**
  * @param {object} params
  * @returns {Promise<object>}
  */
@@ -147,23 +173,19 @@ async function runFactsAndJudgePass(params) {
     pipelineParams,
   } = params;
 
-  let activePlan = plan;
-
-  for (let overflowRetry = 0; overflowRetry <= MAX_OVERFLOW_RETRIES; overflowRetry += 1) {
-    try {
+  return runWithOverflowRebudget({
+    plan,
+    pipelineParams,
+    label: 'Facts/judge',
+    attempt: async (activePlan) => {
       const result = await executeFactsAttempts({
         assessment, narrativeScored, registry, rag, llmOpts, epistemicBlock, activePlan,
       });
       if (!result) return null;
       return { ...result, plan: activePlan };
-    } catch (err) {
-      if (!isTokenOverflowError(err) || overflowRetry >= MAX_OVERFLOW_RETRIES) throw err;
-      console.error(`[operator-narrative] Facts/judge token overflow — escalating budget (${err.message})`);
-      activePlan = rebudgetPlan(activePlan, pipelineParams);
-      if (activePlan.skipLlm) return null;
-    }
-  }
-  return null;
+    },
+    overflowFallback: () => null,
+  });
 }
 
 function buildPolishFeedback(judgeFeedback, validationFeedback) {
@@ -283,32 +305,23 @@ async function runPolishAndValidatePass(params) {
     degradeReasons.push('Relation judge: unresolved after facts pass');
   }
 
-  let activePlan = plan;
-
-  for (let overflowRetry = 0; overflowRetry <= MAX_OVERFLOW_RETRIES; overflowRetry += 1) {
-    try {
-      return await executePolishAttempts({
-        mergedNarratives,
-        registry,
-        narrativeScored,
-        rag,
-        llmOpts,
-        judgeFeedback,
-        epistemicBlock,
-        activePlan,
-        degradeReasons,
-      });
-    } catch (err) {
-      if (!isTokenOverflowError(err) || overflowRetry >= MAX_OVERFLOW_RETRIES) throw err;
-      console.error(`[operator-narrative] Polish token overflow — escalating budget (${err.message})`);
-      activePlan = rebudgetPlan(activePlan, pipelineParams);
-      if (activePlan.skipLlm) {
-        return buildOverflowFallbackPolish(activePlan);
-      }
-    }
-  }
-
-  return buildOverflowFallbackPolish(activePlan);
+  return runWithOverflowRebudget({
+    plan,
+    pipelineParams,
+    label: 'Polish',
+    attempt: (activePlan) => executePolishAttempts({
+      mergedNarratives,
+      registry,
+      narrativeScored,
+      rag,
+      llmOpts,
+      judgeFeedback,
+      epistemicBlock,
+      activePlan,
+      degradeReasons,
+    }),
+    overflowFallback: buildOverflowFallbackPolish,
+  });
 }
 
 /**

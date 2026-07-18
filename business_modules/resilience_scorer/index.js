@@ -92,17 +92,21 @@ export { enrichFieldProvenance } from './domain/services/signals/fieldSignalPoli
 export {
   applyFieldReportSignalHygiene,
   isTrivialFieldReportEvidence,
+} from './domain/services/signals/fieldReportHygiene.js';
+export {
   resolveSignalTypeAlias,
   applySignalTypeHygiene,
   rewriteMisclassifiedSignalType,
-  splitBundledHarmInfrastructure,
-  splitEvidenceClauses,
-  classifyHarmInfrastructureClause,
   shouldDropNonResilienceCasualtySignal,
   isExcludedNationalContextSignalType,
   isBareHazardTickerEvidence,
   NATIONAL_CONTEXT_EXCLUDED_SIGNAL_TYPES,
 } from './domain/services/signals/signalTypeHygiene.js';
+export {
+  splitBundledHarmInfrastructure,
+  splitEvidenceClauses,
+  classifyHarmInfrastructureClause,
+} from './domain/services/signals/harmInfrastructureSplit.js';
 export { topContributorsFromScored } from './domain/services/operator/topContributors.js';
 
 // --- Application services ---
