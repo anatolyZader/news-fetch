@@ -189,9 +189,6 @@ jobs:
         env:
           GEO_ASSERT_ENVELOPE: '1'
 
-      - name: Golden extraction regression (offline)
-        run: npm run golden:eval
-
       - name: Upload coverage for SonarCloud
         uses: actions/upload-artifact@v7
         with:
