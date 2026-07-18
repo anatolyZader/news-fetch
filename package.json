@@ -124,5 +124,8 @@
     "eslint-plugin-unicorn": "^59.0.1",
     "globals": "^17.6.0",
     "libxmljs2": "^0.37.0"
+  },
+  "overrides": {
+    "websocket-driver": "0.7.5"
   }
 }
