@@ -26,7 +26,7 @@ export {
   epistemicFramingHint,
 } from './signalRefRegistry.js';
 
-export { resolveInlineSignalCitations } from './inlineCitationResolver.js';
+export { resolveInlineSignalCitations } from '../../contracts/inlineCitationResolve.js';
 
 export {
   buildCoOccurrenceGroups,

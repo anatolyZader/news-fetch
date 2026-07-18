@@ -3,7 +3,7 @@
  * Source of truth for labels/disambiguation: SIGNAL_CATALOG in signalCatalog.js.
  */
 
-import { SIGNAL_CATALOG, getSignalCatalogEntry } from './signalCatalog.js';
+import { SIGNAL_CATALOG, getSignalCatalogEntry } from './signalRouter.js';
 
 /** Types with rich disambiguation metadata — emitted first in the boundaries block. */
 export const DISAMBIGUATION_PRIORITY_TYPES = [

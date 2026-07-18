@@ -24,10 +24,10 @@ import {
 } from '../../contracts/evidenceAnchor.js';
 import {
   linkPlainApaParentheticals,
+  resolveInlineSignalCitations,
 } from '../../contracts/inlineCitationResolve.js';
 import { formatApaCitationDate } from '../../contracts/apaCitationFormat.js';
 import { buildDeterministicNarrativeFromClaims } from './operatorInvestigationSurface.js';
-import { resolveInlineSignalCitations } from '../narrativeGrounding/inlineCitationResolver.js';
 import { getComponentWeight, getRoutingRole } from '../signals/signalRouter.js';
 import { routingLabelSuffix } from './routingLabel.js';
 

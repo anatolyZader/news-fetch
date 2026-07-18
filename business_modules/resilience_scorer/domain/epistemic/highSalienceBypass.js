@@ -8,7 +8,7 @@
  * @see docs/main_docu_files/RESILIENCE-ENGINE-REFERENCE.md §4 (Operator instruments)
  */
 
-import { getSignalCatalogEntry } from '../services/signals/signalCatalog.js';
+import { getSignalCatalogEntry } from '../services/signals/signalRouter.js';
 import {
   GROUNDING_TIER,
   UNVERIFIED_CRITICAL_GROUNDING_REASON,

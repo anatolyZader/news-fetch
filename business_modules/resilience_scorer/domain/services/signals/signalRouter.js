@@ -1,22 +1,34 @@
 /**
  * Signal → component routing (Information Expert for catalog lookups and weights).
+ * Single facade over the taxonomy (contracts), routing policy, and scoring priors.
  */
 
 export {
-  SIGNAL_CATALOG,
-  SIGNAL_TYPES,
   CATALOG_VERSION,
+  SIGNAL_CATALOG,
   SIGNAL_DOMAINS,
-  DEFAULT_SCORING_PRIORS,
+  SIGNAL_TYPES,
+  SIGNAL_ALIASES,
   getSignalCatalogEntry,
-  getScoringPriors,
+  canonicalizeSignalType,
+  validateSignalCatalog,
+  assertValidSignalCatalog,
+} from '../../contracts/signalCatalog.js';
+export {
   SIGNAL_TO_COMPONENTS,
   SIGNAL_ROUTING_ROLES,
   getRoutingRole,
-  canonicalizeSignalType,
-} from './signalCatalog.js';
+  validateSignalRouting,
+  assertValidSignalRouting,
+} from './signalRouting.js';
+export {
+  DEFAULT_SCORING_PRIORS,
+  SCORING_PRIORS_BY_TYPE,
+  getScoringPriors,
+} from './scoringPriors.js';
 
-import { SIGNAL_TO_COMPONENTS, canonicalizeSignalType } from './signalCatalog.js';
+import { SIGNAL_TO_COMPONENTS } from './signalRouting.js';
+import { canonicalizeSignalType } from '../../contracts/signalCatalog.js';
 
 /**
  * @param {string} signalType

@@ -8,7 +8,7 @@ import {
   getMirrorTypeForSelfCheck,
   DISAMBIGUATION_PRIORITY_TYPES,
 } from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalCatalogPrompt.js';
-import { SIGNAL_CATALOG, getSignalCatalogEntry } from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalCatalog.js';
+import { SIGNAL_CATALOG, getSignalCatalogEntry } from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalRouter.js';
 
 describe('signalCatalogPrompt', () => {
   it('formatSignalCatalog includes v6 types', () => {

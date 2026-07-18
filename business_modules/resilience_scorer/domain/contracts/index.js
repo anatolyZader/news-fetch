@@ -3,6 +3,7 @@
  * Other modules import from here instead of business_modules/resilience.
  */
 
+// Load-bearing for external consumers (pbo_report, cross-cut retrieval) via the module facade.
 export { RESILIENCE_COMPONENTS } from './resilienceComponents.js';
 export { COMPONENT_IDS } from './componentIds.js';
 export {

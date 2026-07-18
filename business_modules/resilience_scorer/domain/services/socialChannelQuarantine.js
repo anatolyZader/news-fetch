@@ -3,7 +3,7 @@
  * Auto-exclusion from scoring when suggested (default); analyst dismiss suppresses.
  */
 
-import { getSignalCatalogEntry } from './signals/signalCatalog.js';
+import { getSignalCatalogEntry } from './signals/signalRouter.js';
 
 const DEFAULT_MIN_SIGNALS = 4;
 const MIN_SHARE = 0.25;

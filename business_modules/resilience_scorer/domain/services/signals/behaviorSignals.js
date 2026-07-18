@@ -22,7 +22,7 @@ export {
   SIGNAL_TYPES,
   getScoringPriors,
   getSignalCatalogEntry,
-} from './signalCatalog.js';
+} from './signalRouter.js';
 
 export {
   SIGNAL_CLASSES,
