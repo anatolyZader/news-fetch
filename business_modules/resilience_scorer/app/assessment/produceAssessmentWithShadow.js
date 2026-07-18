@@ -1,8 +1,7 @@
 /**
- * Agent v2 primary assess + shadow scoring; deterministic degrade ladder on failure.
+ * Agent v2 primary assess; deterministic degrade ladder on failure.
  */
 import {
-  shadowScoringEnabled,
   shouldSkipAssessmentAgent,
   isClosedCoreAssessEnabled,
 } from '../../../../cross-cut-modules/agent/index.js';
@@ -14,10 +13,6 @@ import {
   runDeterministicAssessment,
   loadCachedAssessmentFallback,
 } from '../../../specialist_agents/index.js';
-import {
-  computeDivergence,
-  writeShadowArtifacts,
-} from '../shadowFacade.js';
 import { resilienceReportsDir } from '../../domain/services/paths/outputDirs.js';
 
 function resolveReportsDir(params) {
@@ -37,12 +32,7 @@ export async function produceAssessmentWithShadow(params) {
     targetDate: params.targetDate,
     traceId: agentOutcome.traceId,
   });
-  attachShadowDivergence(agentOutcome.assessment, params);
   return agentOutcome.assessment;
-}
-
-export function attachShadowDivergenceToAssessment(assessment, params) {
-  attachShadowDivergence(assessment, params);
 }
 
 function resolveInvestigationSignals(params) {
@@ -193,18 +183,6 @@ function attachAssessmentV2Fields(assessment, assessmentV2, { epistemicProfile, 
   assessment.investigation_plan = assessmentV2.investigation_plan;
   assessment.retrieval_gaps = assessmentV2.retrieval_gaps;
   assessment.budget_snapshot = assessmentV2.budget_snapshot;
-}
-
-function attachShadowDivergence(assessment, params) {
-  if (!shadowScoringEnabled() || !params.scoredFull) return;
-  const divergence = computeDivergence(assessment, params.scoredFull);
-  writeShadowArtifacts({
-    scopeId: params.reportScopeId,
-    date: params.targetDate,
-    shadowScored: params.scoredFull,
-    divergence,
-  });
-  assessment.shadow_divergence = divergence;
 }
 
 function resolveForceDeterministicReason() {

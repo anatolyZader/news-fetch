@@ -1,9 +1,7 @@
 /**
- * Enqueue verified open observations for catalog evolution (Phase 3).
+ * Buffer verified open observations as learning-capture records (Phase 3).
  */
-import { resolve } from 'node:path';
 import { bufferOovCapture } from '../../domain/services/oov/oovCapture.js';
-import { isCatalogAutoProposeVerifiedEnabled } from '../../domain/services/oov/openExtractConfig.js';
 import { LEARNING_CAPTURE_KINDS } from '../../domain/contracts/learningCaptureKinds.js';
 
 /**
@@ -12,7 +10,7 @@ import { LEARNING_CAPTURE_KINDS } from '../../domain/contracts/learningCaptureKi
  * @param {object} opts
  */
 export async function enqueueVerifiedOpenForCatalog(verifiedClaims, openObservations, opts = {}) {
-  if (!verifiedClaims?.length) return { enqueued: 0, proposals_generated: 0 };
+  if (!verifiedClaims?.length) return { enqueued: 0 };
 
   const obsById = new Map(openObservations.map((o) => [String(o.observation_id), o]));
   let enqueued = 0;
@@ -40,26 +38,5 @@ export async function enqueueVerifiedOpenForCatalog(verifiedClaims, openObservat
     enqueued += 1;
   }
 
-  let proposals_generated = 0;
-  if (isCatalogAutoProposeVerifiedEnabled() && enqueued > 0) {
-    try {
-      const repoRoot = opts.repoRoot ?? process.cwd();
-      const sqlitePath = process.env.SQLITE_PATH?.trim() || resolve(repoRoot, 'db', 'app.sqlite');
-      const { createCatalogProposalService, createCatalogProposalSqliteStore } = await import(
-        '../../../signal_catalog_evolution/index.js'
-      );
-      const proposalService = createCatalogProposalService({
-        proposalStore: createCatalogProposalSqliteStore(sqlitePath),
-      });
-      const proposalResult = await proposalService.generateProposalsFromVerifiedOpen({
-        minRecurrence: 3,
-        maxDays: 14,
-      });
-      proposals_generated = proposalResult.generated ?? 0;
-    } catch (err) {
-      console.error(`  ⚠ Catalog auto-propose skipped: ${err.message}`);
-    }
-  }
-
-  return { enqueued, proposals_generated };
+  return { enqueued };
 }

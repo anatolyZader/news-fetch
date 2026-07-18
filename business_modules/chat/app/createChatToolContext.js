@@ -13,12 +13,9 @@ import { buildChatToolList } from '../domain/tools/chatToolSchemas.js';
  * @param {object} [deps.sourceArchive]
  * @param {object} [deps.evidenceStore]
  * @param {object} [deps.retrievalService]
- * @param {object} [deps.validationReviewService]
  * @param {object} [deps.pboHistoricalSearchService]
  * @param {object} [deps.pboReportReviewService]
- * @param {object} [deps.driftService]
  * @param {() => object} [deps.getMunicipalityDashboard]
- * @param {object} [deps.catalogProposalService]
  * @param {object} [deps.geoUnknownReviewService]
  * @param {object} [deps.pendingActionStore]
  * @param {string} [deps.ownerUid]
@@ -45,12 +42,9 @@ export function createChatToolContext(deps = {}) {
     retrievalService: deps.retrievalService ?? null,
     retrievalCache: deps.retrievalCache ?? null,
     costRecorder: deps.costRecorder ?? null,
-    validationReviewService: deps.validationReviewService ?? null,
     pboHistoricalSearchService: deps.pboHistoricalSearchService ?? null,
     pboReportReviewService: deps.pboReportReviewService ?? null,
-    driftService: deps.driftService ?? null,
     getMunicipalityDashboard: deps.getMunicipalityDashboard ?? null,
-    catalogProposalService: deps.catalogProposalService ?? null,
     geoUnknownReviewService: deps.geoUnknownReviewService ?? null,
     pendingActionStore: deps.pendingActionStore ?? null,
     ownerUid: deps.ownerUid ?? '',

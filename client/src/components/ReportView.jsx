@@ -34,15 +34,13 @@ import {
 } from '../lib/evidenceSourceMeta.js';
 import { isStubNarrative } from '../lib/isStubNarrative.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { DriftSparkline, StatusTag, MarkdownArticle } from '../ui/index.js';
+import { StatusTag, MarkdownArticle } from '../ui/index.js';
 import { AttentionPanel } from './AttentionPanel.jsx';
 import { ActionCompassPanel } from './ActionCompassPanel.jsx';
 import { EpistemicStatusBanner } from './EpistemicStatusBanner.jsx';
 import { ReportEditionContextBar } from './ReportEditionContextBar.jsx';
 import { OperatorReportContextLine } from './OperatorReportContextLine.jsx';
 import { EvidenceOverviewPanel } from './EvidenceOverviewPanel.jsx';
-import { ValidationReviewPanel } from './ValidationReviewPanel.jsx';
-import { CatalogProposalPanel } from './CatalogProposalPanel.jsx';
 import { OovAnomalyClustersPanel } from './OovAnomalyClustersPanel.jsx';
 import { OperatorRecommendationsPanel } from './OperatorRecommendationsPanel.jsx';
 import { DecisionBriefPanel } from './DecisionBriefPanel.jsx';
@@ -54,7 +52,6 @@ import {
   useExpandedSourceGroups,
 } from '../lib/evidenceNavigation.jsx';
 import { EpistemicRoleBadge } from './EpistemicRoleBadge.jsx';
-import { AgentDivergencePanel } from './AgentDivergencePanel.jsx';
 import { InstrumentMetricsBadges } from './InstrumentMetricsBadges.jsx';
 import { ReportComponentFilterBar, readReportComponentFilter } from './ReportComponentFilterBar.jsx';
 import { filterReportComponents } from '../lib/reportComponentFilter.js';
@@ -62,7 +59,6 @@ import PropTypes from 'prop-types';
 import {
   assessmentShape,
   componentScoreShape,
-  driftByComponentShape,
   facetsShape,
   macroSignalShape,
   scoreBySourceShape,
@@ -1155,8 +1151,6 @@ function ComponentCard({
   reportDate,
   citationRegistryEntries = null,
   sourceSignals,
-  driftSeries,
-  driftLoading,
   displayView = 'operator',
   operatorSimpleView = false,
   flat = false,
@@ -1167,7 +1161,6 @@ function ComponentCard({
 }) {
   const theme = useTheme();
   const isAnalyst = displayView === 'analyst';
-  const [showScoreDrift, setShowScoreDrift] = useState(false);
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replaceAll('_', ' ');
 
   const curatedEvidence = resolveCuratedEvidence(comp);
@@ -1360,39 +1353,6 @@ function ComponentCard({
       </AccordionSummary>
       <AccordionDetails>
         {isAnalyst && <InstrumentMetricsBadges instrument={comp.instrument} t={t} />}
-        {isAnalyst && (
-          <Box sx={(theme) => ({ marginTop: theme.spacing(0.5), marginBottom: theme.spacing(0.75) })}>
-            {driftLoading && (
-              <Typography variant="caption" color="text.disabled" sx={{ fontStyle: 'italic', display: 'block', marginBottom: 0.5 }}>
-                {t('app.reportLoading')}
-              </Typography>
-            )}
-            <DriftSparkline
-              series={driftSeries ?? []}
-              t={t}
-              height={78}
-              valueKey={showScoreDrift ? 'score' : 'polarization'}
-              variant={showScoreDrift ? 'score10' : 'unit01'}
-            />
-            <Typography
-              component="button"
-              type="button"
-              variant="caption"
-              onClick={() => setShowScoreDrift((v) => !v)}
-              sx={{
-                border: 'none',
-                background: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                color: 'primary.main',
-                textDecoration: 'underline',
-                marginTop: 0.5,
-              }}
-            >
-              {showScoreDrift ? t('report.drift.hideScoreHistory') : t('report.drift.showScoreHistory')}
-            </Typography>
-          </Box>
-        )}
         {isAnalyst && <WhyThisScore comp={comp} t={t} />}
         {isAnalyst && <DeltaLine comp={comp} t={t} />}
         {isAnalyst && <CounterfactualHint comp={comp} t={t} />}
@@ -1595,8 +1555,6 @@ export function ReportView({
   reportScope,
   generatedAt,
   assessmentWindow,
-  driftByComponent,
-  driftLoading,
   attentionItems,
   actionCompass,
   anomalyStrip,
@@ -1608,8 +1566,6 @@ export function ReportView({
   setOpenCompId: setOpenCompIdProp,
   openEvidenceCompId: openEvidenceCompIdProp,
   setOpenEvidenceCompId: setOpenEvidenceCompIdProp,
-  showValidationReview = false,
-  onOpenValidationInChat,
 }) {
   const isAnalyst = displayView === 'analyst';
   const operatorSimpleView = !isAnalyst;
@@ -1621,8 +1577,6 @@ export function ReportView({
     isAnalyst ? readReportComponentFilter(reportScope ?? 'national') : { preset: 'all', selectedComponentIds: null }
   ));
   const compRefs = useRef({});
-  const validationReviewRef = useRef(null);
-  const catalogProposalsRef = useRef(null);
 
   const openCompId = openCompIdProp ?? openCompIdInternal;
   const setOpenCompId = setOpenCompIdProp ?? setOpenCompIdInternal;
@@ -1630,7 +1584,6 @@ export function ReportView({
   const setOpenEvidenceCompId = setOpenEvidenceCompIdProp ?? setOpenEvidenceCompIdInternal;
 
   const norrisCaps = assessment.norris_capacities ?? [];
-  const driftMap = driftByComponent ?? {};
 
   const [recommendations, setRecommendations] = useState(
     () => assessment?.operator_recommendations ?? [],
@@ -1722,11 +1675,6 @@ export function ReportView({
           oovCaptureCount={assessment?.oov_capture_count}
           oovScoringApplied={assessment?.oov_scoring_applied}
           isAnalyst={isAnalyst}
-          onReviewCatalogProposals={
-            showValidationReview && isAnalyst
-              ? () => catalogProposalsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-              : undefined
-          }
         />
       )}
 
@@ -1744,20 +1692,9 @@ export function ReportView({
           driftAlerts={driftAlerts}
           displayView={displayView}
           onJumpToComponent={onJumpToComponent}
-          onScrollToValidationReview={showValidationReview ? () => {
-            validationReviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          } : undefined}
         />
       )}
 
-      {isAnalyst && (
-        <AgentDivergencePanel
-          reportDate={reportDate ?? assessment?.date}
-          reportScope={reportScope?.id ?? assessment?.report_scope?.id ?? 'national'}
-          assessmentDegraded={assessment?.assessment_degraded ?? null}
-          agentTraceId={assessment?.agent_trace_id ?? null}
-        />
-      )}
       {showGuidancePanels && (
         <DecisionBriefPanel
           decisionBrief={assessment?.decision_brief}
@@ -1782,22 +1719,6 @@ export function ReportView({
           filterState={componentFilter}
           onFilterChange={setComponentFilter}
         />
-      )}
-
-      {showValidationReview && (
-        <ValidationReviewPanel
-          ref={validationReviewRef}
-          reportDate={reportDate}
-          reportScope={reportScope}
-          enabled={showValidationReview}
-          onOpenInChat={onOpenValidationInChat}
-        />
-      )}
-
-      {showValidationReview && (
-        <Box ref={catalogProposalsRef}>
-          <CatalogProposalPanel enabled={showValidationReview} />
-        </Box>
       )}
 
       {!operatorSimpleView && (
@@ -2010,8 +1931,6 @@ export function ReportView({
                 operatorSimpleView={operatorSimpleView}
                 flat={readOnly}
                 sourceSignals={getSourceSignals(c.component_id)}
-                driftSeries={driftMap?.[c.component_id]?.series ?? []}
-                driftLoading={driftLoading}
                 open={openCompId === c.component_id}
                 evidenceOpen={openEvidenceCompId === c.component_id}
                 onToggle={(isOpen) => {
@@ -2113,8 +2032,6 @@ ComponentCard.propTypes = {
   reportDate: PropTypes.string,
   citationRegistryEntries: PropTypes.arrayOf(PropTypes.object),
   sourceSignals: PropTypes.arrayOf(PropTypes.object),
-  driftSeries: PropTypes.array,
-  driftLoading: PropTypes.bool,
   displayView: PropTypes.oneOf(['operator', 'analyst']),
   operatorSimpleView: PropTypes.bool,
   flat: PropTypes.bool,
@@ -2157,8 +2074,6 @@ ReportView.propTypes = {
     window_end: PropTypes.string,
     pipeline_preset: PropTypes.string,
   }),
-  driftByComponent: driftByComponentShape,
-  driftLoading: PropTypes.bool,
   attentionItems: PropTypes.arrayOf(PropTypes.object),
   actionCompass: PropTypes.shape({
     uncertainty_band: PropTypes.string,
@@ -2177,6 +2092,4 @@ ReportView.propTypes = {
   setOpenCompId: PropTypes.func,
   openEvidenceCompId: PropTypes.string,
   setOpenEvidenceCompId: PropTypes.func,
-  showValidationReview: PropTypes.bool,
-  onOpenValidationInChat: PropTypes.func,
 };

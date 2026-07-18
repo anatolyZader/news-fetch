@@ -8,7 +8,7 @@ cat <<EOF
 === srulik.ai external integrations ===
 
 Firebase authorized domains (Identity Platform):
-  Added via API: srulik.ai, www.srulik.ai, docs.srulik.ai, analyst.srulik.ai
+  Added via API: srulik.ai, www.srulik.ai, docs.srulik.ai
   Verify: Firebase Console → Authentication → Settings → Authorized domains
 
 Meta WhatsApp Cloud API (developers.facebook.com):
@@ -25,7 +25,6 @@ Resend — outbound / digest:
 
 Cloudflare Pages (optional — docs on VM nginx by default):
   docs project: add custom domain docs.srulik.ai (current vibeswitch: news-fetch-abl.pages.dev)
-  analyst: deploy analyst-site/dist and add analyst.srulik.ai
 
 URGENT if vibeswitch.ai 301s to srulik.ai before DNS is live:
   Cloudflare → vibeswitch.ai zone → Bulk Redirects / Redirect Rules → disable srulik redirect

@@ -187,12 +187,9 @@ function buildChatLlmStreamOptions(opts, { chatEconomyMeta, abortSignal, onLoopE
     ownerUid: opts.ownerUid ?? '',
     sessionId: opts.sessionId ?? '',
     pendingActionStore: opts.pendingActionStore ?? null,
-    validationReviewService: opts.validationReviewService ?? null,
     pboHistoricalSearchService: opts.pboHistoricalSearchService ?? null,
     pboReportReviewService: opts.pboReportReviewService ?? null,
-    driftService: opts.driftService ?? null,
     getMunicipalityDashboard: opts.getMunicipalityDashboard ?? null,
-    catalogProposalService: opts.catalogProposalService ?? null,
     geoUnknownReviewService: opts.geoUnknownReviewService ?? null,
     toolProfile: opts.toolProfile ?? 'default',
     llmPort: opts.llmPort ?? null,
@@ -244,11 +241,8 @@ async function buildPrefetchAntiLoopHint({ history, message, sliceResult, includ
  * @param {string} [opts.ownerUid]
  * @param {string} [opts.sessionId]
  * @param {object} [opts.pendingActionStore]
- * @param {object} [opts.validationReviewService]
  * @param {object} [opts.pboHistoricalSearchService]
  * @param {object} [opts.pboReportReviewService]
- * @param {object} [opts.driftService]
- * @param {object} [opts.catalogProposalService]
  * @param {object} [opts.geoUnknownReviewService]
  * @param {AbortSignal} [opts.abortSignal]
  * @param {object} [opts.tracePort]

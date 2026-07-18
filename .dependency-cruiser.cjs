@@ -121,12 +121,12 @@ module.exports = {
   ],
   options: {
     doNotFollow: {
-      path: ['node_modules', 'client/dist', 'tools/docs-site', 'analyst-site', 'tests', 'scripts'],
+      path: ['node_modules', 'client/dist', 'tools/docs-site', 'tests', 'scripts'],
     },
     tsPreCompilationDeps: false,
     combinedDependencies: true,
     exclude: {
-      path: ['node_modules', 'client/dist', 'tools/docs-site', 'analyst-site'],
+      path: ['node_modules', 'client/dist', 'tools/docs-site'],
     },
   },
 };

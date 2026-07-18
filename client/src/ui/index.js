@@ -21,7 +21,6 @@ export { ChatLauncher } from './ChatLauncher.jsx';
 export { DataSourcesNav } from './DataSourcesNav.jsx';
 export { MobileAppBar } from './MobileAppBar.jsx';
 export { DetailPanel } from './DetailPanel.jsx';
-export { DriftSparkline } from './DriftSparkline.jsx';
 export { FilterBar } from './FilterBar.jsx';
 export { FilterPill, FilterPillGroup } from './FilterPill.jsx';
 export { FilterRow } from './FilterRow.jsx';

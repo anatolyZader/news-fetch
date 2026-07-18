@@ -35,12 +35,9 @@ export async function chatRoutes(app, opts) {
     vectorIndexStore,
     retrievalService,
     pendingActionStore,
-    validationReviewService,
     pboHistoricalSearchService,
     pboReportReviewService,
-    driftService,
     getMunicipalityDashboard,
-    catalogProposalService,
     geoUnknownReviewService,
     llmPort,
     tracePort,
@@ -162,9 +159,7 @@ export async function chatRoutes(app, opts) {
       });
       const result = await executePendingAction(pending, {
         userEmail: request.user?.email ?? '',
-        validationReviewService,
         geoUnknownReviewService,
-        catalogProposalService,
       });
       return reply.send({ ok: true, result });
     } catch (err) {
@@ -242,12 +237,9 @@ export async function chatRoutes(app, opts) {
           ownerUid: uid,
           sessionId: sid,
           pendingActionStore,
-          validationReviewService,
           pboHistoricalSearchService,
           pboReportReviewService,
-          driftService,
           getMunicipalityDashboard,
-          catalogProposalService,
           geoUnknownReviewService,
           toolProfile: String(toolProfile ?? 'default').trim() || 'default',
           economy: economy == null ? 'default' : String(economy).trim(),

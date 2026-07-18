@@ -49,7 +49,6 @@ The `assessment` object inside the JSON is the `assessmentV2` structure describe
 |-------|---------|
 | `GET /api/report/today` | Cached report for a scope; operator redaction via `display_view` |
 | `GET /api/report/dates` | Available report dates per scope (regional scopes require district access) |
-| `GET /api/report/divergence` | Analyst divergence JSON (agent vs shadow score) |
 | `POST /api/report/claim-feedback` | Analyst accept/reject a claim -> institutional memory |
 | `POST /api/report/recommendations/:id/acknowledge` | Operator acknowledge/dismiss a recommendation |
 | `GET /api/municipalities`, `GET /api/pbo/*` | PBO municipality / regional dashboards |
@@ -64,7 +63,7 @@ A regional scope with no report yet returns a hint to run `assess-signals --scop
 
 ### 4.1 Operator UI
 
-`client/src/components/ReportView.jsx` is rendered for operators with `displayView="operator"` (analyst tooling lives in a separate `analyst-site/` SPA). The operator sees:
+`client/src/components/ReportView.jsx` is rendered for operators with `displayView="operator"`; the separate `analyst-site/` SPA that formerly hosted analyst-only tooling has been retired — analysts now use score-revealing panels within this same component, gated by `displayView="analyst"`. The operator sees:
 
 - Epistemic status banner, attention queue, evidence overview.
 - Instrument badges (sufficiency, contested, significant delta).

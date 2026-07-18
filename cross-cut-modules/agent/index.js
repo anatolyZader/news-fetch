@@ -10,7 +10,6 @@ export {
   isAssessmentAgentLegacyEnabled,
   isClosedCoreAssessEnabled,
   shouldSkipAssessmentAgent,
-  shadowScoringEnabled,
   assessmentAgentMaxUsd,
   assessmentAgentMaxRounds,
   chatMaxToolRounds,

@@ -104,15 +104,14 @@ with source-specific exceptions: field at `business_modules/visits/data/signals/
 
 Bundle shape: `{ source_type, content_kind, [district_id], date, extracted_at, source_files, total_articles, signals[] }`. Each signal carries a catalog `signal_type`, `evidence`, `evidence_class`, `scope_level`, `confidence`, etc.
 
-### 3.4 Catalog evolution (closing the open/closed gap)
+### 3.4 OOV capture (closing the open/closed gap)
 
-Because the open path can see things the catalog cannot name, the system **learns**:
+Because the open path can see things the catalog cannot name, the system **captures** what it can't classify:
 
 - During closed extract, out-of-vocabulary captures are buffered (`business_modules/resilience_scorer/infrastructure/learningCapture.js`, `business_modules/resilience_scorer/domain/services/oovCapture.js`) to `business_modules/resilience_scorer/data/oov-capture-{date}.jsonl`.
-- After assessment, verified open observations can be enqueued for catalog consideration (`business_modules/resilience_scorer/app/enqueueVerifiedOpenForCatalog.js`).
-- The `signal_catalog_evolution` module turns these into **gap reports** and **draft proposals** (`input/generate-gap-report.js`, `app/catalogProposalService.js`).
+- After assessment, verified open observations are also enqueued as OOV capture records (`business_modules/resilience_scorer/app/catalog/enqueueVerifiedOpenForCatalog.js`).
 
-This is how the supporting (closed) vocabulary stays aligned with what the primary (open) path keeps discovering.
+The analyst-facing tooling that turned these captures into gap reports and draft catalog proposals for review (the `signal_catalog_evolution` module) has been retired. Any resulting catalog additions to `signalCatalog.js` are now a manual, out-of-band edit informed by the raw capture files, not an automated proposal workflow.
 
 ## 4. Where the two paths merge
 
@@ -134,7 +133,7 @@ So the agent's **primary inputs** are: closed `investigationSignals` **plus rout
 
 - `applyOpenEvidenceScoringIfVerified` (in `app/assessment/assessSignalsCli.js`): agent claims that reference an open observation (`open:{observation_id}`) and are corroborated can be turned into synthetic closed-shaped signals (`open_evidence_synthetic: true`) and re-scored.
 - This affects the analyst/shadow score only; the operator brief stays claim-first.
-- Verified open observations are also enqueued for catalog evolution (section 3.4).
+- Verified open observations are also enqueued as OOV capture records (section 3.4).
 
 ## 5. Orchestration
 
@@ -228,7 +227,6 @@ flowchart TD
 | `RESILIENCE_NARRATIVE_PIPELINE` | hybrid | Set `legacy` to restore monolithic Sonnet Step 2 (`generateNarrativesLegacy`) |
 | `RESILIENCE_ASSESSMENT_AGENT_LEGACY` | OFF | Re-enable multi-agent `runAssessmentAgent` path |
 | `RESILIENCE_OPEN_EVIDENCE_SCORING` | **OFF** | Post-agent synthetic scoring from verified open claims (analyst/shadow). **Production default: OFF** — enable only after auditing the open-path verification gate. Set to `1` or `on` to enable. |
-| `RESILIENCE_CATALOG_AUTO_PROPOSE_VERIFIED` | OFF | Auto-generate catalog proposals from verified open observations |
 | `ASSESS_BUNDLE_SOURCE` | `closed` | Alternate assess mode that maps observation bundles to pseudo-signals |
 | `RESILIENCE_REPLAY_REUSE_NEWS` | OFF (unset) | In **replay** mode (`--date` ≠ today), reuse cached news signals instead of full re-extract |
 | `RESILIENCE_REPLAY_REUSE_RADIO` | OFF | Same for radio transcripts |
@@ -254,4 +252,4 @@ When the LLM specialist call fails or returns unusable output, `app/assessment/a
 
 ## 9. One-paragraph summary
 
-Ingest district sources -> in parallel, extract **closed catalog signals** (supporting) and **open free-form observations** (primary) -> at assess time, load both separately, **route open observations to components and feed them, with closed signals, into the assessment agent** -> the agent produces evidence-backed claims -> optionally, verified open claims become synthetic signals for the de-emphasized shadow score (default OFF in production) -> write claim-first reports and learn new vocabulary from what the open path discovered.
+Ingest district sources -> in parallel, extract **closed catalog signals** (supporting) and **open free-form observations** (primary) -> at assess time, load both separately, **route open observations to components and feed them, with closed signals, into the assessment agent** -> the agent produces evidence-backed claims -> optionally, verified open claims become synthetic signals for the de-emphasized shadow score (default OFF in production) -> write claim-first reports and buffer out-of-vocabulary observations from the open path for manual catalog review.

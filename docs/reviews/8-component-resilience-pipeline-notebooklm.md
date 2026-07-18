@@ -379,9 +379,9 @@ export function overallScore(componentScores) {
 - Epistemic banner, attention queue, evidence overview, instrument badges (sufficiency, contested, significant delta)
 - Component narratives and cited evidence — **no headline 1–10 scores** (redacted at API via `assessmentDisplayTier.js`)
 
-**Analyst tier** — separate `analyst-site/` SPA or `?view=analyst` on report fetch:
+**Analyst tier** — same operator app, gated by `displayView="analyst"` (`?view=analyst`); the separate `analyst-site/` SPA and its drift-sparkline, validation-review, and catalog-proposal panels have been retired:
 
-- Drift sparklines, validation review, catalog proposals when enabled
+- Score-revealing components inline in `ReportView.jsx` (`WhyThisScore`, `DeltaLine`, `InstrumentMetricsBadges`, facet bars, etc.)
 - Many numeric score fields still API-redacted; full scores on disk in `business_modules/resilience_scorer/data/reports/*.json` for calibration
 
 **On-disk / analyst diagnostics** (when present in JSON, not default operator UI):

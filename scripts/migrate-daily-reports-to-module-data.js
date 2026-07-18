@@ -22,12 +22,9 @@ const RULES = [
   { test: /^survey-|^שאלון|survey-question-mapping\.json$/i, target: 'business_modules/resilience_scorer/data/survey' },
   { test: /^assessment-agent-trace-.*\.jsonl$/, target: 'business_modules/specialist_agents/data/traces' },
   { test: /^agent-eval-negative\.jsonl$/, target: 'business_modules/specialist_agents/data/eval' },
-  { test: /^(shadow-scores|divergence)-.*\.json$/, target: 'business_modules/resilience_scorer/analyst/data/shadow' },
-  { test: /^review-.*\.md$/, target: 'business_modules/resilience_scorer/analyst/data/reviews' },
   { test: /^epistemic-profile-.*\.json$/, target: 'business_modules/epistemic_features/data/profiles' },
   { test: /^(translation|locale)-.*\.json$/, target: 'business_modules/translation/data/locale' },
   { test: /^event-report-.*\.(json|md)$/, target: 'business_modules/pbo_report/data/muni/reports' },
-  { test: /^catalog-gap-report\.md$/, target: 'business_modules/signal_catalog_evolution/data' },
 ];
 
 function resolveTarget(name) {

@@ -124,7 +124,7 @@ function channelsText(channels, t) {
   return channels.map((c) => t(`attention.channels.${c}`) ?? c.replaceAll('_', ' ')).join(', ');
 }
 
-function AttentionItemRow({ entry, t, onJumpToComponent, onScrollToValidationReview }) {
+function AttentionItemRow({ entry, t, onJumpToComponent }) {
   const title = t(entry.title_key);
   const detailParams = { ...entry.detail_params };
   if (entry.component_id && detailParams.component_id) {
@@ -219,19 +219,7 @@ function AttentionItemRow({ entry, t, onJumpToComponent, onScrollToValidationRev
               {actionText}
             </Link>
           )}
-          {!entry.component_id && actionKey === 'attention.suggested.reviewExtraction' && onScrollToValidationReview && (
-            <Link
-              component="button"
-              type="button"
-              variant="caption"
-              onClick={onScrollToValidationReview}
-              sx={{ marginTop: 0.5, display: 'inline-block' }}
-            >
-              {actionText}
-            </Link>
-          )}
-          {!entry.component_id && actionText
-            && actionKey !== 'attention.suggested.reviewExtraction' && (
+          {!entry.component_id && actionText && (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginTop: 0.5 }}>
               {actionText}
             </Typography>
@@ -246,7 +234,6 @@ AttentionItemRow.propTypes = {
   entry: PropTypes.object.isRequired,
   t: PropTypes.func.isRequired,
   onJumpToComponent: PropTypes.func,
-  onScrollToValidationReview: PropTypes.func,
 };
 
 export function AttentionPanel({
@@ -254,7 +241,6 @@ export function AttentionPanel({
   driftAlerts = null,
   displayView = 'operator',
   onJumpToComponent,
-  onScrollToValidationReview,
   defaultOpen = false,
 }) {
   const { t } = useLanguage();
@@ -352,7 +338,6 @@ export function AttentionPanel({
                 entry={entry}
                 t={t}
                 onJumpToComponent={onJumpToComponent}
-                onScrollToValidationReview={onScrollToValidationReview}
               />
             ))}
           </Box>
@@ -368,6 +353,5 @@ AttentionPanel.propTypes = {
   driftAlerts: PropTypes.arrayOf(PropTypes.object),
   displayView: PropTypes.oneOf(['operator', 'analyst']),
   onJumpToComponent: PropTypes.func,
-  onScrollToValidationReview: PropTypes.func,
   defaultOpen: PropTypes.bool,
 };

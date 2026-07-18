@@ -32,10 +32,6 @@ Ingest services are wired in `composition/registerIngestion.js`.
 | `assess-signals` | `business_modules/resilience_scorer/input/assess-signals.js` → `app/assessment/assessSignalsCli.js` |
 | `pipeline:run` | `business_modules/resilience_scorer/input/run-pipeline.js` |
 | `pipeline:status` | `business_modules/resilience_scorer/input/pipeline-status.js` |
-| `validation:status` | `business_modules/resilience_scorer/validation/scripts/validationStatus.js` |
-| `validation:set-phase` | `business_modules/resilience_scorer/validation/scripts/validationSetPhase.js` |
-| `signal-catalog-evolution:gap-report` | `business_modules/signal_catalog_evolution/input/generate-gap-report.js` |
-| `suggest-tuning` | `business_modules/resilience_scorer/tuning/scripts/suggestComponentTuning.js` |
 | `backfill:report-brief` | `business_modules/resilience_scorer/input/backfillReportBriefMd.js` → `app/assessment/backfillReportBriefMdCli.js` |
 | `worker:assess` | `scripts/workers/assess-signals-worker.js` |
 
@@ -48,7 +44,6 @@ Analysis wiring: `composition/registerAnalysis.js`. Assessment agent: `business_
 | `archive:backfill` | `db/input/backfillSourceArchive.js` |
 | `archive:purge` | `db/input/purgeSourceArchive.js` |
 | `rag:reindex` | `db/input/reindexRag.js` |
-| `rag:reindex-catalog` | `business_modules/signal_catalog_evolution/input/reindex-catalog.js` |
 | `rag:reindex-field-examples` | `business_modules/report_build/input/reindex-field-examples.js` |
 | `rag:reindex-hfc` | `cross-cut-modules/retrieval/input/reindex-hfc.js` |
 | `rag:reindex-social-examples` | `business_modules/social_media/input/reindex-social-examples.js` |
@@ -58,14 +53,12 @@ Analysis wiring: `composition/registerAnalysis.js`. Assessment agent: `business_
 | `agent:eval` | `db/input/agentEval.js` |
 | `build:north-reference` | `business_modules/geo/input/buildNorthReferenceFromRegions.js` |
 
-## Client / analyst
+## Client
 
 | npm script | Entry |
 |------------|-------|
 | `client:dev` | `client/` (Vite dev server) |
 | `client:build` | `client/` → `client/dist/` |
-| `analyst:dev` | `analyst-site/` (separate app) |
-| `analyst:build` | `analyst-site/` |
 
 ## CI / quality
 

@@ -27,7 +27,7 @@ Index writers → rag_chunks (namespace, parent_id, date, body)
 |-----------|--------|---------|-------------|
 | `archive` | `indexWriter.js` | Source archive rows | `npm run rag:reindex` |
 | `report` | `indexWriter.js` | Assessment report chunks | (with archive / assess) |
-| `catalog` | `catalogIndexWriter.js` | Signal catalog | `npm run rag:reindex-catalog` |
+| `catalog` | `catalogIndexWriter.js` | Signal catalog | — (dedicated reindex CLI retired with `signal_catalog_evolution`; writer wiring remains in `createRetrievalService.js`) |
 | `field_examples` | `fieldExamplesIndexWriter.js` | Approved field taxonomy | `npm run rag:reindex-field-examples` |
 | `hfc` | `hfcGuidelinesIndexWriter.js` | HFC field guidelines MD | `npm run rag:reindex-hfc` |
 | `social_examples` | `socialExamplesIndexWriter.js` | Social OSINT examples | `npm run rag:reindex-social-examples` |
@@ -49,7 +49,7 @@ Static index dates: docs namespace uses `2099-01-01`; HFC uses `2099-01-01`.
 | Chat | `business_modules/chat/` — `sourceArchiveQuery.js`, `chatRetrievalCache.js`, tool handlers | Hybrid search over archive + tools; session-scoped dedup via `CHAT_RETRIEVAL_CACHE_TTL_MS` (see [COST-CONTROLS.md](./COST-CONTROLS.md)); span `sqlite.hybrid_retrieve` when `OTEL_ENABLED` |
 | Pipeline extract | `pipelineRetrieval.js` | Prompt span selection when extract RAG enabled |
 | Report build | `fieldRetrieval.js` | Similar reports, taxonomy, HFC snippets |
-| Analyst | `analystRetrieval.js` | Validation explain/agent context; catalog gap neighbors for signal catalog evolution |
+| PBO review | `analystRetrieval.js` (`retrievePboHistory`) | Historical PBO context for `pbo_report_review`; the earlier validation-explain and catalog-gap-neighbor retrieval this file supported has been removed |
 | Docs panel | `docsRetrieval.js` | `GET /api/docs/search` |
 | Translation | `translationTermRetrieval.js` | Glossary-aware translation |
 
@@ -79,7 +79,6 @@ All reindex CLIs: open `createRetrievalService`, run writer, `rebuildFts()`, clo
 npm run rag:reindex              # archive (--days window in script)
 npm run rag:reindex-docs
 npm run rag:reindex-hfc
-npm run rag:reindex-catalog
 npm run rag:reindex-field-examples
 npm run rag:reindex-social-examples
 npm run rag:reindex-terms
@@ -101,7 +100,6 @@ After deploy or bulk doc changes: run relevant reindex + restart if needed.
 | `VECTOR_INDEX_EMBEDDINGS` | Embedding index (0 = FTS-only tests) |
 | `COHERE_API_KEY` | Rerank when enabled |
 | `DOCS_RAG_VERSION` / package version | Docs corpus scope id |
-| `SIGNAL_CATALOG_EVOLUTION_RAG_ENABLED` | Gap-report nearest-catalog neighbors (`retrieveCatalogNeighbors`) |
 | `RESILIENCE_ASSESS_LAZY_RAG` | Lazy component RAG after planner (default on) |
 | `RESILIENCE_ASSESS_GLOBAL_RAG` | Global hybrid retrieve at assess (default on) |
 | `RESILIENCE_ASSESS_GLOBAL_TOPK` | Global retrieve top-K (default 8) |
@@ -109,16 +107,6 @@ After deploy or bulk doc changes: run relevant reindex + restart if needed.
 | `RESILIENCE_EXTRACT_RAG_ENABLED` | Prompt-span RAG during pipeline extract |
 
 See `ragConfig.js` for topK, snippet length, date windows.
-
----
-
-## Signal catalog evolution (gap reports)
-
-**Module:** `business_modules/signal_catalog_evolution/`  
-**Gap CLI:** `npm run signal-catalog-evolution:gap-report`  
-**Catalog index:** `npm run rag:reindex-catalog` (namespace `catalog`)
-
-Clusters OOV captures from `daily_reports/oov-capture-*.jsonl`, optionally enriches clusters with nearest existing catalog types via `retrieveCatalogNeighbors`. Analyst draft proposals: `GET/POST /api/signal-catalog-evolution/proposals*`.
 
 ---
 

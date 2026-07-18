@@ -24,22 +24,13 @@ import {
 import { finalizeOperatorNarrativeSurface } from '../../domain/services/operator/operatorNarrativeSurface.js';
 import { attachRichOperatorSurface } from '../../domain/services/operator/operatorInvestigationSurface.js';
 import { shouldUseRichDeterministicPath } from '../../domain/contracts/operatorSurfaceMode.js';
-import {
-  getSocialQuarantineDecision,
-} from '../../domain/services/socialQuarantineOverrides.js';
-import { tryOpenValidationStore } from './socialQuarantineWiring.js';
-import { summarizeValidationMaturity } from '../../analyst/validation/domain/validationStatus.js';
 import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../../cross-cut-modules/geo/israelDistricts.js';
-import {
-  produceAssessmentWithShadow,
-  attachShadowDivergenceToAssessment,
-} from './produceAssessmentWithShadow.js';
+import { produceAssessmentWithShadow } from './produceAssessmentWithShadow.js';
 import { applyOperatorNarrativePipeline } from './operatorNarrativePipeline.js';
 import { attachDecisionBrief } from './attachDecisionBrief.js';
 import { loadHistoricalScores } from '../../infrastructure/reportHistoryReader.js';
 import { ensureArticleCorpusRagIndexed } from './ensureArticleCorpusRagIndexed.js';
 import { isClosedCoreAssessEnabled, isOmissionAuditEnabled } from '../../domain/services/oov/openExtractConfig.js';
-import { shadowScoringEnabled } from '../../../../cross-cut-modules/agent/index.js';
 import { closedCoreNarrate } from './closedCoreNarrate.js';
 import { buildAndWriteOmissionAudit } from './omissionAuditService.js';
 import { reportScopeMetadata } from '../../domain/services/signals/regionSignalFilter.js';
@@ -49,10 +40,8 @@ import { countOovCapturesForDate } from '../../domain/services/oov/oovCapture.js
  * @param {object} assessment
  * @param {object} ctx
  * @param {object} investigationPrep
- * @param {string} reportDate
- * @param {string} reportScopeId
  */
-function attachInvestigationContextFlags(assessment, ctx, investigationPrep, reportDate, reportScopeId) {
+function attachInvestigationContextFlags(assessment, ctx, investigationPrep) {
   assessment.oov_burst = investigationPrep.oovBurst ?? null;
   if (ctx.oovScoringApplied) {
     assessment.oov_scoring_applied = ctx.oovScoringApplied;
@@ -68,13 +57,7 @@ function attachInvestigationContextFlags(assessment, ctx, investigationPrep, rep
   }
   if (!investigationPrep.osintChannelQuarantine) return;
 
-  const decision = investigationPrep.osintChannelQuarantine.active
-    ? getSocialQuarantineDecision(reportDate, reportScopeId, tryOpenValidationStore())
-    : null;
-  assessment.social_channel_quarantine = {
-    ...investigationPrep.osintChannelQuarantine,
-    ...(decision?.created_at ? { confirmed_at: decision.created_at } : {}),
-  };
+  assessment.social_channel_quarantine = investigationPrep.osintChannelQuarantine;
 }
 
 /**
@@ -86,8 +69,6 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
     investigationEpistemic,
     investigationPrep,
     pipelineResult,
-    reportScopeId,
-    reportDate,
     scopedSignals,
     signalsForScoring,
     scoredFull,
@@ -112,13 +93,7 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
     }
   }
 
-  attachInvestigationContextFlags(
-    assessment,
-    ctx,
-    investigationPrep,
-    reportDate,
-    reportScopeId,
-  );
+  attachInvestigationContextFlags(assessment, ctx, investigationPrep);
 
   const patterns = detectSemanticPatterns(scopedSignals ?? []);
   assessment.pattern_alerts = patterns;
@@ -268,14 +243,6 @@ async function produceAssessmentForMode(ctx) {
         llmPort,
       },
     );
-    if (shadowScoringEnabled()) {
-      attachShadowDivergenceToAssessment(assessment, {
-        scoredFull,
-        reportScopeId,
-        targetDate: reportDate,
-        reportsDir,
-      });
-    }
     return assessment;
   }
 
@@ -435,7 +402,9 @@ export async function runPostExtractionAssessmentCore(params) {
     ? totalArticles
     : Math.max(scopedArticleKeys.size, 1);
 
-  const validationMaturity = summarizeValidationMaturity({ rootDir });
+  // Analyst validation review was decommissioned — no maturity data is ever collected,
+  // so calibration trust always falls back to its lowest tier (shrinks scores toward neutral).
+  const validationMaturity = null;
   let salienceContext = salienceContextFromDataVoid(prepared.dataVoid);
 
   const pipelineResult = runScoringPipeline({

@@ -195,8 +195,7 @@ Telemetry: per-invocation JSONL + `getLlmTelemetry()` feature rollup — see [CO
 - Closed vocabulary — novel behaviors logged to OOV; `novel_behavior_observed` adds low-weight scoring mass when clusters alert
 - Residual capture (`RESILIENCE_RESIDUAL_CAPTURE=1` or omission-audit mode) — Haiku residual pass on zero-signal articles; writes to `oov-capture-*.jsonl` only
 - Omission audit (`RESILIENCE_OMISSION_AUDIT`, default ON on closed-core branch) — `business_modules/resilience_scorer/data/omission_audits/omission-audit-{scope}-{date}.json`; no agent feed
-- Catalog gap report — `npm run signal-catalog-evolution:gap-report` clusters captures for analyst review
-- Heuristic weights — author-set; RGR calibration via `signalWeightsFit.js` when ≥30 labeled reports
+- Heuristic weights — author-set
 - Media repetition tracked separately as `media_mention_mass` — not merged into behavioral headline score
 
 ## Non-goals

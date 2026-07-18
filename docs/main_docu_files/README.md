@@ -21,14 +21,13 @@ Full before/after tables: [RESILIENCE-ENGINE-REFERENCE.md §1](./RESILIENCE-ENGI
 
 | # | File | When you need… |
 |---|------|----------------|
-| 1 | [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md) | What operators see, scan → proof → decide, operator vs analyst apps, v2 evidence tree |
+| 1 | [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md) | What operators see, scan → proof → decide, operator vs analyst display tiers, v2 evidence tree |
 | 2 | [PIPELINE-AND-SOURCES.md](./PIPELINE-AND-SOURCES.md) | Daily ingest, extract, assess (agent + shadow), artifacts on disk, guided report, municipal PBO review |
 | 2b | `business_modules/pbo_report_review/` | Municipal PBO completeness gaps, officer email, inbound replies — see PIPELINE § Municipal PBO review |
-| 2c | `analyst-site/` | Separate analyst SPA (`AnalystApp.jsx`) — scope switcher, validation/catalog panels, drift, pipeline status |
 | 3 | [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENCE.md) | Conceptual/technical shift, assessment agent, epistemic instruments, shadow scoring |
 | 4 | [GEOGRAPHIC-ANALYSIS.md](./GEOGRAPHIC-ANALYSIS.md) | Geo envelope, district scoping, unknown queue |
 | 5 | [RAG.md](./RAG.md) | Hybrid retrieval, assess-time RAG, namespaces, reindex commands |
-| 6 | [LLM-CHAT-AND-AGENTS.md](./LLM-CHAT-AND-AGENTS.md) | Report chat vs **assessment agent**, tool loops, validation agent |
+| 6 | [LLM-CHAT-AND-AGENTS.md](./LLM-CHAT-AND-AGENTS.md) | Report chat vs **assessment agent**, tool loops |
 | 7 | [COST-CONTROLS.md](./COST-CONTROLS.md) | Daily HTTP budget, assess agent budget, costly routes |
 
 Plus [README.md](./README.md) (this file) — **8 markdown files** in this directory.

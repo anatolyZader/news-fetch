@@ -40,9 +40,6 @@ export const OUTPUT_SYMLINKS = [
   { link: 'production/ingest/social-media', target: 'business_modules/social_media/data' },
 
   // Research / calibration (not operator daily path)
-  { link: 'research/analyst-shadow', target: 'business_modules/resilience_scorer/analyst/data/shadow' },
-  { link: 'research/analyst-reviews', target: 'business_modules/resilience_scorer/analyst/data/reviews' },
-  { link: 'research/signal-catalog', target: 'business_modules/signal_catalog_evolution/data' },
   { link: 'research/translation-locale', target: 'business_modules/translation/data/locale' },
 
   // Operational (verbose logs, cost — separate lifecycle from assessment artifacts)

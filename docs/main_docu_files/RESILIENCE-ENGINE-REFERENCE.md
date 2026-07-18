@@ -23,7 +23,7 @@ Docs and operators should treat the refactor as a change in **what is primary**,
 | **Thin / abstain days** | Low catalog mass → abstain narrative | **Split mass**: thin for **scoring** vs **investigation-eligible** (archive spike, residual, OOV may still warrant specialist) |
 | **Novel behavior** | OOV logged; optional low-weight synthetic score | OOV/residual enter **evidence graph + planner** as investigation objects |
 | **Operator proof** | Narrative paragraph + instrument flags | **Evidence tree** per claim + cross-component synthesis + instrument flags (from epistemic/shadow) |
-| **Analyst calibration** | Scores + drift on disk | Scores as **shadow** + **divergence** vs agent output + **trace JSONL** replay |
+| **Analyst calibration** | Scores + drift on disk | Scores as **shadow** score visible in-app + **trace JSONL** replay (the separate drift/divergence calibration tooling has since been retired) |
 | **Multi-agent pattern** | N/A (batch narrative) | **Plan-and-execute map–reduce** (not peer agent chat) — see §3.1 |
 
 **Unchanged conceptually:** closed-catalog extraction for comparability; humans decide; abstention and data void as features; operator tier hides headline scores.
@@ -38,7 +38,7 @@ Docs and operators should treat the refactor as a change in **what is primary**,
 | **Epistemic input** | Scored components only | `computeEpistemicProfile` + **`enrichProfileForInvestigation`** |
 | **Evidence assembly** | Signals in narrative prompt | **`buildEvidenceGraph`** (signals + RAG hits + OOV/residual + gaps) |
 | **Output schema** | Legacy `assessment.components[].narrative` | **Assessment v2** → **`mapAssessmentV2ToLegacy`** (`assessmentV2Mapper.js`) for API compatibility |
-| **Shadow path** | Scores were primary | **`scoreComponents` still runs** → `shadow-scores-*.json`, `divergence-*.json` |
+| **Shadow path** | Scores were primary | **`scoreComponents` still runs** every assess (`scoringFacade.js` → `analyst/scoring/`) to produce the headline score kept on the report; the per-report `shadow-scores-*.json` / `divergence-*.json` artifact write has been retired |
 | **Trace / audit** | Cost log only | **`assessment-agent-trace-{id}.jsonl`** |
 | **Degrade ladder** | — | Agent skip/failure → `runDeterministicAssessment` → `loadCachedAssessmentFallback`; `assessment_degraded` on report |
 
@@ -54,7 +54,7 @@ The engine:
 4. Runs **assessment agent v2** (default): RAG-seeded evidence graph → planner → specialists → critic → synthesizer.
 5. **Redacts** numeric headline scores at API/UI for the default operator tier.
 
-Shadow scores on disk under `daily_reports/` support analyst calibration, drift, and divergence review. **Operational action** should follow attention, **evidence-backed claims**, and instrument flags — see [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md).
+Shadow scores on disk under `daily_reports/` remain visible to analysts in the report UI for calibration; the separate drift-dashboard and divergence-review tooling that used to consume them has been retired. **Operational action** should follow attention, **evidence-backed claims**, and instrument flags — see [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md).
 
 ---
 
@@ -77,7 +77,6 @@ Markdown / archive rows
        │         ├─ enrichProfileForInvestigation
        │         ├─ RAG seed (seedComponentRagHits) + buildEvidenceGraph (+ residual/OOV)
        │         └─ planner → specialists → critic → optional re-plan → synthesizer
-       ├─ writeShadowArtifacts (when RESILIENCE_SHADOW_SCORING=1)
        ├─ mapAssessmentV2ToLegacy → write report JSON/MD
        └─ redactReportPayload at API boundary (assessmentDisplayTier)
 ```
@@ -153,7 +152,7 @@ When `RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS=1` (default), planner abstentio
 | Epistemic `signal_count`, `distinct_article_count` | `deriveInstrumentState` inputs |
 | `overall_resilience_score` | Always `null` on legacy object |
 
-`produceAssessmentWithShadow` returns the **legacy-mapped** assessment for API/write; v2 fields are attached via `attachAssessmentV2Fields`. On-disk JSON includes both shapes. In-memory `shadow_divergence` is attached before write; on-disk `divergence-*.json` compares shadow vs agent.
+`produceAssessmentWithShadow` returns the **legacy-mapped** assessment for API/write; v2 fields are attached via `attachAssessmentV2Fields`. On-disk JSON includes both shapes. (The earlier in-memory `shadow_divergence` field and the on-disk `divergence-*.json` shadow-vs-agent comparison have been retired along with the analyst drift/divergence UI that consumed them.)
 
 ---
 
@@ -228,14 +227,12 @@ When `evidence_mass < 1.5` (typical floor):
 ## 6. Analyst tier and on-disk truth
 
 - **Operator API/UI:** `redactReportPayload` / `redactAssessmentForView` strip headline scores and debug narrative fields.
-- **Analyst SPA:** `analyst-site/` with `view=analyst`; drift, validation review, catalog proposals, **agent trace replay**.
+- **Analyst view:** same `client/` app, `?view=analyst`; score-revealing components shown inline in `ReportView.jsx`. The separate `analyst-site/` SPA (drift, validation review, catalog proposals, agent trace replay) has been retired.
 - **Full JSON:** `daily_reports/resilience-report-*.json` retains shadow scores, v2 agent fields, and legacy-mapped narratives.
-- **Shadow artifacts:** `daily_reports/shadow-scores-{scopeId}-{date}.json`, `daily_reports/divergence-{scopeId}-{date}.json` (when `RESILIENCE_SHADOW_SCORING=1`; default on).
 - **Agent trace:** `daily_reports/assessment-agent-trace-{traceId}.jsonl` — planner, specialist, critic, synthesizer steps.
 - **Per-run token rollup:** `cross-cut-modules/budget/resilience_analysis/token-report-{date}-{scope}.json` — written by `run-pipeline.js` (`writeTokenReport.js`); see [PIPELINE-AND-SOURCES.md](./PIPELINE-AND-SOURCES.md).
-- **Drift APIs:** gated to analyst/maintainer (`canViewAnalystDisplay`).
 
-Shadow scoring and agent assess share the same signal prep; **presentation** differs by tier. Primary operator proof is **claims + evidence_refs**, not headline scores.
+The per-report `shadow-scores-*.json` / `divergence-*.json` artifact write (`RESILIENCE_SHADOW_SCORING`) and the drift APIs that read them have been retired along with the analyst calibration UI. Shadow scoring (the deterministic headline score) and agent assess still share the same signal prep; **presentation** differs by tier. Primary operator proof is **claims + evidence_refs**, not headline scores.
 
 ---
 
@@ -278,12 +275,11 @@ Module facade re-exports from `business_modules/resilience_scorer/domain/service
 
 - **Orchestrator:** `scoreComponentsOrchestrator.js` (`scoreComponents`, v5 model — `SCORING_MODEL_VERSION` in `assessmentMethodology.js`)
 - **When:** Always runs in `assess-signals.js` via `runScoringPipeline` **before** `produceAssessmentWithShadow` (feeds epistemic profile and instruments)
-- **Artifact write:** `writeShadowArtifacts` inside `produceAssessmentWithShadow` when `RESILIENCE_SHADOW_SCORING=1` (default on)
 - **Steps per component:** weighted items → source cap → raw score → salience post-policy → bootstrap CI, counterfactuals, presence gates, facets
 - **Shared math:** `scoring/scoringShared.js` (weights, caps, grounding multiplier)
 - **Pipeline wrapper:** `scoringPipelinePrep.js` — digital quarantine partition, EWMA, epistemic gate
 - **Dedup / merge:** `app/assessSignalsHelpers.js` (`crossSourceDedupClustered`, `crossSourceDedup`, …)
-- **Output:** Feeds epistemic profile + investigation enrich; written to `shadow-scores-*.json`
+- **Output:** Feeds epistemic profile + investigation enrich; kept on the report JSON as the redacted headline score. (The separate per-report `shadow-scores-*.json` artifact write and analyst divergence comparison have been retired.)
 
 ### 7.4 Deterministic degrade (replaces legacy narratives)
 
@@ -300,15 +296,12 @@ Module facade re-exports from `business_modules/resilience_scorer/domain/service
 - **Policies:** `plannerPolicy.js`, `specialistTier.js`, `synthesisPolicy.js`, Tier 2 (`replanPolicy.js`, `crossComponentConsistency.js`, `contestedRetrievalPolicy.js`)
 - **Output:** Assessment v2 → `assessmentV2Mapper.js` (`mapAssessmentV2ToLegacy`) for API; trace JSONL on disk
 
-### 7.6 Reports and validation
+### 7.6 Reports and display redaction
 
 - Report write from `assess-signals.js` finalize step
-- Validation queue: SQLite store (default); analyst routes under `business_modules/resilience_scorer/analyst/validation/`
 - Display redaction at serve time: `assessmentDisplayTier.js`
-- **Config:** `business_modules/resilience_scorer/validation/validation-config.json` — operational phase (`baseline` vs elevated)
-- **Collection:** `validationCollectionService.js` — post-assess review queue upsert (max 15/day stratified sample)
-- **Analyst API:** `GET /api/validation/review-queue` — `ValidationReviewPanel` in analyst SPA
-- **Status CLI:** `npm run validation:status`
+
+The analyst-facing extraction-quality validation workflow (`business_modules/resilience_scorer/analyst/validation/`, `GET /api/validation/review-queue`, `ValidationReviewPanel`, `npm run validation:status`) has been retired. `business_modules/resilience_scorer/validation/validation-config.json` and its SQLite/JSONL review-queue artifacts remain on disk from before the removal but are no longer read or written by any code path.
 
 ---
 
@@ -326,7 +319,7 @@ Component ids used in scoring: `narrative`, `information_communication`, `lifesa
 |------|------|
 | Assess + shadow | `business_modules/resilience_scorer/app/assessment/produceAssessmentWithShadow.js` |
 | Assessment agent | `business_modules/specialist_agents/app/` — orchestrator, planner, specialists, critic, synthesizer |
-| Shadow artifacts | `business_modules/specialist_agents/infrastructure/adapters/shadowArtifactsFileAdapter.js` — `writeShadowArtifacts`, `computeDivergence` |
+| Shadow/divergence eval (offline, agent quality) | `business_modules/specialist_agents/infrastructure/adapters/shadowArtifactsFileAdapter.js` (`writeShadowArtifacts`), `domain/services/shadowArtifacts.js` (`computeDivergence`) — used by `db/input/agentEval.js`; unrelated to the retired per-report shadow/divergence artifacts |
 | Agent kernel / config | `cross-cut-modules/agent/` — `agentKernel.js`, `agentConfig.js` |
 | RAG at assess | `cross-cut-modules/retrieval/` — `componentRagSeeding.js`, `evidenceGraph.js`, `plannerContextBuilder.js`, `multiHopRetrieval.js` |
 | Epistemic profile | `business_modules/resilience_scorer/domain/epistemic/epistemicProfileBuilder.js`, `investigationEpistemic.js` |
@@ -342,7 +335,6 @@ Component ids used in scoring: `narrative`, `information_communication`, `lifesa
 | Operator action compass | `business_modules/resilience_scorer/domain/services/actionCompass.js` |
 | Anomaly strip | `business_modules/resilience_scorer/domain/services/anomalyStrip.js` |
 | Deterministic degrade | `business_modules/specialist_agents/app/runDeterministicAssessment.js`, `loadCachedAssessmentFallback.js` |
-| Signal catalog evolution | `business_modules/signal_catalog_evolution/` — OOV gap reports + draft proposals |
 
 ---
 

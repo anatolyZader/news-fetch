@@ -12,10 +12,6 @@ import {
 } from '../../domain/services/socialChannelQuarantine.js';
 import { applySignalGamingPolicy } from '../../domain/services/signals/signalGamingPolicy.js';
 import { resilienceReportsDir, resilienceCapturesDir } from '../../domain/services/paths/outputDirs.js';
-import {
-  isSocialQuarantineActive,
-  isSocialQuarantineDismissed,
-} from '../../domain/services/socialQuarantineOverrides.js';
 import { loadHistoricalSignalDays } from '../../infrastructure/reportHistoryReader.js';
 
 /**
@@ -41,21 +37,12 @@ export async function prepareScoringSignals({
   reportsDir = resilienceReportsDir(),
   digitalDarknessHint = false,
 }) {
-  const dismissed = isSocialQuarantineDismissed(reportDate, reportScopeId);
-  const analystActive = isSocialQuarantineActive(reportDate, reportScopeId);
-
-  let osintChannelQuarantine = evaluateOsintChannelQuarantine(signalsForScoring, {
-    active: analystActive,
-    dismissed,
+  // Analyst confirm/dismiss overrides were decommissioned along with analyst/validation —
+  // social-channel quarantine now runs on auto-detection only.
+  const osintChannelQuarantine = evaluateOsintChannelQuarantine(signalsForScoring, {
+    active: false,
+    dismissed: false,
   });
-
-  if (analystActive && osintChannelQuarantine.suggested) {
-    osintChannelQuarantine = {
-      ...osintChannelQuarantine,
-      active: true,
-      reason: 'analyst_confirmed',
-    };
-  }
 
   let prepared = applyOsintQuarantineFilter(signalsForScoring, osintChannelQuarantine);
   prepared = applySignalGamingPolicy(prepared);

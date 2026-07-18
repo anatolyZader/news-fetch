@@ -1,8 +1,8 @@
 # System and operator model
 
-**Purpose:** Describe how the running product supports **human decision-making** — not automated verdicts. Operators scan attention and **evidence-backed claims**; analysts calibrate shadow scoring and review agent traces.
+**Purpose:** Describe how the running product supports **human decision-making** — not automated verdicts. Operators scan attention and **evidence-backed claims**; analysts see the same report with additional score-revealing detail.
 
-**Sources:** `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js`, `thinEvidencePolicy.js`, `actionCompass.js`, `anomalyStrip.js`, `app/reportCacheService.js`, `business_modules/specialist_agents/`, `client/src/MainApp.jsx`, `client/src/components/ReportView.jsx`, `analyst-site/src/AnalystApp.jsx`, `cross-cut-modules/messaging/app/registerModuleHandlers.js`, `cross-cut-modules/budget/app/crisisBudgetService.js`.
+**Sources:** `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js`, `thinEvidencePolicy.js`, `actionCompass.js`, `anomalyStrip.js`, `app/reportCacheService.js`, `business_modules/specialist_agents/`, `client/src/MainApp.jsx`, `client/src/components/ReportView.jsx`, `cross-cut-modules/messaging/app/registerModuleHandlers.js`, `cross-cut-modules/budget/app/crisisBudgetService.js`.
 
 ---
 
@@ -19,7 +19,7 @@ Srulik's lab ingests multi-source text (news, radio, WhatsApp, field reports, PB
 - **Claims and cited evidence** — proof before action (`evidence_tree` per component in UI; v2 `claims` with `evidence_refs` on disk)
 - **Instrument flags** — sufficiency bands from epistemic/shadow policy, not headline scores
 
-Shadow numeric scores remain in on-disk JSON under `daily_reports/` for analysts, drift tooling, and divergence review. API and operator UI **redact** headline scores at the boundary.
+Shadow numeric scores remain in on-disk JSON under `daily_reports/` and are visible to analysts in the report UI; the separate drift/divergence calibration tooling that used to consume them has been retired. API and operator UI **redact** headline scores at the boundary.
 
 ---
 
@@ -34,9 +34,9 @@ Shadow numeric scores remain in on-disk JSON under `daily_reports/` for analysts
 | Role | Surface | Component |
 |------|---------|-----------|
 | **Operator** | Operator app `client/` | `EpistemicStatusBanner` shows `crisisBudget.operatorBanner` via `epistemicBannerMessages.js` when `suggest_crisis_budget` is true |
-| **Analyst** | Operator app `client/` (not `analyst-site/`) | `CrisisBudgetPanel` in `MainApp.jsx`, gated by `canViewAnalyst` — HITL activate/deactivate crisis chat pool |
+| **Analyst** | Operator app `client/` | `CrisisBudgetPanel` in `MainApp.jsx`, gated by `canViewAnalyst` — HITL activate/deactivate crisis chat pool |
 
-Analysts open the **operator app** (same origin as operators) to activate the pool; `analyst-site/` does not host `CrisisBudgetPanel`.
+Analysts open the same **operator app** (same origin, same login) to activate the pool — there is no separate analyst app.
 
 When the system shows **limited evidence** or hides a score, that is intentional (thin-evidence policy), not a bug.
 
@@ -46,8 +46,8 @@ When the system shows **limited evidence** or hides a score, that is intentional
 
 | Tier | App | API | What users get |
 |------|-----|-----|----------------|
-| **Operator (default)** | `client/` → `MainApp.jsx` passes `displayTier="operator"` to `ReportView` | `GET /api/report/today` default (`app/reportCacheService.js` → `getCachedReport`); `resolveDisplayView` → `operator` | Narratives, **evidence_tree**, instruments, attention, **action_compass**, **anomaly_strip**, recommendations, optional `suggest_crisis_budget`. **No** headline 1–10 scores, no drift alerts in attention. |
-| **Analyst** | Separate SPA `analyst-site/` → `AnalystApp.jsx`, `?view=analyst` | Same report route when `canViewAnalystDisplay(email)` | Drift sparklines, validation review, catalog proposals, **agent trace replay**, shadow/divergence artifacts, drift-derived attention items, pipeline status. Scores still largely redacted at API; calibration uses drift APIs and on-disk JSON. |
+| **Operator (default)** | `client/` → `MainApp.jsx` passes `displayTier="operator"` to `ReportView` | `GET /api/report/today` default (`app/reportCacheService.js` → `getCachedReport`); `resolveDisplayView` → `operator` | Narratives, **evidence_tree**, instruments, attention, **action_compass**, **anomaly_strip**, recommendations, optional `suggest_crisis_budget`. **No** headline 1–10 scores. |
+| **Analyst** | Same app `client/` → `ReportView.jsx`, `?view=analyst` | Same report route when `canViewAnalystDisplay(email)` | Score-revealing components shown inline in the same report view (`InstrumentMetricsBadges`, `WhyThisScore`, `DeltaLine`, `OovAnomalyClustersPanel`, `ReportComponentFilterBar`, `EvidenceOverviewPanel`, `NationalContextSection`, facet bars, etc.), plus `CrisisBudgetPanel` crisis-budget activation in `MainApp.jsx`. Scores still largely redacted at API for operators. The separate `analyst-site/` SPA (drift sparklines, validation review, catalog proposals, agent trace replay, pipeline status) has been retired. |
 
 Access: `config/userAccess.json` levels `analyst` / `maintainer`, or env `RESILIENCE_ANALYST_EMAILS` / `RESILIENCE_MAINTAINER_EMAILS` (`cross-cut-modules/auth/userAccess.js`).
 
@@ -83,31 +83,14 @@ Assessment-level epistemic overrides (data void, digital darkness): `deriveAsses
 
 1. Epistemic status banner
 2. Evidence overview (instrument summary counts)
-3. Attention panel (no drift-merge on operator tier)
+3. Attention panel
 4. **Action compass** — ranked operator actions from `buildActionCompass` in `actionCompass.js` (`action_compass` on report API); uncertainty band from `deriveUncertaintyBand` (data void, sampling, abstention); gap-closure tasks; **geo-unknown** warning when `geoUnknownReviewService` reports pending `new` queue items (resolution remains analyst HITL — see [GEOGRAPHIC-ANALYSIS.md § Analyst unknown queue](./GEOGRAPHIC-ANALYSIS.md#analyst-unknown-queue))
 5. **Anomaly strip** — OOV/residual/salience visibility during crisis epistemic mode (`anomalyStrip.js`; `anomaly_strip` on report API); shown when epistemic mode is crisis/abstained and at least one OOV cluster or residual observation is present (see [MODEL-CARD.md](../MODEL-CARD.md))
 6. Operator recommendations (when present)
 7. Component filter bar + per-component sections (narrative, **claims/evidence tree**, instrument badges — not `/10` headline scores)
 8. Docs panel, chat (grounded in report; hub tools complement action compass — see [LLM-CHAT-AND-AGENTS.md](./LLM-CHAT-AND-AGENTS.md))
 
-**Analyst workspace** — header link when `canViewAnalyst`; separate origin (`getAnalystSiteUrl()`), not an in-app toggle. Three tabs in `AnalystApp.jsx`: **assessment** (report + validation/catalog panels), **drift** (`ResilienceDriftPanel`), **pipeline** (`PipelineStatusPanel`).
-
----
-
-## Analyst workspace (calibration, not operations)
-
-`analyst-site/src/AnalystApp.jsx` (separate SPA; URL from `client/src/lib/analystSiteUrl.js` → `getAnalystSiteUrl()`):
-
-- **Scope:** `DistrictScopeSwitcher` in header; selected scope persisted in `localStorage` key `vibeswitch:analystScope` (`normalizeReportScopeId` from `reportScopes.js`)
-- Fetches report with `view=analyst` for the active scope (`useTodayReport(scope, 'analyst')`)
-- **Assessment tab:** `ReportView` + `ValidationReviewPanel`, `CatalogProposalPanel`, drift sparklines, agent trace when present; `useTranslatedReport` for i18n; inline outdated-report pipeline panel when report is stale
-- **Drift tab:** `GET /api/resilience/drift` — component score history from **shadow** scores (`driftService.js`)
-- **Pipeline tab:** `GET /api/monitoring/pipeline` — ingest/extract/assess stage health
-- **Agent trace:** `GET /api/report/agent-trace/:traceId` — replay planner/specialist/critic/synthesizer steps
-- **Chat FAB:** floating button opens `ChatPanel` with analyst tool profile; `handleOpenValidationInChat` pre-seeds validation context (`toolProfile: 'validation'`) when opened from `ValidationReviewPanel`
-- Full assessment JSON still primarily on disk; use drift, divergence, validation routes, and trace for calibration
-
-Operational decisions should use the **operator app** and instrument/narrative tier.
+**Analyst view** — no separate header link or workspace; `displayView="analyst"` (`?view=analyst`) reveals score-carrying components inline within the same `ReportView.jsx` used by operators. The separate `analyst-site/` SPA (`AnalystApp.jsx`, with its scope switcher, assessment/drift/pipeline tabs, validation/catalog panels, and agent-trace replay) has been retired.
 
 ---
 
@@ -156,11 +139,10 @@ Defines an alternate ranking intended for operator-facing selection: penalizes `
 |------------|-----------|--------|
 | `log` | always | logs `resilience.report.written` |
 | `rag-index` | `deps.retrievalService.indexReportForDate` present | indexes new report into RAG |
-| `drift` | `deps.driftService.recordSnapshot` present | records drift snapshot |
 
 Add new post-report side effects in `registerModuleHandlers.js` today.
 
-**Staging:** `cross-cut-modules/messaging/app/reportEventHandlers.js` defines the same handler list as `REPORT_WRITTEN_HANDLERS` (Chain of Responsibility shape) for future extraction — not imported yet. When migrating, wire `registerModuleHandlers` to iterate that array instead of duplicating inline handlers.
+**Staging:** `cross-cut-modules/messaging/app/reportEventHandlers.js` defines a handler list as `REPORT_WRITTEN_HANDLERS` (Chain of Responsibility shape) for future extraction — not imported yet. It still lists a `drift` handler that depends on a `driftService` which no longer exists (leftover from the retired drift tooling); do not carry that entry forward when migrating. When migrating, wire `registerModuleHandlers` to iterate the (corrected) array instead of duplicating inline handlers.
 
 ---
 

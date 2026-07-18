@@ -63,10 +63,6 @@ export function shouldSkipAssessmentAgent({ dailyBudgetExceeded = false } = {}) 
   return assessmentForceDeterministic();
 }
 
-export function shadowScoringEnabled() {
-  return process.env.RESILIENCE_SHADOW_SCORING !== '0';
-}
-
 export function assessmentAgentMaxUsd() {
   const n = Number.parseFloat(process.env.RESILIENCE_ASSESSMENT_AGENT_MAX_USD ?? '2.50');
   return Number.isFinite(n) && n > 0 ? n : 2.5;

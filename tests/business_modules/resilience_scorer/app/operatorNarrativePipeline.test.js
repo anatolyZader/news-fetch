@@ -14,7 +14,7 @@ import { buildSignalRefRegistry } from '../../../../business_modules/resilience_
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtures = JSON.parse(
   readFileSync(
-    join(__dirname, '../../../../business_modules/resilience_scorer/analyst/tuning/adversarial/narrativeGroundingCases.json'),
+    join(__dirname, '../../../fixtures/narrativeGroundingCases.json'),
     'utf8',
   ),
 );

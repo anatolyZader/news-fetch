@@ -234,59 +234,6 @@ export const ANALYST_READ_TOOLS = [
     },
   },
   {
-    name: 'get_resilience_drift',
-    description: 'Get resilience drift time series and alerts for a scope (analyst only).',
-    input_schema: {
-      type: 'object',
-      properties: {
-        scope: { type: 'string', description: 'national, north, south, etc.' },
-        days: { type: 'number', description: '1-90, default 30.' },
-        end_date: { type: 'string', description: 'YYYY-MM-DD.' },
-      },
-    },
-  },
-  {
-    name: 'list_validation_queue',
-    description: 'List validation review queue items for a date and scope (analyst only).',
-    input_schema: {
-      type: 'object',
-      properties: {
-        date: { type: 'string' },
-        scope: { type: 'string' },
-        status: { type: 'string', description: 'Default pending.' },
-      },
-      required: ['date'],
-    },
-  },
-  {
-    name: 'get_validation_item',
-    description: 'Get validation queue item with RAG context (analyst only).',
-    input_schema: {
-      type: 'object',
-      properties: {
-        date: { type: 'string' },
-        scope: { type: 'string' },
-        article_key: { type: 'string' },
-      },
-      required: ['date', 'article_key'],
-    },
-  },
-  {
-    name: 'explain_validation_item',
-    description:
-      'One-shot LLM explanation of why a validation queue item was flagged (analyst only, read-only).',
-    input_schema: {
-      type: 'object',
-      properties: {
-        date: { type: 'string' },
-        scope: { type: 'string' },
-        article_key: { type: 'string' },
-        question: { type: 'string', description: 'Optional follow-up question.' },
-      },
-      required: ['date', 'article_key'],
-    },
-  },
-  {
     name: 'list_geo_unknown',
     description: 'List geo unknown locality review queue entries (analyst only).',
     input_schema: {
@@ -297,63 +244,9 @@ export const ANALYST_READ_TOOLS = [
       },
     },
   },
-  {
-    name: 'list_catalog_proposals',
-    description: 'List OOV catalog draft proposals awaiting review (analyst only).',
-    input_schema: {
-      type: 'object',
-      properties: {
-        status: { type: 'string', enum: ['draft', 'approved', 'rejected'] },
-        limit: { type: 'number' },
-      },
-    },
-  },
-  {
-    name: 'get_catalog_gap_summary',
-    description: 'Get summary of recent OOV capture clusters (analyst only).',
-    input_schema: {
-      type: 'object',
-      properties: {
-        max_days: { type: 'number' },
-        top_n: { type: 'number' },
-      },
-    },
-  },
-  {
-    name: 'search_similar_articles',
-    description: 'Search the source archive for articles similar to a query (analyst / validation investigate).',
-    input_schema: {
-      type: 'object',
-      properties: {
-        query: { type: 'string' },
-        top_k: { type: 'number' },
-        date: { type: 'string', description: 'Report date YYYY-MM-DD (optional).' },
-      },
-      required: ['query'],
-    },
-  },
 ];
 
 export const PROPOSE_TOOLS = [
-  {
-    name: 'propose_validation_decision',
-    description:
-      'Propose a validation review decision (requires user confirmation in UI). Does NOT execute immediately.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        date: { type: 'string' },
-        scope: { type: 'string' },
-        article_key: { type: 'string' },
-        action: {
-          type: 'string',
-          enum: ['label', 'skip', 'defer', 'gold_signal', 'confirm_social_quarantine', 'dismiss_social_quarantine'],
-        },
-        note: { type: 'string' },
-      },
-      required: ['date', 'article_key', 'action'],
-    },
-  },
   {
     name: 'propose_geo_unknown_update',
     description:
@@ -366,20 +259,6 @@ export const PROPOSE_TOOLS = [
         note: { type: 'string' },
       },
       required: ['id', 'status'],
-    },
-  },
-  {
-    name: 'propose_catalog_proposal_review',
-    description:
-      'Propose approving or rejecting a catalog signal-type draft proposal (requires user confirmation).',
-    input_schema: {
-      type: 'object',
-      properties: {
-        proposal_id: { type: 'string' },
-        status: { type: 'string', enum: ['approved', 'rejected'] },
-        note: { type: 'string' },
-      },
-      required: ['proposal_id', 'status'],
     },
   },
 ];
@@ -420,16 +299,6 @@ function excludeGuidanceTools(tools, opts = {}) {
 /** Tool name subsets for scoped chat modes. null profile = full default set. */
 export const TOOL_PROFILES = {
   default: null,
-  validation: [
-    'list_validation_queue',
-    'get_validation_item',
-    'explain_validation_item',
-    'lookup_signals',
-    'search_sources',
-    'get_source',
-    'search_similar_articles',
-    'propose_validation_decision',
-  ],
   sources: [
     'list_sources',
     'search_sources',
@@ -464,21 +333,6 @@ export function buildChatToolList(opts = {}) {
 
 export function buildSystemTemplateToolList(opts = {}) {
   const profile = opts.toolProfile ?? 'default';
-  if (profile === 'validation') {
-    const lines = [
-      '- list_validation_queue / get_validation_item / explain_validation_item: validation review queue',
-      '- explain_validation_item: one-shot explanation of a flagged item',
-      '- lookup_signals: behavioral signal evidence',
-      '- search_sources / get_source: original archive documents',
-      '- search_similar_articles: archive similarity search',
-    ];
-    if (opts.confirmActionsEnabled) {
-      lines.push(
-        '- propose_validation_decision: propose skip/label/defer (user must confirm in chat UI)',
-      );
-    }
-    return lines.join('\n');
-  }
   if (profile === 'sources') {
     return [
       '- list_sources / search_sources / get_source: original archive documents',
@@ -517,16 +371,12 @@ export function buildSystemTemplateToolList(opts = {}) {
     }
     core.push(
       ...pboLines,
-      '- get_resilience_drift: drift time series and alerts',
-      '- list_validation_queue / get_validation_item / explain_validation_item: validation review queue',
       '- list_geo_unknown: geo unknown locality queue',
-      '- list_catalog_proposals / get_catalog_gap_summary: OOV catalog proposals',
-      '- search_similar_articles: archive similarity for validation investigate',
     );
     if (opts.confirmActionsEnabled) {
       core.push(
-        '- propose_validation_decision / propose_geo_unknown_update / propose_catalog_proposal_review: ' +
-        'mutations that require user confirmation in the chat UI — never claim an action was applied until confirmed',
+        '- propose_geo_unknown_update: mutation that requires user confirmation in the chat UI — ' +
+        'never claim an action was applied until confirmed',
       );
     }
   }

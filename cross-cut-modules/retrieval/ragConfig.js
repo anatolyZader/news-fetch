@@ -100,27 +100,6 @@ export function resilienceNarrativeRagTopK() {
   return Math.max(1, Math.min(10, Number.parseInt(process.env.RESILIENCE_NARRATIVE_RAG_TOPK ?? '4', 10) || 4));
 }
 
-export function validationReviewRagEnabled() {
-  if (process.env.VALIDATION_REVIEW_RAG_ENABLED === '0') return false;
-  if (process.env.VALIDATION_REVIEW_RAG_ENABLED === '1') return true;
-  return ragPipelineEnabled();
-}
-
-export function validationExplainEnabled() {
-  if (process.env.VALIDATION_EXPLAIN_ENABLED === '0') return false;
-  return validationReviewRagEnabled();
-}
-
-export function signalCatalogEvolutionRagEnabled() {
-  if (process.env.SIGNAL_CATALOG_EVOLUTION_RAG_ENABLED === '0') return false;
-  if (process.env.SIGNAL_CATALOG_EVOLUTION_RAG_ENABLED === '1') return true;
-  return ragPipelineEnabled();
-}
-
-export function catalogRagTopK() {
-  return Math.max(1, Math.min(10, Number.parseInt(process.env.CATALOG_RAG_TOPK ?? '5', 10) || 5));
-}
-
 export function pboReviewRagEnabled() {
   if (process.env.PBO_REVIEW_RAG_ENABLED === '0') return false;
   if (process.env.PBO_REVIEW_RAG_ENABLED === '1') return true;

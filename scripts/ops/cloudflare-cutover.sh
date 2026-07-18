@@ -286,7 +286,6 @@ echo
 
 ensure_dns_a "${ZONE_ID}" "${ZONE_NAME}"
 ensure_dns_a "${ZONE_ID}" "www.${ZONE_NAME}"
-ensure_dns_a "${ZONE_ID}" "analyst.${ZONE_NAME}"
 if [[ "${DOCS_HOSTING}" == "pages" ]]; then
   ensure_dns_cname "${ZONE_ID}" "docs.${ZONE_NAME}" "${DOCS_CNAME_TARGET}"
 else

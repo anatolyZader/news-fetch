@@ -29,10 +29,7 @@ Routes using **`costlyRoutePreHandlers`** (full chain):
 | `POST /api/chat` | `business_modules/chat/input/chatRoutes.js` — logged as `http:chat` (or `http:chat:crisis` when crisis pool active) |
 | `POST /api/evidence-submit`, `/api/evidence-upload` | `cross-cut-modules/evidence/input/evidenceRoutes.js` |
 | `POST /api/social-media/fetch-topic` | `business_modules/social_media/input/socialMediaRoutes.js` |
-| `POST /api/signal-catalog-evolution/proposals/generate` | `business_modules/signal_catalog_evolution/input/signalCatalogEvolutionRoutes.js` |
 | `POST /api/video/download-url`, `/api/translate` | `business_modules/resilience_scorer/input/reportRoutes.js` |
-| `POST /api/validation/review-queue/.../explain` | `business_modules/resilience_scorer/validation/input/validationReviewRoutes.js` |
-| `POST /api/validation/review-queue/.../agent` | `business_modules/resilience_scorer/validation/input/validationReviewRoutes.js` |
 | `POST /api/report-build/start`, `/turn`, `/suggest` | `business_modules/report_build/input/reportBuildRoutes.js` |
 
 **Budget only** (no full costly chain):
@@ -173,7 +170,7 @@ When daily HTTP budget is exhausted during crisis epistemic conditions, operator
 | `CRISIS_BUDGET_DEFAULT_HOURS` | `4` | Session TTL |
 | `CHAT_DETERMINISTIC_FALLBACK` | on | Non-LLM tool fallback when both pools exhausted |
 
-**Spend scripts:** normal chat → `http:chat`; crisis pool → `http:chat:crisis`. Evidence upload, validation agent, report build, etc. **do not** use the crisis pool — they still hard **429** at daily cap.
+**Spend scripts:** normal chat → `http:chat`; crisis pool → `http:chat:crisis`. Evidence upload, report build, etc. **do not** use the crisis pool — they still hard **429** at daily cap.
 
 **Routes (analyst):** `GET /api/budget/crisis-status`, `POST /api/budget/crisis/activate`, `POST /api/budget/crisis/deactivate` (`cross-cut-modules/budget/input/crisisBudgetRoutes.js`).
 

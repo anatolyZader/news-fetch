@@ -12,7 +12,6 @@ const log = createLogger('events');
  * @param {object} [deps]
  * @param {import('../../../db/persistence/processedEventStore.js').ReturnType<import('../../../db/persistence/processedEventStore.js').createProcessedEventStore>} [deps.processedEvents]
  * @param {object} [deps.retrievalService]
- * @param {object} [deps.driftService]
  */
 export function registerModuleHandlers(bus, deps = {}) {
   const processed = deps.processedEvents ?? null;
@@ -35,15 +34,6 @@ export function registerModuleHandlers(bus, deps = {}) {
           await deps.retrievalService.indexReportForDate(payload.date, payload.scope);
         } catch (err) {
           log.warn('rag index after report', err?.message ?? err);
-        }
-      });
-    }
-    if (deps.driftService?.recordSnapshot) {
-      await runOnce('drift', EVENT_TYPES.RESILIENCE_REPORT_WRITTEN, aggregateId, async () => {
-        try {
-          deps.driftService.recordSnapshot({ date: payload.date, scope: payload.scope });
-        } catch (err) {
-          log.warn('drift snapshot', err?.message ?? err);
         }
       });
     }

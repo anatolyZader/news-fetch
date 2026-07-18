@@ -2,7 +2,7 @@
 
 **Purpose:** Distinguish **report-grounded chat** (operator drill-down) from the **assessment agent** (batch assess pipeline). Both use tool loops and RAG; only chat is interactive HTTP.
 
-**Sources:** `business_modules/chat/`, `business_modules/specialist_agents/`, `cross-cut-modules/agent/`, `cross-cut-modules/llm/`, validation agent routes, `business_modules/chat/domain/proposedActionCommands.js`.
+**Sources:** `business_modules/chat/`, `business_modules/specialist_agents/`, `cross-cut-modules/agent/`, `cross-cut-modules/llm/`, `business_modules/chat/domain/proposedActionCommands.js`.
 
 ---
 
@@ -12,7 +12,6 @@
 |-------|------|---------|----------|
 | **Assessment agent** | `assess-signals` (default) | Planner → parallel specialists → critic → synthesizer | Batch; writes report + trace JSONL |
 | **Report chat** | Operator/analyst asks about current report | Single-session tool loop (max rounds) | Read-mostly; HITL for side effects |
-| **Validation investigate** | Analyst validation queue | Multi-turn tool loop | Analyst-only |
 | **Report build** | Write report / WhatsApp DM | Turn-based gap engine + LLM draft | Confirm-gated archive write |
 
 The assessment agent is **plan-and-execute map–reduce**, not peer-to-peer multi-agent chat. Planner, specialists, critic, and synthesizer are **sequential roles on one Anthropic stack** (per-stage prompts and tool profiles) — not separate human-scale services. See [RESILIENCE-ENGINE-REFERENCE.md §3.1](./RESILIENCE-ENGINE-REFERENCE.md#31-assessment-agent-v2).
@@ -62,17 +61,12 @@ Operators and analysts ask questions about the **current resilience report** (na
 
 **Analyst tools** (gated by `CHAT_ANALYST_TOOLS_ENABLED` and analyst access):
 
-- Validation: `list_validation_queue`, `get_validation_item`, `explain_validation_item`, `search_similar_articles`
 - PBO review: `search_pbo_history`, `list_pbo_reviews`, `get_pbo_review`
-- Calibration: `get_resilience_drift`
-- Catalog: `list_catalog_proposals`, `get_catalog_gap_summary`
 - Geo: `list_geo_unknown`
 
 **HITL propose tools** (require `POST /api/chat/confirm-action`):
 
-- `propose_validation_decision`
 - `propose_geo_unknown_update`
-- `propose_catalog_proposal_review`
 - `propose_operator_recommendation`
 
 Chat does **not** re-run extract/assess or mutate reports without explicit confirm-gated actions.
@@ -143,7 +137,7 @@ Uses same cached report path as `GET /api/report/today` — `business_modules/re
 
 **Assessment agent:** same kernel with per-stage `agentKind` values (`planner`, `specialist:{componentId}`, `synthesizer`).
 
-**Handlers:** `business_modules/chat/app/chatToolHandlers.js` — reads signal bundles, `daily_reports/`, `source_archive`, PBO indices, validation/catalog/drift services.
+**Handlers:** `business_modules/chat/app/chatToolHandlers.js` — reads signal bundles, `daily_reports/`, `source_archive`, PBO indices, geo unknown queue.
 
 **One-shot / batch (not interactive chat):**
 
@@ -178,22 +172,6 @@ Env: `CHAT_ANALYST_TOOLS_ENABLED` gates analyst read tools.
 **RAG:** text queries use hybrid retrieve over `archive` namespace — shared by chat and assess specialists.
 
 **Purge:** `npm run archive:purge` — time-limited types only; field/PBO/whatsapp etc. retained per store policy.
-
----
-
-## Validation investigate agent
-
-**Routes:** `business_modules/resilience_scorer/validation/input/validationReviewRoutes.js`
-
-| Route | Role |
-|-------|------|
-| POST `.../explain` | Haiku explanation (budget guarded) |
-| POST `.../agent` | Multi-turn investigate agent (`runToolLoop`, validation tool profile) |
-
-Used from analyst `ValidationReviewPanel` — not operator Daily Assessment tab.
-
----
-
 
 ---
 
@@ -235,8 +213,7 @@ Assessment agent Tier 1/2 flags: [MODEL-CARD.md](../MODEL-CARD.md).
 ## Related docs
 
 - RAG at assess: [RAG.md](./RAG.md)
-- Operator vs analyst apps: [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md)
+- Operator vs analyst display tiers: [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md)
 - Assessment agent stages: [RESILIENCE-ENGINE-REFERENCE.md §7.5](./RESILIENCE-ENGINE-REFERENCE.md#75-assessment-agent-default)
-- Validation review workflow: [RESILIENCE-ENGINE-REFERENCE.md §7.6](./RESILIENCE-ENGINE-REFERENCE.md#76-reports-and-validation)
-- Signal catalog and OOV capture: [PIPELINE-AND-SOURCES.md § Signal catalog evolution](./PIPELINE-AND-SOURCES.md#signal-catalog-evolution-analyst-post-extract)
+- Signal catalog and OOV capture: [PIPELINE-AND-SOURCES.md § OOV capture](./PIPELINE-AND-SOURCES.md#oov-capture-post-extract)
 - Cost guards: [COST-CONTROLS.md](./COST-CONTROLS.md)

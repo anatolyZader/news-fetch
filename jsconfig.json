@@ -21,7 +21,6 @@
     "node_modules",
     "client",
     "tools/docs-site",
-    "analyst-site",
     "coverage",
     "business_modules/resilience_scorer/data",
     "signals",

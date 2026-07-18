@@ -11,7 +11,6 @@ import {
   normalizeReportScope,
   buildAttentionItems,
 } from '../../resilience_scorer/index.js';
-import { formatSimilarArticlesForChat } from '../../resilience_scorer/analyst/validation/app/validationToolExecutor.js';
 import { searchSources, getSource, listSources } from '../domain/sourceArchiveQuery.js';
 import { pboReviewRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
 import { requireAnalyst } from './createChatToolContext.js';
@@ -25,38 +24,8 @@ import { wrapToolResultIfUntrusted, wrapUntrustedBlock } from '../../../cross-cu
 import { buildComponentTimeline, formatComponentTimeline } from '../domain/traceComponentTimeline.js';
 
 
-const VALIDATION_ACTIONS = new Set([
-  'label', 'skip', 'defer', 'gold_signal', 'confirm_social_quarantine', 'dismiss_social_quarantine',
-]);
-
 function inferredDate(input, reportData) {
   return input?.date ?? reportData?.assessment?.date ?? reportData?.reportDate ?? null;
-}
-
-function formatValidationItemContext(ctx) {
-  const { item, article, rag } = ctx;
-  const lines = [
-    `Article key: ${item.article_key}`,
-    `URL: ${item.article_url ?? 'n/a'}`,
-    `Reasons: ${(item.reasons ?? []).map((r) => r.code).join(', ') || 'none'}`,
-    `Signals: ${(item.signals ?? []).length}`,
-  ];
-  if (article?.excerpt) lines.push(`Excerpt: ${String(article.excerpt).slice(0, 400)}`);
-  if (rag?.similar_articles?.length) {
-    lines.push(`Similar: ${rag.similar_articles.slice(0, 3).map((a) => a.title).join('; ')}`);
-  }
-  return lines.join('\n');
-}
-
-function formatDriftSummary(data) {
-  const alerts = (data.alerts ?? []).slice(0, 5);
-  const overall = (data.overall_series ?? []).slice(-7);
-  const lines = [
-    `Scope: ${data.scope ?? 'national'}, days: ${data.days ?? 30}`,
-    `Alerts (${alerts.length}): ${alerts.map((a) => a.message ?? a.type).join(' | ') || 'none'}`,
-    `Recent overall scores: ${overall.map((p) => p.date + ':' + (p.score ?? '—')).join(', ')}`,
-  ];
-  return lines.join('\n');
 }
 
 async function handleProposeTool(toolName, input, ctx) {
@@ -73,16 +42,8 @@ async function handleProposeTool(toolName, input, ctx) {
   }
 
   let summary = '';
-  if (toolName === 'propose_validation_decision') {
-    const action = String(input?.action ?? '');
-    if (!VALIDATION_ACTIONS.has(action)) {
-      return `Invalid action "${action}". Allowed: ${[...VALIDATION_ACTIONS].join(', ')}`;
-    }
-    summary = `Validation: ${action} on ${input.date}/${input.article_key}`;
-  } else if (toolName === 'propose_geo_unknown_update') {
+  if (toolName === 'propose_geo_unknown_update') {
     summary = `Geo unknown #${input.id} → ${input.status}`;
-  } else if (toolName === 'propose_catalog_proposal_review') {
-    summary = `Catalog proposal ${input.proposal_id} → ${input.status}`;
   } else if (toolName === 'propose_operator_recommendation') {
     const action = String(input?.action ?? '');
     if (action !== 'acknowledge' && action !== 'dismiss') {
@@ -295,64 +256,6 @@ async function handleGetPboReview(toolName, input, ctx) {
   return JSON.stringify(detail, null, 2).slice(0, 8000);
 }
 
-function handleGetResilienceDrift(toolName, input, ctx) {
-  const gate = requireAnalyst(ctx, toolName);
-  if (gate) return gate;
-  const svc = ctx.driftService;
-  if (!svc?.compute) return 'Drift service unavailable.';
-  const data = svc.compute({
-    scope: input.scope ?? 'national',
-    days: Math.min(Math.max(input.days ?? 30, 1), 90),
-    endDate: input.end_date ?? input.endDate ?? null,
-  });
-  return formatDriftSummary(data);
-}
-
-function handleListValidationQueue(toolName, input, ctx) {
-  const gate = requireAnalyst(ctx, toolName);
-  if (gate) return gate;
-  const svc = ctx.validationReviewService;
-  if (!svc?.listQueue) return 'Validation review unavailable.';
-  const scope = normalizeReportScope(input.scope ?? 'national');
-  const q = svc.listQueue(input.date, scope, { status: input.status ?? 'pending' });
-  if (!q.items?.length) return `No validation items for ${input.date}/${scope}.`;
-  return q.items.slice(0, 20).map((it) =>
-    `- ${it.article_key}: ${(it.reasons ?? []).map((r) => r.code).join(', ') || 'review'}`,
-  ).join('\n');
-}
-
-async function handleExplainValidationItem(toolName, input, ctx) {
-  const gate = requireAnalyst(ctx, toolName);
-  if (gate) return gate;
-  const svc = ctx.validationReviewService;
-  if (!svc?.explainItem) return 'Validation review unavailable.';
-  const scope = normalizeReportScope(input.scope ?? 'national');
-  const result = await svc.explainItem(
-    input.date,
-    scope,
-    input.article_key,
-    input.question ?? '',
-    {
-      onUsage: ctx.costRecorder
-        ? (p) => ctx.costRecorder.onUsage(p)
-        : undefined,
-    },
-  );
-  if (!result) return `Item not found: ${input.article_key}`;
-  return result.answer ?? 'No explanation returned.';
-}
-
-async function handleGetValidationItem(toolName, input, ctx) {
-  const gate = requireAnalyst(ctx, toolName);
-  if (gate) return gate;
-  const svc = ctx.validationReviewService;
-  if (!svc?.getItemContext) return 'Validation review unavailable.';
-  const scope = normalizeReportScope(input.scope ?? 'national');
-  const itemCtx = await svc.getItemContext(input.date, scope, input.article_key);
-  if (!itemCtx) return `Item not found: ${input.article_key}`;
-  return formatValidationItemContext(itemCtx);
-}
-
 function handleListGeoUnknown(toolName, input, ctx) {
   const gate = requireAnalyst(ctx, toolName);
   if (gate) return gate;
@@ -363,35 +266,6 @@ function handleListGeoUnknown(toolName, input, ctx) {
   return rows.map((r) =>
     `#${r.id} "${r.raw_name_last ?? r.raw_name_norm}" (${r.reason}) count=${r.occurrence_count} status=${r.status}`,
   ).join('\n');
-}
-
-async function handleListCatalogProposals(toolName, input, ctx) {
-  const gate = requireAnalyst(ctx, toolName);
-  if (gate) return gate;
-  const svc = ctx.catalogProposalService;
-  if (!svc?.listProposals) return 'Catalog proposal service unavailable.';
-  const list = await svc.listProposals({ status: input.status ?? 'draft', limit: input.limit ?? 15 });
-  if (!list.length) return 'No catalog proposals.';
-  return list.map((p) =>
-    `- ${p.id}: ${p.cluster_key} → ${p.proposal_json?.suggested_signal_type ?? '?'} [${p.status}]`,
-  ).join('\n');
-}
-
-async function handleGetCatalogGapSummary(toolName, input, ctx) {
-  const gate = requireAnalyst(ctx, toolName);
-  if (gate) return gate;
-  const svc = ctx.catalogProposalService;
-  if (!svc?.getGapSummary) return 'Catalog proposal service unavailable.';
-  const summary = await svc.getGapSummary({
-    maxDays: input.max_days ?? 14,
-    topN: input.top_n ?? 10,
-  });
-  const clusters = summary.clusters ?? [];
-  if (!clusters.length) return `No OOV clusters in last ${summary.max_days ?? 14} days.`;
-  return [
-    `Total records: ${summary.total_records ?? 0}, clusters: ${clusters.length}`,
-    ...clusters.map((c, i) => `${i + 1}. ${c.key} (n=${c.count}, priority=${c.priority_score})`),
-  ].join('\n');
 }
 
 function handleListAttentionItems(_toolName, input, ctx) {
@@ -441,20 +315,6 @@ function handleGetDecisionBrief(_toolName, _input, ctx) {
   return JSON.stringify(brief, null, 2).slice(0, 12000);
 }
 
-async function handleSearchSimilarArticles(toolName, input, ctx) {
-  const gate = requireAnalyst(ctx, toolName);
-  if (gate) return gate;
-  const q = String(input?.query ?? '').trim();
-  if (!q) return 'query required';
-  const retrieval = ctx.retrievalService?.retrieval ?? null;
-  const date = inferredDate(input, ctx.reportData);
-  return formatSimilarArticlesForChat(q, {
-    retrieval,
-    reportDate: date,
-    topK: input?.top_k ?? 5,
-  });
-}
-
 function handleGetComponentEvidenceBundle(_toolName, input, ctx) {
   const componentId = String(input?.component ?? '').trim();
   if (!componentId) return 'component is required';
@@ -485,17 +345,10 @@ const CHAT_TOOL_HANDLERS = {
   search_pbo_history: handleSearchPboHistory,
   list_pbo_reviews: handleListPboReviews,
   get_pbo_review: handleGetPboReview,
-  get_resilience_drift: handleGetResilienceDrift,
-  list_validation_queue: handleListValidationQueue,
-  get_validation_item: handleGetValidationItem,
-  explain_validation_item: handleExplainValidationItem,
   list_geo_unknown: handleListGeoUnknown,
-  list_catalog_proposals: handleListCatalogProposals,
-  get_catalog_gap_summary: handleGetCatalogGapSummary,
   list_attention_items: handleListAttentionItems,
   list_operator_recommendations: handleListOperatorRecommendations,
   get_decision_brief: handleGetDecisionBrief,
-  search_similar_articles: handleSearchSimilarArticles,
 };
 
 /**

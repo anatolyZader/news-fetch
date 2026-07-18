@@ -33,15 +33,13 @@ describe('chatRoutes confirm-action', () => {
   let sessionId;
   let prevAnalystEmails;
   let geoUpdated;
-  let catalogReviewed;
-  let submitDecisionCalls;
+  let geoUpdateCalls;
 
   beforeEach(async () => {
     prevAnalystEmails = process.env.RESILIENCE_ANALYST_EMAILS;
     process.env.RESILIENCE_ANALYST_EMAILS = 'analyst@test.com';
     geoUpdated = null;
-    catalogReviewed = null;
-    submitDecisionCalls = 0;
+    geoUpdateCalls = 0;
     dir = mkdtempSync(join(tmpdir(), 'chat-confirm-routes-'));
     chatStore = createChatStore(join(dir, 'chat.sqlite'));
     pendingActionStore = createChatPendingActionStore(join(dir, 'pending.sqlite'));
@@ -52,7 +50,7 @@ describe('chatRoutes confirm-action', () => {
     });
 
     app = Fastify();
-    // executePendingAction only needs validation/geo/catalog services — not pboReportReviewService or driftService.
+    // executePendingAction only needs geo/operator-recommendation services — not pboReportReviewService.
     await chatRoutes(app, {
       authHook: { preHandler: testAuthPreHandler },
       chatStore,
@@ -63,22 +61,11 @@ describe('chatRoutes confirm-action', () => {
       vectorIndexStore: null,
       retrievalService: null,
       pendingActionStore,
-      validationReviewService: {
-        submitDecision(date, scope, key, reviewer, { action }) {
-          submitDecisionCalls += 1;
-          return { date, scope, article_key: key, action, reviewer: reviewer.email };
-        },
-      },
       pboHistoricalSearchService: null,
       pboReportReviewService: null,
-      driftService: null,
-      catalogProposalService: {
-        async reviewProposal(proposalId, review) {
-          catalogReviewed = { proposalId, review };
-        },
-      },
       geoUnknownReviewService: {
         updateStatus(id, update) {
+          geoUpdateCalls += 1;
           geoUpdated = { id, update };
         },
       },
@@ -97,14 +84,9 @@ describe('chatRoutes confirm-action', () => {
     return pendingActionStore.createPending({
       ownerUid: 'u1',
       sessionId,
-      toolName: 'propose_validation_decision',
-      params: {
-        date: '2026-05-30',
-        scope: 'national',
-        article_key: 'url:https://example.com/x',
-        action: 'skip',
-      },
-      summary: 'skip item',
+      toolName: 'propose_geo_unknown_update',
+      params: { id: 7, status: 'resolved', note: 'mapped' },
+      summary: 'geo #7 resolved',
       ...overrides,
     });
   }
@@ -119,7 +101,7 @@ describe('chatRoutes confirm-action', () => {
     });
     assert.equal(res.statusCode, 200);
     assert.equal(res.json().ok, true);
-    assert.match(res.json().result.message, /skip/i);
+    assert.match(res.json().result.message, /resolved/i);
   });
 
   it('prevents double execution on double confirm', async () => {
@@ -143,7 +125,7 @@ describe('chatRoutes confirm-action', () => {
     const codes = [resA.statusCode, resB.statusCode].sort();
     assert.equal(codes[0], 200);
     assert.equal(codes[1], 409);
-    assert.equal(submitDecisionCalls, 1);
+    assert.equal(geoUpdateCalls, 1);
   });
 
   it('rejects without executing', async () => {
@@ -208,23 +190,6 @@ describe('chatRoutes confirm-action', () => {
     assert.equal(res.statusCode, 200);
     assert.equal(geoUpdated?.id, 42);
     assert.equal(geoUpdated?.update.status, 'resolved');
-  });
-
-  it('confirms catalog proposal review for analyst', async () => {
-    const { id } = createPendingAction({
-      toolName: 'propose_catalog_proposal_review',
-      params: { proposal_id: 'prop-1', status: 'approved', note: 'ok' },
-      summary: 'catalog prop-1 approved',
-    });
-    const res = await app.inject({
-      method: 'POST',
-      url: '/api/chat/confirm-action',
-      headers: { 'x-test-email': 'analyst@test.com' },
-      payload: { sessionId, actionId: id, confirmed: true },
-    });
-    assert.equal(res.statusCode, 200);
-    assert.equal(catalogReviewed?.proposalId, 'prop-1');
-    assert.equal(catalogReviewed?.review.status, 'approved');
   });
 
   it('confirms operator recommendation for non-analyst operator', async () => {

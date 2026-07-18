@@ -21,7 +21,6 @@ import { useTodayReport, useReportEditions } from './hooks/useAnalysis.js';
 import { usePanelPopups } from './hooks/usePanelPopups.js';
 import { useDisplayCapabilities } from './hooks/useDisplayCapabilities.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
-import { getAnalystSiteUrl } from './lib/analystSiteUrl.js';
 import { formatDate } from './lib/date.js';
 import { formatTemplate } from './lib/i18nFormat.js';
 import { editionsMatch } from './lib/reportEditionFormat.js';
@@ -373,9 +372,6 @@ function HeaderMoreMenu({
   openSendEvidence,
   openDocs,
   openSettings,
-  user,
-  canViewAnalyst,
-  analystSiteUrl,
   lang,
   setLang,
   authRequired,
@@ -428,17 +424,6 @@ function HeaderMoreMenu({
       >
         {t('app.settings')}
       </MenuItem>
-      {user && canViewAnalyst && (
-        <MenuItem
-          component="a"
-          href={analystSiteUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={closeMoreMenu}
-        >
-          {t('app.analystView')}
-        </MenuItem>
-      )}
       {!isDesktop && (
         <>
           <Divider sx={{ my: 0.5 }} />
@@ -600,7 +585,6 @@ function AppShell() {
   const { logout, authRequired, user, accessToken } = useAuth();
   const { t, lang, setLang } = useLanguage();
   const { canViewAnalyst } = useDisplayCapabilities();
-  const analystSiteUrl = getAnalystSiteUrl();
   const [reportScope, setReportScope] = useState(() => readReportScope());
   const [selectedReportEdition, setSelectedReportEdition] = useState(
     () => readStoredReportEdition(readReportScope()),
@@ -911,9 +895,6 @@ function AppShell() {
       openSendEvidence={openSendEvidence}
       openDocs={openDocs}
       openSettings={openSettings}
-      user={user}
-      canViewAnalyst={canViewAnalyst}
-      analystSiteUrl={analystSiteUrl}
       lang={lang}
       setLang={setLang}
       authRequired={authRequired}
@@ -1409,9 +1390,6 @@ HeaderMoreMenu.propTypes = {
   openSendEvidence: PropTypes.func.isRequired,
   openDocs: PropTypes.func.isRequired,
   openSettings: PropTypes.func.isRequired,
-  user: PropTypes.object,
-  canViewAnalyst: PropTypes.bool,
-  analystSiteUrl: PropTypes.string,
   lang: PropTypes.string,
   setLang: PropTypes.func.isRequired,
   authRequired: PropTypes.bool,

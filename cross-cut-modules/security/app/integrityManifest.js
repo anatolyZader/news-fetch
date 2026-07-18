@@ -12,7 +12,6 @@ export const CLIENT_DIST_AGGREGATE_KEY = 'client/dist@aggregateSha256';
 export const INTEGRITY_PATHS = [
   'package-lock.json',
   'client/package-lock.json',
-  'analyst-site/package-lock.json',
   'tools/docs-site/package-lock.json',
   '.nvmrc',
   'openapi/openapi.yaml',

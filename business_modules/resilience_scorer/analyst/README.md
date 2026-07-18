@@ -1,6 +1,10 @@
 # Analyst quarantine
 
-Headline `/10` scoring, CI/calibration, validation, tuning, drift, and shadow divergence live here — **not** operator daily work. Lives at `business_modules/resilience_scorer/analyst/`, nested inside the resilience module since scoring/shadow are hard runtime dependencies of its assess pipeline. Analyst work is terminal/IDE-only (no separate UI).
+Headline `/10` scoring lives here — **not** operator daily work. Lives at
+`business_modules/resilience_scorer/analyst/`, nested inside the resilience module since scoring is
+a hard runtime dependency of its assess pipeline. The former validation-review, tuning/calibration,
+drift, and shadow-divergence tooling (and the separate `analyst-site/` SPA that was their only UI)
+have been retired — only the scoring engine remains here.
 
 ## Operator platform (do not move here)
 
@@ -13,26 +17,17 @@ Headline `/10` scoring, CI/calibration, validation, tuning, drift, and shadow di
 | Need | Import |
 |------|--------|
 | Headline scoring from operator pipeline | `business_modules/resilience_scorer/app/scoringFacade.js` only |
-| Shadow artifacts from assess finalize | `business_modules/resilience_scorer/app/shadowFacade.js` only |
-| Validation / drift HTTP (composition) | `business_modules/resilience_scorer/analyst/index.js` |
-| Direct analyst tooling | `business_modules/resilience_scorer/analyst/scoring/`, `analyst/validation/`, etc. |
-
-## npm scripts
-
-- `npm run validation:status` / `validation:set-phase`
-- `npm run suggest-tuning`
-- `npm run golden:build-corpus` / `golden:eval`
-- `npm run taxonomy:gap-audit`
+| Direct analyst tooling | `business_modules/resilience_scorer/analyst/scoring/` |
 
 ## Boundaries
 
 - `analyst/scoring/` may import `business_modules/resilience_scorer/domain/epistemic/`
-- `business_modules/resilience_scorer/**` must not import `business_modules/resilience_scorer/analyst/**` except `scoringFacade.js`, `shadowFacade.js`, and a small set of validation-store wiring files (see `.dependency-cruiser.cjs`)
+- `business_modules/resilience_scorer/**` must not import `business_modules/resilience_scorer/analyst/**` except `scoringFacade.js` (see `.dependency-cruiser.cjs`)
 - `client/**` must not import `business_modules/resilience_scorer/analyst/**`
 
 ## Open evidence (operator pipeline)
 
-Extract runs closed catalogue + parallel open observations (`RESILIENCE_OPEN_EXTRACT_PARALLEL=1` default). **All extractors** write `observations-pipeline-{sourceType}-{date}.json`: MD sources via `extract-signals` / regional PBO dual-path; social after classify/treat; PBO municipal and Naftali from free-text adapter units. Assess loads pipeline bundles separately from closed signals; agent/RAG receives routed open obs (`RESILIENCE_OPEN_OBS_FOR_AGENT=1`). Post-agent verified open claims may add discounted synthetic scoring signals flagged `open_evidence_synthetic` in scored JSON (analyst/shadow path only — operator UI stays claim-first).
+Extract runs closed catalogue + parallel open observations (`RESILIENCE_OPEN_EXTRACT_PARALLEL=1` default). **All extractors** write `observations-pipeline-{sourceType}-{date}.json`: MD sources via `extract-signals` / regional PBO dual-path; social after classify/treat; PBO municipal and Naftali from free-text adapter units. Assess loads pipeline bundles separately from closed signals; agent/RAG receives routed open obs (`RESILIENCE_OPEN_OBS_FOR_AGENT=1`).
 
 | Source | Closed bundle | Open pipeline bundle |
 |--------|---------------|----------------------|
@@ -50,4 +45,3 @@ Extract runs closed catalogue + parallel open observations (`RESILIENCE_OPEN_EXT
 | `RESILIENCE_OPEN_OBS_GRAPH_CAP` | `20` | Max open obs claims in graph |
 | `RESILIENCE_OPEN_EVIDENCE_SCORING` | `1` | Verified → synthetic `/10` inputs |
 | `RESILIENCE_OPEN_EVIDENCE_SCORE_WEIGHT` | `0.4` | Discount on synthetic mass |
-| `RESILIENCE_CATALOG_AUTO_PROPOSE_VERIFIED` | `0` | Auto draft catalog proposals |

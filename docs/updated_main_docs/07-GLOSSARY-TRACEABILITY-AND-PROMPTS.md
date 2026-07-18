@@ -39,9 +39,8 @@
 | **Instrument** | Operator-facing evidence-quality readout (sufficiency, contested, significant delta, status) that replaces the headline score. |
 | **`display_view` (operator/analyst)** | API/UI redaction tier. Operators never see numeric scores; analysts (allow-listed) do. |
 | **Headline 1-10 / `overall_resilience_score`** | The de-emphasized deterministic score. Computed via `scoringFacade.js`, used as a shadow/analyst artifact, set to null and redacted for operators. |
-| **Shadow scoring** | The deterministic score run alongside the agent for analyst comparison/divergence. |
-| **OOV capture** | Out-of-vocabulary observations buffered for catalog evolution. |
-| **Catalog evolution** | Turning OOV/verified-open observations into gap reports and draft catalog proposals. |
+| **Shadow scoring** | The deterministic component/overall score (`analyst/scoring/`, via `scoringFacade.js`) computed on every assess run — the load-bearing headline score, hidden from operators and visible to analysts. The separate per-report divergence-vs-agent artifact and analyst calibration UI (drift, validation review) have been retired; an unrelated offline agent-quality-eval divergence check remains in `specialist_agents/` for engineering use only. |
+| **OOV capture** | Out-of-vocabulary observations buffered for the closed catalog. |
 | **`business_modules/resilience_scorer/data/reports/`** | Output directory for assessment artifacts (`.md`, `-brief.md`, `.json`). |
 | **report_build** | Interactive field-report drafting module (input source), distinct from the daily assessment. |
 | **report_bot** | Read-only inbox of manually submitted reports. |
@@ -62,12 +61,11 @@
 | Assessment agent | `business_modules/specialist_agents/app/assessmentOrchestrator.js` (`runAssessmentAgent`) | `assessmentV2` (claims, synthesis, brief) |
 | Planner / specialist / critic / synthesizer | `plannerAgent.js` / `componentSpecialistAgent.js` / `criticAgent.js` / `synthesizerAgent.js` | plan, component assessments, repairs, synthesis |
 | Evidence graph | `cross-cut-modules/retrieval/evidenceGraph.js` (`buildEvidenceGraph`) | per-component claims graph |
-| Shadow score (de-emphasized) | `business_modules/resilience_scorer/app/scoringFacade.js` (-> `business_modules/resilience_scorer/analyst/scoring/`) | numeric scores (analyst-only) |
+| Shadow score (de-emphasized) | `business_modules/resilience_scorer/app/scoringFacade.js` (-> `business_modules/resilience_scorer/analyst/scoring/`) | numeric scores (visible to analysts only) |
 | Score abstention gate | `business_modules/resilience_scorer/domain/services/dataVoid/epistemicGate.js` | null score + `epistemic_abstention` |
 | Operator instrument + redaction | `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js` | instrument; operator redaction |
 | Display view | `cross-cut-modules/resilience-contracts/displayViews.js` | operator vs analyst |
 | Scope filter | `business_modules/resilience_scorer/domain/services/regionSignalFilter.js`, `IReportScopePolicy.js` | scope-local signals |
-| Catalog evolution | `business_modules/signal_catalog_evolution/`, `resilience/app/enqueueVerifiedOpenForCatalog.js` | gap reports, proposals |
 | Write report | `business_modules/resilience_scorer/infrastructure/reportWriter.js` (`writeReport`) | `business_modules/resilience_scorer/data/reports/{scope}-{date}-{HHMM}.{md,brief.md,json}` |
 | Serve report | `business_modules/resilience_scorer/input/reportRoutes.js`, `app/reportCacheService.js` | HTTP API |
 | Operator UI | `client/src/components/ReportView.jsx` | operator view |
@@ -95,7 +93,7 @@ Paste these against a notebook containing files 00-07.
 15. How is a report scoped to the northern district? Describe the three ways a signal can be kept for `north`. (File 03.)
 16. What three files does each assessment run write, and how do they differ?
 17. Distinguish `business_modules/resilience_scorer/data/reports/`, `report_build`, and `report_bot`. (File 06.)
-18. How does a verified open observation feed back into the closed catalog over time?
+18. What happens to a verified open observation that falls outside the closed catalog — where is it captured?
 19. Using the traceability table, map "scope filtering" and "evidence graph" to their files.
 20. Why is an honest "insufficient_data" considered a correct answer in this system?
 

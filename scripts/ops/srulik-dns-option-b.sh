@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# srulik.ai DNS Option B: apex/www/analyst → VM, docs → Cloudflare Pages.
+# srulik.ai DNS Option B: apex/www → VM, docs → Cloudflare Pages.
 # Requires CLOUDFLARE_SRULIK_API_TOKEN in .env (zone token for srulik.ai account).
 set -euo pipefail
 

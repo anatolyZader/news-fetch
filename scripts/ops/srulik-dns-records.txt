@@ -12,18 +12,16 @@
 # SSL/TLS → Overview → Full (strict)
 # Always Use HTTPS: ON
 #
-# Option A — all on VM (nginx static for docs/analyst):
+# Option A — all on VM (nginx static for docs):
 # Type  Name      Content          Proxy
 # A     @         34.165.63.234    Proxied
 # A     www       34.165.63.234    Proxied
 # A     docs      34.165.63.234    Proxied
-# A     analyst   34.165.63.234    Proxied
 #
 # Option B — docs on Cloudflare Pages (like vibeswitch):
 # A     @         34.165.63.234    Proxied
 # A     www       34.165.63.234    Proxied
 # CNAME docs      news-fetch-abl.pages.dev   Proxied
-# A     analyst   34.165.63.234    Proxied
 # (Also add docs.srulik.ai custom domain in Pages project dashboard)
 #
 # After records propagate, on the VM:
@@ -32,7 +30,7 @@
 #   sudo ln -sf /etc/nginx/sites-available/srulik /etc/nginx/sites-enabled/srulik
 #   sudo nginx -t && sudo systemctl reload nginx
 #   sudo certbot certonly --webroot -w /var/www/certbot \
-#     -d srulik.ai -d www.srulik.ai -d docs.srulik.ai -d analyst.srulik.ai \
+#     -d srulik.ai -d www.srulik.ai -d docs.srulik.ai \
 #     --non-interactive --agree-tos -m security@srulik.ai
 #   sudo cp scripts/ops/nginx-srulik.conf /etc/nginx/sites-available/srulik
 #   sudo cp scripts/ops/nginx-srulik-subdomains.conf /etc/nginx/sites-available/srulik-subdomains

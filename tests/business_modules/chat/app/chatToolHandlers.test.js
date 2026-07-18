@@ -21,20 +21,11 @@ describe('chatToolHandlers', () => {
   });
 
   it('blocks analyst tools for non-analyst', async () => {
-    const result = await handleChatToolCall('list_validation_queue', { date: '2026-05-30' }, {
+    const result = await handleChatToolCall('list_geo_unknown', {}, {
       isAnalyst: false,
       analystToolsEnabled: true,
       confirmActionsEnabled: true,
     });
-    assert.match(result, /analyst access/i);
-  });
-
-  it('explain_validation_item requires analyst', async () => {
-    const result = await handleChatToolCall(
-      'explain_validation_item',
-      { date: '2026-05-30', article_key: 'x' },
-      { isAnalyst: false, analystToolsEnabled: true, confirmActionsEnabled: true },
-    );
     assert.match(result, /analyst access/i);
   });
 
@@ -111,12 +102,12 @@ describe('chatPendingActionStore', () => {
     const { id } = store.createPending({
       ownerUid: 'u1',
       sessionId: 's1',
-      toolName: 'propose_validation_decision',
-      params: { action: 'skip' },
-      summary: 'skip item',
+      toolName: 'propose_geo_unknown_update',
+      params: { status: 'resolved' },
+      summary: 'resolve entry',
     });
     const pending = store.getPending(id);
-    assert.equal(pending.toolName, 'propose_validation_decision');
+    assert.equal(pending.toolName, 'propose_geo_unknown_update');
     store.markConsumed(id);
     assert.ok(store.getPending(id).consumedAt);
     rmSync(dir, { recursive: true, force: true });
@@ -124,24 +115,23 @@ describe('chatPendingActionStore', () => {
 });
 
 describe('executePendingAction', () => {
-  it('executes validation decision on confirm', async () => {
+  it('executes geo unknown update on confirm', async () => {
     const prev = process.env.RESILIENCE_ANALYST_EMAILS;
     process.env.RESILIENCE_ANALYST_EMAILS = 'analyst@test.com';
     let called = false;
-    const validationReviewService = {
-      submitDecision(date, scope, key, reviewer, { action }) {
+    const geoUnknownReviewService = {
+      updateStatus(id, { status }) {
         called = true;
-        assert.equal(action, 'skip');
-        assert.equal(reviewer.email, 'analyst@test.com');
+        assert.equal(status, 'resolved');
       },
     };
     try {
       const result = await executePendingAction(
         {
-          toolName: 'propose_validation_decision',
-          params: { date: '2026-05-30', scope: 'national', article_key: 'abc', action: 'skip' },
+          toolName: 'propose_geo_unknown_update',
+          params: { id: 1, status: 'resolved' },
         },
-        { userEmail: 'analyst@test.com', validationReviewService },
+        { userEmail: 'analyst@test.com', geoUnknownReviewService },
       );
       assert.equal(called, true);
       assert.equal(result.ok, true);

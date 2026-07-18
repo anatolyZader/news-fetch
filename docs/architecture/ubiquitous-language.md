@@ -9,7 +9,7 @@ Shared vocabulary across backend, API, UI, and docs. Use these terms consistentl
 | Term | Meaning |
 |------|---------|
 | **Operator** | Default user. Sees narratives, evidence, instruments, attention — not headline 1–10 scores. |
-| **Analyst** | Privileged user (`canViewAnalystDisplay`). Drift, validation review, catalog proposals. |
+| **Analyst** | Privileged user (`canViewAnalystDisplay`). Sees headline scores and score-revealing UI (`WhyThisScore`, `DeltaLine`, `InstrumentMetricsBadges`, etc.) that operators do not; also gates `CrisisBudgetPanel` crisis-chat-budget activation. |
 | **Maintainer** | Highest tier (`canRunAnalysisDisplay`). Maintainer-only costly tools. |
 | **Principal** | Authenticated Firebase user on an API request (`request.user`). |
 
@@ -30,16 +30,13 @@ Access levels: `operator` \| `analyst` \| `maintainer` — `config/userAccess.js
 
 ---
 
-## Signals, catalog, validation
+## Signals and catalog
 
 | Term | Meaning |
 |------|---------|
 | **Signal type** | Stable id from closed catalog (`signalCatalog.js`, `CATALOG_VERSION` v6). |
 | **OOV** | Out-of-vocabulary type — captured to `oov-capture-{date}.jsonl`, not scored. |
-| **Catalog proposal** | Analyst-reviewed draft from `signal_catalog_evolution` module. |
 | **Grounding outcome** | Verification outcome: `grounded`, `weak`, `unverified_critical`, `rejected`. |
-| **Review queue** | Stratified daily sample for human validation review (max 15/day). |
-| **Drift** | Historical component score series for analyst dashboard. |
 
 ---
 

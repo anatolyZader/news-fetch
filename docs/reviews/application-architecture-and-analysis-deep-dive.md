@@ -101,9 +101,8 @@ The workspace follows a **hexagonal / DDD-style** layout:
 | [`business_modules/`](../../business_modules/) | One folder per business capability (`resilience`, `geo`, `news-sites`, `whatsapp`, `audio`, `survey`, PBO modules, etc.). Each module uses `app/`, `domain/`, `infrastructure/adapters/`, and optional `input/` for CLI or HTTP entrypoints. |
 | [`cross-cut-modules/`](../../cross-cut-modules/) | Persistence, budget, shared adapters, and helpers used by multiple modules (e.g. `signalGeoSummary.js` re-exports geo helpers for report code that must not deep-import geo internals). |
 | [`reportCacheService.js`](../../business_modules/resilience_scorer/app/reportCacheService.js) | Report path resolution by **scope** (national vs north) and cached report reads (`getCachedReport`, `resolveReportJsonPathForDate`). |
-| [`composition/createApp.js`](../../composition/createApp.js) / [`composition/wireApplication.js`](../../composition/wireApplication.js) | Fastify shell: auth, routes, **composition root** (wires `geoService`, `geoEnrichmentPort`, WhatsApp analyzer, drift routes, cached report readers). |
-| [`client/`](../../client/) | Operator React SPA: report scope toggle, dashboards, docs panel. |
-| [`analyst-site/`](../../analyst-site/) | Analyst SPA: drift, validation review, catalog proposals (separate origin). |
+| [`composition/createApp.js`](../../composition/createApp.js) / [`composition/wireApplication.js`](../../composition/wireApplication.js) | Fastify shell: auth, routes, **composition root** (wires `geoService`, `geoEnrichmentPort`, WhatsApp analyzer, cached report readers). |
+| [`client/`](../../client/) | Operator + analyst React SPA: report scope toggle, dashboards, docs panel; analyst-only score-revealing components are gated inline by `displayView`, not a separate app. |
 
 **Composition rule:** business modules do not import each other arbitrarily; shared abstractions are expressed as **ports** (e.g. `IGeoEnrichmentPort`) and implemented by adapters wired only from `composition/createApp.js` / `wireApplication.js` or dedicated scripts.
 
@@ -124,7 +123,7 @@ Readers often conflate these; they serve different operational models.
 - Responses include `display_view` and redact numeric scores for operator display_view via [`assessmentDisplayTier.js`](../../business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js).  
 - [`GET /api/resilience/display-capabilities`](../../business_modules/resilience_scorer/input/reportRoutes.js) returns `{ canViewAnalyst }` for the optional signed-in user.  
 - [`useTodayReport(scope, view)`](../../client/src/hooks/useAnalysis.js) passes scope and view query params.  
-- [`MainApp.jsx`](../../client/src/MainApp.jsx) links to the **analyst SPA** (`getAnalystSiteUrl()`) when `canViewAnalyst` is true — not an in-app display_view toggle. Drift APIs are gated to analyst/maintainer.
+- [`MainApp.jsx`](../../client/src/MainApp.jsx) gates `CrisisBudgetPanel` on `canViewAnalyst`; there is no separate analyst SPA or header link anymore — the former `analyst-site/` and its drift/validation/catalog-proposal panels have been retired. Analyst-only score detail is shown inline in `ReportView.jsx` via `displayView="analyst"`.
 
 ---
 
@@ -387,7 +386,7 @@ Unknown or ambiguous localities can be routed to review sinks when configured (`
 
 ## 10. Future functionality
 
-- **Time-series and drift:** drift routes and services already exist (`registerDriftRoutes` in [`driftRoutes.js`](../../business_modules/resilience_scorer/input/driftRoutes.js), wired from `createApp.js`); extend with automated anomaly detection on component scores.  
+- **Time-series and drift:** the drift routes/service and analyst drift UI that used to exist here have been retired along with the rest of the analyst-facing tooling; a future time-series/anomaly-detection feature on component scores would need to be rebuilt, not extended.  
 - **Stronger temporal modeling:** explicit half-life decay by `publishedAt` instead of only `temporal_weight` where present.  
 - **Geo review UI:** operational queue for unknowns feeding reference JSON builders (`npm run build:north-reference` pipeline).  
 - **Multilingual normalization:** cross-lingual dedup and translation-gated extraction for Arabic and Russian sources where licenses permit.  
@@ -416,8 +415,7 @@ Non-exhaustive list of variables referenced across analysis, geo, and client-fac
 | `RESILIENCE_EPISTEMIC_GEO_V2` | Exclude text-inferred / metrics-unsafe geo from component scores (default on; `=0` for legacy). |
 | `TRANSLATION_ENABLED` | Gate server-side report translation. |
 | `AUTH_REQUIRED` | Gate API routes and docs pages. |
-| `RESILIENCE_DRIFT_*` | Drift alert thresholds (polarization window, etc.) — see client i18n help strings. |
-| `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails allowed analyst display_view and gated drift APIs. |
+| `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails allowed analyst `display_view`. |
 | `RESILIENCE_NARRATIVE_INCLUDE_SCORES` | Default `false`; set `true` to pass 1–10 scores into narrative LLM prompts. |
 
 Always treat this table as **hints**; authoritative behavior is the code path that reads each variable.

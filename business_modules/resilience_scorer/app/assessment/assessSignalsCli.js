@@ -64,12 +64,10 @@ import { COMPONENT_IDS } from '../../domain/contracts/componentIds.js';
 import { runScoringPipeline } from './scoringPipelinePrep.js';
 import { attachDecisionBrief } from './attachDecisionBrief.js';
 import { salienceContextFromDataVoid } from '../../domain/epistemic/highSalienceBypass.js';
-import { proposeComponentTuningFromReportFiles } from '../../analyst/tuning/domain/componentTuningProposal.js';
 import {
   summarizeStageEvents,
   readCostLogStagesForDate,
 } from '../../domain/services/pipelineStageTelemetry.js';
-import createValidationCollectionService from '../../analyst/validation/app/validationCollectionService.js';
 import { loadConnectivityProbeSignals, loadProbeRecordsForDate } from '../../infrastructure/adapters/connectivityProbeFileAdapter.js';
 import { enrichProbeSignalsInList } from '../../domain/services/signals/probeCorroborationPolicy.js';
 import { createDefaultPboReportReviewService } from '../../../pbo_report_review/index.js';
@@ -517,9 +515,6 @@ async function applyOpenEvidenceScoringIfVerified({
   if (enqueueResult.enqueued > 0) {
     console.error(`  → Catalog evolution enqueue: ${enqueueResult.enqueued} verified open observation(s)`);
   }
-  if (enqueueResult.proposals_generated > 0) {
-    console.error(`  → Catalog auto-proposals: ${enqueueResult.proposals_generated} draft(s)`);
-  }
 }
 
 function logScoringResults(scopedSignals, signalsForScoring, scoredFull) {
@@ -549,42 +544,6 @@ function resolveOutputBase(reportScopeId, targetDate, days, getArg) {
     reportDate: targetDate,
   });
   return resolve(resilienceReportsDir(), basename);
-}
-
-function buildSignalPaths(loadedFiles) {
-  return loadedFiles.map(({ file, sourceType, data }) => {
-    if (data?._from_observations) {
-      return resolve('business_modules/open_observation_extraction/data', file);
-    }
-    if (sourceType === 'field') return resolve(SIGNAL_DIRS.fieldSignalsDir, file);
-    if (sourceType === 'social') return resolve(SIGNAL_DIRS.socialSignalsDir, file);
-    return resolve(SIGNAL_DIRS.signalsDir, file);
-  });
-}
-
-function collectValidation(assessment, allSignals, outputBase, signalPaths, pipelineConfig, tuningProposal) {
-  try {
-    const validationSvc = createValidationCollectionService();
-    const validationResult = validationSvc.collectAfterAssessment({
-      assessment,
-      signals: allSignals,
-      reportJsonPath: `${outputBase}.json`,
-      signalPaths,
-      pipelineConfig,
-      tuningProposal,
-    });
-    if (!validationResult.skipped) {
-      console.error(
-        `\nValidation collection (${validationResult.operationalPhase}): ` +
-        `${validationResult.reviewItemCount} review item(s) → ${validationResult.recordPath}`,
-      );
-      if (validationResult.elevationAdvisory) {
-        console.error(`  ⚠ ${validationResult.elevationAdvisory.message}`);
-      }
-    }
-  } catch (err) {
-    console.error(`  ⚠ Validation collection failed (report still written): ${err.message}`);
-  }
 }
 
 function buildEpistemicProfileShim(scoredFull) {
@@ -643,12 +602,10 @@ function buildReportMethodology(assessment, { scopedSignals, reportScopeId, vali
   const costLogStages = readCostLogStagesForDate(targetDate, {
     scripts: ['extract-signals', 'assess-signals'],
   });
-  const tuningProposal = proposeComponentTuningFromReportFiles(resilienceReportsDir(), { minReports: 10 });
   assessment.methodology = buildAssessmentMethodology({
     signals: scopedSignals,
     reportScopeId,
     scoringModelManifest: buildScoringModelManifest(),
-    tuningProposal,
     validationMaturity,
     epistemicEnrichment,
     extractionTelemetry: {
@@ -657,7 +614,6 @@ function buildReportMethodology(assessment, { scopedSignals, reportScopeId, vali
       assess_log: costLogStages['assess-signals'] ?? null,
     },
   });
-  return tuningProposal;
 }
 
 async function attachPboCompletenessSummary(assessment, targetDate) {
@@ -696,10 +652,8 @@ async function finalizeAndWriteReport({
   getTotal,
   printSummary,
   contentKind: _contentKind,
-  loadedFiles,
   sourceFiles,
   totalArticles,
-  pipelineConfig,
   scoring,
   retrievalService = null,
   sourceArchive = null,
@@ -764,7 +718,7 @@ async function finalizeAndWriteReport({
     staleDigitalScores,
   });
 
-  const tuningProposal = buildReportMethodology(assessment, {
+  buildReportMethodology(assessment, {
     scopedSignals,
     reportScopeId,
     validationMaturity,
@@ -774,15 +728,6 @@ async function finalizeAndWriteReport({
   });
   const subgroupLogLine = formatSubgroupCoverageLogLine(assessment.methodology);
   if (subgroupLogLine) console.error(subgroupLogLine);
-
-  collectValidation(
-    assessment,
-    scopedSignals,
-    outputBase,
-    buildSignalPaths(loadedFiles),
-    pipelineConfig,
-    tuningProposal,
-  );
 
   await attachPboCompletenessSummary(assessment, targetDate);
   const pipelinePreset = getArg?.('--preset')?.trim() || null;
@@ -890,10 +835,8 @@ export async function runAssessSignalsCli() {
     getTotal,
     printSummary,
     contentKind: prepared.contentKind,
-    loadedFiles: prepared.loadedFiles,
     sourceFiles: prepared.sourceFiles,
     totalArticles: prepared.totalArticles,
-    pipelineConfig: prepared.pipelineConfig,
     scoring,
     retrievalService: prepared.retrievalService,
     sourceArchive: createSourceArchiveSafe(),

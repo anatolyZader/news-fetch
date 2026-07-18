@@ -35,7 +35,7 @@ For role and scope terminology, see the repo glossary at `docs/architecture/ubiq
 ## Domain modeling convention
 
 - **Default pattern:** **domain services + value objects** — pure functions and small immutable types in `domain/services/` and `domain/value_objects/`.
-- **Entities/aggregates:** Use thin **state-bearing VOs** only where lifecycle or invariants matter (e.g. review status, conversation state, catalog proposal approval). No event sourcing required.
+- **Entities/aggregates:** Use thin **state-bearing VOs** only where lifecycle or invariants matter (e.g. review status, conversation state). No event sourcing required.
 - **Hexagonal boundaries:** External I/O via `domain/ports/` implemented in `infrastructure/adapters/`. Shared taxonomy/constants live in `cross-cut-modules/resilience-contracts/`.
 - **Module coupling:** Sibling business modules communicate via contracts, composition wiring, or injected ports — not direct `domain/` or `app/` imports. CI enforces this with `npm run deps:boundaries`.
 - **Option B — input/ contract:** `business_modules/<module>/input/` is transport-only (HTTP routes, webhooks, CLI). Input files may import only the **own** module `app/` or `index.js`, plus `cross-cut-modules/`, `db/`, `utils/`, and `composition/`. They must not import own `domain/` or `infrastructure/` — delegate to app services. Cross-module adapter wiring lives in `composition/`.
@@ -68,7 +68,6 @@ For role and scope terminology, see the repo glossary at `docs/architecture/ubiq
 │   ├── scheduled_stream_capture/  # Scheduled live-stream capture (FFmpeg); data/ for MP3s
 │   ├── radio/                 # Radio station specifics
 │   ├── resilience/            # Signal extraction + assessment; field survey Excel → reports (app/survey*.js, infrastructure/adapters/surveyExcelLoader.js)
-│   ├── signal_catalog_evolution/  # OOV capture clustering, gap reports, analyst catalog draft proposals
 │   ├── translation/           # On-demand report translation
 │   ├── chat/                  # Follow-up chat grounded in reports
 │   ├── edu, education/        # Education ministry data
@@ -107,7 +106,7 @@ For role and scope terminology, see the repo glossary at `docs/architecture/ubiq
 3. Add a weight for it in the signal→component mapping.
 4. Decide whether to backfill older days — rerunning extraction lets old reports surface the new type.
 5. Bump whatever version / changelog you use; silent taxonomy changes create silent score drift.
-6. Review clustered OOV captures via `npm run signal-catalog-evolution:gap-report` and analyst proposals in `signal_catalog_evolution/` before editing `signalCatalog.js`.
+6. Review raw OOV captures (`daily_reports/oov-capture-{date}.jsonl`) before editing `signalCatalog.js` — the automated gap-report/proposal tooling that used to cluster these has been retired, so this is a manual read.
 
 ### I want a new tab in the UI
 

@@ -27,10 +27,7 @@ npm run output:setup
 | `ingest/pbo-muni/` | `business_modules/pbo_report_muni/data/` | Municipal PBO exports |
 | `ingest/pbo-regional/` | `business_modules/pbo_report_regional/data/` | Regional PBO data |
 | `ingest/social-media/` | `business_modules/social_media/data/` | Social signals and fetches |
-| **research/** | | Calibration / analyst — not auto-served to operators |
-| `analyst-shadow/` | `business_modules/resilience_scorer/analyst/data/shadow/` | Shadow scores, divergence |
-| `analyst-reviews/` | `business_modules/resilience_scorer/analyst/data/reviews/` | Signal review MD |
-| `signal-catalog/` | `business_modules/signal_catalog_evolution/data/` | Catalog gap reports |
+| **research/** | | Calibration — not auto-served to operators |
 | `translation-locale/` | `business_modules/translation/data/locale/` | Translation locale cache |
 | **operational/** | | Logs and cost (ephemeral / audit) |
 | `logs/` | `logs/` | Pipeline run logs, extract traces |

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Finish srulik.ai cutover after DNS exists (see srulik-dns-records.txt).
-# Option B (default): docs on Cloudflare Pages — cert covers apex/www/analyst only.
+# Option B (default): docs on Cloudflare Pages — cert covers apex/www only.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -10,7 +10,7 @@ VM_IP="${VM_PUBLIC_IP:-34.165.63.234}"
 CERTBOT_EMAIL="${CERTBOT_EMAIL:-security@srulik.ai}"
 DOCS_HOSTING="${DOCS_HOSTING:-pages}"
 DOCS_CNAME_TARGET="${DOCS_CNAME_TARGET:-news-fetch-abl.pages.dev}"
-APEX_HOSTS=(srulik.ai www.srulik.ai analyst.srulik.ai)
+APEX_HOSTS=(srulik.ai www.srulik.ai)
 
 dns_ready() {
   local h
@@ -45,7 +45,7 @@ dns_ready() {
 
 echo "=== srulik.ai post-DNS cutover ==="
 echo "Docs hosting: ${DOCS_HOSTING}"
-echo "Expect A records for apex/www/analyst → ${VM_IP} (proxied OK for LE HTTP-01 via origin)"
+echo "Expect A records for apex/www → ${VM_IP} (proxied OK for LE HTTP-01 via origin)"
 echo
 
 if ! dns_ready; then
@@ -63,7 +63,7 @@ sudo nginx -t
 sudo systemctl reload nginx
 
 if [[ ! -f /etc/letsencrypt/live/srulik.ai/fullchain.pem ]]; then
-  CERT_ARGS=(-d srulik.ai -d www.srulik.ai -d analyst.srulik.ai)
+  CERT_ARGS=(-d srulik.ai -d www.srulik.ai)
   if [[ "${DOCS_HOSTING}" != "pages" ]]; then
     CERT_ARGS+=(-d docs.srulik.ai)
   fi
@@ -89,5 +89,4 @@ echo "=== Verify ==="
 curl -sSI "https://srulik.ai/api/monitoring/health" | head -5 || true
 curl -sS "https://srulik.ai/.well-known/security.txt" 2>/dev/null | head -3 || true
 curl -sSI "https://docs.srulik.ai/" | head -3 || true
-curl -sSI "https://analyst.srulik.ai/" | head -3 || true
 echo "Done."

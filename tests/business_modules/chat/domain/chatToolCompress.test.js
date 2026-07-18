@@ -20,7 +20,7 @@ describe('chatToolCompress', () => {
 
   it('passes through propose tools unchanged', () => {
     const raw = 'Action proposed (ID: abc).';
-    const out = compressChatToolResult('propose_validation_decision', raw, { enabled: true });
+    const out = compressChatToolResult('propose_geo_unknown_update', raw, { enabled: true });
     assert.equal(out, raw);
   });
 

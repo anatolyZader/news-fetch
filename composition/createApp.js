@@ -29,11 +29,6 @@ import { syncAllUserAccessClaims } from '../cross-cut-modules/auth/userAccessCla
 import { hasPrivilegedUserAccessConfigured } from '../cross-cut-modules/auth/userAccess.js';
 import { requireAnalystView } from '../cross-cut-modules/auth/requireAnalystAccess.js';
 import {
-  createDriftService,
-  registerDriftRoutes,
-  validationReviewRoutes,
-} from '../business_modules/resilience_scorer/analyst/index.js';
-import {
   createMonitoringService,
   registerMonitoringRoutes,
 } from '../cross-cut-modules/monitoring/index.js';
@@ -52,7 +47,6 @@ import { reportBotManualReportsRoutes } from '../business_modules/report_bot/ind
 import { reportBuildRoutes } from '../business_modules/report_build/input/reportBuildRoutes.js';
 import { mailingRoutes } from '../business_modules/mailing/input/mailingRoutes.js';
 import { pboReviewRoutes } from '../business_modules/pbo_report_review/input/pboReviewRoutes.js';
-import { signalCatalogEvolutionRoutes } from '../business_modules/signal_catalog_evolution/index.js';
 import { evidenceRoutes } from '../business_modules/evidence_submission/input/evidenceRoutes.js';
 import { chatRoutes } from '../business_modules/chat/input/chatRoutes.js';
 import { registerCrisisBudgetRoutes } from '../cross-cut-modules/budget/index.js';
@@ -219,7 +213,6 @@ async function registerApplicationRoutes(app, ctx) {
     videoGrabService,
     youtubeEvidenceIngestService,
     reportBuildService,
-    driftService,
   } = ctx;
 
   await docsRoutes(app, {
@@ -249,20 +242,7 @@ async function registerApplicationRoutes(app, ctx) {
     geoUnknownReviewService: w.geoUnknownReviewService ?? null,
   });
 
-  await app.register(validationReviewRoutes, {
-    validationReviewService: w.validationReviewService,
-    authPreHandler: protectedAuthPreHandler,
-    retrievalService: w.retrievalService,
-    llmQuotaStore: w.llmDailyQuotaStore,
-    agentKernel: w.agentKernel,
-  });
-
   await operatorRoutes(app);
-
-  await app.register(signalCatalogEvolutionRoutes, {
-    catalogProposalService: w.catalogProposalService,
-    authPreHandler: protectedAuthPreHandler,
-  });
 
   await chatRoutes(app, {
     authHook,
@@ -274,12 +254,9 @@ async function registerApplicationRoutes(app, ctx) {
     vectorIndexStore: w.vectorIndexStore,
     retrievalService: w.retrievalService,
     pendingActionStore: w.chatPendingActionStore,
-    validationReviewService: w.validationReviewService,
     pboHistoricalSearchService: w.pboHistoricalSearchService,
     pboReportReviewService: w.pboReportReviewService,
-    driftService,
     getMunicipalityDashboard,
-    catalogProposalService: w.catalogProposalService,
     geoUnknownReviewService: w.geoUnknownReviewService,
     llmPort: w.sharedLlmPort,
     agentKernel: w.agentKernel,
@@ -293,11 +270,6 @@ async function registerApplicationRoutes(app, ctx) {
   await registerCrisisBudgetRoutes(app, {
     authHook,
     crisisBudgetService: w.crisisBudgetService ?? null,
-  });
-
-  await registerDriftRoutes(app, {
-    driftService,
-    authPreHandler: protectedAuthPreHandler,
   });
 
   const monitoringService = createMonitoringService({
@@ -444,11 +416,9 @@ export async function createApp(options) {
 
   registerAppErrorHandler(app);
   const eventBus = getDefaultEventBus();
-  const driftServiceForEvents = createDriftService({});
   registerModuleHandlers(eventBus, {
     processedEvents: w.processedEventStore,
     retrievalService: w.retrievalService,
-    driftService: driftServiceForEvents,
   });
 
   setupOutboxDispatcher(app, w, eventBus);
@@ -489,7 +459,6 @@ export async function createApp(options) {
     videoGrabService,
     youtubeEvidenceIngestService,
     reportBuildService,
-    driftService: driftServiceForEvents,
   });
 
   await registerSecurityTxtRoute(app, w.repoRoot);

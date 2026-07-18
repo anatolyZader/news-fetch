@@ -76,10 +76,6 @@ export function openEvidenceScoreWeight(env = process.env) {
   return Number.isFinite(w) && w > 0 && w <= 1 ? w : 0.4;
 }
 
-export function isCatalogAutoProposeVerifiedEnabled(env = process.env) {
-  return envFlagOn(env, 'RESILIENCE_CATALOG_AUTO_PROPOSE_VERIFIED');
-}
-
 /** JSONL residuals into agent graph — off when omission audit mode is on. */
 export function isResidualForAgentEnabled(env = process.env) {
   if (isOmissionAuditEnabled(env)) return false;

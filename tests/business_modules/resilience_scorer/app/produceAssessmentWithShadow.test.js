@@ -31,7 +31,6 @@ describe('produceAssessmentWithShadow', () => {
   before(() => {
     prevForce = process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC;
     prevAgent = process.env.RESILIENCE_ASSESSMENT_AGENT;
-    process.env.RESILIENCE_SHADOW_SCORING = '0';
     process.env.RESILIENCE_CLOSED_CORE_ASSESS = '0';
   });
 
@@ -40,7 +39,6 @@ describe('produceAssessmentWithShadow', () => {
     else process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC = prevForce;
     if (prevAgent === undefined) delete process.env.RESILIENCE_ASSESSMENT_AGENT;
     else process.env.RESILIENCE_ASSESSMENT_AGENT = prevAgent;
-    delete process.env.RESILIENCE_SHADOW_SCORING;
     delete process.env.RESILIENCE_CLOSED_CORE_ASSESS;
   });
 

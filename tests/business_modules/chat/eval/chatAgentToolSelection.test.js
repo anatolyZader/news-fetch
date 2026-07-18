@@ -7,7 +7,6 @@ import {
   buildChatToolList,
   TOOL_PROFILES,
 } from '../../../../business_modules/chat/domain/tools/chatToolSchemas.js';
-import { handleChatToolCall } from '../../../../business_modules/chat/app/chatToolHandlers.js';
 
 const fixtureDir = dirname(fileURLToPath(import.meta.url));
 const golden = JSON.parse(
@@ -15,20 +14,6 @@ const golden = JSON.parse(
 );
 
 describe('chatAgentToolSelection (offline eval)', () => {
-  it('validation profile excludes generate_brief', () => {
-    const tools = buildChatToolList({
-      analystToolsEnabled: true,
-      isAnalyst: true,
-      confirmActionsEnabled: true,
-      toolProfile: 'validation',
-    });
-    const names = new Set(tools.map((t) => t.name));
-    assert.ok(names.has('list_validation_queue'));
-    assert.ok(names.has('explain_validation_item'));
-    assert.ok(names.has('propose_validation_decision'));
-    assert.equal(names.has('generate_brief'), false);
-  });
-
   it('sources profile only exposes source tools', () => {
     const tools = buildChatToolList({
       analystToolsEnabled: true,
@@ -101,33 +86,4 @@ describe('chatAgentToolSelection (offline eval)', () => {
     }
   });
 
-  it('explain_validation_item handler calls validationReviewService', async () => {
-    let called = false;
-    const validationReviewService = {
-      async explainItem(date, scope, articleKey, question) {
-        called = true;
-        assert.equal(date, '2026-05-30');
-        assert.equal(articleKey, 'url:https://example.com/x');
-        assert.equal(question, 'Why flagged?');
-        return { answer: 'OOV neighbor cluster.', item: {} };
-      },
-    };
-    const result = await handleChatToolCall(
-      'explain_validation_item',
-      {
-        date: '2026-05-30',
-        scope: 'national',
-        article_key: 'url:https://example.com/x',
-        question: 'Why flagged?',
-      },
-      {
-        isAnalyst: true,
-        analystToolsEnabled: true,
-        confirmActionsEnabled: true,
-        validationReviewService,
-      },
-    );
-    assert.equal(called, true);
-    assert.match(result, /OOV neighbor/);
-  });
 });

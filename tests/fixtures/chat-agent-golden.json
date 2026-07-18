@@ -2,24 +2,6 @@
   "description": "Gold analyst questions for offline tool-selection eval (no live Anthropic in CI).",
   "cases": [
     {
-      "id": "validation_queue_list",
-      "question": "What validation items are pending for 2026-05-30?",
-      "toolProfile": "validation",
-      "expectedTools": ["list_validation_queue"]
-    },
-    {
-      "id": "validation_explain",
-      "question": "Why was url:https://example.com/x flagged?",
-      "toolProfile": "validation",
-      "expectedTools": ["explain_validation_item", "get_validation_item"]
-    },
-    {
-      "id": "validation_propose_skip",
-      "question": "Propose skipping this validation item after review.",
-      "toolProfile": "validation",
-      "expectedTools": ["propose_validation_decision"]
-    },
-    {
       "id": "sources_search",
       "question": "Find original news sources about shelters.",
       "toolProfile": "sources",
@@ -48,12 +30,6 @@
       "question": "Summarize the decision brief and pending recommendations.",
       "toolProfile": "default",
       "expectedTools": ["get_decision_brief", "list_operator_recommendations"]
-    },
-    {
-      "id": "validation_similar",
-      "question": "Find similar archive articles about rumor spread in the north.",
-      "toolProfile": "validation",
-      "expectedTools": ["search_similar_articles"]
     }
   ]
 }

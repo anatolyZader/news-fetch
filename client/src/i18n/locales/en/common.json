@@ -1,5 +1,4 @@
 {
-  "app.analystView": "Analyst view",
   "app.analyzeComplete": "National analysis complete for {date}. Refresh the report view if needed.",
   "app.analyzeRunning": "Analyzing…",
   "app.ariaDataSources": "Data sources",

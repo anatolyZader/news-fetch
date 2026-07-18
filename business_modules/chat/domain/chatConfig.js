@@ -30,9 +30,7 @@ export function chatCompressToolsEnabled() {
 export const PENDING_ACTION_TTL_MS = 15 * 60 * 1000;
 
 export const PROPOSE_TOOL_NAMES = new Set([
-  'propose_validation_decision',
   'propose_geo_unknown_update',
-  'propose_catalog_proposal_review',
   'propose_operator_recommendation',
 ]);
 
