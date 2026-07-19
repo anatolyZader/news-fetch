@@ -77,7 +77,6 @@
     "security:integrity:record": "node scripts/integrity-record-baseline.mjs",
     "security:check-fetch": "node scripts/check-outbound-fetch.mjs",
     "deps:audit": "node scripts/audit-dependencies.mjs",
-    "backfill:report-brief": "node business_modules/resilience_scorer/input/backfillReportBriefMd.js",
     "test-tokens": "node cross-cut-modules/budget/input/test-token-usage.js",
     "verify:prompt-optimization": "node cross-cut-modules/llm/input/verifyPromptOptimization.js",
     "client:dev": "cd client && npm run dev",

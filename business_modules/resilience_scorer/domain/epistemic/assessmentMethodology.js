@@ -4,8 +4,6 @@
  */
 
 import { createHash } from 'node:crypto';
-import { COMPONENT_TUNING } from './certaintyTuning.js';
-import { buildCalibrationMethodology } from './calibrationMethodology.js';
 import {
   SIGNAL_TO_COMPONENTS,
   SIGNAL_TYPES,
@@ -39,7 +37,7 @@ export const SCORING_MODEL_CHANGELOG = [
     version: 'v3',
     date: '2026-03-01',
     summary:
-      'Author-set SIGNAL_TO_COMPONENTS and heuristic COMPONENT_TUNING (tanhK/certM). Not ML-fitted on crisis outcomes.',
+      'Author-set SIGNAL_TO_COMPONENTS routing; evidence sufficiency/balance derive from signal counts and source diversity. No numeric scoring model.',
   },
 ];
 
@@ -124,7 +122,6 @@ export function buildScoringModelManifest() {
     changelog: [...SCORING_MODEL_CHANGELOG],
     signal_to_components_sha256: createHash('sha256').update(weightsJson).digest('hex'),
     signal_type_count: SIGNAL_TYPES.length,
-    component_tuning: { ...COMPONENT_TUNING },
     signal_to_components: SIGNAL_TO_COMPONENTS,
   };
 }
@@ -149,7 +146,7 @@ export function buildAssessmentMethodology({
 } = {}) {
   const scopeId = normalizeReportScopeId(reportScopeId);
   const calibration = epistemicEnrichment?.calibration
-    ?? (validationMaturity ? buildCalibrationMethodology(validationMaturity) : null);
+    ?? null;
 
   return {
     phase: 'multi_district_phase2',
@@ -180,7 +177,7 @@ export function buildAssessmentMethodology({
     },
     limitations: {
       signal_weights: 'author_set_not_ml_fitted',
-      component_tuning: 'heuristic_tanhK_certM; see tuning_proposal when enough national history',
+      component_tuning: 'none (count-based evidence bands)',
       regional_geo_news:
         'All pipeline sources receive resolved geo envelopes via geoService. Text-inferred locality on news/radio/social is scope hint only (usableForMetrics=false); structured locality and signal.district_id drive regional metrics.',
       default_north_source_types: [...DEFAULT_NORTH_SOURCE_TYPES],

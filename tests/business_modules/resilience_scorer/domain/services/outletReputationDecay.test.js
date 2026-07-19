@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
@@ -11,14 +11,12 @@ import {
   DECAY_CLAMP_MIN,
   DECAY_CLAMP_MAX,
 } from '../../../../../business_modules/resilience_scorer/domain/services/outlets/outletReputationDecay.js';
-import { getOutletReliabilityMultiplier, resetOutletReliabilityPriorsCacheForTests } from '../../../../../business_modules/resilience_scorer/domain/services/outlets/outletReliabilityPriors.js';
 
 let tmp;
 
 beforeEach(() => {
   tmp = mkdtempSync(resolve(tmpdir(), 'outlet-decay-'));
   resetOutletReputationCacheForTests();
-  resetOutletReliabilityPriorsCacheForTests();
   process.env.RESILIENCE_OUTLET_REPUTATION_PATH = resolve(tmp, 'rep.json');
   process.env.RESILIENCE_OUTLET_DECAY = '1';
 });
@@ -26,10 +24,8 @@ beforeEach(() => {
 afterEach(() => {
   rmSync(tmp, { recursive: true, force: true });
   resetOutletReputationCacheForTests();
-  resetOutletReliabilityPriorsCacheForTests();
   delete process.env.RESILIENCE_OUTLET_REPUTATION_PATH;
   delete process.env.RESILIENCE_OUTLET_DECAY;
-  delete process.env.RESILIENCE_OUTLET_PRIORS_PATH;
 });
 
 describe('outletReputationDecay', () => {
@@ -46,15 +42,5 @@ describe('outletReputationDecay', () => {
     recordOutletTelemetry('bad.co.il', { dropped: 50, verified: 0 });
     assert.ok(decayedOutletMultiplier('bad.co.il', 0.5) >= DECAY_CLAMP_MIN);
     assert.equal(decayedOutletMultiplier('good.co.il', 2), DECAY_CLAMP_MAX);
-  });
-
-  it('integrates with getOutletReliabilityMultiplier when decay enabled', () => {
-    const priorsPath = resolve(tmp, 'priors.json');
-    process.env.RESILIENCE_OUTLET_PRIORS_PATH = priorsPath;
-    writeFileSync(priorsPath, JSON.stringify({ 'ynet.co.il': { reliabilityMultiplier: 1.2 } }));
-
-    recordOutletTelemetry('ynet.co.il', { dropped: 5, verified: 5 });
-    const decayed = getOutletReliabilityMultiplier('ynet.co.il', priorsPath);
-    assert.ok(decayed < 1.2);
   });
 });

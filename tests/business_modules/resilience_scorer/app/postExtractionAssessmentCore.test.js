@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 import { scopeAndPartitionSignals } from '../../../../business_modules/resilience_scorer/app/assessment/signalScopePartition.js';
 import { prepareInvestigationSignals, prepareScoringSignals } from '../../../../business_modules/resilience_scorer/app/assessment/prepareSignals.js';
-import { runScoringPipeline } from '../../../../business_modules/resilience_scorer/app/assessment/scoringPipelinePrep.js';
+import { runEvidencePipeline } from '../../../../business_modules/resilience_scorer/app/assessment/evidencePipelinePrep.js';
 import { attachInvestigationDiagnostics } from '../../../../business_modules/resilience_scorer/domain/services/operator/componentDiagnostics.js';
 import { runPostExtractionAssessmentCore } from '../../../../business_modules/resilience_scorer/app/assessment/assessmentStage.js';
 import { createGeoWiring } from '../../../../cross-cut-modules/geo/createGeoWiring.js';
@@ -34,12 +34,17 @@ function loadGeoMixedSignals() {
 describe('postExtractionAssessmentCore', () => {
   let prevForceDeterministic;
   let prevClosedCore;
+  let prevNarrativePipeline;
 
   before(() => {
     prevForceDeterministic = process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC;
     prevClosedCore = process.env.RESILIENCE_CLOSED_CORE_ASSESS;
+    prevNarrativePipeline = process.env.RESILIENCE_NARRATIVE_PIPELINE;
     process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC = '1';
     process.env.RESILIENCE_CLOSED_CORE_ASSESS = '0';
+    // 'agent' mode skips the hybrid LLM narrative passes (no LLM in tests —
+    // hybrid mode would burn ~15s in unavailable-LLM retry backoff).
+    process.env.RESILIENCE_NARRATIVE_PIPELINE = 'agent';
   });
 
   after(() => {
@@ -47,6 +52,8 @@ describe('postExtractionAssessmentCore', () => {
     else process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC = prevForceDeterministic;
     if (prevClosedCore === undefined) delete process.env.RESILIENCE_CLOSED_CORE_ASSESS;
     else process.env.RESILIENCE_CLOSED_CORE_ASSESS = prevClosedCore;
+    if (prevNarrativePipeline === undefined) delete process.env.RESILIENCE_NARRATIVE_PIPELINE;
+    else process.env.RESILIENCE_NARRATIVE_PIPELINE = prevNarrativePipeline;
   });
 
   it('scope partition: national keeps all fixture signals; north filters to geo-relevant', () => {
@@ -60,7 +67,7 @@ describe('postExtractionAssessmentCore', () => {
     assert.ok(north.narrativeScopeSignals.length >= north.scopedSignals.length);
   });
 
-  it('runPostExtractionAssessmentCore scores before narrating', async () => {
+  it('runPostExtractionAssessmentCore runs the evidence stage before narrating', async () => {
     const order = [];
     const signal = {
       source_type: 'news',
@@ -125,7 +132,7 @@ describe('postExtractionAssessmentCore', () => {
       actual_digital_volume: 1,
     };
 
-    const pipelineResult = runScoringPipeline({
+    const pipelineResult = runEvidencePipeline({
       signalsForScoring: prepared.signalsForScoring,
       dataVoid,
       totalArticles: 2,
@@ -139,7 +146,10 @@ describe('postExtractionAssessmentCore', () => {
     assert.equal(pipelineResult.scoringSignals[0].source_type, 'pbo');
     assert.ok(investigationPrep.investigationSignals.some((s) => s.source_type === 'news'));
     assert.ok(scoped.narrativeScopeSignals.some((s) => s.source_type === 'news'));
-    assert.ok(pipelineResult.digitalInclusiveScored != null);
+    assert.equal(pipelineResult.digitalInclusiveScored, null);
+    for (const comp of Object.values(pipelineResult.scoredFull)) {
+      assert.equal(comp.score, null);
+    }
 
     const assessment = { components: [], agent_trace_id: 'test-trace' };
     attachInvestigationDiagnostics(assessment, {

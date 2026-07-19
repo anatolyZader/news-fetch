@@ -5,25 +5,24 @@ import {
   applyEpistemicGate,
   applyScoreAbstention,
 } from '../../../../../business_modules/resilience_scorer/domain/services/dataVoidIndex.js';
-import { scoreComponents } from '../../../../../business_modules/resilience_scorer/analyst/index.js';
 import {
   deriveAssessmentEpistemicPolicy,
   deriveThinEvidencePolicy,
   THIN_EVIDENCE_INSTRUMENT,
 } from '../../../../../business_modules/resilience_scorer/domain/epistemic/thinEvidencePolicy.js';
 
+// Plain scored-map stub — the gate is shape-agnostic; scores here only feed
+// applyScoreAbstention's score→score_abstained move.
 function mockScored(score = 6) {
   return {
     narrative: {
       score,
       confidence: 'high',
-      evidence_mass: 4,
       signal_count: 3,
     },
     wellbeing_at_risk: {
       score,
       confidence: 'medium',
-      evidence_mass: 2,
       signal_count: 2,
     },
   };
@@ -46,23 +45,32 @@ describe('epistemicGate', () => {
     assert.equal(result.epistemicStatus.sampling_status, 'blind');
   });
 
-  it('digital_darkness publishes field-only scores', () => {
+  it('digital_darkness publishes field-only scores via injected scoreComponents stub', () => {
     const scored = mockScored(5);
     const signals = [
       { source_type: 'news', signal_type: 'calm_confidence', evidence: 'news', article_source: 'n1' },
       { source_type: 'pbo', signal_type: 'service_continuity', evidence: 'field', article_source: 'p1' },
     ];
+    let stubSeenSignals = null;
+    const stubScoreComponents = (fieldSignals) => {
+      stubSeenSignals = fieldSignals;
+      return mockScored(6);
+    };
     const result = applyEpistemicGate({
       scoredFull: scored,
       signalsForScoring: signals,
       dataVoid: { level: 'critical', digital_darkness: true, reason: 'digital_darkness' },
       totalArticles: 2,
       digitalInclusiveScored: scored,
-      scoreComponents,
+      scoreComponents: stubScoreComponents,
     });
     assert.equal(result.assessmentMode, 'field_anchor_only');
     assert.equal(result.epistemicStatus.scores_reliable, true);
     assert.ok(result.staleDigitalScores?.components?.narrative);
+    // The stub receives only anchor (field-channel) signals and its output is published.
+    assert.ok(Array.isArray(stubSeenSignals));
+    assert.ok(stubSeenSignals.every((s) => s.source_type !== 'news'));
+    assert.equal(result.scoredFull.narrative.score, 6);
   });
 
   it('applyScoreAbstention preserves score_abstained and clears CI', () => {
@@ -123,7 +131,7 @@ describe('thinEvidencePolicy sampling_blind', () => {
     );
     assert.equal(policy.globalOperatorShowsScore, false);
     const comp = deriveThinEvidencePolicy(
-      { score: 7, evidence_mass: 5, confidence: 'high' },
+      { confidence: 'high', signal_count: 5 },
       { assessmentEpistemic: policy },
     );
     assert.equal(comp.instrument, THIN_EVIDENCE_INSTRUMENT.sampling_blind);

@@ -11,9 +11,7 @@ import {
   deriveThinEvidencePolicy,
   THIN_EVIDENCE_INSTRUMENT,
 } from '../../../../../business_modules/resilience_scorer/domain/epistemic/thinEvidencePolicy.js';
-import { scoreComponents } from '../../../../../business_modules/resilience_scorer/analyst/index.js';
-import { contributionForSignal } from '../../../../../business_modules/resilience_scorer/domain/epistemic/massContribution.js';
-import { GROUNDING_TIER } from '../../../../../business_modules/resilience_scorer/domain/services/signals/groundingPolicy.js';
+import { UNVERIFIED_CRITICAL_GROUNDING_REASON } from '../../../../../business_modules/resilience_scorer/domain/services/signals/groundingPolicy.js';
 
 describe('highSalienceBypass', () => {
   it('is enabled by default', () => {
@@ -103,7 +101,7 @@ describe('highSalienceBypass', () => {
     }];
     const r = evaluateHighSalienceBypass(items, 0, 5);
     assert.equal(r.operatorCritical, true);
-    assert.ok(r.reasons.includes('unverified_critical_grounding'));
+    assert.ok(r.reasons.includes(UNVERIFIED_CRITICAL_GROUNDING_REASON));
     assert.equal(r.skipFloor, false);
   });
 });
@@ -111,9 +109,8 @@ describe('highSalienceBypass', () => {
 describe('thinEvidencePolicy — critical single signal', () => {
   it('shows score for salience_critical components', () => {
     const r = deriveThinEvidencePolicy({
-      score: 4,
       confidence: 'low',
-      evidence_mass: 0.5,
+      signal_count: 1,
       salience_critical: true,
     });
     assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.critical_single_signal);
@@ -122,86 +119,12 @@ describe('thinEvidencePolicy — critical single signal', () => {
 
   it('hides score for unverified critical grounding', () => {
     const r = deriveThinEvidencePolicy({
-      score: 4,
       confidence: 'low',
-      evidence_mass: 0,
+      signal_count: 1,
       salience_critical: true,
-      salience_bypass_reasons: ['critical_signal', 'unverified_critical_grounding'],
+      salience_bypass_reasons: ['critical_signal', UNVERIFIED_CRITICAL_GROUNDING_REASON],
     });
     assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.unverified_alert);
     assert.equal(r.operatorShowsScore, false);
-  });
-});
-
-describe('scoreComponents — high-salience bypass integration', () => {
-  it('marks wellbeing critical on verified field harm report', () => {
-    const scored = scoreComponents([
-      {
-        article_index: 1,
-        article_url: 'https://field.example/report-1',
-        article_source: 'pbo-north',
-        source_type: 'field',
-        signal_type: 'harm_to_population',
-        evidence_type: 'direct_quote_named_person',
-        scope_level: 'single_case',
-        intensity: 'severe',
-        evidence: 'MDA paramedic: three civilians killed, many wounded in direct hit.',
-        extraction_confidence: 0.95,
-        temporal_weight: 1,
-      },
-    ], { totalArticles: 1 });
-
-    assert.ok(scored.wellbeing_at_risk.evidence_mass < 1.5);
-    assert.equal(scored.wellbeing_at_risk.salience_critical, true);
-    assert.ok(Array.isArray(scored.wellbeing_at_risk.salience_bypass_reasons));
-    assert.equal(
-      deriveThinEvidencePolicy(scored.wellbeing_at_risk).instrument,
-      THIN_EVIDENCE_INSTRUMENT.critical_single_signal,
-    );
-  });
-
-  it('does not mark thin low-stakes compliance signal as salience_critical', () => {
-    const scored = scoreComponents([
-      {
-        article_index: 1,
-        article_url: 'https://x.com/thin',
-        article_source: 'x.com',
-        source_type: 'news',
-        signal_type: 'non_compliance_exit_early',
-        evidence_type: 'observational_reported_fact',
-        scope_level: 'single_case',
-        evidence: 'Two residents reportedly left shelter before all-clear.',
-        extraction_confidence: 0.6,
-        temporal_weight: 1,
-      },
-    ], { totalArticles: 1 });
-
-    assert.equal(scored.lifesaving_behavior.salience_critical, false);
-    assert.ok(scored.lifesaving_behavior.score >= 3 && scored.lifesaving_behavior.score <= 8);
-  });
-
-  it('Tier C unverified critical contributes zero mass', () => {
-    const base = contributionForSignal(
-      {
-        signal_type: 'harm_to_population',
-        evidence_type: 'direct_quote_named_person',
-        scope_level: 'single_case',
-        extraction_confidence: 1,
-        grounding_tier: GROUNDING_TIER.grounded,
-      },
-      1,
-    );
-    const tierC = contributionForSignal(
-      {
-        signal_type: 'harm_to_population',
-        evidence_type: 'direct_quote_named_person',
-        scope_level: 'single_case',
-        extraction_confidence: 1,
-        grounding_tier: GROUNDING_TIER.unverified_critical,
-      },
-      1,
-    );
-    assert.ok(base > 0);
-    assert.equal(tierC, 0);
   });
 });

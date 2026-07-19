@@ -8,7 +8,6 @@ import {
   buildSignalRefRegistry,
   validateNarrativeOutput,
   validateClaimRelation,
-  validateSuppressionCompliance,
   computeGroundingScores,
   findForbiddenConnectives,
 } from '../../../business_modules/resilience_scorer/domain/services/narrativeGrounding/index.js';
@@ -69,32 +68,5 @@ describe('narrativeGrounding adversarial fixtures', () => {
     assert.ok(
       goodScores.byComponent.narrative.score >= badScores.byComponent.narrative.score,
     );
-  });
-});
-
-describe('suppression compliance adversarial fixtures', () => {
-  const suppressionScored = fixtures.suppression_scored;
-
-  it('rejects bad suppression output without caveat', () => {
-    const result = validateSuppressionCompliance(fixtures.bad_suppression_output, suppressionScored);
-    assert.equal(result.ok, false);
-    assert.ok(result.errors.some((e) => e.includes('data_quality_caveat')));
-  });
-
-  it('rejects psych speculation in narrative', () => {
-    const result = validateSuppressionCompliance({
-      components: [{
-        component_id: 'narrative',
-        data_quality_caveat: 'Limited by source cap on ynet.co.il.',
-        narrative: 'Hidden anxiety lurks beneath the surface despite positive signals.',
-      }],
-    }, suppressionScored);
-    assert.equal(result.ok, false);
-    assert.ok(result.errors.some((e) => e.includes('psych speculation')));
-  });
-
-  it('accepts good suppression output', () => {
-    const result = validateSuppressionCompliance(fixtures.good_suppression_output, suppressionScored);
-    assert.equal(result.ok, true, result.errors.join('; '));
   });
 });

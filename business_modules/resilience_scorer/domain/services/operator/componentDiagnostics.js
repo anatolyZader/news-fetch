@@ -5,7 +5,6 @@ import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { shouldAbstainFromInvestigation } from '../../../../specialist_agents/index.js';
 import { narrativeInvestigationPermissive } from '../../contracts/narrativeEpistemicMode.js';
 import { FIELD_SOURCE_TYPES } from '../dataVoid/sourceChannels.js';
-import { contributionForSignal } from '../../epistemic/massContribution.js';
 import { SIGNAL_TO_COMPONENTS } from '../signals/signalRouter.js';
 import { buildInvestigationSummary } from './investigationSummary.js';
 import {
@@ -37,9 +36,9 @@ export function countSignalsForComponent(componentId, signals, signalWeights = S
     const mapping = signalWeights[signalType];
     if (mapping == null || !(componentId in mapping)) continue;
     count += 1;
-    mass += contributionForSignal(signal, mapping[componentId]);
+    mass += 1;
   }
-  return { count, mass: round2(mass) };
+  return { count, mass };
 }
 
 function buildComponentEvidencePartition(
@@ -219,7 +218,7 @@ export function findUnknownComponentIds({
   components = [],
 }) {
   const ids = new Set();
-  for (const sourceBucket of Object.values(scoreBySource)) {
+  for (const sourceBucket of Object.values(scoreBySource ?? {})) {
     if (!sourceBucket || typeof sourceBucket !== 'object') continue;
     for (const id of Object.keys(sourceBucket)) ids.add(id);
   }

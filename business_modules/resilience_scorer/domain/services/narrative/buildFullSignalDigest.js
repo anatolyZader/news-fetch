@@ -1,25 +1,13 @@
 /**
- * Mass-ranked, article-deduped signal pools for the operator narrative pipeline only.
- * Agent assessment uses compact evidence-graph claims; narrative uses this digest.
+ * Priority-ranked, article-deduped signal pools for the operator narrative
+ * pipeline only. Ranking is count/quality-based (grounding tier, evidence
+ * class, intensity, catalog weight) — no evidence mass.
  */
 import { COMPONENT_IDS } from '../../contracts/componentIds.js';
-import { buildDuplicateOccurrenceIndex } from '../../epistemic/massContribution.js';
-import { collectComponentItems } from '../../epistemic/componentItems.js';
+import { collectComponentSignals } from '../signals/componentSignalGroups.js';
 import { defaultSignalWeights } from '../signals/signalWeights.js';
+import { contributorRankKey } from '../operator/topContributors.js';
 import { signalArticleKey } from '../narrativeGrounding/signalRefRegistry.js';
-
-const SUPPRESSION_KEYS = [
-  'suppression_delta',
-  'source_cap_binding',
-  'floor_clamped',
-  'suppression_breakdown',
-  'score_raw',
-  'score_headline',
-  'score',
-  'positive_evidence',
-  'negative_evidence',
-  'derived_indicators',
-];
 
 /**
  * @returns {number}
@@ -38,27 +26,13 @@ export function narrativeDigestEvidenceChars() {
 }
 
 /**
- * @param {object|null|undefined} scoredFull
- * @param {string} componentId
- * @returns {object}
- */
-function suppressionSliceFromScored(scoredFull, componentId) {
-  const scored = scoredFull?.[componentId];
-  if (!scored || typeof scored !== 'object') return {};
-  const out = {};
-  for (const key of SUPPRESSION_KEYS) {
-    if (scored[key] != null) out[key] = scored[key];
-  }
-  return out;
-}
-
-/**
  * @param {object[]} items
+ * @param {string} componentId
  * @param {number} cap
  */
-function pickDigestItems(items, cap) {
+function pickDigestItems(items, componentId, cap) {
   const sorted = [...items].sort(
-    (a, b) => Math.abs(b.contribution) - Math.abs(a.contribution),
+    (a, b) => contributorRankKey(b.signal, componentId) - contributorRankKey(a.signal, componentId),
   );
   const seenArticles = new Set();
   const picked = [];
@@ -83,33 +57,28 @@ function sliceEvidence(signal, maxChars) {
 
 /**
  * @param {object[]} narrativeScopeSignals
- * @param {Record<string, object>|null} [scoredFull]
- * @returns {Record<string, { signals: object[], signal_count: number }>}
- */
-/**
- * @param {object[]} narrativeScopeSignals
- * @param {Record<string, object>|null} [scoredFull]
+ * @param {Record<string, object>|null} [evidenceFull] evidence components (for basis passthrough)
  * @param {{ digestCap?: number, evidenceChars?: number }} [opts]
  */
-export function buildFullSignalDigest(narrativeScopeSignals, scoredFull = null, opts = {}) {
+export function buildFullSignalDigest(narrativeScopeSignals, evidenceFull = null, opts = {}) {
   const signals = narrativeScopeSignals ?? [];
   const signalWeights = defaultSignalWeights();
-  const duplicateIndex = buildDuplicateOccurrenceIndex(signals);
   const cap = opts.digestCap ?? narrativeDigestSignalCap();
   const evidenceChars = opts.evidenceChars ?? narrativeDigestEvidenceChars();
   const out = {};
 
   for (const componentId of COMPONENT_IDS) {
-    const { items } = collectComponentItems(componentId, signals, duplicateIndex, signalWeights);
-    const picked = pickDigestItems(items, cap);
+    const { items } = collectComponentSignals(componentId, signals, signalWeights);
+    const picked = pickDigestItems(items, componentId, cap);
     const componentSignals = picked.map((item) => {
-      const signal = { ...item.signal, _contribution: item.contribution };
+      const signal = { ...item.signal };
       if (item.polarity === '-') signal._polarity = '-';
       return sliceEvidence(signal, evidenceChars);
     });
 
+    const basis = evidenceFull?.[componentId]?.evidence_basis;
     out[componentId] = {
-      ...suppressionSliceFromScored(scoredFull, componentId),
+      ...(basis ? { evidence_basis: basis } : {}),
       signals: componentSignals,
       signal_count: componentSignals.length,
     };

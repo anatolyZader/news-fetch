@@ -8,7 +8,7 @@ import { existsSync as fsExists } from 'node:fs';
 
 import { loadMdFiles } from '../../../business_modules/resilience_scorer/index.js';
 import { extractEvidence } from '../../../business_modules/resilience_scorer/index.js';
-import { scoreComponents } from '../../../business_modules/resilience_scorer/analyst/index.js';
+import { buildComponentEvidence } from '../../../business_modules/resilience_scorer/index.js';
 import { createEpistemicFeaturesService } from '../../../business_modules/resilience_scorer/index.js';
 import { runDeterministicAssessment } from '../../../business_modules/specialist_agents/index.js';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
@@ -152,7 +152,7 @@ export async function runTestTokenUsageCli() {
     const evidenceSnippets = await extractEvidence(articles, { onUsage });
     console.error(`\n  → ${evidenceSnippets.length} evidence snippets extracted\n`);
 
-    const scored = scoreComponents(evidenceSnippets, { totalArticles: articles.length });
+    const scored = buildComponentEvidence(evidenceSnippets, { totalArticles: articles.length });
     const epistemicService = createEpistemicFeaturesService({});
     const epistemicProfile = epistemicService.computeProfile(evidenceSnippets, {
       totalArticles: articles.length,

@@ -18,7 +18,7 @@ const EVIDENCE_CLASS_RANK = {
 
 const INTENSITY_RANK = { severe: 2, moderate: 1, light: 0 };
 
-function contributorRankKey(signal, componentId) {
+export function contributorRankKey(signal, componentId) {
   const signalType = signal.signal_type ?? signal.type;
   const weight = Math.abs(getComponentWeight(signalType, componentId) ?? 0.5);
   const grounded = signal.grounding_tier === GROUNDING_TIER.grounded ? 1 : 0;

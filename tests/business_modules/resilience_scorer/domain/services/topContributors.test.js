@@ -4,46 +4,101 @@ import assert from 'node:assert/strict';
 import { topContributorsFromScored } from '../../../../../business_modules/resilience_scorer/domain/services/operator/topContributors.js';
 
 describe('topContributorsFromScored', () => {
-  it('prefers strong catalog links over weak links at equal raw contribution', () => {
+  it('prefers strong catalog links over weak links', () => {
     const scored = {
       signals: [
         {
           signal_type: 'compliance_enter_shelter',
           evidence: 'Shelter compliance',
-          _contribution: 5,
         },
         {
           signal_type: 'leadership_visible_presence',
           evidence: 'Mayor visible daily',
-          _contribution: 4.5,
         },
         {
           signal_type: 'leadership_clear_guidance',
           evidence: 'Clear municipal guidance',
-          _contribution: 4,
         },
         {
           signal_type: 'symbolic_vs_substantive_action',
           evidence: 'Photo-op only',
-          _contribution: 3.5,
         },
       ],
     };
 
     const top = topContributorsFromScored(scored, 'leadership');
-    assert.equal(top[0].signal_type, 'leadership_visible_presence');
-    assert.ok(!top.slice(0, 3).every((t) => t.signal_type === 'compliance_enter_shelter'));
+    // Three strong-linked signals exist, so the weak spillover link is filtered out.
+    assert.equal(top.length, 3);
+    assert.ok(!top.some((t) => t.signal_type === 'compliance_enter_shelter'));
+    // At equal grounding/evidence/intensity, catalog weight breaks the tie.
+    assert.equal(top[0].signal_type, 'leadership_clear_guidance');
   });
 
-  it('falls back to raw ranking when fewer than three strong links exist', () => {
+  it('falls back to full pool ranking when fewer than three strong links exist', () => {
     const scored = {
       signals: [
-        { signal_type: 'compliance_enter_shelter', _contribution: 9 },
-        { signal_type: 'service_continuity', _contribution: 2 },
+        { signal_type: 'compliance_enter_shelter', grounding_tier: 'grounded' },
+        { signal_type: 'service_continuity' },
       ],
     };
     const top = topContributorsFromScored(scored, 'leadership');
     assert.equal(top.length, 2);
+    // Grounded signals dominate the rank key even with a weak catalog link.
     assert.equal(top[0].signal_type, 'compliance_enter_shelter');
+  });
+
+  it('ranks by grounding, evidence class, then intensity', () => {
+    const scored = {
+      signals: [
+        {
+          signal_type: 'leadership_visible_presence',
+          evidence_type: 'observational_reported_fact',
+          intensity: 'severe',
+        },
+        {
+          signal_type: 'leadership_visible_presence',
+          evidence_type: 'direct_quote_named_person',
+          intensity: 'light',
+        },
+        {
+          signal_type: 'leadership_visible_presence',
+          evidence_type: 'direct_quote_named_person',
+          intensity: 'light',
+          grounding_tier: 'grounded',
+        },
+      ],
+    };
+    const top = topContributorsFromScored(scored, 'leadership');
+    assert.equal(top[0].grounding_tier, 'grounded');
+    assert.equal(top[1].evidence_type ?? 'direct_quote_named_person', 'direct_quote_named_person');
+    assert.equal(top[1].intensity, 'light');
+    assert.equal(top[2].intensity, 'severe');
+  });
+
+  it('emits display fields without contribution numbers', () => {
+    const scored = {
+      signals: [{
+        signal_type: 'leadership_clear_guidance',
+        source_type: 'press',
+        article_source: 'ynet.co.il',
+        article_url: 'https://ynet.co.il/x',
+        evidence_snippet: 'Snippet only',
+        grounding_tier: 'grounded',
+        intensity: 'moderate',
+        _polarity: '-',
+      }],
+    };
+    const [entry] = topContributorsFromScored(scored, 'leadership');
+    assert.deepEqual(entry, {
+      signal_type: 'leadership_clear_guidance',
+      source_type: 'press',
+      article_source: 'ynet.co.il',
+      article_url: 'https://ynet.co.il/x',
+      evidence: 'Snippet only',
+      grounding_tier: 'grounded',
+      intensity: 'moderate',
+      _polarity: '-',
+    });
+    assert.equal('_contribution' in entry, false);
   });
 });

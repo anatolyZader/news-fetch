@@ -164,7 +164,7 @@ describe('operatorNarrativePipeline', () => {
     assert.ok(assessment.cross_component_synthesis.includes('- narrative:'));
   });
 
-  it('buildFullSignalDigest prefers digital-inclusive scoring context over field-only', () => {
+  it('buildFullSignalDigest passes evidence_basis through and collects component signals', () => {
     const pboSig = {
       source_type: 'pbo',
       signal_type: 'information_clarity',
@@ -178,31 +178,29 @@ describe('operatorNarrativePipeline', () => {
       article_url: 'https://example.com/news',
     };
     const signals = [pboSig, newsSig];
-    const fieldOnlyScored = {
-      information_communication: {
-        score: 4,
-        score_raw: 4,
-        suppression_delta: 0,
-        signals: [],
-      },
+    const evidenceBasis = {
+      sufficiency: 'thin',
+      signal_count: 2,
+      distinct_articles: 2,
+      distinct_sources: 2,
     };
-    const digitalInclusiveScored = {
+    const evidenceFull = {
       information_communication: {
-        score: 6,
-        score_raw: 7,
-        suppression_delta: -1,
-        source_cap_binding: true,
+        score: null,
+        evidence_basis: evidenceBasis,
         signals: [],
       },
     };
 
-    const fromField = buildFullSignalDigest(signals, fieldOnlyScored);
-    const fromInclusive = buildFullSignalDigest(signals, digitalInclusiveScored);
+    const digest = buildFullSignalDigest(signals, evidenceFull);
 
-    assert.equal(fromField.information_communication.score, 4);
-    assert.equal(fromInclusive.information_communication.score, 6);
-    assert.equal(fromInclusive.information_communication.source_cap_binding, true);
-    assert.ok(fromInclusive.information_communication.signals.length >= 1);
+    assert.deepEqual(digest.information_communication.evidence_basis, evidenceBasis);
+    assert.equal(digest.information_communication.score, undefined);
+    assert.ok(digest.information_communication.signals.length >= 1);
+    assert.equal(
+      digest.information_communication.signal_count,
+      digest.information_communication.signals.length,
+    );
   });
 
   it('applyOperatorNarrativePipeline stamps agent mode and finalizes surface', async () => {
@@ -232,7 +230,7 @@ describe('operatorNarrativePipeline', () => {
     await applyOperatorNarrativePipeline({
       assessment,
       narrativeScopeSignals: signals,
-      narrativeScoringContext: { narrative: { score: 5, score_raw: 6 } },
+      narrativeScoringContext: { narrative: { score: null, evidence_basis: { sufficiency: 'thin' } } },
       scoringPartition: {
         partitionApplied: true,
         assessmentMode: 'field_anchor_only',
@@ -297,7 +295,9 @@ describe('operatorNarrativePipeline', () => {
     assert.ok(assessment.cross_component_synthesis_operator);
   });
 
-  it('falls back to claim-derived operator narrative when hybrid pipeline throws', async () => {
+  it('falls back to claim-derived operator narrative when hybrid pipeline throws', async (t) => {
+    // Mock setTimeout so the LLM retry backoff (5s + 10s) does not run in real time.
+    t.mock.timers.enable({ apis: ['setTimeout'] });
     const assessment = {
       components: [{
         component_id: 'narrative',
@@ -306,7 +306,7 @@ describe('operatorNarrativePipeline', () => {
       }],
     };
 
-    await applyOperatorNarrativePipeline({
+    const pipelinePromise = applyOperatorNarrativePipeline({
       assessment,
       narrativeScopeSignals: fixtures.scored_components.narrative.signals,
       llmPort: {
@@ -315,6 +315,14 @@ describe('operatorNarrativePipeline', () => {
         },
       },
     });
+
+    let settled = false;
+    pipelinePromise.then(() => { settled = true; }, () => { settled = true; });
+    while (!settled) {
+      await new Promise((resolve) => setImmediate(resolve));
+      t.mock.timers.tick(90000);
+    }
+    await pipelinePromise;
 
     assert.equal(assessment.components[0].narrative_operator, 'Agent narrative.');
     assert.ok(assessment.components[0].evidence_operator?.length > 0);

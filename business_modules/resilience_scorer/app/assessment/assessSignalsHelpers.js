@@ -39,14 +39,6 @@ export {
   crossSourceDedupSemantic,
 } from './signalDedup.js';
 
-export {
-  blendWithYesterday,
-  deltaSignificance,
-  isEwmaFreezeOnEpistemicEnabled,
-  enrichWithDeltaChannel,
-  enrichScoredComponentsEpistemic,
-} from './scoreEnrichment.js';
-
 /**
  * @param {string[]} argv CLI args without node/script (e.g. process.argv.slice(2))
  */

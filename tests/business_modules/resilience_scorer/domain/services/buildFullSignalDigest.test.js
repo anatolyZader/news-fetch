@@ -95,13 +95,15 @@ describe('buildFullSignalDigest', () => {
     assert.equal(digest.narrative.signals.length, 2);
   });
 
-  it('preserves suppression fields from scoredFull', () => {
+  it('copies evidence_basis from evidenceFull when provided', () => {
+    const basis = { sufficiency: 'thin', balance: 'mixed' };
     const digest = buildFullSignalDigest([], {
-      narrative: { suppression_delta: 2, score_raw: 9, score: 7 },
+      narrative: { evidence_basis: basis },
     });
-    assert.equal(digest.narrative.suppression_delta, 2);
-    assert.equal(digest.narrative.score_raw, 9);
+    assert.deepEqual(digest.narrative.evidence_basis, basis);
     assert.equal(digest.narrative.signal_count, 0);
+    // Components without a basis omit the key entirely.
+    assert.equal('evidence_basis' in digest.leadership, false);
   });
 
   it('slices evidence to digest char cap', () => {

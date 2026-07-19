@@ -127,25 +127,13 @@ export { runResilienceAssessment } from './app/resilienceAnalysisService.js';
 export { contentBatchFromMdArticles } from './app/extraction/contentBatchFromMdArticles.js';
 export { createAnthropicResilienceLlmAdapter } from './infrastructure/adapters/anthropicResilienceLlmAdapter.js';
 
-// --- Epistemic ingestion math (operator — not headline /10 scoring) ---
-export {
-  applySourceCap,
-  sourceCapWasApplied,
-  DEFAULT_SOURCE_TYPE_CAP,
-  DEFAULT_ARTICLE_SOURCE_CAP,
-} from './domain/epistemic/evidenceCaps.js';
-export {
-  buildDuplicateOccurrenceIndex,
-  round3,
-  contributionForSignal,
-} from './domain/epistemic/massContribution.js';
-export { certaintyTuningFor } from './domain/epistemic/certaintyTuning.js';
-export { collectComponentItems } from './domain/epistemic/componentItems.js';
+// --- Evidence grouping (count-based) ---
+export { collectComponentSignals } from './domain/services/signals/componentSignalGroups.js';
+export { buildComponentEvidence } from './domain/contracts/componentEvidence.js';
 export {
   defaultSignalWeights,
   resolveSignalWeights,
 } from './domain/services/signals/signalWeights.js';
-export { computeMediaMentionMass } from './domain/services/signals/mediaMentionMass.js';
 export { applyInvestigationSignalFlags } from './domain/services/signals/investigationSignalFlags.js';
 export { buildNorthClusterNarrativesFromSignals } from './domain/services/narrative/northClusterNarrative.js';
 

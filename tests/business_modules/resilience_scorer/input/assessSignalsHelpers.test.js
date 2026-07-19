@@ -6,9 +6,6 @@ import { resolve, join } from 'path';
 
 import {
   crossSourceDedup,
-  blendWithYesterday,
-  deltaSignificance,
-  enrichWithDeltaChannel,
   mergeLoadedSignalFiles,
   parseSignalBundleFilename,
   discoverSignalBundles,
@@ -57,115 +54,6 @@ describe('crossSourceDedup', () => {
     const out = crossSourceDedup(sigs);
     assert.equal(out.length, 1);
     assert.equal(out[0].evidence_type, 'direct_quote_named_person');
-  });
-});
-
-describe('blendWithYesterday (one-step blend)', () => {
-  it('returns today when yesterday is null', () => {
-    assert.equal(blendWithYesterday(7, null, 0.5), 7);
-  });
-
-  it('returns null when today is null', () => {
-    assert.equal(blendWithYesterday(null, 5, 0.5), null);
-  });
-
-  it('weights today and yesterday by alpha (rounded)', () => {
-    assert.equal(blendWithYesterday(8, 4, 0.5), 6);
-    assert.equal(blendWithYesterday(8, 4, 0.25), 5);
-    assert.equal(blendWithYesterday(8, 4, 0.75), 7);
-  });
-
-  it('clamps alpha into [0,1]', () => {
-    assert.equal(blendWithYesterday(10, 0, 2), 10);
-    assert.equal(blendWithYesterday(10, 0, -1), 0);
-  });
-});
-
-describe('deltaSignificance', () => {
-  it('A6: returns null with fewer than the min-history threshold (default 5) non-null points', () => {
-    assert.equal(deltaSignificance(7, []), null);
-    assert.equal(deltaSignificance(7, [5]), null);
-    assert.equal(deltaSignificance(7, [5, 6, 5, 6]), null, '4 points still below default min-history');
-  });
-
-  it('A6: filters null entries when counting and when computing stats', () => {
-    // 5 non-null points buried in calendar-aligned nulls — should still compute.
-    const z = deltaSignificance(7, [null, 4, null, 5, 6, 5, 4, null, 5, 6, null, null]);
-    assert.ok(z !== null);
-  });
-
-  it('returns null when history is degenerate (zero variance)', () => {
-    assert.equal(deltaSignificance(7, [5, 5, 5, 5, 5, 5]), null);
-  });
-
-  it('computes z-score correctly for a known series', () => {
-    // history: 4,5,6,5,4,5,6 → mean=5, sd≈0.816 (n-1)
-    const z = deltaSignificance(7, [4, 5, 6, 5, 4, 5, 6]);
-    assert.ok(z !== null);
-    assert.ok(z > 2 && z < 3, `expected z roughly 2.4, got ${z}`);
-  });
-});
-
-describe('enrichWithDeltaChannel', () => {
-  it('adds smoothed score, delta_score, delta_significance, delta_flag', () => {
-    const scored = {
-      narrative: { score: 7, certainty: 0.6 },
-      leadership: { score: 4, certainty: 0.4 },
-    };
-    const history = {
-      narrative:  [5, 6, 5, 5, 4, 5, 6, 5, 5],
-      leadership: [4, 4, 4, 5, 4, 4, 4, 4, 4],
-    };
-    const out = enrichWithDeltaChannel(scored, history);
-    assert.ok(out.narrative.score_smoothed != null);
-    assert.equal(out.narrative.delta_score, 7 - 5); // today minus yesterday[0]
-    assert.ok(out.narrative.delta_significance != null);
-    assert.equal(out.leadership.delta_score, 0);
-  });
-
-  it('flags significant changes when |z|>2', () => {
-    const scored = { narrative: { score: 9, certainty: 0.8 } };
-    // Tight history that makes today an outlier
-    const history = { narrative: [5, 5, 6, 5, 5, 5, 6, 5, 5, 5] };
-    const out = enrichWithDeltaChannel(scored, history);
-    assert.equal(out.narrative.delta_flag, 'significant');
-  });
-
-  it('handles missing history (all nulls)', () => {
-    const scored = { narrative: { score: 7, certainty: 0.5 } };
-    const out = enrichWithDeltaChannel(scored, {});
-    assert.equal(out.narrative.delta_score, null);
-    assert.equal(out.narrative.delta_significance, null);
-    assert.equal(out.narrative.delta_flag, null);
-    assert.equal(out.narrative.score_smoothed, 7);
-  });
-
-  it('A6: yesterday=null in calendar-aligned series falls back to today for EWMA / delta', () => {
-    const scored = { narrative: { score: 7, certainty: 0.5 } };
-    // Calendar-aligned: yesterday is missing (null), but earlier days are present.
-    const history = { narrative: [null, 6, 5, 5, 6, 5, 5, 6, 5, 5] };
-    const out = enrichWithDeltaChannel(scored, history);
-    assert.equal(out.narrative.delta_score, null, 'no yesterday → no delta');
-    assert.equal(out.narrative.score_smoothed, 7, 'EWMA defaults to today when yesterday null');
-    assert.ok(out.narrative.delta_significance != null,
-      'significance still computed against >=5 non-null prior days in baseline');
-  });
-
-  it('freezeTemporal skips EWMA blend and delta fields', () => {
-    const scored = { narrative: { score: 7, certainty: 0.8 } };
-    const history = { narrative: [5, 5, 5, 5, 5, 5, 5, 5, 5] };
-    const out = enrichWithDeltaChannel(scored, history, { freezeTemporal: true });
-    assert.equal(out.narrative.score_smoothed, 7);
-    assert.equal(out.narrative.delta_score, null);
-    assert.equal(out.narrative.delta_significance, null);
-    assert.equal(out.narrative.delta_flag, null);
-  });
-
-  it('preserves untouched fields on the component', () => {
-    const scored = { narrative: { score: 7, certainty: 0.5, signals: [{ x: 1 }], polarization: 0.3 } };
-    const out = enrichWithDeltaChannel(scored, {});
-    assert.deepEqual(out.narrative.signals, [{ x: 1 }]);
-    assert.equal(out.narrative.polarization, 0.3);
   });
 });
 

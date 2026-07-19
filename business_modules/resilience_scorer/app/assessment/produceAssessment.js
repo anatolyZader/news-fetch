@@ -7,7 +7,6 @@ import {
 } from '../../../../cross-cut-modules/agent/index.js';
 import { getDefaultLlmPort } from '../../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { createEpistemicFeaturesService } from './epistemicFeaturesService.js';
-import { loadHistoricalEpistemicMass } from '../../infrastructure/adapters/historicalEpistemicMassReader.js';
 import {
   runAssessmentAgent,
   runDeterministicAssessment,
@@ -42,12 +41,6 @@ function resolveInvestigationSignals(params) {
 function buildEpistemicProfile(params) {
   const investigationSignals = resolveInvestigationSignals(params);
   const epistemicService = createEpistemicFeaturesService({});
-  const historicalMass = loadHistoricalEpistemicMass(
-    params.targetDate,
-    undefined,
-    14,
-    params.reportScopeId,
-  );
   const investigationEpistemic = params.investigationEpistemic ?? {};
   const epistemicProfile = epistemicService.computeProfile(investigationSignals, {
     totalArticles: params.scopedTotalArticles,
@@ -58,7 +51,6 @@ function buildEpistemicProfile(params) {
       epistemic_status: investigationEpistemic.epistemicStatus ?? params.epistemicStatus,
       investigation_mode: investigationEpistemic.investigationMode ?? null,
     },
-    historicalMass,
   });
   epistemicService.persistProfile(epistemicProfile, {
     scopeId: params.reportScopeId,

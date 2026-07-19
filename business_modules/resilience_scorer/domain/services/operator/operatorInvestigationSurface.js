@@ -11,8 +11,8 @@ import {
   operatorHighlightPerSource,
   operatorSurfaceMode,
 } from '../../contracts/operatorSurfaceMode.js';
-import { buildDuplicateOccurrenceIndex } from '../../epistemic/massContribution.js';
-import { collectComponentItems } from '../../epistemic/componentItems.js';
+import { collectComponentSignals } from '../signals/componentSignalGroups.js';
+import { contributorRankKey } from './topContributors.js';
 import { defaultSignalWeights } from '../signals/signalWeights.js';
 import {
   canonicalizeSignalType,
@@ -118,13 +118,7 @@ export function buildComponentInvestigationPool(componentId, narrativeScopeSigna
   } = ctx;
 
   const signalWeights = defaultSignalWeights();
-  const duplicateIndex = buildDuplicateOccurrenceIndex(narrativeScopeSignals);
-  const { items } = collectComponentItems(
-    componentId,
-    narrativeScopeSignals,
-    duplicateIndex,
-    signalWeights,
-  );
+  const { items } = collectComponentSignals(componentId, narrativeScopeSignals, signalWeights);
 
   const seenRefs = new Set();
   const pool = [];
@@ -135,7 +129,7 @@ export function buildComponentInvestigationPool(componentId, narrativeScopeSigna
     const entry = poolItemFromSignal(item.signal, role, maxChars, componentId);
     if (!entry || seenRefs.has(entry.ref)) continue;
     seenRefs.add(entry.ref);
-    pool.push({ ...entry, contribution: Math.abs(item.contribution) });
+    pool.push({ ...entry, contribution: contributorRankKey(item.signal, componentId) });
   }
   pool.sort(comparePoolItems);
   return pool;
