@@ -5,7 +5,7 @@
  */
 import { scopeAndPartitionSignals } from './signalScopePartition.js';
 import { prepareInvestigationSignals, prepareScoringSignals } from './prepareSignals.js';
-import { runScoringPipeline } from './scoringPipelinePrep.js';
+import { runScoringPipeline } from './evidencePipelinePrep.js';
 import { deriveInvestigationEpistemicContext } from '../../domain/epistemic/investigationEpistemicContext.js';
 import { resilienceReportsDir } from '../../domain/services/paths/outputDirs.js';
 import { salienceContextFromDataVoid } from '../../domain/epistemic/highSalienceBypass.js';
@@ -27,7 +27,6 @@ import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../../cross-cut-modules/geo/i
 import { produceAssessmentWithShadow } from './produceAssessmentWithShadow.js';
 import { applyOperatorNarrativePipeline } from './operatorNarrativePipeline.js';
 import { attachDecisionBrief } from './attachDecisionBrief.js';
-import { loadHistoricalScores } from '../../infrastructure/reportHistoryReader.js';
 import { ensureArticleCorpusRagIndexed } from './ensureArticleCorpusRagIndexed.js';
 import { isClosedCoreAssessEnabled, isOmissionAuditEnabled } from '../../domain/services/oov/openExtractConfig.js';
 import { closedCoreNarrate } from './closedCoreNarrate.js';
@@ -345,8 +344,7 @@ export async function runPostExtractionAssessmentCore(params) {
     rootDir,
   });
 
-  const historicalScores = historicalScoresIn
-    ?? loadHistoricalScores(reportDate, reportsDir, 14, reportScopeId);
+  const historicalScores = historicalScoresIn ?? {};
 
   const {
     scopedSignals,
