@@ -8,15 +8,14 @@ import { collectGeoVersionsFromSignals } from '../../../cross-cut-modules/geo/si
 import {
   appendReportHeader,
   appendMethodologyBlock,
-  appendNorrisSection,
   appendComponentsTable,
   appendComponentDetails,
   appendMacroAndCaveats,
 } from './reportWriterSections.js';
 
 function evidenceDirection(pos, neg) {
-  const p = Math.round((pos ?? 0) * 10) / 10;
-  const n = Math.round((neg ?? 0) * 10) / 10;
+  const p = pos ?? 0;
+  const n = neg ?? 0;
   if (p === 0 && n === 0) return 'no evidence';
   let label;
   if (p > n) {
@@ -68,19 +67,17 @@ function assessmentForMarkdown(assessment) {
 /**
  * @param {object} assessment
  * @param {string[]} sourceFiles
- * @param {{ includeScores?: boolean }} [opts] When false, narrative-focused brief (no /10).
  */
-export function buildMarkdown(assessment, sourceFiles, { includeScores = true } = {}) {
+export function buildMarkdown(assessment, sourceFiles) {
   const lines = [];
   const formatters = { evidenceDirection, i18n };
   const mdAssessment = assessmentForMarkdown(assessment);
 
   appendReportHeader(lines, mdAssessment, sourceFiles);
-  appendMethodologyBlock(lines, mdAssessment, includeScores);
+  appendMethodologyBlock(lines, mdAssessment);
   lines.push(`## Executive Summary`, ``, mdAssessment.cross_component_synthesis, ``, `---`, ``);
-  appendNorrisSection(lines, mdAssessment, includeScores);
-  appendComponentsTable(lines, mdAssessment, includeScores);
-  appendComponentDetails(lines, mdAssessment, includeScores, formatters);
+  appendComponentsTable(lines, mdAssessment);
+  appendComponentDetails(lines, mdAssessment, formatters);
   appendMacroAndCaveats(lines, mdAssessment);
 
   return lines.join('\n');
@@ -186,14 +183,11 @@ export function writeReport(assessment, signals, sourceFiles, outputBase, { scor
   mkdirSync(dirname(outputBase), { recursive: true });
 
   const mdPath = `${outputBase}.md`;
-  const briefMdPath = `${outputBase}-brief.md`;
   const jsonPath = `${outputBase}.json`;
 
   const appendix = buildSignalAppendix(signals);
-  const md = buildMarkdown(assessment, sourceFiles, { includeScores: true }) + appendix;
-  const briefMd = buildMarkdown(assessment, sourceFiles, { includeScores: false }) + appendix;
+  const md = buildMarkdown(assessment, sourceFiles) + appendix;
   writeFileSync(mdPath, md, 'utf-8');
-  writeFileSync(briefMdPath, briefMd, 'utf-8');
 
   const jsonPayload = {
     assessment,
@@ -210,5 +204,5 @@ export function writeReport(assessment, signals, sourceFiles, outputBase, { scor
   }
   writeFileSync(jsonPath, JSON.stringify(jsonPayload, null, 2), 'utf-8');
 
-  return { mdPath, briefMdPath, jsonPath };
+  return { mdPath, jsonPath };
 }

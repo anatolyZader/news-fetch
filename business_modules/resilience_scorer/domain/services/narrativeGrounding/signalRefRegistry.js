@@ -1,4 +1,3 @@
-import { formatSignalContributionSuffix } from './suppressionPromptContext.js';
 
 /**
  * @param {object} signal
@@ -113,8 +112,7 @@ export function formatSignalWithRef(signal, entry) {
   const geoTags = geoAuditTagsForSignal(signal);
   return (
     `[${entry.label}] ref=${entry.ref} type=${type} ev:${evType} attribution:${attribution}\n` +
-    `${fd}  Evidence: "${signal.evidence ?? ''}"${urlLine}${geoTags}` +
-    `${formatSignalContributionSuffix(signal)}`
+    `${fd}  Evidence: "${signal.evidence ?? ''}"${urlLine}${geoTags}`
   );
 }
 

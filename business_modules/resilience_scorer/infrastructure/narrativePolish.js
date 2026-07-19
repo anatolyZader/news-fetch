@@ -10,10 +10,6 @@ import {
   formatSignalWithRef,
   resolveRef,
 } from '../domain/services/narrativeGrounding/index.js';
-import {
-  componentNeedsSuppressionCompliance,
-  formatSuppressionDataQualityBlock,
-} from '../domain/services/narrativeGrounding/suppressionPromptContext.js';
 
 const DEFAULT_POLISH_MODEL = process.env.RESILIENCE_NARRATIVE_POLISH_MODEL
   ?? SONNET_MODEL;
@@ -92,7 +88,7 @@ function buildPolishSystemPrompt({ includeSynthesis = true, synthesisOnly = fals
     '      ],\n' +
     '      "evidence": ["<markdown bullet with optional source link>"],\n' +
     narrativeFieldSpec() +
-    '      "data_quality_caveat": "<optional when suppression context provided>"\n' +
+    '      "data_quality_caveat": "<optional when concentration context provided>"\n' +
     '    }\n' +
     '  ],\n' +
     synthesisBlock +
@@ -108,7 +104,7 @@ function buildPolishSystemPrompt({ includeSynthesis = true, synthesisOnly = fals
     academicRules +
     '- When signal refs carry narrativeContextOnly or narrative_national_context / macro_national / regional_press_context provenance, include 1–2 sentences per component where such evidence exists: "At national level…; for northern communities this implies…" with inline [source_label](url) citations; prefix with "National press (not north-local evidence):" when the source is not scope-local; prefix regional_press_context with "Regional press (not north-local scored evidence):".\n' +
     '- evidence[] items should echo claim text with markdown source links when URLs exist (full supporting list for drill-down).\n' +
-    '- When SUPPRESSION/DATA_QUALITY block is present, include data_quality_caveat naming the limit.\n' +
+    '- When a CONCENTRATED EVIDENCE block is present, include data_quality_caveat naming the dominant outlet/source type.\n' +
     synthesisRules
   );
 }
@@ -136,12 +132,12 @@ function formatClaimsBlock(mergedNarratives, registry, narrativeScored, componen
     }).join('\n\n');
 
     const scored = narrativeScored?.[def.id];
-    let suppressionBlock = '';
-    if (componentNeedsSuppressionCompliance(scored)) {
-      suppressionBlock = `\n${formatSuppressionDataQualityBlock(scored)}\n`;
-    }
+    const cw = scored?.evidence_basis?.concentration_warning;
+    const concentrationBlock = cw
+      ? `\nCONCENTRATED EVIDENCE: ${cw.layer}=${cw.key} holds ${Math.round(cw.share * 100)}% of this component's signals.\n`
+      : '';
 
-    blocks.push(`**${def.id}**${suppressionBlock}\n${claimLines}`);
+    blocks.push(`**${def.id}**${concentrationBlock}\n${claimLines}`);
   }
   return blocks.join('\n\n---\n\n');
 }

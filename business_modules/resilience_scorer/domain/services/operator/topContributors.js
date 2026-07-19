@@ -1,36 +1,44 @@
 /**
  * Rank per-component top_contributors for assessment display.
+ *
+ * Count-based ranking (no contribution mass): strong catalog link first, then
+ * verified grounding, then evidence reliability class, then severity.
  */
 import { getComponentWeight, hasStrongComponentLink } from '../signals/signalRouter.js';
+import { GROUNDING_TIER } from '../signals/groundingPolicy.js';
 
-/**
- * @param {object} signal
- * @param {string} componentId
- */
+const EVIDENCE_CLASS_RANK = {
+  direct_quote_named_person: 4,
+  named_survey_statistic: 4,
+  named_institutional_fact: 3,
+  direct_evidence: 3,
+  observational_reported_fact: 2,
+  observational_evidence: 2,
+};
+
+const INTENSITY_RANK = { severe: 2, moderate: 1, light: 0 };
+
 function contributorRankKey(signal, componentId) {
-  const raw = Math.abs(signal._contribution);
   const signalType = signal.signal_type ?? signal.type;
-  const weight = getComponentWeight(signalType, componentId);
-  if (weight == null) return raw;
-  return raw * Math.max(Math.abs(weight), 0.5);
+  const weight = Math.abs(getComponentWeight(signalType, componentId) ?? 0.5);
+  const grounded = signal.grounding_tier === GROUNDING_TIER.grounded ? 1 : 0;
+  const evidenceClass = EVIDENCE_CLASS_RANK[signal.evidence_type ?? signal.evidence_class] ?? 2;
+  const intensity = INTENSITY_RANK[signal.intensity] ?? 1;
+  return grounded * 100 + evidenceClass * 10 + intensity * 2 + weight;
 }
 
-/**
- * @param {object} signal
- * @param {string} componentId
- */
 function hasStrongCatalogLink(signal, componentId) {
   const signalType = signal.signal_type ?? signal.type;
   return hasStrongComponentLink(signalType, componentId);
 }
 
 /**
- * @param {object} scored component score result with signals[]
+ * @param {object} scored evidence component with signals[]
  * @param {string} componentId
  * @returns {object[]}
  */
 export function topContributorsFromScored(scored, componentId) {
-  const pool = (scored.signals ?? []).filter((s) => typeof s._contribution === 'number');
+  const pool = scored?.signals ?? [];
   const strong = pool.filter((s) => hasStrongCatalogLink(s, componentId));
   const ranked = (strong.length >= 3 ? strong : pool)
     .slice()
@@ -42,13 +50,9 @@ export function topContributorsFromScored(scored, componentId) {
     source_type: s.source_type ?? null,
     article_source: s.article_source ?? null,
     article_url: s.article_url ?? null,
-    evidence: s.evidence ?? null,
-    _contribution: s._contribution,
-    _contribution_pre_cap: s._contribution_pre_cap ?? null,
-    _contribution_raw: s._contribution_raw ?? null,
-    _cap_scale_factor: s._cap_scale_factor ?? null,
-    _cap_layer: s._cap_layer ?? null,
-    _weight: s._weight,
-    _polarity: s._polarity,
+    evidence: s.evidence ?? s.evidence_snippet ?? null,
+    grounding_tier: s.grounding_tier ?? null,
+    intensity: s.intensity ?? null,
+    _polarity: s._polarity ?? s.polarity ?? null,
   }));
 }

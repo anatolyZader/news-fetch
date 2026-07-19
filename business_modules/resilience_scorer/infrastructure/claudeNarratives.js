@@ -2,20 +2,12 @@ import { SONNET_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { summarizeConfidence } from '../domain/services/signals/behaviorSignals.js';
-import { overallScore } from '../app/scoringFacade.js';
-import { computeNorrisCapacities } from '../domain/epistemic/norrisCapacities.js';
-import { narrativeIncludesScores } from '../domain/services/operator/assessmentDisplayTier.js';
 import {
   buildSignalRefRegistry,
   formatCoOccurrenceForPrompt,
   formatSignalWithRef,
-  formatSuppressionDataQualityBlock,
-  formatSuppressionTraceTag,
-  formatSignalContributionSuffix,
   validateNarrativeOutput,
   formatValidationFeedback,
-  validateSuppressionCompliance,
-  formatSuppressionFeedback,
   computeGroundingScores,
   isNarrativeGroundingEnabled,
   isNarrativeFactsPassEnabled,
@@ -34,95 +26,41 @@ const DEFAULT_NARRATIVE_MODEL = process.env.RESILIENCE_NARRATIVE_MODEL ?? SONNET
 
 // ─── Step 2: Narrative generation ─────────────────────────────────────────────
 
-function evidenceSufficiencyLabel(mass) {
-  if (mass < 1.5) return 'thin';
-  if (mass < 4) return 'moderate';
-  return 'adequate';
-}
+const BALANCE_DIRECTION_LABEL = {
+  one_sided_pos: 'net_positive',
+  one_sided_neg: 'net_negative',
+  mixed: 'mixed',
+  contested: 'contested',
+};
 
-function instrumentFloorTag(scored) {
+function instrumentCriticalTag(scored) {
   if (scored.presence_gate_triggered) return '  critical_presence_gate';
-  if (scored.floor_clamped) return '  thin_evidence_floor';
   if (scored.salience_critical) return '  critical_single_signal';
   return '';
 }
 
-function strengthDirectionLabel(strength) {
-  if (strength == null) return 'unknown';
-  return strength >= 0 ? 'net_positive' : 'net_negative';
+function concentrationPromptTag(scored) {
+  const w = scored?.evidence_basis?.concentration_warning;
+  if (!w) return '';
+  return `  ⚠ concentrated: ${w.layer}=${w.key} (${Math.round(w.share * 100)}% of signals)`;
 }
 
 function narrativeInstrumentLine(scored, totalArticles) {
-  const insufficient = !scored ||
-    (scored.score == null && scored.confidence === 'insufficient_data');
+  const basis = scored?.evidence_basis;
+  const insufficient = !scored
+    || scored.confidence === 'insufficient_data'
+    || (basis?.sufficiency ?? 'none') === 'none';
   if (insufficient) return 'Instrument: insufficient data';
 
-  let certaintyPct = 'n/a';
-  if (scored.certainty != null) {
-    certaintyPct = `${(scored.certainty * 100).toFixed(0)}%`;
-  }
-  const mass = scored.evidence_mass ?? 0;
-  let polTag = '';
-  if (scored.polarization != null && scored.polarization > 0.5 && mass > 4) {
-    polTag = '  contested';
-  }
-  const deltaTag = scored.delta_flag === 'significant' ? '  SIGNIFICANT_vs_baseline' : '';
-  const suppressTag = suppressionTracePromptTag(scored);
+  const sufficiency = basis?.sufficiency ?? 'moderate';
+  const balance = basis?.balance ?? null;
+  const balanceTag = balance ? `  balance=${BALANCE_DIRECTION_LABEL[balance] ?? balance}` : '';
+  const contestedTag = balance === 'contested' ? '  ⚠ contested evidence' : '';
+  const sourceTypes = basis ? Object.keys(basis.source_mix ?? {}).length : 0;
   return (
-    `Instrument: certainty=${certaintyPct}  direction=${strengthDirectionLabel(scored.strength)}` +
-    `  evidence_sufficiency=${evidenceSufficiencyLabel(mass)}` +
-    `  (${scored.distinct_article_count ?? 0}/${totalArticles} articles, ${scored.signal_count ?? 0} signals)` +
-    `${polTag}${deltaTag}${instrumentFloorTag(scored)}${suppressTag}`
-  );
-}
-
-function polarizationPromptTag(scored) {
-  if (scored?.polarization == null || scored.polarization <= 0.5) return '';
-  const mass = scored.evidence_mass ?? 0;
-  if (mass > 4) {
-    return `  ⚠ contested (pol=${scored.polarization.toFixed(2)})`;
-  }
-  if (mass >= 1.5 && mass < 4) {
-    return `  ⚠ contested_thin (pol=${scored.polarization.toFixed(2)}, mass=${mass})`;
-  }
-  return '';
-}
-
-function deltaPromptTag(scored) {
-  if (scored?.delta_score == null) return '';
-  const sign = scored.delta_score >= 0 ? '+' : '';
-  let tag = `  Δvs prev: ${sign}${scored.delta_score}`;
-  if (scored.delta_significance != null) tag += ` (z=${scored.delta_significance.toFixed(1)})`;
-  if (scored.delta_flag === 'significant') tag += ' SIGNIFICANT';
-  return tag;
-}
-
-function saliencePromptTag(scored) {
-  if (scored?.salience_critical !== true) return '';
-  return scored.floor_bypassed
-    ? '  critical_single_signal_floor_bypassed'
-    : '  critical_single_signal';
-}
-
-export function suppressionTracePromptTag(scored) {
-  return formatSuppressionTraceTag(scored);
-}
-
-function formatScoredMetricsWithScores(scored, totalArticles) {
-  if (scored?.score == null) return 'Score: insufficient data';
-  const ciTag = scored.score_low != null && scored.score_high != null
-    ? `  CI: ${scored.score_low}-${scored.score_high}` : '';
-  const suppressTag = suppressionTracePromptTag(scored);
-  const mediaTag = scored.media_mention_mass != null && scored.media_mention_mass > 0
-    ? `  press_mention_mass=${scored.media_mention_mass}`
-    : '';
-  const dirSign = scored.strength >= 0 ? '+' : '';
-  return (
-    `Score: ${scored.score}/10  Certainty: ${(scored.certainty * 100).toFixed(0)}%` +
-    `  Direction: ${dirSign}${scored.strength.toFixed(2)}` +
-    `  (${scored.distinct_article_count}/${totalArticles} articles, ${(scored.coverage_ratio * 100).toFixed(1)}%, ${scored.dispersion} dispersion)` +
-    `  +ev:${scored.positive_evidence} −ev:${scored.negative_evidence}` +
-    `${ciTag}${polarizationPromptTag(scored)}${suppressTag}${saliencePromptTag(scored)}${mediaTag}${deltaPromptTag(scored)}`
+    `Instrument: evidence_sufficiency=${sufficiency}${balanceTag}` +
+    `  (${scored.signal_count ?? 0} signals / ${scored.distinct_article_count ?? 0} of ${totalArticles} articles / ${sourceTypes} source types)` +
+    `${contestedTag}${concentrationPromptTag(scored)}${instrumentCriticalTag(scored)}`
   );
 }
 
@@ -148,59 +86,47 @@ function formatSignalBlock(signals, registryEntries) {
     const geoTags = geoAuditTagsForSignal(s);
     return (
       `  [${s.signal_type}] (scope:${s.scope_level ?? 'single_case'}, ev:${s.evidence_type ?? 'unknown'}, conf:${(s.extraction_confidence ?? 1).toFixed(2)})\n` +
-      `${fd}  Evidence: "${s.evidence}"${urlLine}${geoTags}${formatSignalContributionSuffix(s)}`
+      `${fd}  Evidence: "${s.evidence}"${urlLine}${geoTags}`
     );
   }).join('\n');
 }
 
 /**
- * Format the pre-scored component data + its signals for the narrative prompt.
- * @param {object} scoredComponents
+ * Format the per-component evidence + its signals for the narrative prompt.
+ * @param {object} scoredComponents evidence components
  * @param {number} totalArticles
- * @param {{ includeScores?: boolean }} [opts]
+ * @param {{ registry?: object }} [opts]
  */
 export function formatScoredComponentsForNarrative(scoredComponents, totalArticles, opts = {}) {
-  const includeScores = opts.includeScores ?? narrativeIncludesScores();
   const registry = opts.registry ?? null;
   return RESILIENCE_COMPONENTS.map((compDef) => {
     const scored = scoredComponents[compDef.id];
     const conf = summarizeConfidence(scored?.confidence);
     const registryEntries = registry?.byComponent?.[compDef.id] ?? null;
     const signalText = formatSignalBlock(scored?.signals, registryEntries);
-    const metricsSummary = includeScores
-      ? formatScoredMetricsWithScores(scored, totalArticles)
-      : narrativeInstrumentLine(scored, totalArticles);
-    const suppressionContext = formatSuppressionDataQualityBlock(scored);
+    const metricsSummary = narrativeInstrumentLine(scored, totalArticles);
     const manifestations = compDef.behavioral_manifestations?.map((m, i) => `  ${i + 1}. ${m}`).join('\n')
       ?? '(none defined)';
 
     return (
       `**${compDef.id}** — ${compDef.name_en}\n` +
       `Confidence: ${conf}  ${metricsSummary}\n` +
-      (suppressionContext ? `${suppressionContext}\n` : '') +
       `Behavioral manifestations:\n${manifestations}\n` +
       `Signals extracted (${scored?.signal_count ?? 0}):\n${signalText || '  (none)'}`
     );
   }).join('\n\n---\n\n');
 }
 
-function significantDeltaDirection(deltaScore) {
-  if (deltaScore > 0) return 'up';
-  if (deltaScore < 0) return 'down';
-  return 'shift';
-}
-
 function priorComponentTrendTags(c) {
   const tags = [`confidence=${c.confidence ?? 'n/a'}`];
-  if (c.delta_flag === 'significant') {
-    tags.push(`significant_delta_${significantDeltaDirection(c.delta_score ?? 0)}`);
+  const balance = c.evidence_basis?.balance;
+  if (balance) {
+    tags.push(`balance=${balance}`);
+  } else if (c.polarization != null && c.polarization > 0.5 && (c.evidence_mass ?? 0) > 4) {
+    tags.push('contested'); // legacy stored reports
   }
-  if (c.polarization != null && c.polarization > 0.5 && (c.evidence_mass ?? 0) > 4) {
-    tags.push('contested');
-  }
-  if (c.strength != null) {
-    tags.push(c.strength >= 0 ? 'evidence_net_positive' : 'evidence_net_negative');
-  }
+  const sufficiency = c.evidence_basis?.sufficiency;
+  if (sufficiency) tags.push(`sufficiency=${sufficiency}`);
   return tags.join(', ');
 }
 
@@ -214,24 +140,14 @@ function priorComponentTrendTags(c) {
  * @param {number} totalArticles
  * @returns {Object}                 Assessment object with narratives merged into scored components
  */
-function formatPriorReportsContext(priorReports, { includeScores } = {}) {
+function formatPriorReportsContext(priorReports) {
   if (!priorReports || priorReports.length === 0) return '';
-  const useScores = includeScores ?? narrativeIncludesScores();
   const sections = priorReports.map((r) => {
-    const compLines = (r.components ?? []).map((c) => {
-      if (useScores) {
-        return `    ${c.component_id.padEnd(28)} ${c.score ?? 'N/A'}/10`;
-      }
-      return `    ${c.component_id.padEnd(28)} ${priorComponentTrendTags(c)}`;
-    }).join('\n');
-    const header = useScores
-      ? `[${r.date}] Overall: ${r.overall_resilience_score ?? 'N/A'}/10`
-      : `[${r.date}] Prior-day instrument trends (no numeric scores)`;
-    return `${header}\n${compLines}`;
+    const compLines = (r.components ?? []).map((c) =>
+      `    ${c.component_id.padEnd(28)} ${priorComponentTrendTags(c)}`).join('\n');
+    return `[${r.date}] Prior-day instrument trends (no numeric scores)\n${compLines}`;
   });
-  const trajectoryNote = useScores
-    ? 'Shows component scores only for earlier report dates.'
-    : 'Shows instrument trend tags only (no numeric scores) for earlier report dates.';
+  const trajectoryNote = 'Shows instrument trend tags only (no numeric scores) for earlier report dates.';
   return (
     `━━━ PRIOR DAYS' CONTEXT (TREND ONLY) ━━━\n` +
     `${trajectoryNote} Use ONLY for trend wording (improving / declining / stable vs prior days).\n` +
@@ -242,27 +158,21 @@ function formatPriorReportsContext(priorReports, { includeScores } = {}) {
   );
 }
 
-function formatComparisonScoresContext(scopeLabel, scoredComponents, { includeScores, comparable = true } = {}) {
+function formatComparisonScoresContext(scopeLabel, scoredComponents, { comparable = true } = {}) {
   if (!scopeLabel || !scoredComponents) return '';
   if (comparable === false) {
     return (
       `━━━ COMPARISON CONTEXT: ${String(scopeLabel).toUpperCase()} (NOT COMPARABLE) ━━━\n` +
-      `Regional and national source mixes differ too much for valid score comparison. ` +
-      `Do NOT cite national comparison scores or imply regional/national parity. ` +
+      `Regional and national source mixes differ too much for valid comparison. ` +
+      `Do NOT imply regional/national parity. ` +
       `Describe scoped evidence only.\n\n`
     );
   }
-  const useScores = includeScores ?? narrativeIncludesScores();
   const compScores = RESILIENCE_COMPONENTS.map((def) => {
     const c = scoredComponents[def.id] ?? {};
-    if (useScores) {
-      return `- ${def.id}: ${c.score ?? 'n/a'}/10, confidence=${c.confidence ?? 'n/a'}, signals=${c.signal_count ?? 0}`;
-    }
     return `- ${def.id}: ${priorComponentTrendTags(c)}, signals=${c.signal_count ?? 0}`;
   }).join('\n');
-  const comparisonNote = useScores
-    ? 'Use these pre-computed comparison scores as context only.'
-    : 'Use these comparison instrument tags as context only (no numeric scores).';
+  const comparisonNote = 'Use these comparison instrument tags as context only (no numeric scores).';
   return (
     `━━━ COMPARISON CONTEXT: ${scopeLabel.toUpperCase()} ━━━\n` +
     `${comparisonNote} The report you are writing is for the requested scope; ` +
@@ -355,12 +265,10 @@ const NARRATIVE_RULES_BLOCK =
   `  Use information_actionable_effective signals to evidence the presence-effectiveness link; use information_effectiveness_gap signals to evidence the gap.\n` +
   `- BASELINE VS ELEVATED SERVICE FUNCTIONING: Baseline service operation (ambulance responded, hospital treated) is neutral, not positive evidence. Only cite service functioning as strong when it demonstrably performed despite disruption or elevated demand.\n` +
   `- DELTA + CONTESTED EVIDENCE TAGS: When a component's pre-computed line shows "SIGNIFICANT" or "SIGNIFICANT_vs_baseline", include a brief trend phrase ("a notable shift vs the 14-day baseline"). When it shows "contested", note that the evidence is split between supporting and opposing observations rather than collapsing to a single verdict. Do not invent direction or magnitude beyond what the instrument tags say.\n` +
-  `- THIN EVIDENCE / ABSTENTION: When instrument tags include thin_evidence_floor, limited_evidence_neutral, or unverified_alert, do NOT use stability language ("calm", "stable", "normal"). For unverified_alert, lead with "a single unverified report suggests…" and recommend corroboration. For critical_single_signal, lead with "one verified high-stakes report indicates…", state corroboration is still limited, and do NOT treat the situation as stable. For critical_presence_gate, lead with "verified evidence of a critical failure mode is present…", name the signal type if known, do NOT balance with positive news, and do NOT use stability language.\n` +
-  `- SUPPRESSION / DATA QUALITY (when SUPPRESSION_TRACE present on component line):\n` +
-  `  Step 0 — fill data_quality_caveat FIRST (1–2 sentences, methodological only; NOT behavioral claims).\n` +
-  `  Required: name the concrete limiter from trace tokens (source_cap_effect, thin_evidence_floor, SOURCE_CAP_BINDING, dominant_outlet from Data quality context).\n` +
-  `  FORBIDDEN: inventing hidden/subconscious negative states ("hidden anxiety", "suppressed pessimism", "beneath the surface", "latent fear") to explain why headline score differs from signal tone.\n` +
-  `  When data-quality framing conflicts with behavioral narrative, data-quality wins — do NOT resolve the gap with psych speculation.\n` +
+  `- THIN EVIDENCE / ABSTENTION: When evidence_sufficiency=thin or instrument tags include limited_evidence_neutral or unverified_alert, do NOT use stability language ("calm", "stable", "normal"). For unverified_alert, lead with "a single unverified report suggests…" and recommend corroboration. For critical_single_signal, lead with "one verified high-stakes report indicates…", state corroboration is still limited, and do NOT treat the situation as stable. For critical_presence_gate, lead with "verified evidence of a critical failure mode is present…", name the signal type if known, do NOT balance with positive news, and do NOT use stability language.\n` +
+  `- CONCENTRATED EVIDENCE (when a ⚠ concentrated tag is present on the component line):\n` +
+  `  Fill data_quality_caveat (1–2 sentences, methodological only): name the dominant outlet or source type and note that the component's evidence rests mainly on it.\n` +
+  `  FORBIDDEN: inventing hidden/subconscious negative states ("hidden anxiety", "suppressed pessimism", "beneath the surface", "latent fear") to fill perceived gaps.\n` +
   `  Then write behavioral narrative from evidence only; it must not contradict the caveat.\n` +
   `- TEXT-INFERRED GEO: When Geo audit tags show geo:provenance=text_inferred or metricsEligible=false, treat the signal as geographic context only — do NOT describe it as on-the-ground behavioral evidence at that locality.\n` +
   `- SCOPE DISCIPLINE: Never use "the only", "the one exception", "uniquely", or similar exclusive claims.\n` +
@@ -441,7 +349,7 @@ function buildNarrativeUserMessage(date, totalArticles, feedback = '') {
   const steps =
     `Assessment anchor date: ${date}\nTotal articles counted for coverage: ${totalArticles}\n\n` +
     `Follow this order:\n` +
-    `0. When a component has SUPPRESSION_TRACE, fill data_quality_caveat first (methodological limits; name source cap/floor/dominant outlet).\n` +
+    `0. When a component line shows a ⚠ concentrated tag, fill data_quality_caveat first (methodological limits; name the dominant outlet/source type).\n` +
     `1. Fill evidence[] for each component (≥70% token overlap with Evidence lines; cite [S#] refs).\n` +
     `2. Fill or preserve narrative_claims (≥1 signal_ref each; use correct relation tag).\n` +
     `3. Write narrative prose from claims/evidence only; delete any sentence without support; no psych speculation when suppression applies.\n` +
@@ -471,7 +379,6 @@ function mergeNarrativeClaims(narratives, claimsByComponent) {
 }
 
 function buildNarrativeSystemPrompt({
-  includeScoresInPrompt,
   scoredComponents,
   totalArticles,
   date,
@@ -488,14 +395,12 @@ function buildNarrativeSystemPrompt({
   claimsByComponent,
   retrievedSpansBlock,
 }) {
-  const scoreIntro = includeScoresInPrompt
-    ? `The component SCORES are already computed — do not re-score. Your job is to write clear, behavioral narratives.\n\n`
-    : `Component instrument tags (certainty, direction, sufficiency) are pre-computed — do not invent numeric 1–10 ratings. Your job is to write clear, behavioral narratives grounded in Evidence lines.\n\n`;
+  const scoreIntro =
+    `Component instrument tags (sufficiency, balance, criticality) are pre-computed — do not invent numeric 1–10 ratings. Your job is to write clear, behavioral narratives grounded in Evidence lines.\n\n`;
   const componentsBlock = formatScoredComponentsForNarrative(scoredComponents, totalArticles, {
-    includeScores: includeScoresInPrompt,
     registry,
   });
-  const metricsLabel = includeScoresInPrompt ? 'scores' : 'instrument tags';
+  const metricsLabel = 'instrument tags';
   const claimsBlock = formatClaimsBlockForPrompt(claimsByComponent);
   const coOccurrence = coOccurrenceBlock ?? '';
 
@@ -533,7 +438,7 @@ function buildNarrativeSystemPrompt({
     `      "narrative_claims": [\n` +
     `        { "text": "<atomic claim>", "signal_refs": ["type@url:…"], "relation": "parallel|same_article_only|none" }\n` +
     `      ],\n` +
-    `      "data_quality_caveat": "<1–2 sentences on score/data limits; REQUIRED when SUPPRESSION_TRACE present; methodological only>",\n` +
+    `      "data_quality_caveat": "<1–2 sentences on data limits; REQUIRED when a ⚠ concentrated tag is present; methodological only>",\n` +
     `      "narrative": "<3–5 sentence behavioral narrative derived from narrative_claims and evidence only>"\n` +
     `    }, ...\n` +
     `  ]\n` +
@@ -548,61 +453,19 @@ function buildAssessmentComponent(def, scored, narr, groundingMeta) {
     || narr.interpretive_summary === true;
   return {
     component_id: def.id,
-    score: scored.score ?? null,
     confidence: scored.confidence ?? 'insufficient_data',
     signal_count: scored.signal_count ?? 0,
     distinct_article_count: scored.distinct_article_count ?? 0,
     source_diversity: scored.source_diversity ?? 0,
-    coverage_ratio: scored.coverage_ratio ?? 0,
-    dispersion: scored.dispersion ?? null,
-    coverage_adjustment: scored.coverage_adjustment ?? 0,
-    source_diversity_factor: scored.source_diversity_factor ?? 0,
-    type_diversity_factor: scored.type_diversity_factor ?? 0,
-    signal_type_entropy: scored.signal_type_entropy ?? 0,
-    positive_evidence: scored.positive_evidence ?? 0,
-    negative_evidence: scored.negative_evidence ?? 0,
-    net_evidence: scored.net_evidence ?? 0,
-    evidence_mass: scored.evidence_mass ?? 0,
-    strength: scored.strength ?? 0,
-    adjusted_strength: scored.adjusted_strength ?? 0,
-    certainty: scored.certainty ?? 0,
-    polarization: scored.polarization ?? 0,
-    score_low: scored.score_low ?? null,
-    score_high: scored.score_high ?? null,
-    counterfactual_article_key: scored.counterfactual_article_key ?? null,
-    counterfactual_delta: scored.counterfactual_delta ?? null,
-    counterfactual_no_caps: scored.counterfactual_no_caps ?? scored.score_raw ?? null,
-    score_smoothed: scored.score_smoothed ?? null,
-    delta_score: scored.delta_score ?? null,
-    delta_significance: scored.delta_significance ?? null,
-    delta_flag: scored.delta_flag ?? null,
-    floor_clamped: scored.floor_clamped === true,
-    floor_bypassed: scored.floor_bypassed === true,
+    evidence_basis: scored.evidence_basis ?? null,
+    critical_flags: scored.critical_flags ?? null,
+    sampling_status: scored.sampling_status ?? null,
     salience_critical: scored.salience_critical === true,
     salience_bypass_reasons: scored.salience_bypass_reasons ?? [],
     salience_dominant_signal_type: scored.salience_dominant_signal_type ?? null,
     presence_gate_triggered: scored.presence_gate_triggered === true,
     presence_gate: scored.presence_gate ?? null,
     operator_status: scored.operator_status ?? null,
-    ci_unstable: scored.ci_unstable === true,
-    source_cap_binding: scored.source_cap_binding === true,
-    derived_indicators: scored.derived_indicators ?? null,
-    score_raw: scored.score_raw ?? null,
-    score_headline: scored.score_headline ?? scored.score ?? null,
-    suppression_delta: scored.suppression_delta ?? null,
-    delta_chronic: scored.delta_chronic ?? null,
-    z_score_chronic: scored.z_score_chronic ?? null,
-    erosion_index: scored.erosion_index ?? null,
-    exhaustion_days: scored.exhaustion_days ?? null,
-    cumulative_deficit: scored.cumulative_deficit ?? null,
-    media_mention_mass: scored.media_mention_mass ?? null,
-    suppression_breakdown: scored.suppression_breakdown ?? null,
-    score_calibrated: scored.score_calibrated ?? null,
-    calibration_trust: scored.calibration_trust ?? null,
-    calibration_deficit: scored.calibration_deficit ?? null,
-    weight_sensitivity: scored.weight_sensitivity ?? null,
-    weight_sensitivity_note: scored.weight_sensitivity_note ?? null,
-    facets: scored.facets ?? null,
     top_contributors: topContributorsFromScored(scored, def.id),
     manifestations_evidenced: narr.manifestations_evidenced ?? [],
     manifestations_absent: narr.manifestations_absent ?? [],
@@ -630,20 +493,10 @@ function buildAssessmentPayload(narratives, scoredComponents, meta, groundingSum
     date: meta.date,
     ...(meta.reportScope ? { report_scope: meta.reportScope } : {}),
     total_articles_analyzed: meta.totalArticles,
-    overall_resilience_score: overallScore(scoredComponents),
-    overall_score_calibrated: overallScore(
-      Object.fromEntries(
-        Object.entries(scoredComponents).map(([id, c]) => [id, {
-          score: c.score_calibrated,
-          certainty: c.certainty ?? 0,
-        }]),
-      ),
-    ),
     content_kind: meta.contentKind,
     cross_component_synthesis: narratives.cross_component_synthesis ?? '',
     evidence_quality_note: narratives.evidence_quality_note ?? '',
     ...(groundingSummary?.summary ? { narrative_grounding_summary: groundingSummary.summary } : {}),
-    norris_capacities: computeNorrisCapacities(scoredComponents, scoredComponents),
     components,
     ...(meta.macroSignals?.length ? { macro_signals: meta.macroSignals.slice(0, 50) } : {}),
     ...(meta.dataVoid ? { data_void: meta.dataVoid } : {}),
@@ -662,10 +515,8 @@ function buildAssessmentPayload(narratives, scoredComponents, meta, groundingSum
 }
 
 async function buildNarrativeGenerationContext(scoredComponents, date, totalArticles, opts) {
-  const includeScoresInPrompt = narrativeIncludesScores();
-  const priorContext = formatPriorReportsContext(opts.priorReports, { includeScores: includeScoresInPrompt });
+  const priorContext = formatPriorReportsContext(opts.priorReports);
   const comparisonContext = formatComparisonScoresContext(opts.comparisonLabel, opts.comparisonScores, {
-    includeScores: includeScoresInPrompt,
     comparable: opts.comparisonComparable,
   });
   const registry = buildSignalRefRegistry(scoredComponents);
@@ -684,7 +535,6 @@ async function buildNarrativeGenerationContext(scoredComponents, date, totalArti
     });
   }
   const systemPrompt = buildNarrativeSystemPrompt({
-    includeScoresInPrompt,
     scoredComponents,
     totalArticles,
     date,
@@ -750,13 +600,6 @@ async function applyNarrativeGroundingChecks(
     feedback = formatValidationFeedback(validation);
     if (attempt < maxRetries) throw new Error(`Validation failed: ${validation.errors.join('; ')}`);
     groundingExhaustedMessage('Narrative validation', maxRetries, pipelineDegrade);
-  }
-  const suppressResult = validateSuppressionCompliance(narratives, scoredComponents);
-  if (!suppressResult.ok) {
-    const suppressFeedback = formatSuppressionFeedback(suppressResult);
-    feedback = feedback ? `${feedback}\n\n${suppressFeedback}` : suppressFeedback;
-    if (attempt < maxRetries) throw new Error(`Suppression compliance failed: ${suppressResult.errors.join('; ')}`);
-    groundingExhaustedMessage('Suppression compliance', maxRetries, pipelineDegrade);
   }
   if (isNarrativeJudgeEnabled()) {
     const judgeResult = await judgeNarrativeRelations(narratives, registry, { onUsage });

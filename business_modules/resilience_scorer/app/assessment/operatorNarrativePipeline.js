@@ -19,8 +19,6 @@ import {
   validateNarrativeOutput,
   formatValidationFeedback,
   computeGroundingScores,
-  validateSuppressionCompliance,
-  formatSuppressionFeedback,
   hybridNarrativeEnabled,
   legacyNarrativeOnly,
   resolveNarrativePipelineMode,
@@ -192,11 +190,8 @@ function buildPolishFeedback(judgeFeedback, validationFeedback) {
   return [judgeFeedback, validationFeedback].filter(Boolean).join('\n\n');
 }
 
-function formatPolishValidationFeedback(validation, suppression) {
-  return [
-    formatValidationFeedback(validation),
-    formatSuppressionFeedback(suppression),
-  ].filter(Boolean).join('\n\n');
+function formatPolishValidationFeedback(validation) {
+  return formatValidationFeedback(validation);
 }
 
 function buildOverflowFallbackPolish(activePlan) {
@@ -256,16 +251,15 @@ async function executePolishAttempts(params) {
       scoredComponents: narrativeScored,
       registry,
     });
-    const suppression = validateSuppressionCompliance(polish, narrativeScored);
 
-    if (validation.ok && suppression.ok) break;
+    if (validation.ok) break;
 
     if (polishResult.stopReason === 'max_tokens' && attempt < MAX_POLISH_ATTEMPTS - 1) {
       console.error('[operator-narrative] Polish truncated at max_tokens; skipping costly validation retry');
       break;
     }
 
-    validationFeedback = formatPolishValidationFeedback(validation, suppression);
+    validationFeedback = formatPolishValidationFeedback(validation);
 
     if (attempt >= MAX_POLISH_ATTEMPTS - 1) {
       console.error('[operator-narrative] Validation failed after polish retries; applying best-effort output');

@@ -129,8 +129,7 @@ function logAssessmentOutputs(assessment, outputBase, printSummary) {
   }
   printSummary();
   console.error(`\nReports written:`);
-  console.error(`  ${outputBase}.md (analyst/full scores)`);
-  console.error(`  ${outputBase}-brief.md (operator brief, no /10)`);
+  console.error(`  ${outputBase}.md (evidence-based report)`);
   console.error(`  ${outputBase}.json`);
 }
 

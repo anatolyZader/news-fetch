@@ -55,21 +55,6 @@ export {
 } from './sentenceGroundingChecker.js';
 
 export {
-  componentNeedsSuppressionCompliance,
-  formatSuppressionTraceTag,
-  formatSuppressionDataQualityBlock,
-  formatSignalContributionSuffix,
-  caveatReferencesSuppressionReason,
-  SUPPRESSION_CAVEAT_KEYWORDS,
-} from './suppressionPromptContext.js';
-
-export {
-  validateComponentSuppressionCompliance,
-  validateSuppressionCompliance,
-  formatSuppressionFeedback,
-} from './suppressionComplianceValidator.js';
-
-export {
   formatDigitalQuarantineNarrativeBlock,
   narrativeQuarantineContextActive,
 } from './digitalQuarantineNarrativeContext.js';
