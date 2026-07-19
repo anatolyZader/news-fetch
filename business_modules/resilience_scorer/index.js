@@ -71,8 +71,6 @@ export {
   resilienceCapturesDir,
   resilienceAuditsDir,
   epistemicProfilesDir,
-  analystShadowDir,
-  divergenceArtifactPath,
 } from './domain/services/paths/outputDirs.js';
 export { resolveRepoRoot as resolveResilienceRepoRoot } from './domain/services/paths/repoRoot.js';
 export {
