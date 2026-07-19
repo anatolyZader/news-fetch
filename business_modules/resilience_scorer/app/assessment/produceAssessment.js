@@ -23,7 +23,7 @@ function resolveReportsDir(params) {
  * @param {object} params — assess-signals finalize context
  * @returns {Promise<object>} assessment (legacy-compatible from agent or degrade ladder)
  */
-export async function produceAssessmentWithShadow(params) {
+export async function produceAssessment(params) {
   const epistemicProfile = buildEpistemicProfile(params);
   const agentOutcome = await resolveAssessmentOutcome(params, epistemicProfile);
   attachAssessmentV2Fields(agentOutcome.assessment, agentOutcome.assessmentV2, {

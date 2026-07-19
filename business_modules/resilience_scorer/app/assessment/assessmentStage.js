@@ -24,7 +24,7 @@ import { finalizeOperatorNarrativeSurface } from '../../domain/services/operator
 import { attachRichOperatorSurface } from '../../domain/services/operator/operatorInvestigationSurface.js';
 import { shouldUseRichDeterministicPath } from '../../domain/contracts/operatorSurfaceMode.js';
 import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../../cross-cut-modules/geo/israelDistricts.js';
-import { produceAssessmentWithShadow } from './produceAssessmentWithShadow.js';
+import { produceAssessment } from './produceAssessment.js';
 import { applyOperatorNarrativePipeline } from './operatorNarrativePipeline.js';
 import { attachDecisionBrief } from './attachDecisionBrief.js';
 import { ensureArticleCorpusRagIndexed } from './ensureArticleCorpusRagIndexed.js';
@@ -80,16 +80,6 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
     quarantinedDigital: pipelineResult?.quarantinedDigital ?? null,
     digitalQuarantineState: pipelineResult?.digitalQuarantineState ?? null,
   });
-
-  if (pipelineResult) {
-    assessment.shadow_scoring = {
-      assessment_mode: pipelineResult.assessmentMode,
-      epistemic_status: pipelineResult.epistemicStatus,
-    };
-    if (pipelineResult.epistemicEnrichment?.overall_score_calibrated != null) {
-      assessment.overall_score_calibrated = pipelineResult.epistemicEnrichment.overall_score_calibrated;
-    }
-  }
 
   attachInvestigationContextFlags(assessment, ctx, investigationPrep);
 
@@ -244,7 +234,7 @@ async function produceAssessmentForMode(ctx) {
     return assessment;
   }
 
-  const assessment = await produceAssessmentWithShadow({
+  const assessment = await produceAssessment({
     targetDate: reportDate,
     reportScopeId,
     investigationSignals,
