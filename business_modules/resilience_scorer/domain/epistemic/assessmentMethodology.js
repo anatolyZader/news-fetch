@@ -140,19 +140,16 @@ export function buildAssessmentMethodology({
   reportScopeId = 'national',
   scoringModelManifest = null,
   tuningProposal = null,
-  epistemicEnrichment = null,
   extractionTelemetry = null,
 } = {}) {
   const scopeId = normalizeReportScopeId(reportScopeId);
-  const calibration = epistemicEnrichment?.calibration
-    ?? null;
 
   return {
     phase: 'multi_district_phase2',
     scoring: {
       weights: 'author_set',
-      tuning: 'heuristic',
-      llm_extracts_code_scores: true,
+      model: 'count_based_evidence_bands',
+      llm_extracts_code_derives_evidence: true,
       scoring_model_version: SCORING_MODEL_VERSION,
     },
     scope: {
@@ -183,34 +180,21 @@ export function buildAssessmentMethodology({
       dual_pipeline:
         'Evidence submission analysis scores all signals without scope filter; regional artifacts require assess-signals --scope <districtId>',
       extraction_quality:
-        'LLM extraction monitored via business_modules/resilience_scorer/analyst/tuning/golden (npm test golden-corpus); no production SLA',
+        'LLM extraction verified per signal (embedding/NLI grounding tiers); no production SLA',
       subgroup_coverage: summarizeSubgroupCoverage(signals),
       ...(extractionTelemetry ? { extraction_pipeline_stages: extractionTelemetry } : {}),
     },
-    norris_lens: {
-      measures: 'Synthetic 4Rs (robustness/redundancy/rapidity/resourcefulness) derived from component scores',
-      not_same_as:
-        'Pikud 8-component community resilience headline or validated community robustness',
-      operator_visibility: 'Hidden in default UI; analyst tier only',
-    },
     epistemic: {
-      operator_view: 'narrative_and_evidence_not_headline_scores',
+      report_view: 'narrative_and_evidence_no_numeric_scores',
       thin_evidence_policy:
-        'When evidence_mass < 1.5 (Option C), operators see limited_evidence_neutral or unverified_alert — not headline 1–10 scores.',
-      contested_thin:
-        'Polarization > 0.5 with mass in [1.5, 4) hides operator scores; narrative must describe conflict without resolving it.',
+        'Components with sufficiency none/thin present limited_evidence_neutral or insufficient_data instruments; critical single signals surface via presence gates and the curated critical-type set.',
+      contested_evidence:
+        'When supporting and opposing signal counts are split (balance=contested), the narrative must describe the conflict without resolving it.',
       keyword_macro_partition:
-        'National macro terms and metrics-unsafe geo are scope context only — excluded from component metrics when RESILIENCE_EPISTEMIC_GEO_V2 is enabled.',
+        'National macro terms and metrics-unsafe geo are scope context only — excluded from component evidence when RESILIENCE_EPISTEMIC_GEO_V2 is enabled.',
       reliability_instruments:
-        'Bootstrap, entropy, and caps quantify instability and dominance; they do not validate ground-truth resilience.',
+        'Sufficiency, balance, and concentration bands derive from signal counts and source diversity; they do not validate ground-truth resilience.',
     },
-    ...(calibration ? { calibration } : {}),
-    ...(epistemicEnrichment?.weight_sensitivity_summary
-      ? { weight_sensitivity_summary: epistemicEnrichment.weight_sensitivity_summary }
-      : {}),
-    ...(epistemicEnrichment?.weight_sensitivity_note
-      ? { weight_sensitivity_note: epistemicEnrichment.weight_sensitivity_note }
-      : {}),
     scoring_model: scoringModelManifest ?? undefined,
     tuning_proposal: tuningProposal ?? null,
   };
@@ -238,14 +222,6 @@ export function methodologyForOperatorView(methodology) {
       present: true,
       report_count: out.tuning_proposal.report_count ?? null,
       skipped_reason: out.tuning_proposal.skipped_reason ?? null,
-    };
-  }
-  if (out.calibration) {
-    out.calibration = {
-      trust: out.calibration.trust,
-      deficit: out.calibration.deficit,
-      tier3_ready: out.calibration.tier3_ready,
-      note: out.calibration.note,
     };
   }
   return out;

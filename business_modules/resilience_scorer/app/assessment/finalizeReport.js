@@ -60,7 +60,6 @@ function buildEpistemicProfileShim(scoredFull) {
 function attachRegionalNationalComparison(assessment, {
   reportScopeId,
   comparisonContext,
-  nationalScored,
   nationalSignals,
   nationalDataVoid,
   staleDigitalScores,
@@ -90,7 +89,7 @@ function attachRegionalNationalComparison(assessment, {
   };
 }
 
-function buildReportMethodology(assessment, { scopedSignals, reportScopeId, validationMaturity, epistemicEnrichment, targetDate, getTotal }) {
+function buildReportMethodology(assessment, { scopedSignals, reportScopeId, targetDate, getTotal }) {
   const { stageEvents } = getTotal();
   const assessStages = summarizeStageEvents(stageEvents);
   const costLogStages = readCostLogStagesForDate(targetDate, {
@@ -100,8 +99,6 @@ function buildReportMethodology(assessment, { scopedSignals, reportScopeId, vali
     signals: scopedSignals,
     reportScopeId,
     scoringModelManifest: buildScoringModelManifest(),
-    validationMaturity,
-    epistemicEnrichment,
     extractionTelemetry: {
       assess: assessStages,
       extract: costLogStages['extract-signals'] ?? null,
@@ -152,14 +149,11 @@ export async function finalizeAndWriteReport({
 }) {
   const {
     nationalSignals,
-    nationalScored,
     nationalDataVoid,
     scopedSignals,
     signalsForScoring,
     scoreBySource,
     staleDigitalScores,
-    validationMaturity,
-    epistemicEnrichment,
   } = scoring;
 
   const priorReports = loadPriorReports(targetDate);
@@ -203,7 +197,6 @@ export async function finalizeAndWriteReport({
   attachRegionalNationalComparison(assessment, {
     reportScopeId,
     comparisonContext,
-    nationalScored,
     nationalSignals,
     nationalDataVoid,
     staleDigitalScores,
@@ -212,8 +205,6 @@ export async function finalizeAndWriteReport({
   buildReportMethodology(assessment, {
     scopedSignals,
     reportScopeId,
-    validationMaturity,
-    epistemicEnrichment,
     targetDate,
     getTotal,
   });

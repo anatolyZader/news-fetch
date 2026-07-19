@@ -5,6 +5,7 @@
 
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { summarizeConfidence } from '../domain/services/signals/behaviorSignals.js';
+import { COMPONENTS_TABLE_HELP_MARKDOWN } from '../domain/contracts/componentsTableGlossary.js';
 
 const COMPONENT_MAP = Object.fromEntries(RESILIENCE_COMPONENTS.map((c) => [c.id, c]));
 
@@ -158,6 +159,8 @@ export function appendMethodologyBlock(lines, assessment) {
 export function appendComponentsTable(lines, assessment) {
   lines.push(
     `## Components`,
+    ``,
+    COMPONENTS_TABLE_HELP_MARKDOWN,
     ``,
     `| # | Component | עברית | Assessment reliability | Evidence base | Sufficiency | Balance | Article coverage |`,
     `|---|-----------|-------|------------------------|---------------|-------------|---------|------------------|`,

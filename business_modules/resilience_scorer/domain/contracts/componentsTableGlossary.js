@@ -1,20 +1,22 @@
 /**
  * Copy for the Components table — used by report markdown export and the web UI
- * so readers understand **Evidence level** vs **Component score**.
+ * so readers understand the count-based evidence columns. There are no numeric
+ * resilience scores in this system.
  */
 
 /** Block inserted after `## Components` in reports and injected for legacy .md in the browser. */
 export const COMPONENTS_TABLE_HELP_MARKDOWN = [
   '**What each column means**',
   '',
-  '- **Assessment reliability** — How much we trust the **component score** (low / medium / high), based on both how strong the weighted evidence is and how broadly it appears across articles.',
-  '- **Evidence level** — A **0–100% certainty** score: how much *weighted* behavioral evidence we found for this component. **It is not “how good resilience is.”** High % means we had enough signal strength to be confident in the scoring step; the **Component score** (1–10) tells you favorable vs unfavorable.',
-  '- **Evidence base** — Number of behavioral signals tagged to this component.',
+  '- **Assessment reliability** — How much to trust this component’s assessment (low / medium / high), derived from how much evidence was found and how broadly it appears across articles and source types.',
+  '- **Evidence base** — Number of verified behavioral signals tagged to this component.',
+  '- **Sufficiency** — Evidence-volume band (none / thin / moderate / adequate) from signal count, distinct articles, and source-type diversity. **It is not “how good resilience is”** — it says how much ground the narrative stands on.',
+  '- **Balance** — Whether supporting and opposing observations point one way (supporting only / opposing only), lean one way (mixed), or are split (**contested** — the narrative must describe the disagreement, not resolve it).',
   '- **Article coverage** — How many *distinct* articles in today’s sample contributed at least one signal, as a fraction of all articles analyzed.',
   '',
-  '**How Evidence level % is calculated (technical)** — Each signal adds `|mapping weight| × scope weight × reliability weight`. Those add up to *evidence mass*. Certainty = `1 − e^(−evidence_mass / 2)`, shown as %. It saturates toward 100% as mass grows. **Direction** (supporting vs opposing) is separate and shown under Evidence direction.',
+  '**Direction and degree live in the narrative** — each component’s prose cites its evidence; critical flags (presence gate, critical single signal) surface verified failure modes regardless of overall balance.',
 ].join('\n');
 
-/** Short note repeated next to each Evidence level % in Detailed Analysis. */
+/** Short note repeated next to the evidence line in Detailed Analysis. */
 export const EVIDENCE_LEVEL_INLINE_NOTE =
-  'certainty % from weighted evidence mass—not the same as “good” or “bad” resilience; use Component score for direction';
+  'sufficiency and balance come from signal counts and source diversity — not a resilience rating; read the narrative for direction';
