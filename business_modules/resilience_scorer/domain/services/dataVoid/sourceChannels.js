@@ -37,22 +37,6 @@ export const FIELD_SOURCE_TYPES = new Set([
 /** High-trust external probes — not counted as digital volume. */
 export const PROBE_SOURCE_TYPES = new Set(['infrastructure_probe']);
 
-/**
- * Excluded from source-type and outlet caps.
- * Official structured ground-truth sources (municipal census, professional visits) are exempt
- * because the 50% cap is designed to prevent single-outlet media bias, not to discount
- * comprehensive administrative data. field_whatsapp remains subject to capping since it is
- * citizen-sourced rather than official.
- */
-export const CAP_EXEMPT_SOURCE_TYPES = new Set([
-  'infrastructure_probe',
-  'pbo',
-  'pbo_regional',
-  'naftali',
-  'field',
-  'visits', // canonical assess-time alias of 'field' (see visitsSourceType.js)
-]);
-
 const ALL_DIGITAL_CHANNELS = [...DIGITAL_SOURCE_TYPES];
 
 /**

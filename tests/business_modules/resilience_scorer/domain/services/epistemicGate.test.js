@@ -61,12 +61,11 @@ describe('epistemicGate', () => {
       signalsForScoring: signals,
       dataVoid: { level: 'critical', digital_darkness: true, reason: 'digital_darkness' },
       totalArticles: 2,
-      digitalInclusiveScored: scored,
       scoreComponents: stubScoreComponents,
     });
     assert.equal(result.assessmentMode, 'field_anchor_only');
     assert.equal(result.epistemicStatus.scores_reliable, true);
-    assert.ok(result.staleDigitalScores?.components?.narrative);
+    assert.equal(result.staleDigitalScores, null);
     // The stub receives only anchor (field-channel) signals and its output is published.
     assert.ok(Array.isArray(stubSeenSignals));
     assert.ok(stubSeenSignals.every((s) => s.source_type !== 'news'));
@@ -108,7 +107,6 @@ describe('epistemicGate', () => {
         field_volume: 1,
       },
       totalArticles: 1,
-      digitalInclusiveScored: mockScored(3),
       scoringPartition: {
         assessmentMode: 'field_anchor_only',
         partitionApplied: true,
@@ -119,7 +117,7 @@ describe('epistemicGate', () => {
     assert.equal(result.assessmentMode, 'field_anchor_only');
     assert.equal(result.scoredFull.narrative.score, 6);
     assert.equal(result.quarantinedDigital.count, 2);
-    assert.equal(result.staleDigitalScores?.reason, 'connectivity_isolation');
+    assert.equal(result.staleDigitalScores, null);
   });
 });
 

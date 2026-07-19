@@ -47,7 +47,7 @@ export function evidenceComponentAdapter(ev) {
     presence_gate: presence
       ? { rule_id: presence.rule_id, signal_type: presence.signal_type }
       : null,
-    operator_status: presence != null ? 'critical_failure' : null,
+    operator_status: presence ? 'critical_failure' : null,
     salience_critical: salient != null,
     salience_bypass_reasons: [],
     salience_dominant_signal_type: salient?.signal_type ?? null,
@@ -100,7 +100,6 @@ export function runEvidencePipeline({
     dataVoid,
     totalArticles: scoringSignals.length,
     salienceContext,
-    digitalInclusiveScored: null,
     scoringPartition: partition,
     quarantinedDigital,
     scoreComponents: (signals) => buildEvidenceComponents(signals, 'field_anchor_only'),
@@ -116,9 +115,9 @@ export function runEvidencePipeline({
     assessmentMode: gateResult.assessmentMode,
     epistemicStatus: gateResult.epistemicStatus,
     staleDigitalScores: null,
+    digitalInclusiveScored: null,
     salienceContext: gateResult.salienceContext,
     epistemicEnrichment: { scored: scoredFull },
-    digitalInclusiveScored: null,
     digitalQuarantineState: buildQuarantineState(partition, dataVoid, {
       scopeId,
       reportDate: reportDate ?? new Date().toISOString().slice(0, 10),

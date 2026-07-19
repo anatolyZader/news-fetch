@@ -36,28 +36,6 @@ export function applyScoreAbstention(scored) {
 }
 
 /**
- * @param {Record<string, object>} scored
- * @param {string} [reason]
- * @returns {object|null}
- */
-export function snapshotScoresForStale(scored, reason = 'digital_darkness') {
-  if (!scored || typeof scored !== 'object') return null;
-  /** @type {Record<string, { score: number|null, confidence: string|null }>} */
-  const components = {};
-  for (const [id, comp] of Object.entries(scored)) {
-    components[id] = {
-      score: comp?.score ?? null,
-      confidence: comp?.confidence ?? null,
-    };
-  }
-  return {
-    scored_at: new Date().toISOString(),
-    components,
-    reason,
-  };
-}
-
-/**
  * Apply epistemic gate to scoring results based on data void outcome.
  *
  * @param {object} params
@@ -67,7 +45,6 @@ export function snapshotScoresForStale(scored, reason = 'digital_darkness') {
  * @param {number} params.totalArticles
  * @param {Array<object>} [params.mediaSignals]
  * @param {object} [params.salienceContext]
- * @param {Record<string, object>} [params.digitalInclusiveScored] pre-gate full score for stale reference
  * @param {object|null} [params.scoringPartition] from resolveScoringPartition
  * @param {object|null} [params.quarantinedDigital] summarizeQuarantinedSignals output
  * @returns {{
@@ -86,7 +63,6 @@ export function applyEpistemicGate({
   totalArticles: _totalArticles,
   mediaSignals = null,
   salienceContext = {},
-  digitalInclusiveScored = null,
   scoringPartition = null,
   quarantinedDigital = null,
   scoreComponents = null,
@@ -101,11 +77,6 @@ export function applyEpistemicGate({
   const partitionApplied = scoringPartition?.partitionApplied === true;
 
   if (partitionApplied && scoringPartition.assessmentMode === 'field_anchor_only') {
-    const staleReason = scoringPartition.quarantineReason ?? 'digital_darkness';
-    const staleDigitalScores = digitalInclusiveScored
-      ? snapshotScoresForStale(digitalInclusiveScored, staleReason)
-      : null;
-
     const epistemicStatus = buildEpistemicStatus(dataVoid, {
       assessmentMode: 'field_anchor_only',
     });
@@ -114,7 +85,7 @@ export function applyEpistemicGate({
       scoredFull,
       assessmentMode: 'field_anchor_only',
       epistemicStatus,
-      staleDigitalScores,
+      staleDigitalScores: null,
       salienceContext: { ...salienceCtx, fieldAnchorOnly: true },
       quarantinedDigital,
     };
@@ -147,11 +118,6 @@ export function applyEpistemicGate({
       salienceContext: { ...salienceCtx, fieldAnchorOnly: true },
     });
 
-    const staleDigitalScores = snapshotScoresForStale(
-      digitalInclusiveScored ?? scoredFull,
-      'digital_darkness',
-    );
-
     const epistemicStatus = buildEpistemicStatus(dataVoid, {
       assessmentMode: 'field_anchor_only',
     });
@@ -160,7 +126,7 @@ export function applyEpistemicGate({
       scoredFull: fieldScored,
       assessmentMode: 'field_anchor_only',
       epistemicStatus,
-      staleDigitalScores,
+      staleDigitalScores: null,
       salienceContext: salienceCtx,
       quarantinedDigital,
     };

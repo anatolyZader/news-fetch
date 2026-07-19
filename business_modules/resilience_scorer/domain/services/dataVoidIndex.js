@@ -12,7 +12,6 @@ export {
   DIGITAL_SOURCE_TYPES,
   FIELD_SOURCE_TYPES,
   PROBE_SOURCE_TYPES,
-  CAP_EXEMPT_SOURCE_TYPES,
   filterFieldAnchorSignals,
   isDigitalSignal,
   isFieldSignal,
