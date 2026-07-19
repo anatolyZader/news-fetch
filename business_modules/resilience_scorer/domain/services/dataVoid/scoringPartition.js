@@ -37,6 +37,42 @@ function hasConnectivityOutage(dataVoid) {
   return (dataVoid.connectivity_outage_signals ?? 0) > 0 || dataVoid.probe_outage === true;
 }
 
+// ── Quarantine recovery threshold ───────────────────────────────────────────
+// A prior same-day quarantine holds until digital volume GENUINELY recovers:
+// at least RESILIENCE_QUARANTINE_RECOVERY_MIN digital signals (default 5) and
+// at least RESILIENCE_QUARANTINE_RECOVERY_FRACTION of the expected baseline
+// volume (default 0.5), with the void index itself subsided below elevated.
+// A single stray Telegram message must not lift the quarantine.
+
+const RECOVERY_MIN_DEFAULT = 5;
+const RECOVERY_FRACTION_DEFAULT = 0.5;
+
+/**
+ * @param {object} dataVoid
+ * @param {NodeJS.ProcessEnv} [env]
+ */
+function quarantineRecoveryThreshold(dataVoid, env = process.env) {
+  const rawMin = Number.parseInt(env.RESILIENCE_QUARANTINE_RECOVERY_MIN ?? '', 10);
+  const min = Number.isFinite(rawMin) && rawMin >= 1 ? rawMin : RECOVERY_MIN_DEFAULT;
+  const rawFrac = Number.parseFloat(env.RESILIENCE_QUARANTINE_RECOVERY_FRACTION ?? '');
+  const frac = Number.isFinite(rawFrac) && rawFrac > 0 && rawFrac <= 1
+    ? rawFrac
+    : RECOVERY_FRACTION_DEFAULT;
+  const expected = dataVoid?.expected_digital_volume ?? 0;
+  return Math.max(min, Math.ceil(expected * frac));
+}
+
+/**
+ * @param {object} dataVoid
+ * @param {Array<object>} digitalQuarantined digital signals in the current batch
+ */
+function digitalVolumeRecovered(dataVoid, digitalQuarantined) {
+  if (dataVoid.digital_darkness === true) return false;
+  if (ELEVATED_OR_ABOVE.has(dataVoid.level ?? 'none')) return false;
+  const volume = dataVoid.actual_digital_volume ?? digitalQuarantined.length;
+  return volume >= quarantineRecoveryThreshold(dataVoid);
+}
+
 /**
  * @param {object|null|undefined} dataVoid
  * @param {Array<object>} signals
@@ -118,7 +154,7 @@ export function resolveScoringPartition(signals, dataVoid, opts = {}) {
   const prior = opts.priorQuarantine ?? null;
 
   if (prior?.active === true) {
-    const volumeRecovered = digitalQuarantined.length > 0 && dataVoid.digital_darkness !== true;
+    const volumeRecovered = digitalVolumeRecovered(dataVoid, digitalQuarantined);
     if (volumeRecovered) {
       return {
         ...normal,
