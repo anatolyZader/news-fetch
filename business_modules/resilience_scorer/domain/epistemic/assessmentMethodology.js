@@ -140,7 +140,6 @@ export function buildAssessmentMethodology({
   reportScopeId = 'national',
   scoringModelManifest = null,
   tuningProposal = null,
-  validationMaturity = null,
   epistemicEnrichment = null,
   extractionTelemetry = null,
 } = {}) {
