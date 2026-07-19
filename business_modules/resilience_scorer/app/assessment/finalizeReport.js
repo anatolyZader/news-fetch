@@ -7,7 +7,6 @@
 import { resolve } from 'node:path';
 
 import { EVENT_TYPES, publishDomainEvent } from '../../../../cross-cut-modules/messaging/index.js';
-import { overallScore } from '../scoringFacade.js';
 import { buildComparisonContext } from '../../domain/services/sourceMixIndex.js';
 import { isRegionalReportScope } from '../../../../cross-cut-modules/geo/reportScopeIds.js';
 import { resilienceReportsDir } from '../../domain/services/paths/outputDirs.js';
@@ -77,7 +76,6 @@ function attachRegionalNationalComparison(assessment, {
   if (comparisonContext?.comparable) {
     assessment.national_comparison = {
       ...base,
-      overall_resilience_score: overallScore(nationalScored),
       comparable: true,
       comparability_index: comparisonContext.comparability_index,
     };
@@ -85,7 +83,6 @@ function attachRegionalNationalComparison(assessment, {
   }
   assessment.national_comparison = {
     ...base,
-    overall_resilience_score: null,
     comparable: false,
     comparability_index: comparisonContext?.comparability_index ?? null,
     structured_share_delta: comparisonContext?.structured_share_delta ?? null,

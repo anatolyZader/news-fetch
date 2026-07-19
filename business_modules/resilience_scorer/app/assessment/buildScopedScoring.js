@@ -1,25 +1,20 @@
 /**
- * Scoped scoring for the assess-signals CLI: core assessment run, per-source
- * score breakdown, and open-evidence scoring wiring.
- * Extracted verbatim from assessSignalsCli.js (behavior-preserving split).
+ * Scoped evidence assessment for the assess-signals CLI: core assessment run
+ * and open-evidence wiring. (Formerly also per-source score breakdown and
+ * historical score series — removed with the scoring engine.)
  */
 
-import { scoreComponents } from '../scoringFacade.js';
 import { isRegionalReportScope } from '../../../../cross-cut-modules/geo/reportScopeIds.js';
 import { resilienceReportsDir } from '../../domain/services/paths/outputDirs.js';
 import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../../cross-cut-modules/geo/israelDistricts.js';
-import {
-  loadHistoricalScores,
-  loadHistoricalSignalDays,
-} from '../../infrastructure/reportHistoryReader.js';
+import { loadHistoricalSignalDays } from '../../infrastructure/reportHistoryReader.js';
 import { runPostExtractionAssessmentCore } from './assessmentStage.js';
 import {
   buildAssessmentMethodology,
   formatScopeDecisionLogLine,
 } from '../../domain/epistemic/assessmentMethodology.js';
 import { computeDataVoidIndex } from '../../domain/services/dataVoidIndex.js';
-import { runScoringPipeline } from './scoringPipelinePrep.js';
-import { salienceContextFromDataVoid } from '../../domain/epistemic/highSalienceBypass.js';
+import { runScoringPipeline } from './evidencePipelinePrep.js';
 import { isOmissionAuditEnabled } from '../../domain/services/oov/openExtractConfig.js';
 import { verifyOpenEvidenceClaims } from '../../domain/services/signals/openEvidenceVerification.js';
 import { synthesizeOpenEvidenceScoringSignals } from '../../domain/services/signals/openEvidenceScoringSignals.js';
@@ -55,29 +50,6 @@ function logBuildScopedDiagnostics({
   if (scopeLogLine) console.error(scopeLogLine);
 }
 
-function buildScoreBySource({
-  scopedSourceTypesSeen,
-  signalsForScoring,
-  reportScopeId,
-  loadedFiles,
-  salienceContext,
-}) {
-  const scoreBySource = {};
-  for (const sourceType of scopedSourceTypesSeen) {
-    const sourceSigs = signalsForScoring.filter((s) => s.source_type === sourceType);
-    const sourceArticles = reportScopeId === ISRAEL_NATIONAL_DISTRICT_ID
-      ? loadedFiles
-        .filter((f) => f.sourceType === sourceType)
-        .reduce((sum, f) => sum + (f.data.total_articles ?? 0), 0)
-      : Math.max(new Set(sourceSigs.map((s) => s.article_url || (s.article_index ?? null)).filter((v) => v != null)).size, 1);
-    scoreBySource[sourceType] = scoreComponents(sourceSigs, {
-      totalArticles: sourceArticles,
-      salienceContext,
-    });
-  }
-  return scoreBySource;
-}
-
 export async function buildScopedScoring(targetDate, days, allSignals, totalArticles, reportScopeId, reportScope, loadedFiles, openObservations = [], routingOpts = {}) {
   const nationalSignals = allSignals;
   const nationalHistoricalDays = isRegionalReportScope(reportScopeId)
@@ -95,11 +67,6 @@ export async function buildScopedScoring(targetDate, days, allSignals, totalArti
     console.error(`  → Open observations loaded: ${routedOpenObservations.length} (pipeline parallel extract)`);
   }
 
-  const historicalScores = loadHistoricalScores(targetDate, resilienceReportsDir(), 14, reportScopeId);
-  if (Object.keys(historicalScores).length > 0) {
-    console.error(`  Loaded historical score series for ${Object.keys(historicalScores).length} components`);
-  }
-
   const nationalDataVoid = isRegionalReportScope(reportScopeId)
     ? computeDataVoidIndex(nationalSignals, nationalHistoricalDays, { reportScope: ISRAEL_NATIONAL_DISTRICT_ID })
     : null;
@@ -112,7 +79,6 @@ export async function buildScopedScoring(targetDate, days, allSignals, totalArti
       reportDate: targetDate,
       totalArticles,
       reportsDir: resilienceReportsDir(),
-      historicalScores,
       onUsage: routingOpts.onUsage,
       retrievalService: routingOpts.retrievalService ?? null,
       sourceArchive: routingOpts.sourceArchive ?? null,
@@ -173,22 +139,10 @@ export async function buildScopedScoring(targetDate, days, allSignals, totalArti
     scopeLogLine,
   });
 
-  let nationalSalienceContext = salienceContextFromDataVoid(dataVoid);
-  const nationalScored = scoreComponents(nationalSignals, { totalArticles, salienceContext: nationalSalienceContext });
-
-  const scopedSourceTypesSeen = new Set(signalsForScoring.map((s) => s.source_type).filter(Boolean));
-  const scoreBySource = buildScoreBySource({
-    scopedSourceTypesSeen,
-    signalsForScoring,
-    reportScopeId,
-    loadedFiles,
-    salienceContext,
-  });
-
   return {
     assessment,
     nationalSignals,
-    nationalScored,
+    nationalScored: null,
     nationalDataVoid,
     scopedSignals,
     investigationSignals,
@@ -197,7 +151,7 @@ export async function buildScopedScoring(targetDate, days, allSignals, totalArti
     macroSignals,
     scopedTotalArticles,
     scoredFull,
-    scoreBySource,
+    scoreBySource: null,
     dataVoid,
     osintChannelQuarantine: investigationPrep.osintChannelQuarantine,
     oovBurst: investigationPrep.oovBurst,

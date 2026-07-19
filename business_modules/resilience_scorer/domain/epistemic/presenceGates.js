@@ -11,7 +11,7 @@ import { SIGNAL_TO_COMPONENTS } from '../services/signals/signalRouter.js';
 
 export const PRESENCE_GATE_VERSION = '2026-05-v1';
 
-const INTENSITY_RANK = { low: 0, moderate: 1, severe: 2 };
+const INTENSITY_RANK = { light: 0, moderate: 1, severe: 2 };
 
 /** @type {Array<{ id: string, signalTypes: string[], componentIds: string[], minIntensity?: string }>} */
 export const PRESENCE_GATE_RULES = [
