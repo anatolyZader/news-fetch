@@ -6,7 +6,7 @@ import {
   MACRO_NATIONAL_TERMS,
   SIGNAL_PROVENANCE,
 } from '../signals/evidenceEligibility.js';
-import { SIGNAL_TO_COMPONENTS } from '../signals/behaviorSignals.js';
+import { SIGNAL_TO_COMPONENTS } from '../signals/signalRouter.js';
 import { scopeDecisionForSignal } from '../signals/regionSignalFilter.js';
 import { isExcludedNationalContextSignalType } from '../signals/signalTypeHygiene.js';
 

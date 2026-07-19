@@ -4,11 +4,8 @@
  */
 
 import { createHash } from 'node:crypto';
-import {
-  SIGNAL_TO_COMPONENTS,
-  SIGNAL_TYPES,
-  EQUITY_RELEVANT_TYPES,
-} from '../services/signals/behaviorSignals.js';
+import { SIGNAL_TO_COMPONENTS, SIGNAL_TYPES } from '../services/signals/signalRouter.js';
+import { EQUITY_RELEVANT_TYPES } from '../services/signals/signalInstanceSchema.js';
 import { extractionTelemetryForOperator } from '../services/pipelineStageTelemetry.js';
 import { summarizeGeoQuality } from '../../../../cross-cut-modules/geo/signalGeoSummary.js';
 import {
@@ -17,10 +14,16 @@ import {
 import { isRegionalReportScope, normalizeReportScopeId } from '../../../../cross-cut-modules/geo/reportScopeIds.js';
 import { DEFAULT_NORTH_SOURCE_TYPES } from '../services/signals/signalDistrictId.js';
 
-export const SCORING_MODEL_VERSION = 'v6';
+export const SCORING_MODEL_VERSION = 'v7';
 
 /** Human-maintained; bump SCORING_MODEL_VERSION when SIGNAL_TO_COMPONENTS changes materially. */
 export const SCORING_MODEL_CHANGELOG = [
+  {
+    version: 'v7',
+    date: '2026-07-19',
+    summary:
+      'min-math: numeric scoring engine removed (mass/caps/CI/EWMA/calibration). Components carry count-based evidence bands (sufficiency/balance/concentration) plus presence-gate and critical-signal flags; reports are narrative-first with no 1–10 scores. SIGNAL_TO_COMPONENTS routing unchanged.',
+  },
   {
     version: 'v6',
     date: '2026-07-13',
@@ -37,7 +40,7 @@ export const SCORING_MODEL_CHANGELOG = [
     version: 'v3',
     date: '2026-03-01',
     summary:
-      'Author-set SIGNAL_TO_COMPONENTS routing; evidence sufficiency/balance derive from signal counts and source diversity. No numeric scoring model.',
+      'Author-set SIGNAL_TO_COMPONENTS and heuristic COMPONENT_TUNING (tanhK/certM). Not ML-fitted on crisis outcomes.',
   },
 ];
 

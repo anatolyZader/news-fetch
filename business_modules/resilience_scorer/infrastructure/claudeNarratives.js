@@ -1,7 +1,7 @@
 import { SONNET_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
-import { summarizeConfidence } from '../domain/services/signals/behaviorSignals.js';
+import { summarizeConfidence } from '../domain/services/signals/confidenceLabels.js';
 import {
   buildSignalRefRegistry,
   formatCoOccurrenceForPrompt,
@@ -134,7 +134,7 @@ function priorComponentTrendTags(c) {
  * Step 2: Generate component narratives.
  * Scoring is already done by code. Opus writes behavioral narratives only.
  *
- * @param {Object} scoredComponents  Output of scoreComponents() from behaviorSignals.js
+ * @param {Object} scoredComponents  Evidence components (buildComponentEvidence adapter output)
  * @param {Array}  allSignals        All extracted signals
  * @param {string} date              YYYY-MM-DD
  * @param {number} totalArticles

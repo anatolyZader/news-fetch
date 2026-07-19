@@ -7,8 +7,6 @@ import {
   SIGNAL_TYPES,
   SIGNAL_TO_COMPONENTS,
   SIGNAL_ALIASES,
-  DEFAULT_SCORING_PRIORS,
-  getScoringPriors,
   canonicalizeSignalType,
   validateSignalCatalog,
   assertValidSignalCatalog,
@@ -138,14 +136,6 @@ describe('signalCatalog v6', () => {
     }
   });
 
-  it('getScoringPriors merges catalog overrides with defaults', () => {
-    const harm = getScoringPriors('harm_to_population');
-    assert.equal(harm.intensity_floor, 'moderate');
-    assert.ok(harm.expects_quantification);
-    const generic = getScoringPriors('information_clarity');
-    assert.deepEqual(generic.expected_phases, DEFAULT_SCORING_PRIORS.expected_phases);
-  });
-
   it('validateSignalCatalog (taxonomy) reports no errors or warnings and assert does not throw', () => {
     assert.deepEqual(validateSignalCatalog(), { errors: [], warnings: [] });
     assert.doesNotThrow(() => assertValidSignalCatalog());
@@ -196,14 +186,6 @@ describe('signalCatalog v6', () => {
     }
   });
 
-  it('getScoringPriors returns cloned arrays that cannot mutate defaults', () => {
-    const priors = getScoringPriors('information_clarity');
-    priors.allowed_intensities.push('invalid');
-    priors.expected_phases.push('invalid');
-    assert.deepEqual(DEFAULT_SCORING_PRIORS.allowed_intensities, ['light', 'moderate', 'severe']);
-    assert.deepEqual(DEFAULT_SCORING_PRIORS.expected_phases, ['anticipation', 'response', 'recovery']);
-  });
-
   it('routing fixes: compliance leadership spillover and harm primary-only', () => {
     assert.equal(SIGNAL_TO_COMPONENTS.compliance_follow_instructions.leadership, 0.3);
     assert.equal(SIGNAL_TO_COMPONENTS.non_compliance_ignore_guidelines.leadership, -0.3);
@@ -229,7 +211,6 @@ describe('signalCatalog v8', () => {
     assert.equal(accessed.mirror, 'wellbeing_support_gap');
     assert.equal(SIGNAL_TO_COMPONENTS.wellbeing_support_gap.wellbeing_at_risk, -0.8);
     assert.equal(SIGNAL_TO_COMPONENTS.wellbeing_support_gap.community_capital, -0.3);
-    assert.equal(getScoringPriors('wellbeing_support_gap').time_horizon, 'cumulative');
   });
 
   it('restricts resilience_narrative_* to collective self-assessment via disambiguation', () => {
@@ -263,11 +244,6 @@ describe('signalCatalog v8', () => {
     // New civil-order type with routing and priors.
     assert.ok(SIGNAL_CATALOG.find((s) => s.type === 'public_order_breakdown'));
     assert.equal(SIGNAL_TO_COMPONENTS.public_order_breakdown.community_capital, -0.6);
-    assert.equal(getScoringPriors('public_order_breakdown').temporal_half_life_days, 21);
-    // Decay priors for episodic high-frequency types.
-    assert.equal(getScoringPriors('service_disruption').temporal_half_life_days, 14);
-    assert.equal(getScoringPriors('compliance_enter_shelter').temporal_half_life_days, 14);
-    assert.equal(getScoringPriors('information_actionable_effective').temporal_half_life_days, 21);
   });
 
   it('epoch 2026-07-15c mirror pairs are reciprocal', () => {

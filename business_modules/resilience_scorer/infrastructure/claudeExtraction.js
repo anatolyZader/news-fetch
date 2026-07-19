@@ -980,7 +980,7 @@ async function dedupeSignalsBySemanticEvidence(signals, { contentKind = 'news' }
 
 /**
  * Step 1: Extract behavioral signals from articles.
- * Signals use a closed vocabulary; their mapping to components is done by code in behaviorSignals.js.
+ * Signals use a closed vocabulary; their mapping to components is done by code in signalRouting.js.
  *
  * @param {Array} articles   Flat array from loadMdFiles()
  * @returns {Array}          Signal objects: { article_index, article_url, signal_type, evidence_class, scope_level, confidence, evidence }

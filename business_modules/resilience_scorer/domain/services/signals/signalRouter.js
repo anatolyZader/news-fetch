@@ -21,11 +21,6 @@ export {
   validateSignalRouting,
   assertValidSignalRouting,
 } from './signalRouting.js';
-export {
-  DEFAULT_SCORING_PRIORS,
-  SCORING_PRIORS_BY_TYPE,
-  getScoringPriors,
-} from './scoringPriors.js';
 
 import { SIGNAL_TO_COMPONENTS } from './signalRouting.js';
 import { canonicalizeSignalType } from '../../contracts/signalCatalog.js';

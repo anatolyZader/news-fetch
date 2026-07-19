@@ -15,12 +15,10 @@
  */
 import {
   SIGNAL_CATALOG,
-  SIGNAL_TYPES,
   SIGNAL_ALIASES,
   canonicalizeSignalType,
 } from '../../contracts/signalCatalog.js';
 import { COMPONENT_IDS } from '../../contracts/componentIds.js';
-import { SCORING_PRIORS_BY_TYPE } from './scoringPriors.js';
 
 export const SIGNAL_TO_COMPONENTS = {
   accountability_demand_constructive: { leadership: +0.7, information_communication: +0.3 },
@@ -242,7 +240,6 @@ export function getRoutingRole(signalType, componentId) {
 }
 
 const MAX_ROUTING_WEIGHT = 1.5;
-const INTENSITY_LEVEL_NAMES = new Set(['light', 'moderate', 'severe']);
 const CATALOG_BY_TYPE = Object.fromEntries(SIGNAL_CATALOG.map((s) => [s.type, s]));
 
 function checkCatalogEntryPolarity(entry, mapping, warnings) {
@@ -298,18 +295,6 @@ function checkRoutingRoles(errors) {
   }
 }
 
-function checkScoringPriors(errors, warnings) {
-  const types = new Set(SIGNAL_TYPES);
-  for (const [type, priors] of Object.entries(SCORING_PRIORS_BY_TYPE)) {
-    if (!types.has(type)) errors.push(`scoring-priors: unknown signal type: ${type}`);
-    for (const lvl of priors?.allowed_intensities ?? []) {
-      if (!INTENSITY_LEVEL_NAMES.has(lvl)) {
-        warnings.push(`scoring-priors: ${type}: invalid allowed_intensity ${lvl}`);
-      }
-    }
-  }
-}
-
 /**
  * Routing ↔ catalog coherence check (scoring policy side).
  * Errors are contract violations (CI must fail); warnings are advisory.
@@ -320,7 +305,6 @@ export function validateSignalRouting() {
   const warnings = [];
   const componentIds = new Set(COMPONENT_IDS);
   checkRoutingRoles(errors);
-  checkScoringPriors(errors, warnings);
   for (const alias of Object.keys(SIGNAL_ALIASES)) {
     if (SIGNAL_TO_COMPONENTS[alias]) errors.push(`alias must not have a component mapping: ${alias}`);
   }

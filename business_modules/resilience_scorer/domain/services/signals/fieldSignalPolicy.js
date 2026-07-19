@@ -2,13 +2,6 @@
  * Optional structured metadata for field-anchor signals.
  */
 
-export const FIELD_PROVENANCE_FIELDS = [
-  'officer_id',
-  'visit_locality',
-  'visit_timestamp',
-  'connectivity_status_at_source',
-];
-
 const FIELD_SOURCE_TYPES = new Set([
   'field',
   'visits', // canonical assess-time alias of 'field' (see visitsSourceType.js)
@@ -18,39 +11,8 @@ const FIELD_SOURCE_TYPES = new Set([
   'naftali',
 ]);
 
-/**
- * @param {object} signal
- * @returns {boolean}
- */
-export function isFieldFamilySource(signal) {
+function isFieldFamilySource(signal) {
   return FIELD_SOURCE_TYPES.has(signal?.source_type);
-}
-
-/**
- * @param {object} signal
- * @returns {boolean}
- */
-export function hasFieldGeoBinding(signal) {
-  const fp = signal?.field_provenance;
-  if (fp?.visit_locality) return true;
-  if (fp?.officer_id) return true;
-  if (signal?.structured?.observation?.localityKey || signal?.localityKey) return true;
-  const g = signal?.geo;
-  return g?.kind === 'resolved';
-}
-
-/**
- * Apply RESILIENCE_FIELD_GEO_DISCOUNT when field signal lacks geo binding.
- * @param {object} signal
- * @param {number} contribution
- * @returns {number}
- */
-export function applyFieldGeoDiscount(signal, contribution) {
-  if (!isFieldFamilySource(signal)) return contribution;
-  if (hasFieldGeoBinding(signal)) return contribution;
-  const raw = Number.parseFloat(process.env.RESILIENCE_FIELD_GEO_DISCOUNT ?? '0.5');
-  const discount = Number.isFinite(raw) && raw > 0 && raw <= 1 ? raw : 0.5;
-  return contribution * discount;
 }
 
 /**

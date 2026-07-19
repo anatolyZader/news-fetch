@@ -114,25 +114,6 @@ export function applySignalGamingPolicy(signals, env = process.env) {
   return out;
 }
 
-/**
- * @param {object} signal
- * @returns {number}
- */
-export function gamingContributionMultiplier(signal) {
-  if (signal?.gaming_suspect === true) return 0;
-  if (signal?.grounding_tier === GROUNDING_TIER.rejected) return 0;
-  return 1;
-}
 
-/**
- * @param {object} signal
- * @returns {boolean}
- */
-export function fieldProvenanceComplete(signal) {
-  const fp = signal?.field_provenance;
-  const localityKey = signal?.structured?.observation?.localityKey
-    ?? signal?.localityKey;
-  return Boolean(fp?.officer_id || localityKey);
-}
 
 export {isDmPhoneAllowed} from '../../contracts/gamingPolicy.js';

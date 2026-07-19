@@ -131,8 +131,3 @@ export const EQUITY_RELEVANT_TYPES = new Set([
   'food_security_stress',
 ]);
 
-export const INTENSITY_WEIGHT = {
-  light: 0.6,
-  moderate: 1,
-  severe: 1.4,
-};

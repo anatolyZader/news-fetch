@@ -4,7 +4,7 @@
  * without an LLM client.
  */
 
-import { SIGNAL_TYPES } from '../domain/services/signals/behaviorSignals.js';
+import { SIGNAL_TYPES } from '../domain/services/signals/signalRouter.js';
 import {
   formatSignalCatalogSubset as formatCatalogSubset,
   getMirrorTypeForSelfCheck,

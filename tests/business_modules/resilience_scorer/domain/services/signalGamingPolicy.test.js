@@ -5,7 +5,6 @@ import {
   applySignalGamingPolicy,
   applyWhatsappSenderCaps,
   isDmPhoneAllowed,
-  gamingContributionMultiplier,
 } from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalGamingPolicy.js';
 
 describe('signalGamingPolicy', () => {
@@ -31,7 +30,6 @@ describe('signalGamingPolicy', () => {
     }));
     const out = applyWhatsappSenderCaps(signals);
     assert.equal(out[2].gaming_suspect, true);
-    assert.equal(gamingContributionMultiplier(out[2]), 0);
     delete process.env.RESILIENCE_WHATSAPP_MAX_SIGNALS_PER_SENDER;
   });
 

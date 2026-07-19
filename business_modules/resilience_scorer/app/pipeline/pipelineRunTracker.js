@@ -1,4 +1,4 @@
-import { CATALOG_VERSION } from '../../domain/services/signals/behaviorSignals.js';
+import { CATALOG_VERSION } from '../../domain/services/signals/signalRouter.js';
 import { GEO_POLICY_VERSION } from '../../../../business_modules/geo/index.js';
 
 /**

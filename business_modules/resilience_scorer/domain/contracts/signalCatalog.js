@@ -3,7 +3,7 @@
  * canonicalize. Scoring policy (component routing weights, routing roles,
  * scoring priors, polarity-override whitelist) is owned by the
  * resilience_scorer business module (domain/services/signals/signalRouting.js,
- * scoringPriors.js, signalInstanceSchema.js).
+ * signalInstanceSchema.js).
  *
  * Every field is load-bearing for a specific downstream consumer — see the
  * SignalCatalogEntry typedef below before adding/removing fields.

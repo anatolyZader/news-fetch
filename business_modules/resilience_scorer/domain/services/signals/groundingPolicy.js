@@ -10,7 +10,6 @@ import { CRITICAL_BYPASS_SIGNAL_TYPES } from '../../epistemic/highSalienceBypass
 
 
 
-const DEFAULT_WEAK_WEIGHT = 0.35;
 
 /** Minimum entailment/containment score per evidence type (LLM and embedding verifiers). */
 export const ENTAILMENT_THRESHOLDS = {
@@ -34,11 +33,6 @@ export function isGroundingTieredVerifyEnabled() {
   return process.env.RESILIENCE_GROUNDING_TIERED_VERIFY !== '0';
 }
 
-export function weakGroundingWeight() {
-  const w = Number.parseFloat(process.env.RESILIENCE_GROUNDING_WEAK_WEIGHT ?? String(DEFAULT_WEAK_WEIGHT));
-  return Number.isFinite(w) ? Math.min(1, Math.max(0, w)) : DEFAULT_WEAK_WEIGHT;
-}
-
 /**
  * @param {object} signal
  * @returns {boolean}
@@ -48,23 +42,6 @@ export function isCriticalForGrounding(signal) {
   return CRITICAL_BYPASS_SIGNAL_TYPES.has(type);
 }
 
-/**
- * @param {string | undefined | null} tier
- * @returns {number}
- */
-export function groundingWeightMultiplier(tier) {
-  if (!isGroundingTieredVerifyEnabled()) return 1;
-  switch (tier) {
-    case GROUNDING_TIER.grounded:
-      return 1;
-    case GROUNDING_TIER.weak:
-      return weakGroundingWeight();
-    case GROUNDING_TIER.unverified_critical:
-      return 0;
-    default:
-      return 1;
-  }
-}
 
 /**
  * @param {object} signal

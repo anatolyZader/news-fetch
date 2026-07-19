@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 
 import {
   GROUNDING_TIER,
-  groundingWeightMultiplier,
   isCriticalForGrounding,
   assignGroundingFields,
   groundingMetaFromEntailmentFail,
@@ -11,19 +10,6 @@ import {
 } from '../../../../../business_modules/resilience_scorer/domain/services/signals/groundingPolicy.js';
 
 describe('groundingPolicy', () => {
-  it('Tier A has full weight', () => {
-    assert.equal(groundingWeightMultiplier(GROUNDING_TIER.grounded), 1);
-  });
-
-  it('Tier B has reduced weight', () => {
-    const w = groundingWeightMultiplier(GROUNDING_TIER.weak);
-    assert.ok(w > 0 && w < 1);
-  });
-
-  it('Tier C has zero weight (Option A)', () => {
-    assert.equal(groundingWeightMultiplier(GROUNDING_TIER.unverified_critical), 0);
-  });
-
   it('detects critical signal types', () => {
     assert.equal(isCriticalForGrounding({ signal_type: 'harm_to_population' }), true);
     assert.equal(isCriticalForGrounding({ signal_type: 'fear_expression' }), false);
