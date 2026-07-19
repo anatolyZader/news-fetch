@@ -23,7 +23,7 @@ Read this before any file under `business_modules/resilience_scorer/` or `specia
 
 ## Ports (`domain/ports/`)
 
-`IResilienceLlmPort`, `IReportReadPort`, `IGeoEnrichmentPort`, `ISignalBundlePort`, `IConnectivityProbePort`, `IPipelineRunStore`, `IReportScopePolicy`, `IReportWritePort`, `IReportDisplayPort`
+`IResilienceLlmPort`, `IReportReadPort`, `IGeoEnrichmentPort`, `ISignalBundlePort`, `IConnectivityProbePort`, `IPipelineRunStore`, `IReportScopePolicy`, `IReportDisplayPort`
 
 ## Layer conventions (do not "fix")
 
