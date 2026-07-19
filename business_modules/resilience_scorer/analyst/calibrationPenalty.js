@@ -6,12 +6,14 @@
 import { overallScore } from './overallScore.js';
 // Trust math source of truth lives in domain/epistemic (importable from both
 // sides of the analyst quarantine — domain must not import analyst/).
+export {
+  computeCalibrationTrust,
+  buildCalibrationMethodology,
+} from '../domain/epistemic/calibrationMethodology.js';
 import {
   computeCalibrationTrust,
   buildCalibrationMethodology,
 } from '../domain/epistemic/calibrationMethodology.js';
-
-export { computeCalibrationTrust, buildCalibrationMethodology };
 
 const SCORE_NEUTRAL = 5.5;
 

@@ -20,9 +20,8 @@ import { createPipelineRunTracker } from './pipeline/pipelineRunTracker.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
+export { MAX_BODY_CHARS } from './extraction/contentBatchFromMdArticles.js';
 import { MAX_BODY_CHARS } from './extraction/contentBatchFromMdArticles.js';
-
-export { MAX_BODY_CHARS };
 
 function resolvePipelineRunStore(options) {
   if (options.pipelineRunStore !== undefined) {

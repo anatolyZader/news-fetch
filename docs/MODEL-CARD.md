@@ -73,7 +73,7 @@ Flag: `RESILIENCE_DATA_VOID=0` disables void index.
 ## Temporal analysis
 
 - **Acute:** 14-day EWMA + z-score (`delta_significance`)
-- **Chronic:** peace-time anchor (`business_modules/resilience_scorer/config/peaceTimeAnchors.json`) + `z_score_chronic`, `erosion_index`, `exhaustion_days`
+- **Chronic:** peace-time anchor (`business_modules/resilience_scorer/domain/epistemic/peaceTimeAnchors.js`) + `z_score_chronic`, `erosion_index`, `exhaustion_days`
 
 Flag: `RESILIENCE_DUAL_BASELINE=0` disables chronic metrics.
 

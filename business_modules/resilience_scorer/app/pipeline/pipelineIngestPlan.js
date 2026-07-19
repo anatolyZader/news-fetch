@@ -4,7 +4,7 @@
  */
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { buildTargetDates, loadPipelineConfig } from '../assessment/assessSignalsHelpers.js';
+import { buildTargetDates } from '../assessment/assessSignalsHelpers.js';
 import {
   isOpenExtractParallelEnabled,
   isOpenPipelineLegacyEnabled,

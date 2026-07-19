@@ -5,8 +5,13 @@
  * it without an infrastructure → app dependency.
  */
 
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+
+import { resolveStateStore } from '../../../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
+
+function getStore(deps = {}) {
+  return resolveStateStore(deps);
+}
 
 import {
   INVALID_SIGNAL_BUNDLE_DATES,
@@ -72,20 +77,21 @@ export function discoverSignalBundles({
   socialSignalsDir,
   enabledSources: _enabledSources,
 }) {
-  const signalsRootExists = existsSync(signalsDir);
-  const fieldSignalsRootExists = existsSync(fieldSignalsDir);
-  const socialSignalsRootExists = existsSync(socialSignalsDir);
+  const store = getStore();
+  const signalsRootExists = store.existsSync(signalsDir);
+  const fieldSignalsRootExists = store.existsSync(fieldSignalsDir);
+  const socialSignalsRootExists = store.existsSync(socialSignalsDir);
 
   const rootFiles = signalsRootExists
-    ? readdirSync(signalsDir).filter((f) => f.startsWith('signals-') && f.endsWith('.json'))
+    ? store.readdirSync(signalsDir).filter((f) => f.startsWith('signals-') && f.endsWith('.json'))
     : [];
 
   const fieldDirFiles = fieldSignalsRootExists
-    ? readdirSync(fieldSignalsDir).filter((f) => f.startsWith('signals-') && f.endsWith('.json'))
+    ? store.readdirSync(fieldSignalsDir).filter((f) => f.startsWith('signals-') && f.endsWith('.json'))
     : [];
 
   const socialDirFiles = socialSignalsRootExists
-    ? readdirSync(socialSignalsDir).filter((f) => f.startsWith('signals-social-') && f.endsWith('.json'))
+    ? store.readdirSync(socialSignalsDir).filter((f) => f.startsWith('signals-social-') && f.endsWith('.json'))
     : [];
 
   const targetDates = buildTargetDates(targetDate, days);
@@ -124,11 +130,12 @@ export function discoverSignalBundles({
 export function loadPipelineConfig(configPath) {
   let enabledSources = null;
   let pipelineConfig = null;
-  if (!existsSync(configPath)) {
+  const store = getStore();
+  if (!store.existsSync(configPath)) {
     return { enabledSources, pipelineConfig };
   }
   try {
-    const cfg = JSON.parse(readFileSync(configPath, 'utf8'));
+    const cfg = JSON.parse(store.readFileSync(configPath, 'utf8'));
     pipelineConfig = cfg;
     enabledSources = new Set(
       Object.entries(cfg.sources ?? {})
@@ -182,7 +189,7 @@ export function loadAssessSignalFiles({
     const recencySet = recencySources[recencyKey] ?? recencySources[sourceType];
     if (recencySet && !recencySet.has(file)) return;
     try {
-      const data = JSON.parse(readFileSync(resolve(baseDir, file), 'utf8'));
+      const data = JSON.parse(getStore().readFileSync(resolve(baseDir, file), 'utf8'));
       const offset = dateOffset(fileDate, targetDate);
       const weight = temporalWeightForOffset(offset);
       loadedFiles.push({ file, sourceType, fileDate, fileDistrictId, weight, data });

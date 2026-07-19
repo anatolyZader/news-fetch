@@ -6,34 +6,43 @@ import { resolveStateStore } from '../../../../cross-cut-modules/persistence/dom
 function getStore(deps = {}) {
   return resolveStateStore(deps);
 }
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const DEFAULT_PATH = resolve(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../config/peaceTimeAnchors.json',
-);
-
-let cached = null;
+// Default peace-time component anchors (1-10). Override via RESILIENCE_PEACE_ANCHORS_PATH
+// or update after the baseline validation phase.
+const DEFAULT_ANCHORS = Object.freeze({
+  national: Object.freeze({
+    narrative: 8,
+    information_communication: 8,
+    lifesaving_behavior: 8,
+    functional_continuity: 8,
+    community_capital: 8,
+    leadership: 8,
+    belonging_solidarity: 8,
+    wellbeing_at_risk: 8,
+  }),
+  north: Object.freeze({
+    narrative: 8,
+    information_communication: 8,
+    lifesaving_behavior: 8,
+    functional_continuity: 8,
+    community_capital: 8,
+    leadership: 8,
+    belonging_solidarity: 8,
+    wellbeing_at_risk: 8,
+  }),
+});
 
 /**
  * @returns {{ national?: Record<string, number>, north?: Record<string, number> }}
  */
-export function loadPeaceTimeAnchors(configPath = process.env.RESILIENCE_PEACE_ANCHORS_PATH ?? DEFAULT_PATH) {
-  if (cached && configPath === DEFAULT_PATH) return cached;
-  if (!getStore().existsSync(configPath)) {
-    const empty = { national: {}, north: {} };
-    if (configPath === DEFAULT_PATH) cached = empty;
-    return empty;
-  }
+export function loadPeaceTimeAnchors(configPath = process.env.RESILIENCE_PEACE_ANCHORS_PATH) {
+  if (!configPath) return DEFAULT_ANCHORS;
+  if (!getStore().existsSync(configPath)) return { national: {}, north: {} };
   try {
     const parsed = JSON.parse(getStore().readFileSync(configPath, 'utf8'));
-    const out = {
+    return {
       national: parsed.national ?? parsed.components ?? {},
       north: parsed.north ?? parsed.north_components ?? {},
     };
-    if (configPath === DEFAULT_PATH) cached = out;
-    return out;
   } catch {
     return { national: {}, north: {} };
   }

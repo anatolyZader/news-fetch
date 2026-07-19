@@ -20,9 +20,8 @@ import {
 } from '../domain/epistemic/massContribution.js';
 
 
+export { COMPONENT_TUNING, DEFAULT_TUNING } from '../domain/epistemic/certaintyTuning.js';
 import { COMPONENT_TUNING, DEFAULT_TUNING } from '../domain/epistemic/certaintyTuning.js';
-
-export { COMPONENT_TUNING, DEFAULT_TUNING };
 
 export const BOOTSTRAP_SAMPLES = 200;
 export const BOOTSTRAP_SEED = 0x9e3779b1;

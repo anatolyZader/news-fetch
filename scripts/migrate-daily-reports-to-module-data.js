@@ -19,7 +19,7 @@ const RULES = [
   { test: /^resilience-report(?:-north)?-.*\.(json|md)$/, target: 'business_modules/resilience_scorer/data/daily_reports' },
   { test: /^oov-capture-.*\.jsonl$/, target: 'business_modules/resilience_scorer/data/oov_captures' },
   { test: /^omission-audit-.*\.json$/, target: 'business_modules/resilience_scorer/data/omission_audits' },
-  { test: /^survey-|^שאלון|survey-question-mapping\.json$/i, target: 'business_modules/resilience_scorer/data/survey' },
+  { test: /^survey-|^שאלון|survey-question-mapping\.json$/i, target: 'business_modules/visits/data/survey' },
   { test: /^assessment-agent-trace-.*\.jsonl$/, target: 'business_modules/specialist_agents/data/traces' },
   { test: /^agent-eval-negative\.jsonl$/, target: 'business_modules/specialist_agents/data/eval' },
   { test: /^epistemic-profile-.*\.json$/, target: 'business_modules/epistemic_features/data/profiles' },
