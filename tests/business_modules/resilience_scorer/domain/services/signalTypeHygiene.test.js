@@ -7,7 +7,7 @@ import {
   shouldDropNonResilienceCasualtySignal,
   isBareHazardTickerEvidence,
   resolveSignalTypeAlias,
-} from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalTypeHygiene.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/routing/signalTypeHygiene.js';
 import {
   applyFieldReportSignalHygiene,
   isTrivialFieldReportEvidence,

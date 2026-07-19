@@ -4,11 +4,11 @@
  * without an LLM client.
  */
 
-import { SIGNAL_TYPES } from '../domain/services/signals/signalRouter.js';
+import { SIGNAL_TYPES } from '../domain/services/signals/routing/signalRouter.js';
 import {
   formatSignalCatalogSubset as formatCatalogSubset,
   getMirrorTypeForSelfCheck,
-} from '../domain/services/signals/signalCatalogPrompt.js';
+} from '../domain/services/signals/routing/signalCatalogPrompt.js';
 
 /**
  * Three grouped passes balance per-pass focus against API cost.

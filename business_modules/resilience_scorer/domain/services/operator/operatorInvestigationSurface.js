@@ -13,13 +13,13 @@ import {
 } from '../../contracts/operatorSurfaceMode.js';
 import { collectComponentSignals } from '../signals/componentSignalGroups.js';
 import { contributorRankKey } from './topContributors.js';
-import { defaultSignalWeights } from '../signals/signalWeights.js';
+import { defaultSignalWeights } from '../signals/routing/signalWeights.js';
 import {
   canonicalizeSignalType,
   getComponentWeight,
   getRoutingRole,
   hasStrongComponentLink,
-} from '../signals/signalRouter.js';
+} from '../signals/routing/signalRouter.js';
 import { SIGNAL_PROVENANCE } from '../signals/evidenceEligibility.js';
 import { buildRefKey } from '../narrativeGrounding/signalRefRegistry.js';
 import { comparePoolItems, inferredPoolRenderMode, routingLabelSuffix } from './evidenceFormatting.js';

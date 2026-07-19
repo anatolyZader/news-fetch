@@ -13,7 +13,7 @@ export {
   canonicalizeSignalType,
   validateSignalCatalog,
   assertValidSignalCatalog,
-} from '../../contracts/signalCatalog.js';
+} from '../../../contracts/signalCatalog.js';
 export {
   SIGNAL_TO_COMPONENTS,
   SIGNAL_ROUTING_ROLES,
@@ -23,7 +23,7 @@ export {
 } from './signalRouting.js';
 
 import { SIGNAL_TO_COMPONENTS } from './signalRouting.js';
-import { canonicalizeSignalType } from '../../contracts/signalCatalog.js';
+import { canonicalizeSignalType } from '../../../contracts/signalCatalog.js';
 
 /**
  * @param {string} signalType

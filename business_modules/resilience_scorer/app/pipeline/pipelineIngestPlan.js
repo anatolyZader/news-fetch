@@ -9,12 +9,12 @@ import {
   isOpenExtractParallelEnabled,
   isOpenPipelineLegacyEnabled,
 } from '../../domain/services/oov/openExtractConfig.js';
-import { shouldReuseInReplay } from '../../domain/services/replayReuseConfig.js';
+import { shouldReuseInReplay } from '../../domain/services/pipeline/replayReuseConfig.js';
 import {
   resolveIngestPolicy,
   shouldReuseBundle,
   wantsAlwaysReextractPbo,
-} from '../../domain/services/pipelineIngestPolicy.js';
+} from '../../domain/services/pipeline/pipelineIngestPolicy.js';
 import { normalizePipelineSourceKey } from '../../domain/services/signals/visitsSourceType.js';
 import { isBundleFreshForRun } from '../../../social_media/index.js';
 import {

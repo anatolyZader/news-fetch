@@ -25,7 +25,7 @@ import { attachDecisionBrief } from './attachDecisionBrief.js';
 import {
   summarizeStageEvents,
   readCostLogStagesForDate,
-} from '../../domain/services/pipelineStageTelemetry.js';
+} from '../../domain/services/pipeline/pipelineStageTelemetry.js';
 import { createDefaultPboReportReviewService } from '../../../pbo_report_review/index.js';
 import { resolveSqlitePath } from '../../../../cross-cut-modules/config/sqlitePath.js';
 import { REPO_ROOT, loadPriorReports } from './assessSignalsDeps.js';

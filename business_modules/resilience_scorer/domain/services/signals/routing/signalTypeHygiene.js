@@ -1,10 +1,10 @@
 /**
  * Cross-source post-extract signal_type corrections (news, radio, field, PBO).
  */
-import { canonicalizeSignalType } from '../../contracts/signalCatalog.js';
-import { splitBundledHarmInfrastructure, testAny } from './harmInfrastructureSplit.js';
+import { canonicalizeSignalType } from '../../../contracts/signalCatalog.js';
+import { splitBundledHarmInfrastructure, testAny } from '../harmInfrastructureSplit.js';
 
-export { SIGNAL_ALIASES as FIELD_REPORT_SIGNAL_TYPE_ALIASES } from '../../contracts/signalCatalog.js';
+export { SIGNAL_ALIASES as FIELD_REPORT_SIGNAL_TYPE_ALIASES } from '../../../contracts/signalCatalog.js';
 
 /**
  * @param {string | null | undefined} type

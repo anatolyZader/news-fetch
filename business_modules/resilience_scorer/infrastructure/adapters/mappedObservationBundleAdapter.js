@@ -7,7 +7,7 @@ import {
   dateOffset,
   temporalWeightForOffset,
 } from '../../domain/services/paths/assessmentWindow.js';
-import { mapObservationsToSignals } from '../../domain/services/signals/catalogMappingService.js';
+import { mapObservationsToSignals } from '../../domain/services/signals/routing/catalogMappingService.js';
 
 /**
  * @param {{

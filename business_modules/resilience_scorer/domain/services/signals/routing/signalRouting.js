@@ -17,8 +17,8 @@ import {
   SIGNAL_CATALOG,
   SIGNAL_ALIASES,
   canonicalizeSignalType,
-} from '../../contracts/signalCatalog.js';
-import { COMPONENT_IDS } from '../../contracts/componentIds.js';
+} from '../../../contracts/signalCatalog.js';
+import { COMPONENT_IDS } from '../../../contracts/componentIds.js';
 
 export const SIGNAL_TO_COMPONENTS = {
   accountability_demand_constructive: { leadership: +0.7, information_communication: +0.3 },

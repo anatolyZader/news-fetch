@@ -1,9 +1,9 @@
 /**
  * Named presets for /8comp* slash commands and cron.
  */
-import { resolveIngestPolicy } from '../../domain/services/pipelineIngestPolicy.js';
+import { resolveIngestPolicy } from '../../domain/services/pipeline/pipelineIngestPolicy.js';
 
-/** @typedef {{ days: number, scope: string, alwaysReextract?: boolean, ingestPolicy?: import('../../domain/services/pipelineIngestPolicy.js').IngestPolicy|null }} PipelinePreset */
+/** @typedef {{ days: number, scope: string, alwaysReextract?: boolean, ingestPolicy?: import('../../domain/services/pipeline/pipelineIngestPolicy.js').IngestPolicy|null }} PipelinePreset */
 
 /** @type {Record<string, PipelinePreset>} */
 export const PIPELINE_PRESETS = Object.freeze({

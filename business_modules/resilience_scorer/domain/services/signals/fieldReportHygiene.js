@@ -1,7 +1,7 @@
 /**
  * Post-extract cleanup for PBO / field-report signals.
  */
-import { rewriteMisclassifiedSignalType } from './signalTypeHygiene.js';
+import { rewriteMisclassifiedSignalType } from './routing/signalTypeHygiene.js';
 
 const TRIVIAL_FIELD_REPORT_EVIDENCE_RE = /^(אין|ללא שינוי|אותו דבר|אותו הדבר|none|n\/a|—|-|\.)$/i;
 

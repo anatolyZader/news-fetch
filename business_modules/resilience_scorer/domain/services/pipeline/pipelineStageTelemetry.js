@@ -28,4 +28,4 @@ export function extractionTelemetryForOperator(blocks) {
   return out;
 }
 
-export {readCostLogStagesForDate, summarizeStageEvents} from '../../../../cross-cut-modules/log/index.js';
+export {readCostLogStagesForDate, summarizeStageEvents} from '../../../../../cross-cut-modules/log/index.js';

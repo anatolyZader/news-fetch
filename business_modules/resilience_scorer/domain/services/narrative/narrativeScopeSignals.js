@@ -6,9 +6,9 @@ import {
   MACRO_NATIONAL_TERMS,
   SIGNAL_PROVENANCE,
 } from '../signals/evidenceEligibility.js';
-import { SIGNAL_TO_COMPONENTS } from '../signals/signalRouter.js';
+import { SIGNAL_TO_COMPONENTS } from '../signals/routing/signalRouter.js';
 import { scopeDecisionForSignal } from '../signals/regionSignalFilter.js';
-import { isExcludedNationalContextSignalType } from '../signals/signalTypeHygiene.js';
+import { isExcludedNationalContextSignalType } from '../signals/routing/signalTypeHygiene.js';
 
 const NATIONAL_PRESS_SOURCE_TYPES = new Set(['news', 'radio']);
 

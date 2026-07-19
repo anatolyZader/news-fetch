@@ -7,7 +7,7 @@ import {
   shouldReuseInReplay,
   preferReuse,
   applyDefaultReplayReuseEnv,
-} from '../../../../../business_modules/resilience_scorer/domain/services/replayReuseConfig.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/pipeline/replayReuseConfig.js';
 
 describe('replayReuseConfig', () => {
   it('maps source types to env keys', () => {

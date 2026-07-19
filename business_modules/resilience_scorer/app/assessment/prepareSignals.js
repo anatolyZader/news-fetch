@@ -11,7 +11,7 @@ import { synthesizeOovScoringSignals } from '../../domain/services/oov/oovScorin
 import {
   applyOsintQuarantineFilter,
   evaluateOsintChannelQuarantine,
-} from '../../domain/services/socialChannelQuarantine.js';
+} from '../../domain/services/dataVoid/socialChannelQuarantine.js';
 import { applySignalGamingPolicy } from '../../domain/services/signals/signalGamingPolicy.js';
 import { resilienceReportsDir, resilienceCapturesDir } from '../../domain/services/paths/outputDirs.js';
 import { loadHistoricalSignalDays } from '../../infrastructure/reportHistoryReader.js';

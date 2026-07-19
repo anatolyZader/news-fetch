@@ -10,7 +10,7 @@ import {
 import {
   formatSignalCatalog,
   formatDisambiguationBlock,
-} from '../domain/services/signals/signalCatalogPrompt.js';
+} from '../domain/services/signals/routing/signalCatalogPrompt.js';
 import { dedupeSignalsWithinBatch } from './signalVerification.js';
 import { embedText, embeddingsEnabled, embeddingModelId } from '../../../cross-cut-modules/vector_index/index.js';
 import {

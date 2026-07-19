@@ -10,7 +10,10 @@ Read this before any file under `business_modules/resilience_scorer/` or `specia
 - `app/resilienceAnalysisService.js` — `runResilienceAssessment`
 - `domain/contracts/componentEvidence.js` — count-based per-component evidence contract (`buildComponentEvidence`)
 - `app/assessment/evidencePipelinePrep.js` — partition → evidence → epistemic gate (successor to the scoring pipeline; return keys kept compatible)
-- `domain/epistemic/` — presence gates, high-salience flags, thin-evidence policy, epistemic profile — all count-based
+- `domain/epistemic/` — presence gates, critical-signal salience, thin-evidence policy, epistemic profile — all count-based
+- `domain/services/signals/routing/` — signal taxonomy routing (signalRouter facade, SIGNAL_TO_COMPONENTS, weights, hygiene, catalog prompt)
+- `domain/services/pipeline/` — ingest policy, stage telemetry, replay/reuse config
+- `domain/services/operator/` — the report surface (single view; "operator" is historical naming, there is no separate redacted view)
 - `input/extract-signals.js`, `input/assess-signals.js` — pipeline CLIs (`app/extraction/extractSignalsCli.js`, `app/assessment/assessSignalsCli.js`)
 - `input/run-pipeline.js` — unified ingest+assess orchestrator CLI (`npm run pipeline:run -- --preset 8comp-3`)
 - `app/pipeline/pipelineOrchestrator.js`, `app/pipeline/pipelineIngestPlan.js` — ingest plan + spawn orchestration

@@ -8,7 +8,7 @@ import {
   summarizeStageEvents,
   readCostLogStagesForDate,
   extractionTelemetryForOperator,
-} from '../../../../../business_modules/resilience_scorer/domain/services/pipelineStageTelemetry.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/pipeline/pipelineStageTelemetry.js';
 
 describe('pipelineStageTelemetry', () => {
   it('summarizeStageEvents aggregates per stage', () => {

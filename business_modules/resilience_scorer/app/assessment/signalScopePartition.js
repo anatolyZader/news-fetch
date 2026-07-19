@@ -21,7 +21,7 @@ import {
   selectRegionalPressContext,
   signalDedupeKey,
 } from '../../domain/services/narrative/narrativeScopeSignals.js';
-import { shouldDropNonResilienceCasualtySignal } from '../../domain/services/signals/signalTypeHygiene.js';
+import { shouldDropNonResilienceCasualtySignal } from '../../domain/services/signals/routing/signalTypeHygiene.js';
 
 /**
  * Remove crime / EMS aggregate casualty noise before scope partition and scoring.

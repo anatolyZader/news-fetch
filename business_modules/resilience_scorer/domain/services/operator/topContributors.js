@@ -4,7 +4,7 @@
  * Count-based ranking (no contribution mass): strong catalog link first, then
  * verified grounding, then evidence reliability class, then severity.
  */
-import { getComponentWeight, hasStrongComponentLink } from '../signals/signalRouter.js';
+import { getComponentWeight, hasStrongComponentLink } from '../signals/routing/signalRouter.js';
 import { GROUNDING_TIER } from '../signals/groundingPolicy.js';
 
 const EVIDENCE_CLASS_RANK = {

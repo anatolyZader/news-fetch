@@ -27,7 +27,7 @@ import {
   applyDefaultReplayReuseEnv,
   isReplayReuseEnabled,
   REPLAY_REUSE_SOURCE_TYPES,
-} from '../../domain/services/replayReuseConfig.js';
+} from '../../domain/services/pipeline/replayReuseConfig.js';
 import {
   readAssessmentReportMeta,
   reportQualityRank,

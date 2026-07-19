@@ -2,7 +2,7 @@
  * Closed-vocabulary signal catalog — the shared extraction TAXONOMY: which signal types exist, how the LLM distinguishes them, and how legacy names
  * canonicalize. Scoring policy (component routing weights, routing roles,
  * scoring priors, polarity-override whitelist) is owned by the
- * resilience_scorer business module (domain/services/signals/signalRouting.js,
+ * resilience_scorer business module (domain/services/signals/routing/signalRouting.js,
  * signalInstanceSchema.js).
  *
  * Every field is load-bearing for a specific downstream consumer — see the
@@ -1735,7 +1735,7 @@ function checkDuplicatesAndAliases(errors) {
 /**
  * Taxonomy coherence check (duplicates, aliases, mirror/related integrity).
  * Routing/scoring coherence is validated by the resilience_scorer module
- * (validateSignalRouting in domain/services/signals/signalRouting.js).
+ * (validateSignalRouting in domain/services/signals/routing/signalRouting.js).
  * @returns {{ errors: string[], warnings: string[] }}
  */
 export function validateSignalCatalog() {

@@ -7,7 +7,7 @@
 
 import { GROUNDING_TIER } from '../services/signals/groundingPolicy.js';
 import { CRITICAL_BYPASS_SIGNAL_TYPES } from './highSalienceBypass.js';
-import { SIGNAL_TO_COMPONENTS } from '../services/signals/signalRouter.js';
+import { SIGNAL_TO_COMPONENTS } from '../services/signals/routing/signalRouter.js';
 
 export const PRESENCE_GATE_VERSION = '2026-05-v1';
 

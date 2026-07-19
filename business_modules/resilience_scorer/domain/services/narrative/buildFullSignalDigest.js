@@ -5,7 +5,7 @@
  */
 import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { collectComponentSignals } from '../signals/componentSignalGroups.js';
-import { defaultSignalWeights } from '../signals/signalWeights.js';
+import { defaultSignalWeights } from '../signals/routing/signalWeights.js';
 import { contributorRankKey } from '../operator/topContributors.js';
 import { signalArticleKey } from '../narrativeGrounding/signalRefRegistry.js';
 

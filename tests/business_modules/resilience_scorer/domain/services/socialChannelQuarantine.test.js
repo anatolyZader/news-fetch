@@ -6,7 +6,7 @@ import {
   applyOsintQuarantineFilter,
   isOsintQuarantineAutoEnabled,
   QUARANTINE_REASON_OSINT,
-} from '../../../../../business_modules/resilience_scorer/domain/services/socialChannelQuarantine.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/dataVoid/socialChannelQuarantine.js';
 
 function osintSignal(sourceType, polarity, type = 'fear_expression') {
   return {

@@ -9,7 +9,7 @@
  */
 import { COMPONENT_IDS } from './componentIds.js';
 import { collectComponentSignals } from '../services/signals/componentSignalGroups.js';
-import { resolveSignalWeights, defaultSignalWeights } from '../services/signals/signalWeights.js';
+import { resolveSignalWeights, defaultSignalWeights } from '../services/signals/routing/signalWeights.js';
 import { evaluatePresenceGates } from '../epistemic/presenceGates.js';
 import { CRITICAL_BYPASS_SIGNAL_TYPES } from '../epistemic/highSalienceBypass.js';
 import { GROUNDING_TIER } from '../services/signals/groundingPolicy.js';

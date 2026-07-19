@@ -13,7 +13,7 @@ import {
   validateSignalRouting,
   assertValidSignalRouting,
   getRoutingRole,
-} from '../../../../../business_modules/resilience_scorer/domain/services/signals/signalRouter.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/routing/signalRouter.js';
 import { COMPONENT_IDS } from '../../../../../business_modules/resilience_scorer/domain/contracts/componentIds.js';
 
 const V6_NEW_TYPES = [

@@ -1,4 +1,4 @@
-import { SIGNAL_TYPES } from '../domain/services/signals/signalRouter.js';
+import { SIGNAL_TYPES } from '../domain/services/signals/routing/signalRouter.js';
 import {
   INTENSITY_LEVELS,
   PHASE_LEVELS,

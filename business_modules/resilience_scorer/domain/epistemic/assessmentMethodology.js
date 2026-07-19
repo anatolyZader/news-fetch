@@ -4,9 +4,9 @@
  */
 
 import { createHash } from 'node:crypto';
-import { SIGNAL_TO_COMPONENTS, SIGNAL_TYPES } from '../services/signals/signalRouter.js';
+import { SIGNAL_TO_COMPONENTS, SIGNAL_TYPES } from '../services/signals/routing/signalRouter.js';
 import { EQUITY_RELEVANT_TYPES } from '../services/signals/signalInstanceSchema.js';
-import { extractionTelemetryForOperator } from '../services/pipelineStageTelemetry.js';
+import { extractionTelemetryForOperator } from '../services/pipeline/pipelineStageTelemetry.js';
 import { summarizeGeoQuality } from '../../../../cross-cut-modules/geo/signalGeoSummary.js';
 import {
   ISRAEL_REGIONAL_DISTRICT_ORDER,

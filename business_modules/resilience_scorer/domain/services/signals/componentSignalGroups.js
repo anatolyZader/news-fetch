@@ -7,9 +7,9 @@
  * is the sign of that weight, flipped by an instance-level polarity_override
  * when the catalog allows one.
  */
-import { canonicalizeSignalType, getSignalCatalogEntry } from './signalRouter.js';
+import { canonicalizeSignalType, getSignalCatalogEntry } from './routing/signalRouter.js';
 import { POLARITY_OVERRIDE_SIGNAL_TYPES } from './signalInstanceSchema.js';
-import { resolveSignalWeights, defaultSignalWeights } from './signalWeights.js';
+import { resolveSignalWeights, defaultSignalWeights } from './routing/signalWeights.js';
 
 /**
  * Polarity sign for one signal on one component.

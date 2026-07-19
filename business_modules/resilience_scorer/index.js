@@ -99,7 +99,7 @@ export {
   isExcludedNationalContextSignalType,
   isBareHazardTickerEvidence,
   NATIONAL_CONTEXT_EXCLUDED_SIGNAL_TYPES,
-} from './domain/services/signals/signalTypeHygiene.js';
+} from './domain/services/signals/routing/signalTypeHygiene.js';
 export {
   splitBundledHarmInfrastructure,
   splitEvidenceClauses,
@@ -131,7 +131,7 @@ export { buildComponentEvidence } from './domain/contracts/componentEvidence.js'
 export {
   defaultSignalWeights,
   resolveSignalWeights,
-} from './domain/services/signals/signalWeights.js';
+} from './domain/services/signals/routing/signalWeights.js';
 export { applyInvestigationSignalFlags } from './domain/services/signals/investigationSignalFlags.js';
 export { buildNorthClusterNarrativesFromSignals } from './domain/services/narrative/northClusterNarrative.js';
 
@@ -195,7 +195,7 @@ export {
   buildDeterministicNarrativeFromClaims,
   assignOperatorEpistemicRole,
 } from './domain/services/operator/operatorInvestigationSurface.js';
-export { SIGNAL_TO_COMPONENTS } from './domain/services/signals/signalRouter.js';
+export { SIGNAL_TO_COMPONENTS } from './domain/services/signals/routing/signalRouter.js';
 
 export {
   runExtractionStage,
