@@ -109,8 +109,9 @@ describe('scoringPartition', () => {
     assert.equal(r.quarantinedSignals[0].source_type, 'telegram');
   });
 
-  it('prior quarantine skipped when digital volume genuinely recovered', () => {
+  it('prior quarantine skipped when digital volume genuinely recovered (strict mode)', () => {
     process.env.RESILIENCE_SCORING_PARTITION = '1';
+    process.env.RESILIENCE_QUARANTINE_STRICT_RECOVERY = '1';
     const r = resolveScoringPartition([fieldSig, newsSig], {
       level: 'none',
       digital_darkness: false,
@@ -123,10 +124,12 @@ describe('scoringPartition', () => {
     assert.equal(r.partitionApplied, false);
     assert.equal(r.priorQuarantineSkipped, 'volume_recovered');
     assert.equal(r.scoringSignals.length, 2);
+    delete process.env.RESILIENCE_QUARANTINE_STRICT_RECOVERY;
   });
 
-  it('prior quarantine holds when only a trickle of digital signals is present', () => {
+  it('prior quarantine holds when only a trickle of digital signals is present (strict mode)', () => {
     process.env.RESILIENCE_SCORING_PARTITION = '1';
+    process.env.RESILIENCE_QUARANTINE_STRICT_RECOVERY = '1';
     const r = resolveScoringPartition([fieldSig, newsSig], {
       level: 'none',
       digital_darkness: false,
@@ -137,10 +140,12 @@ describe('scoringPartition', () => {
     });
     assert.equal(r.assessmentMode, 'field_anchor_only');
     assert.equal(r.priorQuarantineSkipped ?? null, null);
+    delete process.env.RESILIENCE_QUARANTINE_STRICT_RECOVERY;
   });
 
-  it('prior quarantine holds while void level is still elevated despite volume', () => {
+  it('prior quarantine holds while void level is still elevated despite volume (strict mode)', () => {
     process.env.RESILIENCE_SCORING_PARTITION = '1';
+    process.env.RESILIENCE_QUARANTINE_STRICT_RECOVERY = '1';
     const r = resolveScoringPartition([fieldSig, newsSig], {
       level: 'elevated',
       digital_darkness: false,
@@ -151,10 +156,12 @@ describe('scoringPartition', () => {
     });
     assert.equal(r.assessmentMode, 'field_anchor_only');
     assert.equal(r.priorQuarantineSkipped ?? null, null);
+    delete process.env.RESILIENCE_QUARANTINE_STRICT_RECOVERY;
   });
 
-  it('recovery threshold scales with expected baseline volume', () => {
+  it('recovery threshold scales with expected baseline volume (strict mode)', () => {
     process.env.RESILIENCE_SCORING_PARTITION = '1';
+    process.env.RESILIENCE_QUARANTINE_STRICT_RECOVERY = '1';
     // threshold = max(5, ceil(0.5 * 40)) = 20 → 12 is not enough
     const r = resolveScoringPartition([fieldSig, newsSig], {
       level: 'none',
@@ -166,6 +173,22 @@ describe('scoringPartition', () => {
     });
     assert.equal(r.assessmentMode, 'field_anchor_only');
     assert.equal(r.priorQuarantineSkipped ?? null, null);
+    delete process.env.RESILIENCE_QUARANTINE_STRICT_RECOVERY;
+  });
+
+  it('lenient default: any digital signal lifts prior quarantine (strict mode off)', () => {
+    process.env.RESILIENCE_SCORING_PARTITION = '1';
+    delete process.env.RESILIENCE_QUARANTINE_STRICT_RECOVERY;
+    const r = resolveScoringPartition([fieldSig, newsSig], {
+      level: 'none',
+      digital_darkness: false,
+      actual_digital_volume: 1,
+      expected_digital_volume: 20,
+    }, {
+      priorQuarantine: { active: true, reason: QUARANTINE_REASON.PRIOR_QUARANTINE },
+    });
+    assert.equal(r.assessmentMode, 'normal');
+    assert.equal(r.priorQuarantineSkipped, 'volume_recovered');
   });
 
   it('prior quarantine still partitions when no digital signals present', () => {

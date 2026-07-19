@@ -38,14 +38,24 @@ function hasConnectivityOutage(dataVoid) {
 }
 
 // ── Quarantine recovery threshold ───────────────────────────────────────────
-// A prior same-day quarantine holds until digital volume GENUINELY recovers:
-// at least RESILIENCE_QUARANTINE_RECOVERY_MIN digital signals (default 5) and
-// at least RESILIENCE_QUARANTINE_RECOVERY_FRACTION of the expected baseline
-// volume (default 0.5), with the void index itself subsided below elevated.
-// A single stray Telegram message must not lift the quarantine.
+// Strict mode (RESILIENCE_QUARANTINE_STRICT_RECOVERY=1, currently OFF by
+// default): a prior same-day quarantine holds until digital volume GENUINELY
+// recovers — at least RESILIENCE_QUARANTINE_RECOVERY_MIN digital signals
+// (default 5) and at least RESILIENCE_QUARANTINE_RECOVERY_FRACTION of the
+// expected baseline volume (default 0.5), with the void index itself subsided
+// below elevated. Lenient default: any digital signal with no darkness lifts
+// the quarantine (historical behavior; strict mode parked pending operational
+// experience).
 
 const RECOVERY_MIN_DEFAULT = 5;
 const RECOVERY_FRACTION_DEFAULT = 0.5;
+
+/**
+ * @param {NodeJS.ProcessEnv} [env]
+ */
+export function isStrictQuarantineRecoveryEnabled(env = process.env) {
+  return env.RESILIENCE_QUARANTINE_STRICT_RECOVERY === '1';
+}
 
 /**
  * @param {object} dataVoid
@@ -68,6 +78,9 @@ function quarantineRecoveryThreshold(dataVoid, env = process.env) {
  */
 function digitalVolumeRecovered(dataVoid, digitalQuarantined) {
   if (dataVoid.digital_darkness === true) return false;
+  if (!isStrictQuarantineRecoveryEnabled()) {
+    return digitalQuarantined.length > 0;
+  }
   if (ELEVATED_OR_ABOVE.has(dataVoid.level ?? 'none')) return false;
   const volume = dataVoid.actual_digital_volume ?? digitalQuarantined.length;
   return volume >= quarantineRecoveryThreshold(dataVoid);
