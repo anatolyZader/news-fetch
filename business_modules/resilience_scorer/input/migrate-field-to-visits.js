@@ -90,6 +90,31 @@ function removeLegacy(fromPath) {
   stats.removedLegacy += 1;
 }
 
+/** Rewrite source_type field→visits on each object in an array; returns whether any changed. */
+function rewriteSourceTypeOnItems(items) {
+  if (!Array.isArray(items)) return false;
+  let changed = false;
+  for (const item of items) {
+    if (item && item.source_type === 'field') {
+      item.source_type = 'visits';
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+/** Apply field→visits rewrites on a parsed bundle object; returns whether any field changed. */
+function applyFieldToVisitsRewrites(data) {
+  let changed = false;
+  if (data.source_type === 'field') {
+    data.source_type = 'visits';
+    changed = true;
+  }
+  if (rewriteSourceTypeOnItems(data.signals)) changed = true;
+  if (rewriteSourceTypeOnItems(data.observations)) changed = true;
+  return changed;
+}
+
 function rewriteSourceTypeInJson(filePath) {
   if (!existsSync(filePath) || !filePath.endsWith('.json')) return false;
   let raw;
@@ -107,29 +132,7 @@ function rewriteSourceTypeInJson(filePath) {
     return false;
   }
 
-  let changed = false;
-  if (data.source_type === 'field') {
-    data.source_type = 'visits';
-    changed = true;
-  }
-  if (Array.isArray(data.signals)) {
-    for (const s of data.signals) {
-      if (s && s.source_type === 'field') {
-        s.source_type = 'visits';
-        changed = true;
-      }
-    }
-  }
-  if (Array.isArray(data.observations)) {
-    for (const o of data.observations) {
-      if (o && o.source_type === 'field') {
-        o.source_type = 'visits';
-        changed = true;
-      }
-    }
-  }
-
-  if (!changed) return false;
+  if (!applyFieldToVisitsRewrites(data)) return false;
   if (dryRun) {
     log(`  [dry-run] rewrite source_type in ${filePath}`);
   } else {

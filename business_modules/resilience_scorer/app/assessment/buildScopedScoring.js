@@ -120,7 +120,6 @@ export async function buildScopedScoring(targetDate, days, allSignals, totalArti
     pipelineResult,
     investigationPrep,
     dataVoid,
-    salienceContext,
   } = coreResult;
 
   const metricsSignals = scopedSignals.filter((s) => s?.metricsEligible !== false);
