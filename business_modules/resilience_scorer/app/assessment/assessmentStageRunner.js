@@ -1,7 +1,24 @@
 /**
- * STAGE 2 — assessment stage.
- * Shared post-extraction assessment: scope → investigate → score → narrate → post-metadata.
- * Used by assess-signals CLI and runResilienceAssessment (score before narrate).
+ * Stage 2 — shared post-extraction assessment core (scope → evidence → narrate → metadata).
+ *
+ * **Owns:** signal scoping/partitioning, investigation prep, count-based evidence pipeline,
+ * assessment mode routing (agent vs closed-core vs rich deterministic), and post-assessment
+ * operator surface attachment.
+ *
+ * **Pipeline position:** after extraction (Stage 1) or bundle load; used by `assessSignalsCli`
+ * and `resilienceAnalysisService.runResilienceAssessment`.
+ *
+ * **Inputs:** merged signal list, report date/scope, article counts, optional RAG/LLM ports,
+ * open observations, budget flags.
+ *
+ * **Outputs:** `{ assessment, scopedSignals, scoredFull, pipelineResult, … }` for report writers;
+ * mutates assessment with epistemic overlays, pattern alerts, diagnostics.
+ *
+ * **Does NOT:** extract signals, load bundles from disk, or compute numeric resilience scores.
+ *
+ * **Collaborators:** `evidencePipelinePrep`, `produceAssessment`, `closedCoreNarrate`,
+ * `operatorNarrativePipeline`, `specialist_agents` (via produceAssessment),
+ * `domain/epistemic`, `domain/services/operator`.
  */
 import { scopeAndPartitionSignals } from './signalScopePartition.js';
 import { prepareInvestigationSignals, prepareScoringSignals } from './prepareSignals.js';
@@ -39,6 +56,7 @@ import { countOovCapturesForDate } from '../../domain/services/oov/oovCapture.js
  * @param {object} ctx
  * @param {object} investigationPrep
  */
+/** Copy OOV/open-observation/quarantine flags from investigation prep onto the assessment object. */
 function attachInvestigationContextFlags(assessment, ctx, investigationPrep) {
   assessment.oov_burst = investigationPrep.oovBurst ?? null;
   if (ctx.oovScoringApplied) {
@@ -59,8 +77,11 @@ function attachInvestigationContextFlags(assessment, ctx, investigationPrep) {
 }
 
 /**
- * @param {object} assessment
- * @param {object} ctx
+ * Attach epistemic status, pattern alerts, diagnostics, and operator narrative surface to assessment.
+ *
+ * @param {object} assessment — mutates in place
+ * @param {object} ctx — investigation/scoring context from runPostExtractionAssessmentCore
+ * @returns {void}
  */
 export function applySharedAssessmentPostMetadata(assessment, ctx) {
   const {
@@ -138,6 +159,7 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
   finalizeOperatorNarrativeSurface(assessment);
 }
 
+/** Optional RAG backfill for article corpus before agent/narrative retrieval. */
 async function maybeEnsureRagIndexed({
   skipRagBackfill,
   retrievalService,
@@ -158,6 +180,7 @@ async function maybeEnsureRagIndexed({
   });
 }
 
+/** Throw when default-north fallback share exceeds configured gate (scope attribution quality). */
 function assertDefaultNorthGate(defaultNorthGate, scopedSignals) {
   if (!defaultNorthGate.blocked) {
     if (defaultNorthGate.count > 0 && !defaultNorthGate.blockEnabled) {
@@ -176,8 +199,8 @@ function assertDefaultNorthGate(defaultNorthGate, scopedSignals) {
 }
 
 /**
- * @param {object} ctx
- * @returns {Promise<object>}
+ * Route to closed-core narrate, rich deterministic path, or full assessment agent + operator pipeline.
+ * @returns {Promise<object>} assessment shell with narratives filled when applicable
  */
 async function produceAssessmentForMode(ctx) {
   const {
@@ -274,13 +297,7 @@ async function produceAssessmentForMode(ctx) {
   return assessment;
 }
 
-/**
- * @param {string} reportDate
- * @param {string} reportScopeId
- * @param {object[]} scopedSignals
- * @param {string} reportsDir
- * @returns {object|null}
- */
+/** Run optional omission audit artifact when env flag enabled; returns summary for assessment. */
 function runOmissionAuditIfEnabled(reportDate, reportScopeId, scopedSignals, reportsDir) {
   if (!isOmissionAuditEnabled()) return null;
   const audit = buildAndWriteOmissionAudit({
@@ -297,8 +314,18 @@ function runOmissionAuditIfEnabled(reportDate, reportScopeId, scopedSignals, rep
 }
 
 /**
+ * Shared Stage-2 assessment core after signals are available (extracted or loaded).
+ *
  * @param {object} params
- * @returns {Promise<object>}
+ * @param {object[]} params.allSignals — merged signals for the assessment window
+ * @param {string} params.reportScopeId
+ * @param {string} params.reportDate — YYYY-MM-DD
+ * @param {number} params.totalArticles
+ * @param {Function} [params.onScoreComplete] — called after evidence pipeline
+ * @param {Function} [params.onNarrateComplete] — called after narrative/agent path
+ * @returns {Promise<object>} assessment plus intermediate scoring/scoping artifacts for callers
+ * @throws when scoped evidence is empty or default-north gate blocks
+ * @sideEffects LLM/agent/narrative calls; optional RAG index; mutates signal lists in return value
  */
 export async function runPostExtractionAssessmentCore(params) {
   const {

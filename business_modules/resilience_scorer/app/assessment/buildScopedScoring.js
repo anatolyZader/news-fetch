@@ -8,7 +8,7 @@ import { isRegionalReportScope } from '../../../../cross-cut-modules/geo/reportS
 import { resilienceReportsDir } from '../../domain/services/paths/outputDirs.js';
 import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../../cross-cut-modules/geo/israelDistricts.js';
 import { loadHistoricalSignalDays } from '../../infrastructure/reportHistoryReader.js';
-import { runPostExtractionAssessmentCore } from './assessmentStage.js';
+import { runPostExtractionAssessmentCore } from './assessmentStageRunner.js';
 import {
   buildAssessmentMethodology,
   formatScopeDecisionLogLine,

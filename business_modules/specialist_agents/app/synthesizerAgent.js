@@ -1,5 +1,18 @@
 /**
- * Synthesizer agent — cross-component narrative and attention items.
+ * Synthesizer agent — cross-component narrative, attention items, decision brief.
+ *
+ * **Owns:** LLM or deterministic cross-component synthesis from specialist outputs; attention
+ * item derivation; OOV-aware synthesis checks delegated to caller.
+ *
+ * **Pipeline position:** final agent stage in `assessmentOrchestrator` before v2 assembly.
+ *
+ * **Inputs:** component assessments, epistemic profile, OOV clusters, open observation claims.
+ *
+ * **Outputs:** synthesis fields (`cross_component_synthesis`, `attention_items`, `retrieval_gaps`).
+ *
+ * **Does NOT:** re-run per-component specialists or write report files.
+ *
+ * **Collaborators:** `synthesisPolicy`, `narrativeTemplates`, `buildAttentionItems` (resilience_scorer).
  */
 import {
   createAgentKernel,
@@ -117,6 +130,13 @@ function buildDeterministicSummary(componentAssessments, epistemicProfile, gapCo
   return sentences.join(' ');
 }
 
+/**
+ * Deterministic cross-component summary when LLM synthesis is skipped (budget/policy).
+ *
+ * @param {object[]} componentAssessments
+ * @param {object} epistemicProfile
+ * @returns {{ cross_component_synthesis: string, attention_items: object[], decision_brief_summary: string, retrieval_gaps: string[] }}
+ */
 export function defaultSynthesis(componentAssessments, epistemicProfile) {
   const retrieval_gaps = [...new Set(componentAssessments.flatMap((c) => c.retrieval_gaps ?? []))];
   const summary = buildDeterministicSummary(componentAssessments, epistemicProfile, retrieval_gaps.length);
@@ -129,7 +149,14 @@ export function defaultSynthesis(componentAssessments, epistemicProfile) {
 }
 
 /**
+ * Produce cross-component synthesis via LLM or deterministic fallback.
+ *
  * @param {object} params
+ * @param {object[]} params.componentAssessments
+ * @param {object} params.epistemicProfile
+ * @param {object} [params.partialAssessment=null] — draft v2 for attention item builder
+ * @returns {Promise<object>} synthesis payload with `synthesis_mode` `llm` | `deterministic`
+ * @sideEffects Up to 2 LLM rounds when policy allows; consumes synthesizer budget
  */
 export async function runSynthesizerAgent(params) {
   const {

@@ -1,7 +1,14 @@
 /**
  * Domain-grouped extraction support: catalog subsetting, multipass groupings,
- * self-check prompt construction. Pure helpers so they can be unit-tested
- * without an LLM client.
+ * self-check and residual-capture prompt construction.
+ *
+ * Pipeline position: helpers used by claudeExtraction / extraction batch runners
+ * when RESILIENCE_EXTRACT_MULTIPASS is on. Pure (no LLM client) so unit-testable.
+ *
+ * Owns: DOMAIN_GROUPS / TWO_PASS_GROUPS, multipass mode flags, pass scope
+ * suffixes, self-check prompt, residual observation prompt for zero-signal articles.
+ *
+ * Does NOT: call the Anthropic API or persist artifacts — callers do that.
  */
 
 import { SIGNAL_TYPES } from '../domain/services/signals/routing/signalRouter.js';
@@ -20,6 +27,7 @@ export const DOMAIN_GROUPS = Object.freeze({
   C: ['social', 'narrative', 'resources', 'wellbeing', 'memory', 'hostage'],
 });
 
+/** Human labels for DOMAIN_GROUPS keys (inserted into pass prompts). */
 export const DOMAIN_GROUP_LABELS = Object.freeze({
   A: 'Protective Behavior (compliance + risk + preparedness + environmental)',
   B: 'Institutional Response (information + continuity + leadership + adaptation + education + trust + cyber + diaspora)',
@@ -39,8 +47,10 @@ export function getMultipassMode(env = process.env) {
 }
 
 /**
- * Returns whether multipass extraction is enabled.
+ * Whether multipass extraction is enabled.
  * Default: ON (3-pass). Set RESILIENCE_EXTRACT_MULTIPASS=0 for single-pass.
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {boolean}
  */
 export function isMultipassEnabled(env = process.env) {
   return getMultipassMode(env) !== '0';
@@ -52,13 +62,14 @@ export const TWO_PASS_GROUPS = Object.freeze({
   C: [...DOMAIN_GROUPS.C],
 });
 
+/** Human labels for TWO_PASS_GROUPS keys. */
 export const TWO_PASS_LABELS = Object.freeze({
   AB: 'Protective + Institutional (merged pass)',
   C: 'Social Fabric & Wellbeing',
 });
 
 /**
- * Domain group keys for current multipass mode.
+ * Domain group keys for current multipass mode ([] when single-pass).
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {string[]}
  */
@@ -72,6 +83,7 @@ export function getMultipassGroupKeys(env = process.env) {
 /**
  * Domains for a pass key (A/B/C or AB merged).
  * @param {string} groupKey
+ * @returns {string[]}
  */
 export function domainsForPassKey(groupKey) {
   if (groupKey === 'AB') return TWO_PASS_GROUPS.AB;
@@ -79,8 +91,9 @@ export function domainsForPassKey(groupKey) {
 }
 
 /**
- * Produces domain scope suffix for a pass (supports merged AB).
+ * Produces domain scope suffix for a multipass extract call (supports merged AB).
  * @param {string} groupKey
+ * @returns {string} Prompt fragment listing allowed domains + catalog subset
  */
 export function buildPassScopeSuffix(groupKey) {
   const domains = domainsForPassKey(groupKey);
@@ -99,25 +112,27 @@ export function buildPassScopeSuffix(groupKey) {
 
 /**
  * Format a domain-restricted view of the signal catalog for a focused prompt.
- * The output mirrors `formatSignalCatalog` from claudeEvaluator.js but only
- * includes signal types whose `domain` is in the allowed list.
+ * @param {string[]} domains
+ * @returns {string}
  */
 export function formatSignalCatalogSubset(domains) {
   return formatCatalogSubset(domains);
 }
 
 /**
- * Produces the additional prompt fragment that restricts a multipass call to
- * a single domain group. Inserted immediately before the SIGNAL TYPES section.
+ * Alias for buildPassScopeSuffix (historical name).
+ * @param {string} groupKey
+ * @returns {string}
  */
 export function buildDomainScopeSuffix(groupKey) {
   return buildPassScopeSuffix(groupKey);
 }
 
 /**
- * Build the closed-vocab self-check prompt (E5). Sends signals (without the
- * source articles) to a cheap model, asking yes/no/uncertain on whether each
- * signal's evidence is a correct instance of its declared signal_type.
+ * Build the closed-vocab self-check prompt (E5): yes/no/uncertain per signal
+ * whether evidence matches declared signal_type (uses mirror hints when present).
+ * @param {Array<object>} signals
+ * @returns {{ system: string, user: string, indices: number[] }}
  */
 export function buildSelfCheckPrompt(signals) {
   const validTypes = new Set(SIGNAL_TYPES);
@@ -153,9 +168,11 @@ export function buildSelfCheckPrompt(signals) {
 }
 
 /**
- * Residual observation pass for articles with zero closed-vocab signals.
- * Does not emit scored signal_type values — only structured observations for catalog learning.
+ * Residual observation pass prompt for articles with zero closed-vocab signals.
+ * Does not emit scored signal_type values — only structured observations for
+ * catalog learning / OOV capture.
  * @param {Array<{ url?: string, source?: string, body?: string, promptBody?: string }>} articles
+ * @returns {{ system: string, user: string }}
  */
 export function buildResidualCapturePrompt(articles) {
   const blocks = articles.map((art, i) => {

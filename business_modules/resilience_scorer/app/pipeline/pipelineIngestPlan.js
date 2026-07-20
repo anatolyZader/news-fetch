@@ -1,6 +1,22 @@
 /**
- * Pure ingest preflight for the N-day resilience pipeline.
- * Policy-driven: refresh | reuse-first | always-reextract (see pipelineIngestPolicy.js).
+ * Pure ingest preflight planner for the N-day resilience pipeline.
+ *
+ * **Owns:** deterministic step list (reuse | extract | skip | gather) per source and calendar
+ * day in the assessment window; no subprocess execution.
+ *
+ * **Pipeline position:** Stage 0 planning before `pipelineOrchestrator` spawns ingest scripts;
+ * also used by `--plan-only` dry run.
+ *
+ * **Inputs:** target date, days (window), enabled sources from config, replay/today mode,
+ * ingest policy (`refresh` | `reuse-first` | `always-reextract`), force flag.
+ *
+ * **Outputs:** `{ windowDates, steps, ingestPolicy }` where each step has `stage`, `action`,
+ * optional `date` and `detail` (file paths for extract actions).
+ *
+ * **Does NOT:** run extraction/assessment, call LLMs, or assess signals.
+ *
+ * **Collaborators:** `pipelineIngestPolicy`, `replayReuseConfig`, `openExtractConfig`,
+ * `ingestPaths`, `social_media.isBundleFreshForRun`.
  */
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -34,6 +50,7 @@ import {
 import { resolveRepoRoot } from '../../domain/services/paths/repoRoot.js';
 import { openPipelineObsNeedsExtract } from './pipelineOpenObsGuard.js';
 
+/** Canonical ingest action names consumed by `pipelineOrchestrator.executeIngestStep`. */
 export const PIPELINE_ACTIONS = Object.freeze([
   'reuse',
   'skip',
@@ -55,8 +72,10 @@ export const PIPELINE_ACTIONS = Object.freeze([
 /** @typedef {typeof PIPELINE_ACTIONS[number]} PipelineAction */
 
 /**
- * @param {string} input dd:mm:yyyy, dd/mm/yyyy, or YYYY-MM-DD
- * @returns {string|null} YYYY-MM-DD
+ * Parse CLI/cron date formats to canonical YYYY-MM-DD.
+ *
+ * @param {string} input — dd:mm:yyyy, dd/mm/yyyy, or YYYY-MM-DD
+ * @returns {string|null} normalized date or null when unparseable
  */
 export function parsePipelineDateArg(input) {
   const raw = String(input ?? '').trim();
@@ -437,6 +456,18 @@ function pushSocialSteps(steps, windowDates, ctx) {
   }
 }
 
+/**
+ * Build ordered ingest steps for all enabled sources across the assessment window.
+ *
+ * @param {object} opts
+ * @param {string} opts.targetDate — assessment end date (YYYY-MM-DD)
+ * @param {number} [opts.days=3] — window length (1–14)
+ * @param {Set<string>|null} [opts.enabledSources=null] — null = all sources
+ * @param {boolean} [opts.replayMode=false] — historical date ≠ today
+ * @param {boolean} [opts.force=false] — prefer re-fetch/re-extract where policy allows
+ * @param {string} opts.rootDir — repo root for path resolution
+ * @returns {{ windowDates: string[], steps: object[], ingestPolicy: string }}
+ */
 export function buildPipelineIngestPlan(opts) {
   const {
     targetDate,
@@ -506,8 +537,11 @@ export function buildPipelineIngestPlan(opts) {
 }
 
 /**
- * Replay abort when nothing can be ingested and no bundles exist in window.
+ * True when plan has at least one actionable ingest step or reusable bundle.
+ * Used to abort replay when the window has no on-disk artifacts.
+ *
  * @param {ReturnType<typeof buildPipelineIngestPlan>['steps']} steps
+ * @returns {boolean}
  */
 export function planHasWork(steps) {
   const actionable = new Set([

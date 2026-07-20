@@ -198,5 +198,5 @@ export { SIGNAL_TO_COMPONENTS } from './domain/services/signals/routing/signalRo
 export {
   runExtractionStage,
   indexExtractStoryClusters,
-} from './app/extraction/extractionStage.js';
+} from './app/extraction/extractionStageRunner.js';
 export { readResilienceHistory } from './infrastructure/reportHistoryReader.js';

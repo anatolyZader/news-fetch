@@ -1,5 +1,20 @@
 /**
- * Application use case: ResilienceContentBatch → signals → investigation → optional shadow score.
+ * Application use case: ingest a ResilienceContentBatch, extract signals, assess, optionally persist.
+ *
+ * **Owns:** in-process assessment path for ad-hoc content batches (not the daily multi-source CLI).
+ *
+ * **Pipeline position:** programmatic alternative to `extract-signals` + `assess-signals` for a
+ * single batch; shares Stage-2 core via `assessmentStageRunner.runPostExtractionAssessmentCore`.
+ *
+ * **Inputs:** `ResilienceContentBatch` (validated), `llmPort`, optional supplementary articles,
+ * scope, retrieval/evidence ports, persist flags.
+ *
+ * **Outputs:** `{ assessment, signals, provenance }`; optional report write when `persist: true`.
+ *
+ * **Does NOT:** discover multi-day signal bundles, run pipeline ingest, or emit numeric scores.
+ *
+ * **Collaborators:** `extraction` (LLM extract), `assessmentStageRunner`, `pipelineRunTracker`,
+ * `cross-cut-modules/geo` (geo enrichment), connectivity probe adapter.
  */
 import { assertValidResilienceContentBatch } from '../domain/services/signals/resilienceBatchValidation.js';
 import { mergeDualExtractionSignals } from '../infrastructure/dualModelExtract.js';
@@ -10,7 +25,7 @@ import { loadConnectivityProbeSignals } from '../infrastructure/adapters/connect
 import { enrichProbeSignalsInList } from '../domain/services/signals/probeCorroborationPolicy.js';
 import { resilienceReportsDir } from '../domain/services/paths/outputDirs.js';
 import { enrichSignalsGeoIfNeeded } from '../../../cross-cut-modules/geo/enrichSignalsGeoIfNeeded.js';
-import { runPostExtractionAssessmentCore } from './assessment/assessmentStage.js';
+import { runPostExtractionAssessmentCore } from './assessment/assessmentStageRunner.js';
 import { buildAssessmentWindowMetadata } from './assessment/assessSignalsHelpers.js';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,6 +38,7 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 export { MAX_BODY_CHARS } from './extraction/contentBatchFromMdArticles.js';
 import { MAX_BODY_CHARS } from './extraction/contentBatchFromMdArticles.js';
 
+/** Resolve pipeline run store from options or env (`PIPELINE_RUN_TRACKING=0` disables). */
 function resolvePipelineRunStore(options) {
   if (options.pipelineRunStore !== undefined) {
     return options.pipelineRunStore;
@@ -33,6 +49,7 @@ function resolvePipelineRunStore(options) {
   return createPipelineRunStore(resolveSqlitePath());
 }
 
+/** Map batch items to article rows capped at MAX_BODY_CHARS for LLM extraction. */
 function batchItemsToArticles(batch) {
   const sourceFile = batch.sourceRunId == null ? 'content-batch' : String(batch.sourceRunId);
   return batch.items.map((item) => ({
@@ -46,6 +63,7 @@ function batchItemsToArticles(batch) {
   }));
 }
 
+/** Title-prefix dedupe to reduce duplicate articles in a single batch. */
 function dedupeArticlesByTitle(articles) {
   const seen = new Set();
   return articles.filter((a) => {
@@ -60,6 +78,10 @@ function uniqueSourceLabels(articles) {
   return [...new Set(articles.map((a) => a.source).filter(Boolean))];
 }
 
+/**
+ * Run LLM extraction (optional dual-pass merge), supplementary extract, probe load, geo enrich.
+ * @returns {Promise<{ allSignals: object[] }>}
+ */
 async function extractBatchSignals({
   batch,
   articles,
@@ -110,6 +132,10 @@ async function extractBatchSignals({
   return { allSignals };
 }
 
+/**
+ * Write report via port when persist=true; attaches assessment window metadata.
+ * @throws when persist=true but reportWriterPort or outputBase missing.
+ */
 function persistReportIfRequested({
   persist,
   reportWriterPort,
@@ -140,6 +166,18 @@ function persistReportIfRequested({
   });
 }
 
+/**
+ * End-to-end batch assessment: extract → shared assess core → optional persist.
+ *
+ * @param {import('../domain/services/signals/resilienceBatchValidation.js').ResilienceContentBatch} batch
+ * @param {object} [options]
+ * @param {import('../domain/ports/IResilienceLlmPort.js').IResilienceLlmPort} options.llmPort — required
+ * @param {boolean} [options.persist=false] — write report when true
+ * @param {string|null} [options.outputBase=null] — report path stem when persisting
+ * @param {string|null} [options.scope=null] — report scope id override
+ * @returns {Promise<{ assessment: object, signals: object[], provenance: object }>}
+ * @sideEffects LLM extraction/assessment calls; optional report write; pipeline stage telemetry.
+ */
 export async function runResilienceAssessment(batch, options = {}) {
   const {
     llmPort,

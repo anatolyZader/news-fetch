@@ -1,13 +1,18 @@
 /**
- * STAGE 1 — open-vocabulary extraction.
- * No fixed signal catalogue: asks the LLM for free-form observations, writing
- * observations-pipeline-{source}-{date}.json for downstream specialist agents
- * and omission-audit use. This path does NOT produce signals for deterministic scoring.
- */
-
-/**
- * Run the open-vocabulary pipeline extract (no closed catalogue, no signals JSON write).
- * Delegates to the open_observation_extraction module's pipeline profile.
+ * STAGE 1 — open-vocabulary extraction ("open X" / novel observations).
+ *
+ * Pipeline position: optional parallel sibling to closed-catalogue extract
+ * (see extractionStageRunner). Asks the LLM for free-form observations with
+ * no fixed SIGNAL_CATALOG, writing observations-pipeline-{source}-{date}.json
+ * for specialist agents and omission-audit — not for deterministic component
+ * evidence counts.
+ *
+ * Owns: thin wrapper that delegates to open_observation_extraction's pipeline
+ * profile (dynamic import to avoid hard coupling at module load).
+ *
+ * Does NOT: write closed signals-*.json or feed buildComponentEvidence directly.
+ * Naming note (AGENTS.md): open vocabulary at extract; open observations at
+ * artifact/load; open evidence at verification — related family, different stages.
  *
  * @param {{
  *   articles: Array<object>,

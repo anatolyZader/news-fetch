@@ -1,5 +1,19 @@
 /**
- * Closed-core narrate: score shell + preflight budget + hybrid operator narrative pipeline.
+ * Closed-core narrate path: evidence shell + preflight budget + hybrid operator narrative.
+ *
+ * **Owns:** routing between legacy monolithic narrate and hybrid digest/facts pipeline for
+ * closed-core assessment mode (no specialist agent).
+ *
+ * **Pipeline position:** Stage-2 narrate branch in `assessmentStageRunner.produceAssessmentForMode`.
+ *
+ * **Inputs:** `scoredFull`, narrative-scope signals, date, article count, LLM/retrieval opts.
+ *
+ * **Outputs:** assessment object with component/cross-component prose when budget allows.
+ *
+ * **Does NOT:** run planner/specialist agents or compute numeric resilience scores.
+ *
+ * **Collaborators:** `buildClosedCoreAssessmentShell`, `operatorNarrativePipeline`,
+ * `narrativePromptBudget`, `claudeNarratives.generateNarrativesLegacy`.
  */
 import { legacyNarrativeOnly } from '../../domain/services/narrativeGrounding/groundingConfig.js';
 import { resolveNarrativeContextPlan } from '../../domain/services/narrative/narrativePromptBudget.js';
@@ -11,12 +25,15 @@ import {
 import { generateNarrativesLegacy } from '../../infrastructure/claudeNarratives.js';
 
 /**
- * @param {Record<string, object>} scoredFull
- * @param {object[]} _allSignals
- * @param {string} date
+ * Run closed-core or legacy narrative generation for an evidence-only assessment shell.
+ *
+ * @param {Record<string, object>} scoredFull — per-component evidence map
+ * @param {object[]} _allSignals — metrics/scoring signal pool (may differ from narrative scope)
+ * @param {string} date — report date YYYY-MM-DD
  * @param {number} totalArticles
- * @param {object} [opts]
- * @returns {Promise<object>}
+ * @param {object} [opts] — narrativeScopeSignals, retrievalService, llmPort, macroSignals, etc.
+ * @returns {Promise<object>} assessment with narratives or overflow degrade metadata
+ * @sideEffects LLM calls via operator narrative pipeline when not skipped by preflight
  */
 export async function closedCoreNarrate(scoredFull, _allSignals, date, totalArticles, opts = {}) {
   if (legacyNarrativeOnly()) {

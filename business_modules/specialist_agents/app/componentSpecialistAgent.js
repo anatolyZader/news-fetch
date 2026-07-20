@@ -1,5 +1,20 @@
 /**
- * Component specialist agent — bounded tool loop per component.
+ * Component specialist agent — bounded tool loop per resilience component.
+ *
+ * **Owns:** per-component LLM investigation with multi-hop retrieval tools, adversarial
+ * retrieval policy, tier A/B/C depth, critic-facing submit payload, and seeded-claim fallback.
+ *
+ * **Pipeline position:** invoked once per component (or abstention stub) from
+ * `assessmentOrchestrator.runAllComponentAssessments`.
+ *
+ * **Inputs:** component id, epistemic slice, evidence graph, assigned/gap-closure tasks, tier.
+ *
+ * **Outputs:** component assessment (`claims`, `narrative`, `retrieval_gaps`, `specialist_depth`).
+ *
+ * **Does NOT:** plan cross-component investigation or write final report JSON.
+ *
+ * **Collaborators:** `cross-cut-modules/agent` (kernel, tools profile), `multiHopRetrieval`,
+ * `narrativeTemplates`, `contestedRetrievalPolicy`, `specialistTier`.
  */
 import {
   createAgentKernel,
@@ -30,10 +45,16 @@ import {
   shouldAllowTemplateNarrative,
 } from '../domain/services/narrativeTemplates.js';
 
+/** Investigation abstention opts (narrative permissive when env allows thin evidence). */
 function investigationAbstentionOpts() {
   return { narrativePermissive: narrativeInvestigationPermissive() };
 }
 
+/**
+ * Build stable+dynamic system prompt blocks for specialist (exported for tests).
+ *
+ * @returns {{ stable: string, dynamic: string }}
+ */
 function buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, assignedTasks = [], specialistTier = 'A', narrativePermissive = false) {
   const compGraph = evidenceGraph?.by_component?.[componentId] ?? {};
   const compEp = epistemicProfile?.by_component?.[componentId] ?? {};
@@ -92,6 +113,7 @@ function assignSpecialistDepth(assessment, depth) {
   assessment.specialist_tier = depth;
 }
 
+/** Tier-C / explicit abstain: template narrative without tool loop. */
 function abstentionAssessment(componentId, epistemicProfile, traceId, specialistDepth = 'C') {
   const ep = epistemicProfile?.by_component?.[componentId] ?? {};
   const out = {
@@ -124,7 +146,16 @@ function resolveSubmittedAssessment(result, assessment) {
 }
 
 /**
+ * Run specialist tool loop for one component (or return abstention/fallback assessment).
+ *
  * @param {object} params
+ * @param {string} params.componentId
+ * @param {object} params.epistemicProfile
+ * @param {object} params.evidenceGraph
+ * @param {boolean} [params.abstain=false]
+ * @param {'A'|'B'|'C'} [params.specialistTier='A']
+ * @returns {Promise<object>} component assessment payload
+ * @sideEffects LLM tool rounds; multi-hop retrieval against archive/report namespaces
  */
 export async function runComponentSpecialist(params) {
   const {
@@ -264,6 +295,10 @@ export async function runComponentSpecialist(params) {
   return assessment;
 }
 
+/**
+ * Deterministic assessment from seeded graph claims when specialist fails to submit.
+ * @exports via named export for tests
+ */
 function buildFallbackAssessment(componentId, evidenceGraph, epistemicProfile, traceId) {
   const graph = evidenceGraph?.by_component?.[componentId];
   const claims = (graph?.claims ?? []).map((c) => ({

@@ -1,11 +1,25 @@
 /**
- * Shared evidence pipeline: partition → evidence contract → gate.
+ * Shared count-based evidence pipeline: partition → component evidence → epistemic gate.
  *
- * Count-based successor to the scoring pipeline (partition → score → gate →
- * EWMA → epistemic enrichment). Return keys are kept compatible with the old
- * runScoringPipeline so downstream orchestration is untouched: `scoredFull`
- * now holds evidence components (score fields null), and the temporal/
- * calibration channels are gone.
+ * **Owns:** transformation of scoped signals into per-component evidence records and gate
+ * enrichment (presence, salience, quarantine state). Successor to the legacy scoring pipeline.
+ *
+ * **Pipeline position:** inside Stage-2 assessment, after `prepareScoringSignals`, before
+ * narrate/agent paths consume `scoredFull`.
+ *
+ * **Inputs:** metrics-eligible signals, data-void context, salience context, optional prior
+ * quarantine, report date/scope.
+ *
+ * **Outputs:** `{ scoredFull, scoringSignals, partition, epistemicStatus, digitalQuarantineState, … }`
+ * with legacy-compatible keys (`scoredFull` holds evidence components; numeric score fields null).
+ *
+ * **Does NOT:** call LLMs, write reports, or compute numeric resilience scores / EWMA / calibration.
+ *
+ * **Collaborators:** `domain/contracts/componentEvidence`, `domain/services/dataVoid/*`,
+ * `domain/epistemic` (via epistemic gate).
+ *
+ * Return keys are kept compatible with the old runScoringPipeline so downstream orchestration
+ * is untouched: temporal/calibration params are accepted and ignored.
  */
 
 import { buildComponentEvidence } from '../../domain/contracts/componentEvidence.js';
@@ -24,9 +38,10 @@ const SUFFICIENCY_CONFIDENCE = {
 };
 
 /**
- * Legacy-shaped component from one evidence entry. Downstream readers branch
- * on these keys with `?? null` fallbacks; numeric score channels stay null.
- * @param {object} ev componentEvidence entry
+ * Map one `buildComponentEvidence` entry to legacy-shaped component object for downstream readers.
+ *
+ * @param {object} ev — componentEvidence entry from `buildComponentEvidence`
+ * @returns {object} legacy component row (`score`/`score_raw`/`score_headline` always null)
  */
 export function evidenceComponentAdapter(ev) {
   const basis = ev.evidence_basis;
@@ -55,6 +70,7 @@ export function evidenceComponentAdapter(ev) {
   };
 }
 
+/** Build per-component evidence map via `buildComponentEvidence` + adapter. */
 function buildEvidenceComponents(signals, samplingStatus) {
   const { by_component } = buildComponentEvidence(signals, { samplingStatus });
   const out = {};
@@ -65,9 +81,16 @@ function buildEvidenceComponents(signals, samplingStatus) {
 }
 
 /**
- * @param {object} params — same surface as the old runScoringPipeline; the
- *   temporal/calibration params (`historicalScores`, `validationMaturity`,
- *   `totalArticles`, `mediaSignals`) are accepted and ignored.
+ * Run partition → evidence components → epistemic gate (count-based assessment prep).
+ *
+ * @param {object} params — same surface as legacy `runScoringPipeline`
+ * @param {object[]} params.signalsForScoring
+ * @param {object} params.dataVoid
+ * @param {object} [params.salienceContext={}]
+ * @param {string} [params.scopeId='national']
+ * @param {object|null} [params.priorQuarantine=null]
+ * @param {string|null} [params.reportDate=null]
+ * @returns {object} gate result with `scoredFull`, partition, quarantine, epistemic status
  */
 export function runEvidencePipeline({
   signalsForScoring,
@@ -124,5 +147,5 @@ export function runEvidencePipeline({
   };
 }
 
-/** Back-compat alias so call sites can migrate incrementally. */
+/** Back-compat alias so call sites can migrate incrementally from `runScoringPipeline`. */
 export const runScoringPipeline = runEvidencePipeline;

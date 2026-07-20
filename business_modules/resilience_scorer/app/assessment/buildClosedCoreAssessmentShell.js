@@ -1,12 +1,32 @@
 /**
- * Score-only assessment shell for closed-core narrate (hybrid pipeline fills prose).
+ * Closed-core assessment shell: evidence-only payload before hybrid narrative fill.
+ *
+ * **Owns:** construction of an assessment JSON skeleton with empty component narratives
+ * and count-based evidence slots (`scoredFull`); overflow degrade metadata attachment.
+ *
+ * **Pipeline position:** first step of `closedCoreNarrate` when `RESILIENCE_CLOSED_CORE_ASSESS`
+ * or rich deterministic path is active (skips specialist agent).
+ *
+ * **Inputs:** `scoredFull` evidence map, report date, article count, scope, macro/dataVoid context.
+ *
+ * **Outputs:** assessment object with `assessment_mode: 'closed_core'`; optional degrade block.
+ *
+ * **Does NOT:** call LLMs, run specialist agents, or add numeric scores.
+ *
+ * **Collaborators:** `infrastructure/claudeNarratives.buildAssessmentPayload`,
+ * `closedCoreNarrate`, `operatorNarrativePipeline`.
  */
 import { RESILIENCE_COMPONENTS } from '../../domain/resilienceComponents.js';
 import { buildAssessmentPayload } from '../../infrastructure/claudeNarratives.js';
 
 /**
+ * Build assessment shell with empty narratives; evidence counts filled from scoredFull.
+ *
  * @param {object} params
- * @returns {object}
+ * @param {Record<string, object>} params.scoredFull — per-component evidence from evidence pipeline
+ * @param {string} params.reportDate
+ * @param {number} params.scopedTotalArticles
+ * @returns {object} assessment with `assessment_mode: 'closed_core'`
  */
 export function buildClosedCoreAssessmentShell(params) {
   const {
@@ -47,9 +67,11 @@ export function buildClosedCoreAssessmentShell(params) {
 }
 
 /**
- * @param {object} shell
- * @param {object} plan
- * @returns {object}
+ * Mark shell degraded when narrative preflight exceeds context budget (no LLM call).
+ *
+ * @param {object} shell — mutates in place
+ * @param {object} plan — from `resolveNarrativeContextPlan`
+ * @returns {object} same shell reference with `assessment_degraded` set
  */
 export function applyNarrativeOverflowDegrade(shell, plan) {
   shell.assessment_degraded = {

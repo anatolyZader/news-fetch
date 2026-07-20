@@ -74,6 +74,20 @@ export const AFFECTED_SYSTEMS = [
  *   when a natural opposite type exists.
  */
 export const POLARITY_OVERRIDE_SIGNAL_TYPES = new Set([
+  // Compliance quality is a spectrum; default negative (deficiency reading),
+  // override positive when the evidence emphasizes compliance mostly succeeded.
+  'compliance_partial',
+  // Negative as a guidance-system signal; override positive when departure was
+  // clearly protective and timely (e.g. pre-order self-evacuation in the north).
+  'self_evacuation_unauthorized',
+  // Trauma re-activation vs mastery framing — evidence decides direction.
+  'historical_analogy_frame',
+  // OOV catch-all: novelty is direction-neutral; override positive when the
+  // novel pattern is clearly adaptive.
+  'novel_behavior_observed',
+  // Preparedness vs norm breakdown — override positive for orderly stocking
+  // that stayed within official guidance.
+  'panic_buying_hoarding',
   'social_isolation',
   'dependency_on_external_aid',
   'cultural_continuity',

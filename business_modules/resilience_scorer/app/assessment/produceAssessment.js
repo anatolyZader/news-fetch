@@ -1,5 +1,21 @@
 /**
- * Agent v2 primary assess; deterministic degrade ladder on failure.
+ * Assessment producer: agent v2 primary path with deterministic degrade ladder.
+ *
+ * **Owns:** epistemic profile computation/persist, assessment agent invocation, degrade
+ * fallbacks (deterministic assess → cached report), and v2 metadata attachment on legacy assessment.
+ *
+ * **Pipeline position:** Stage-2 narrate branch inside `assessmentStageRunner` when closed-core
+ * and rich-deterministic modes are disabled.
+ *
+ * **Inputs:** scoped investigation signals, evidence pipeline outputs (`scoredFull`, dataVoid),
+ * retrieval/sourceArchive/evidenceStore ports, budget flags.
+ *
+ * **Outputs:** legacy-compatible `assessment` object (may include `_agent_components`, `_evidence_graph`).
+ *
+ * **Does NOT:** run evidence partition itself, write final report files, or compute numeric scores.
+ *
+ * **Collaborators:** `specialist_agents` (`runAssessmentAgent`, `runDeterministicAssessment`),
+ * `epistemicFeaturesService`, `cross-cut-modules/agent` (skip/budget gates).
  */
 import {
   shouldSkipAssessmentAgent,
@@ -19,8 +35,11 @@ function resolveReportsDir(params) {
 }
 
 /**
- * @param {object} params — assess-signals finalize context
- * @returns {Promise<object>} assessment (legacy-compatible from agent or degrade ladder)
+ * Produce assessment via agent or degrade ladder; attach v2 cross-references.
+ *
+ * @param {object} params — assess-signals finalize context (signals, epistemic, ports, dates)
+ * @returns {Promise<object>} legacy-compatible assessment object
+ * @sideEffects LLM agent calls; persists epistemic profile; may read cached report from disk
  */
 export async function produceAssessment(params) {
   const epistemicProfile = buildEpistemicProfile(params);
@@ -34,10 +53,12 @@ export async function produceAssessment(params) {
   return agentOutcome.assessment;
 }
 
+/** Prefer explicit investigation pool over metrics-only scoring set. */
 function resolveInvestigationSignals(params) {
   return params.investigationSignals ?? params.signalsForScoring ?? [];
 }
 
+/** Compute and persist epistemic profile for the investigation signal pool. */
 function buildEpistemicProfile(params) {
   const investigationSignals = resolveInvestigationSignals(params);
   const epistemicService = createEpistemicFeaturesService({});
@@ -59,6 +80,7 @@ function buildEpistemicProfile(params) {
   return epistemicProfile;
 }
 
+/** Agent first; on skip/failure run deterministic assess then cached fallback. */
 async function resolveAssessmentOutcome(params, epistemicProfile) {
   const agentAttempt = await tryAssessmentAgent(params, epistemicProfile);
   if (agentAttempt.assessment) {
@@ -68,6 +90,7 @@ async function resolveAssessmentOutcome(params, epistemicProfile) {
   return resolveDegradedAssessment(params, epistemicProfile, agentAttempt.degradeReason);
 }
 
+/** Stash agent internals on legacy assessment for downstream diagnostics. */
 function attachAgentInternals(assessment, agentOutcome) {
   if (agentOutcome.assessmentV2?.components) {
     assessment._agent_components = agentOutcome.assessmentV2.components;
@@ -77,6 +100,7 @@ function attachAgentInternals(assessment, agentOutcome) {
   }
 }
 
+/** Invoke specialist assessment agent unless budget/env forces deterministic skip. */
 async function tryAssessmentAgent(params, epistemicProfile) {
   const skipAgent = shouldSkipAssessmentAgent({ dailyBudgetExceeded: params.dailyBudgetExceeded });
   if (skipAgent) {
@@ -122,6 +146,7 @@ async function tryAssessmentAgent(params, epistemicProfile) {
   }
 }
 
+/** Deterministic template assess, then optional cached report from prior date. */
 async function resolveDegradedAssessment(params, epistemicProfile, degradeReason) {
   const investigationSignals = resolveInvestigationSignals(params);
   const investigationEpistemic = params.investigationEpistemic ?? {};
@@ -165,6 +190,7 @@ async function resolveDegradedAssessment(params, epistemicProfile, degradeReason
   );
 }
 
+/** Copy assessment v2 schema refs onto legacy assessment when agent succeeded. */
 function attachAssessmentV2Fields(assessment, assessmentV2, { epistemicProfile, reportScopeId, targetDate, traceId }) {
   if (!assessmentV2) return;
   assessment.schema_version = assessmentV2.schema_version;
@@ -177,6 +203,7 @@ function attachAssessmentV2Fields(assessment, assessmentV2, { epistemicProfile, 
   assessment.budget_snapshot = assessmentV2.budget_snapshot;
 }
 
+/** Map env flags to human-readable skip reason for agent bypass logging. */
 function resolveForceDeterministicReason() {
   if (process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC === '1'
     || process.env.RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC === 'true') {

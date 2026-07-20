@@ -261,6 +261,26 @@ describe('signalCatalog v8', () => {
     }
   });
 
+  it('epoch 2026-07-20: compliance_partial flipped to deficiency reading', () => {
+    const entry = SIGNAL_CATALOG.find((s) => s.type === 'compliance_partial');
+    assert.equal(entry.defaultPolarity, 'negative');
+    assert.equal(SIGNAL_TO_COMPONENTS.compliance_partial.lifesaving_behavior, -0.6);
+    assert.equal(SIGNAL_TO_COMPONENTS.compliance_partial.leadership, -0.2);
+  });
+
+  it('epoch 2026-07-20: new coverage types with routing', () => {
+    const byType = Object.fromEntries(SIGNAL_CATALOG.map((s) => [s.type, s]));
+    assert.equal(byType.panic_buying_hoarding.domain, 'resources');
+    assert.equal(SIGNAL_TO_COMPONENTS.panic_buying_hoarding.functional_continuity, -0.5);
+    assert.equal(byType.misinformation_acted_upon.domain, 'information');
+    assert.equal(SIGNAL_TO_COMPONENTS.misinformation_acted_upon.information_communication, -0.7);
+    // Return/relocation intention: stated-intention mirror pair for the north.
+    assert.equal(byType.return_intention_expressed.mirror, 'relocation_intention_expressed');
+    assert.equal(byType.relocation_intention_expressed.mirror, 'return_intention_expressed');
+    assert.equal(SIGNAL_TO_COMPONENTS.return_intention_expressed.belonging_solidarity, 0.5);
+    assert.equal(SIGNAL_TO_COMPONENTS.relocation_intention_expressed.belonging_solidarity, -0.5);
+  });
+
   it('epoch 2026-07-15b routing edits', () => {
     // Cohesion-decline misuse reaches belonging as a visible inferred edge.
     assert.equal(SIGNAL_TO_COMPONENTS.resilience_narrative_negative.belonging_solidarity, -0.5);

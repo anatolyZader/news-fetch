@@ -1,3 +1,20 @@
+/**
+ * Signal evidence verification: grounding extracted quotes against source article text.
+ *
+ * **Owns:** deterministic checks that LLM-extracted evidence spans/quotes appear in source
+ * bodies (shingle containment, ordered subsequence, evidence_span offsets).
+ *
+ * **Pipeline position:** used during signal hygiene/verification after extraction and before
+ * evidence pipeline scoring partition.
+ *
+ * **Inputs:** signal objects with `evidence`, `evidence_span`, `evidence_type`; article body text.
+ *
+ * **Outputs:** `{ ok, reason, sim? }` verdict objects; deduped signal batches.
+ *
+ * **Does NOT:** call LLMs, route signals to components, or assess resilience.
+ *
+ * **Collaborators:** `domain/services/signals/textSimilarity.js` (tokenize, shingles, containment).
+ */
 import {
   containment,
   normalizeForMatch,
@@ -10,8 +27,10 @@ import {
 const HEBREW_LETTER_RE = /[\u0590-\u05FF]/;
 
 /**
+ * Verify character-offset evidence_span against article body (exact, substring, or subsequence).
+ *
  * @param {object} signal
- * @param {string} body
+ * @param {string} body — full article text
  * @returns {{ ok: boolean, reason: string, sim?: number }}
  */
 export function verifyEvidenceSpan(signal, body) {
@@ -49,7 +68,8 @@ export function verifyEvidenceSpan(signal, body) {
 }
 
 /**
- * Source-native check: normalized substring or ordered subsequence in short bodies.
+ * Source-native quote check for short bodies (substring or token subsequence with tiered threshold).
+ *
  * @param {string} quoteText
  * @param {string} sourceText
  * @returns {{ ok: boolean, reason: string, sim?: number }}
@@ -99,6 +119,7 @@ const VERIFY_THRESHOLDS = {
 
 const DEFAULT_THRESHOLD = { containment: 0.4 };
 
+/** Sliding window containment for long bodies when global shingle match is weak. */
 function bestWindowContainment(evTokens, bodyTokens, windowThreshold) {
   const evSet = new Set(evTokens);
   const W = Math.max(8, Math.min(evTokens.length * 2, 24));
@@ -112,6 +133,7 @@ function bestWindowContainment(evTokens, bodyTokens, windowThreshold) {
   return best;
 }
 
+/** Fallback for short quotes: ordered subsequence or 60% token overlap. */
 function tryShortEvidenceMatch(evTokens, bodyTokens) {
   const subseq = orderedSubsequenceContainment(evTokens, bodyTokens);
   const subseqThreshold = evTokens.length <= 3 ? 1 : 0.8;
@@ -128,6 +150,7 @@ function tryShortEvidenceMatch(evTokens, bodyTokens) {
   return null;
 }
 
+/** evidence_type-specific shingle containment with optional window pass. */
 function verifyShingleContainment(signal, articleBody, quoteText) {
   const evTokens = tokenize(quoteText);
   if (evTokens.length === 0) {
@@ -159,10 +182,11 @@ function verifyShingleContainment(signal, articleBody, quoteText) {
 }
 
 /**
- * Verifies that a signal's evidence is grounded in the article body.
- * Checks evidence_span first, then shingle containment on resolveQuoteText(signal).
+ * Top-level grounding check: evidence_span first, then shingle containment on resolved quote.
  *
- * Returns { ok: boolean, reason: string, sim?: number }.
+ * @param {object} signal
+ * @param {string} articleBody
+ * @returns {{ ok: boolean, reason: string, sim?: number }}
  */
 export function verifyEvidenceAgainstArticle(signal, articleBody) {
   if (!signal || typeof signal !== 'object') {
@@ -189,8 +213,10 @@ export function verifyEvidenceAgainstArticle(signal, articleBody) {
 }
 
 /**
- * Normalised key for in-batch dedup: collapses signals the LLM emitted twice
- * across grouped extraction passes (or by accident) into one entry.
+ * Normalised dedup key for in-batch duplicate signals (article + type + evidence prefix).
+ *
+ * @param {object} signal
+ * @returns {string}
  */
 export function signalDedupKey(signal) {
   const norm = (signal.evidence ?? '')
@@ -201,8 +227,10 @@ export function signalDedupKey(signal) {
 }
 
 /**
- * Collapse duplicate signals produced by independent extraction passes.
- * Keeps the first occurrence; later ones are dropped.
+ * Collapse duplicate signals within one extraction batch (keeps first occurrence).
+ *
+ * @param {object[]} signals
+ * @returns {object[]}
  */
 export function dedupeSignalsWithinBatch(signals) {
   const seen = new Map();
@@ -213,7 +241,12 @@ export function dedupeSignalsWithinBatch(signals) {
   return [...seen.values()];
 }
 
-/** Diagnostic: returns true if the text contains any Hebrew character. */
+/**
+ * Diagnostic helper: true when text contains Hebrew letters.
+ *
+ * @param {string} text
+ * @returns {boolean}
+ */
 export function containsHebrew(text) {
   return typeof text === 'string' && HEBREW_LETTER_RE.test(text);
 }

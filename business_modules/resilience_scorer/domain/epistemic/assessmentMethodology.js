@@ -1,6 +1,19 @@
 /**
- * Assessment methodology metadata (phase 1: national + north only).
- * Documents limits of the instrument for auditors and operator-facing copy.
+ * Assessment methodology metadata for auditors and operator-facing copy.
+ *
+ * Pipeline position: attached to assess reports (buildAssessmentMethodology).
+ * Documents instrument limits, scope rules, and model version — not the
+ * evidence math itself (that lives in componentEvidence / epistemic).
+ *
+ * Owns: SCORING_MODEL_VERSION + changelog, methodology JSON builders, and
+ * stderr summary formatters for assess-signals.
+ *
+ * Does NOT: compute component evidence or narratives. Historical name still
+ * says "scoring" but min-math reports are narrative-first with count bands
+ * (no 1–10 headline scores in the operator path).
+ *
+ * When SIGNAL_TO_COMPONENTS changes materially: bump SCORING_MODEL_VERSION and
+ * add a SCORING_MODEL_CHANGELOG entry.
  */
 
 import { createHash } from 'node:crypto';
@@ -14,10 +27,23 @@ import {
 import { isRegionalReportScope, normalizeReportScopeId } from '../../../../cross-cut-modules/geo/reportScopeIds.js';
 import { DEFAULT_NORTH_SOURCE_TYPES } from '../services/signals/signalDistrictId.js';
 
-export const SCORING_MODEL_VERSION = 'v7';
+/**
+ * Version string stamped into methodology / report artifacts.
+ * Bump when SIGNAL_TO_COMPONENTS or catalog/routing contracts change materially.
+ */
+export const SCORING_MODEL_VERSION = 'v8';
 
-/** Human-maintained; bump SCORING_MODEL_VERSION when SIGNAL_TO_COMPONENTS changes materially. */
+/**
+ * Human-maintained changelog paired with SCORING_MODEL_VERSION.
+ * Newest first. Required when bumping the version.
+ */
 export const SCORING_MODEL_CHANGELOG = [
+  {
+    version: 'v8',
+    date: '2026-07-20',
+    summary:
+      'compliance_partial flipped to defaultPolarity negative (deficiency reading; routing weights now lifesaving_behavior -0.6 / leadership -0.2, polarity_override: positive for glass-half-full evidence) — pre/post reports not comparable for this type. Four new signal types with routing: panic_buying_hoarding (resources), return_intention_expressed / relocation_intention_expressed mirror pair (continuity), misinformation_acted_upon (information).',
+  },
   {
     version: 'v7',
     date: '2026-07-19',
@@ -113,7 +139,10 @@ export function summarizeScopeDecisionSources(signals, opts = {}) {
 }
 
 /**
- * Full manifest for on-disk JSON (analyst audit). Not exposed to operator API tier.
+ * Full on-disk scoring-model manifest (analyst audit): includes the full
+ * SIGNAL_TO_COMPONENTS matrix and a sha256 of the weights JSON.
+ * Not exposed on the operator API tier (strip via methodologyForOperatorView).
+ * @returns {object}
  */
 export function buildScoringModelManifest() {
   const weightsJson = JSON.stringify(SIGNAL_TO_COMPONENTS);
@@ -130,6 +159,10 @@ export function buildScoringModelManifest() {
 }
 
 /**
+ * Assemble the methodology block embedded in assessment reports: scoring
+ * model metadata, active scope, governance notes, limitations, and epistemic
+ * policy summaries (thin/contested evidence).
+ *
  * @param {{
  *   signals: Array<object>,
  *   reportScopeId?: string,
@@ -137,6 +170,7 @@ export function buildScoringModelManifest() {
  *   tuningProposal?: object | null,
  *   extractionTelemetry?: object | null,
  * }} opts
+ * @returns {object}
  */
 export function buildAssessmentMethodology({
   signals,
@@ -204,8 +238,10 @@ export function buildAssessmentMethodology({
 }
 
 /**
- * Operator-safe methodology (no full weight matrix or tuning detail).
+ * Operator-safe methodology: drops full weight matrix; redacts tuning and
+ * extraction telemetry to summary fields only.
  * @param {object | null | undefined} methodology
+ * @returns {object | null | undefined}
  */
 export function methodologyForOperatorView(methodology) {
   if (!methodology || typeof methodology !== 'object') return methodology;

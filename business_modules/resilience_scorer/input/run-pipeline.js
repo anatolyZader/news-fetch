@@ -1,6 +1,19 @@
 #!/usr/bin/env node
 /**
- * Unified resilience pipeline orchestrator (/8comp-3, /8comp-3-north, cron).
+ * Unified resilience pipeline transport entry (`npm run pipeline:run`, /8comp-3, cron).
+ *
+ * **Owns:** bootstrap (dotenv, state store), `--help` text, CLI exit handling only.
+ *
+ * **Pipeline position:** thin wrapper over `app/pipeline/pipelineOrchestrator.js`.
+ *
+ * **Inputs:** positional date + flags (`--preset`, `--date`, `--days`, `--scope`,
+ * `--always-reextract`, `--force`, `--ingest-only`, `--assess-only`, `--plan-only`, …).
+ *
+ * **Outputs:** exit 0 on success; delegates artifact writes to spawned assess/extract scripts.
+ *
+ * **Does NOT:** implement ingest planning, extraction, or assessment logic.
+ *
+ * **Collaborators:** `pipelineOrchestrator`, `pipelinePresets`.
  *
  * Usage:
  *   npm run pipeline:run -- [--preset 8comp-3|8comp-3-north|…] [date] [options]

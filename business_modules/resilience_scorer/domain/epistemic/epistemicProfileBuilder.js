@@ -1,13 +1,25 @@
 /**
- * Compute epistemic hints per component from the count-based evidence contract
- * (no headline scores, no evidence mass). Key names are preserved for the
- * specialist-agent prompts and retrieval policies that consume
- * `by_component[id]`: thin_evidence, signal_count, contested, certainty_band,
+ * Epistemic profile builder — count-based hints per component for agents/RAG.
+ *
+ * Pipeline position: after (or alongside) component evidence. Produces
+ * `by_component[id]` fields consumed by specialist_agents prompts and
+ * retrieval policies: thin_evidence, signal_count, contested, certainty_band,
  * distinct_article_count, dominance_warnings, delta_significance.
+ *
+ * Owns: computeEpistemicProfile and the mapping from evidence_basis bands →
+ * agent-facing profile fields (including evidence_mass as a compat alias for
+ * signal_count).
+ *
+ * Does NOT: run LLM assessment, invent headline scores, or mutate signals.
+ * Delegates evidence assembly to buildComponentEvidence.
+ *
+ * Key collaborators: componentEvidence.js, assessmentOrchestrator.js,
+ * retrieval policies under cross-cut-modules/retrieval/.
  */
 import { COMPONENT_IDS } from '../contracts/componentIds.js';
 import { buildComponentEvidence, SUFFICIENCY, BALANCE } from '../contracts/componentEvidence.js';
 
+/** sufficiency band → coarse certainty label for agent prompts. */
 const CERTAINTY_BAND_BY_SUFFICIENCY = {
   [SUFFICIENCY.none]: 'low',
   [SUFFICIENCY.thin]: 'low',
@@ -15,6 +27,7 @@ const CERTAINTY_BAND_BY_SUFFICIENCY = {
   [SUFFICIENCY.adequate]: 'high',
 };
 
+/** balance band → polarization label for agent prompts. */
 const POLARIZATION_BAND_BY_BALANCE = {
   [BALANCE.one_sided_pos]: 'one_sided',
   [BALANCE.one_sided_neg]: 'one_sided',
@@ -22,6 +35,7 @@ const POLARIZATION_BAND_BY_BALANCE = {
   [BALANCE.contested]: 'contested',
 };
 
+/** Turn concentration_warning into a list of human-readable dominance warnings. */
 function dominanceWarnings(basis) {
   const w = basis.concentration_warning;
   if (!w) return [];
@@ -33,6 +47,10 @@ function dominanceWarnings(basis) {
   }];
 }
 
+/**
+ * Derive retrieval policy hints from the per-component profile (diversify
+ * concentrated source types; require corroboration for thin/contested comps).
+ */
 function buildRetrievalPolicies(byComponent) {
   const diversify = [];
   const boost = [];
@@ -55,6 +73,10 @@ function buildRetrievalPolicies(byComponent) {
   return { diversify, boost, require_corroboration };
 }
 
+/**
+ * Map one component's evidence object → agent-facing epistemic profile row.
+ * Preserves key names expected by specialist prompts / retrieval.
+ */
 function profileFromEvidence(ev) {
   const basis = ev.evidence_basis;
   return {
@@ -77,8 +99,17 @@ function profileFromEvidence(ev) {
 }
 
 /**
- * @param {object[]} signals
+ * Build the full epistemic profile for a signal batch.
+ *
+ * @param {object[]} signals metrics-eligible signals for this assess run
  * @param {{ reportDate?: string, weightOverlay?: object, assessmentEpistemic?: object }} [ctx]
+ * @returns {{
+ *   schema_version: string,
+ *   report_date: string|null,
+ *   by_component: Record<string, object>,
+ *   retrieval_policies: object,
+ *   assessment_epistemic: object,
+ * }}
  */
 export function computeEpistemicProfile(signals, ctx = {}) {
   const { by_component: evidence } = buildComponentEvidence(signals ?? [], {

@@ -1,6 +1,19 @@
 /**
- * Presence gates — verified grounded signals force operator critical_failure
- * on mapped components regardless of aggregate score / positive counter-evidence.
+ * Presence gates — curated critical signals that force a critical_failure /
+ * presence-gate flag on mapped components when grounding is verified.
+ *
+ * Pipeline position: called from buildComponentEvidence (componentEvidence.js)
+ * while assembling each component's critical_flags.presence_gate. Specialist
+ * agents and operator display treat a triggered gate as non-negotiable salience
+ * even when aggregate counts look mixed or thin.
+ *
+ * Owns: PRESENCE_GATE_RULES, evaluatePresenceGates, env kill-switch.
+ * Does NOT: change sufficiency/balance bands or invent numeric scores (min-math).
+ * Only grounded signals (GROUNDING_TIER.grounded) can trip a gate.
+ *
+ * Key collaborators: highSalienceBypass.js (extra critical types),
+ * signalRouter SIGNAL_TO_COMPONENTS (negative edges for auto rules),
+ * groundingPolicy.js.
  *
  * @see docs/MODEL-CARD.md
  */
@@ -9,11 +22,17 @@ import { GROUNDING_TIER } from '../services/signals/groundingPolicy.js';
 import { CRITICAL_BYPASS_SIGNAL_TYPES } from './highSalienceBypass.js';
 import { SIGNAL_TO_COMPONENTS } from '../services/signals/routing/signalRouter.js';
 
+/** Version stamp for presence-gate rule set (for audits / manifests). */
 export const PRESENCE_GATE_VERSION = '2026-05-v1';
 
 const INTENSITY_RANK = { light: 0, moderate: 1, severe: 2 };
 
-/** @type {Array<{ id: string, signalTypes: string[], componentIds: string[], minIntensity?: string }>} */
+/**
+ * Hand-authored gate rules: if a grounded signal of one of these types appears
+ * for a listed component (and intensity meets minIntensity when set), the
+ * component's presence gate triggers.
+ * @type {Array<{ id: string, signalTypes: string[], componentIds: string[], minIntensity?: string }>}
+ */
 export const PRESENCE_GATE_RULES = [
   {
     id: 'infra_acute_functional',
@@ -43,7 +62,11 @@ export const PRESENCE_GATE_RULES = [
   },
 ];
 
-/** Rules derived from critical bypass types × negative component mappings. */
+/**
+ * Auto-extend rules from CRITICAL_BYPASS_SIGNAL_TYPES × negative routing edges
+ * so curated critical types without a hand rule still gate their primary
+ * negative components.
+ */
 function buildCriticalMappingRules() {
   const seen = new Set(PRESENCE_GATE_RULES.map((r) => r.id));
   /** @type {typeof PRESENCE_GATE_RULES} */
@@ -66,6 +89,11 @@ function buildCriticalMappingRules() {
 
 const ALL_RULES = [...PRESENCE_GATE_RULES, ...buildCriticalMappingRules()];
 
+/**
+ * Kill-switch: set RESILIENCE_PRESENCE_GATES=0 to disable all presence gates.
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {boolean}
+ */
 export function isPresenceGatesEnabled(env = process.env) {
   return env.RESILIENCE_PRESENCE_GATES !== '0';
 }
@@ -89,6 +117,7 @@ const EMPTY_PRESENCE_GATE = {
 };
 
 /**
+ * First matching presence-gate rule for this signal among rulesForComponent.
  * @param {object} signal
  * @param {typeof PRESENCE_GATE_RULES} rulesForComponent
  */
@@ -110,8 +139,13 @@ function matchPresenceGateRule(signal, rulesForComponent) {
 }
 
 /**
+ * Evaluate whether any grounded signal in the component pool trips a presence
+ * gate for this componentId. Returns the first match or an empty (not triggered)
+ * result. Safe to call when gates are disabled (always empty).
+ *
  * @param {string} componentId
  * @param {Array<{ signal: object, contribution?: number }>} cappedItems
+ *   Component signal items (contribution field is legacy/unused here).
  * @returns {{
  *   triggered: boolean,
  *   rule_id: string | null,

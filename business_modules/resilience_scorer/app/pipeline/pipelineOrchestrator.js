@@ -1,5 +1,21 @@
 /**
- * Node orchestrator for the multi-source resilience pipeline (/8comp-3, /8comp-3-north, cron).
+ * Multi-source pipeline orchestrator: plan ingest → spawn extract scripts → assess-signals.
+ *
+ * **Owns:** CLI arg parsing for `run-pipeline`, ingest plan execution via child processes,
+ * bundle count preflight, assess-signals spawn, token report write, replay safety guards.
+ *
+ * **Pipeline position:** top-level daily/replay driver (`npm run pipeline:run`); wraps Stage 0
+ * ingest and Stage 2 assess; does not implement extraction/assessment logic itself.
+ *
+ * **Inputs:** parsed opts from `parsePipelineCliArgs` (date, days, scope, preset, mode flags).
+ *
+ * **Outputs:** `{ plan, assessed, pipelineRunId?, signalCount? }`; stderr progress; spawns
+ * extract scripts and `input/assess-signals.js`.
+ *
+ * **Does NOT:** extract or assess in-process; compute scores; modify signal JSON directly.
+ *
+ * **Collaborators:** `pipelineIngestPlan`, `pipelinePresets`, `assessSignalsHelpers`,
+ * `reportCacheService`, `cross-cut-modules/budget/writeTokenReport`.
  */
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
@@ -38,9 +54,11 @@ import { writeTokenReport } from '../../../../cross-cut-modules/llm/writeTokenRe
 const DEFAULT_TZ = process.env.TZ_ARTICLES ?? 'Asia/Jerusalem';
 
 /**
- * Block replay assess-only when a normal report already exists (unless --force).
+ * Guard assess-only replay from overwriting an existing normal-quality report.
+ *
  * @param {ReturnType<typeof parsePipelineCliArgs>} opts
  * @param {string} rootDir
+ * @throws when assess-only replay would clobber a non-degraded report without `--force`
  */
 export function assertAssessOnlySafe(opts, rootDir) {
   if (!opts.assessOnly || opts.force || !opts.replayMode) return;
@@ -61,7 +79,11 @@ export function assertAssessOnlySafe(opts, rootDir) {
 }
 
 /**
- * @param {string[]} argv
+ * Parse `run-pipeline` / cron argv into normalized orchestrator options.
+ *
+ * @param {string[]} argv — process.argv slice (without node/script)
+ * @returns {object} targetDate, days, scope, replayMode, ingestPolicy, mode flags
+ * @throws on unknown preset or invalid combinations surfaced during parse
  */
 export function parsePipelineCliArgs(argv) {
   const getFlag = (name) => getArg(argv, name);
@@ -366,8 +388,12 @@ function countLoadedBundles(targetDate, days, enabledSources, rootDir) {
 }
 
 /**
+ * Execute full or partial pipeline: ingest plan → optional assess-signals → token report.
+ *
  * @param {ReturnType<typeof parsePipelineCliArgs>} opts
- * @param {{ rootDir?: string }} [deps]
+ * @param {{ rootDir?: string }} [deps] — inject root for tests
+ * @returns {Promise<{ plan: object, assessed: boolean, pipelineRunId?: string|null, signalCount?: number }>}
+ * @sideEffects spawns npm/node child processes; sets `PIPELINE_RUN_ID` env; stderr logging
  */
 export async function runPipelineOrchestrator(opts, deps = {}) {
   const pipelineRunId = randomUUID();

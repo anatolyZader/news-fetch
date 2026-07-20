@@ -1,15 +1,29 @@
 /**
  * Thin-evidence instrument policy — count-based.
  *
- * Decides which qualitative instrument a component presents and whether the
- * report shows a full assessment for it, from `evidence_basis.sufficiency`
- * and `.balance` (see domain/contracts/componentEvidence.js). No evidence
- * mass, no score floors.
+ * Pipeline position: after per-component evidence is built. Chooses which
+ * qualitative *instrument* a component presents on the report surface
+ * (insufficient_data, limited_evidence_neutral, critical_*, adequate, …) and
+ * whether the operator surface treats the component as showable.
+ *
+ * Owns: THIN_EVIDENCE_INSTRUMENT labels, deriveThinEvidencePolicy,
+ * deriveAssessmentEpistemicPolicy (assessment-wide defaults from data void /
+ * sampling status).
+ *
+ * Does NOT: invent numeric scores. Decisions come from evidence_basis
+ * sufficiency/balance plus critical/salience flags (see componentEvidence.js).
+ *
+ * Key collaborators: componentEvidence.js, groundingPolicy.js (unverified
+ * critical reason), softVoidReasons.js, operator display tiers.
  */
 
 import { UNVERIFIED_CRITICAL_GROUNDING_REASON } from '../services/signals/groundingPolicy.js';
 import { isSoftVoidWarning } from '../contracts/softVoidReasons.js';
 
+/**
+ * Allowed instrument labels for a component's report presentation.
+ * @type {Readonly<Record<string, string>>}
+ */
 export const THIN_EVIDENCE_INSTRUMENT = Object.freeze({
   insufficient_data: 'insufficient_data',
   limited_evidence_neutral: 'limited_evidence_neutral',
@@ -22,6 +36,9 @@ export const THIN_EVIDENCE_INSTRUMENT = Object.freeze({
 
 /**
  * Assessment-level epistemic policy from data void / epistemic_status.
+ * When sampling is blind or assessment is abstained, force a global
+ * sampling_blind instrument and hide score-like presentation.
+ *
  * @param {object|null|undefined} dataVoid
  * @param {object|null|undefined} epistemicStatus
  * @returns {{ globalOperatorShowsScore: boolean, instrumentDefault: string|null }}
@@ -48,6 +65,10 @@ export function deriveAssessmentEpistemicPolicy(dataVoid, epistemicStatus) {
   return { globalOperatorShowsScore: true, instrumentDefault: null };
 }
 
+/**
+ * Resolve sufficiency from evidence_basis, with legacy-report fallbacks when
+ * stored components lack the new contract fields.
+ */
 function sufficiencyOf(comp) {
   const s = comp?.evidence_basis?.sufficiency;
   if (s) return s;
@@ -58,6 +79,10 @@ function sufficiencyOf(comp) {
 }
 
 /**
+ * Derive the display instrument for one component.
+ * Priority (high → low): assessment-wide blind → none/abstain → presence gate
+ * → salience critical → thin/contested → adequate.
+ *
  * @param {object} comp — evidence component (or legacy stored component)
  * @param {{ assessmentEpistemic?: { globalOperatorShowsScore: boolean, instrumentDefault: string|null } }} [ctx]
  * @returns {{ instrument: string, operatorShowsScore: boolean, contested_thin: boolean }}
@@ -119,6 +144,11 @@ export function deriveThinEvidencePolicy(comp, ctx = {}) {
   return { instrument: THIN_EVIDENCE_INSTRUMENT.adequate, operatorShowsScore: true, contested_thin: false };
 }
 
+/**
+ * Kill-switch: RESILIENCE_THIN_EVIDENCE_POLICY=0 disables thin-evidence policy
+ * at call sites that consult this flag.
+ * @returns {boolean}
+ */
 export function isThinEvidencePolicyEnabled() {
   return process.env.RESILIENCE_THIN_EVIDENCE_POLICY !== '0';
 }

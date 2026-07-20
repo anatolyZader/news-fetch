@@ -1,11 +1,22 @@
 /**
- * Per-component evidence contract — the count-based successor to scored
- * components. All derivations are counts and ratios of counts; there is no
- * evidence mass, no caps, and no numeric resilience score anywhere.
+ * Per-component evidence contract — count-based successor to scored components.
+ *
+ * Pipeline position: assess path after scope partition / verification. Turns a
+ * flat signal list into by_component evidence objects (signals + evidence_basis
+ * bands + critical_flags) consumed by epistemic profile, narratives, and agents.
+ *
+ * Owns: sufficiency/balance/concentration band derivation and
+ * buildComponentEvidence. All derivations are counts and ratios of counts.
+ *
+ * Does NOT: compute numeric resilience scores, evidence mass, caps, CI, or EWMA
+ * (min-math). Presence-gate evaluation is delegated to presenceGates.js.
  *
  * Bands:
  * - sufficiency: none | thin | moderate | adequate
  * - balance:     one_sided_pos | one_sided_neg | mixed | contested
+ *
+ * Key collaborators: componentSignalGroups.js, signalWeights.js,
+ * presenceGates.js, highSalienceBypass.js, evidencePipelinePrep.js.
  */
 import { COMPONENT_IDS } from './componentIds.js';
 import { collectComponentSignals } from '../services/signals/componentSignalGroups.js';
@@ -15,9 +26,11 @@ import { CRITICAL_BYPASS_SIGNAL_TYPES } from '../epistemic/highSalienceBypass.js
 import { GROUNDING_TIER } from '../services/signals/groundingPolicy.js';
 
 // ── Band thresholds (counts) ────────────────────────────────────────────────
+/** Sufficiency band labels (how much evidence a component has). */
 export const SUFFICIENCY = Object.freeze({
   none: 'none', thin: 'thin', moderate: 'moderate', adequate: 'adequate',
 });
+/** Polarity-mix band labels (how one-sided vs contested the evidence is). */
 export const BALANCE = Object.freeze({
   one_sided_pos: 'one_sided_pos',
   one_sided_neg: 'one_sided_neg',
@@ -35,7 +48,13 @@ const CONTESTED_MIN_TOTAL = 4;
 const OUTLET_CONCENTRATION_SHARE = 0.6;
 const SOURCE_TYPE_CONCENTRATION_SHARE = 0.7;
 
-/** @param {{signal_count:number, distinct_articles:number, source_type_count:number}} c */
+/**
+ * Map raw counts → sufficiency band (none/thin/moderate/adequate).
+ * Thin if few signals OR few articles; adequate needs signals + articles +
+ * source-type diversity; otherwise moderate.
+ * @param {{signal_count:number, distinct_articles:number, source_type_count:number}} c
+ * @returns {string}
+ */
 export function deriveSufficiency({ signal_count, distinct_articles, source_type_count }) {
   if (signal_count === 0) return SUFFICIENCY.none;
   if (signal_count <= THIN_MAX_SIGNALS || distinct_articles <= THIN_MAX_ARTICLES) {
@@ -49,7 +68,13 @@ export function deriveSufficiency({ signal_count, distinct_articles, source_type
   return SUFFICIENCY.moderate;
 }
 
-/** @param {number} pos @param {number} neg */
+/**
+ * Map positive vs negative signal counts → balance band (or null if empty).
+ * Contested when minority share is large enough on a non-trivial total.
+ * @param {number} pos
+ * @param {number} neg
+ * @returns {string | null}
+ */
 export function deriveBalance(pos, neg) {
   const total = pos + neg;
   if (total === 0) return null;
@@ -61,6 +86,7 @@ export function deriveBalance(pos, neg) {
   return BALANCE.mixed;
 }
 
+/** Histogram helper: key → count. */
 function countBy(items, keyFn) {
   const out = {};
   for (const it of items) {
@@ -97,6 +123,10 @@ export function deriveConcentrationWarning(items) {
   return null;
 }
 
+/**
+ * First grounded critical-bypass signal in the component pool (if any), for
+ * narrative salience when evidence is otherwise thin.
+ */
 function deriveSalientSingleSignal(items) {
   for (const it of items) {
     const s = it.signal;
@@ -111,6 +141,7 @@ function deriveSalientSingleSignal(items) {
   return null;
 }
 
+/** Compact signal row for report/agent payloads (drops bulky fields). */
 function slimSignal(it, index) {
   const s = it.signal;
   return {
@@ -126,6 +157,7 @@ function slimSignal(it, index) {
 }
 
 /**
+ * Assemble one component's evidence object from its collected signal items.
  * @param {Array<{signal: object, signalType: string, polarity: '+'|'-'}>} items
  * @param {Set} articleSet
  * @param {Set} sourceSet
@@ -166,11 +198,12 @@ function buildOneComponent(items, articleSet, sourceSet, componentId, samplingSt
 
 /**
  * Build the per-component evidence map for a batch of signals.
+ * Iterates all COMPONENT_IDS so every component appears even with zero signals.
  *
  * @param {Array<object>} signals metrics-eligible, scope-partitioned signals
  * @param {object} [ctx]
  * @param {string} [ctx.samplingStatus] 'normal'|'degraded'|'field_anchor_only'|'blind'
- * @param {object|null} [ctx.weightOverlay]
+ * @param {object|null} [ctx.weightOverlay] optional overlay on default routing weights
  * @returns {{ by_component: Record<string, object> }}
  */
 export function buildComponentEvidence(signals, ctx = {}) {

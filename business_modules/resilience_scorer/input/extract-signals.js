@@ -1,9 +1,16 @@
 #!/usr/bin/env node
 /**
- * Stage-1 CLI: extract behavioral signals from one source type and persist JSON artifacts.
+ * Stage-1 CLI transport entry: extract behavioral signals from one source type.
+ *
+ * Pipeline position: first operational stage of the daily pipeline. Thin socket —
+ * parses nothing itself; delegates to app/extraction/extractSignalsCli.js.
+ *
+ * Owns: process bootstrap (dotenv), top-level error handling / exit codes.
+ * Does NOT: run LLM extraction or write signal bundles (that's extractSignalsCli
+ * → extractionStageRunner → closed/open extract services).
+ *
+ * Invoke via npm script `extract-signals` or `node …/input/extract-signals.js`.
  * @see business_modules/resilience_scorer/app/extraction/extractSignalsCli.js
- * Per the module layout, transport lives in input/ (HTTP, CLI, events). App logic lives in app/.
-extract-signals.js is the CLI socket; extractSignalsCli.js is the real stage (args, budget, extraction, artifacts).
  */
 import 'dotenv/config';
 import { runExtractSignalsCli } from '../app/extraction/extractSignalsCli.js';

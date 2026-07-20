@@ -1,5 +1,18 @@
 /**
- * Critic agent — deterministic checks + optional LLM contested pass.
+ * Critic agent — deterministic post-specialist validation and auto-repair.
+ *
+ * **Owns:** rule-based checks on component assessments (claims, epistemic consistency,
+ * tool usage, gap closure, OOV narrative) plus text grounding score; repair handlers.
+ *
+ * **Pipeline position:** immediately after each `runComponentSpecialist` in orchestrator.
+ *
+ * **Inputs:** component assessment object, full epistemic profile.
+ *
+ * **Outputs:** `{ passed, issues, requiresRepair, grounding_score }`; optional mutating repair.
+ *
+ * **Does NOT:** call LLMs (contested LLM pass lives elsewhere); re-run specialists.
+ *
+ * **Collaborators:** `scoreTextGrounding` (resilience_scorer), `synthesisOovChecks`.
  */
 import { scoreTextGrounding } from '../../resilience_scorer/index.js';
 import { checkComponentOovInNarrative, repairComponentOovInNarrative } from '../domain/services/synthesisOovChecks.js';
@@ -66,9 +79,11 @@ function collectGapClosureIssues(assessment, issues) {
 }
 
 /**
- * @param {object} assessment — component assessment
+ * Run deterministic critic checks on a component assessment.
+ *
+ * @param {object} assessment — component assessment (may mutate `grounding_score`)
  * @param {object} epistemicProfile
- * @returns {{ passed: boolean, issues: object[], requiresRepair: boolean }}
+ * @returns {{ passed: boolean, issues: object[], requiresRepair: boolean, grounding_score: number }}
  */
 export function runCriticChecks(assessment, epistemicProfile) {
   const issues = [];
@@ -154,8 +169,11 @@ const CRITIC_REPAIR_HANDLERS = {
 const REPAIR_ISSUE_TYPES = new Set(Object.keys(CRITIC_REPAIR_HANDLERS));
 
 /**
- * @param {object} assessment
+ * Apply registered repair handlers for repairable critic issues.
+ *
+ * @param {object} assessment — mutates in place; appends `repair_log`
  * @param {object[]} issues
+ * @returns {object} same assessment reference
  */
 export function applyCriticRepair(assessment, issues) {
   const repair_log = [...(assessment.repair_log ?? [])];

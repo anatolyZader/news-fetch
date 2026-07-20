@@ -1,5 +1,21 @@
 /**
- * Main assessment agent orchestrator — planner → specialists → critic → synthesizer.
+ * Assessment agent orchestrator: planner → specialists → critic → synthesizer → legacy map.
+ *
+ * **Owns:** multi-agent investigation loop, RAG seeding, evidence graph construction, replan
+ * policy, budget governance, and v2→legacy assessment mapping.
+ *
+ * **Pipeline position:** invoked from `produceAssessment.tryAssessmentAgent` during Stage-2 when
+ * closed-core / rich-deterministic / budget-skip paths are not selected.
+ *
+ * **Inputs:** investigation signal pool, frozen epistemic profile, retrieval/sourceArchive ports,
+ * report date/scope, dataVoid, open observations, OOV burst context.
+ *
+ * **Outputs:** `{ assessmentV2, assessment, traceId, budget, evidenceGraph }`.
+ *
+ * **Does NOT:** extract signals, load bundles, write report files, or emit numeric 1–10 scores.
+ *
+ * **Collaborators:** `plannerAgent`, `componentSpecialistAgent`, `criticAgent`, `synthesizerAgent`,
+ * `cross-cut-modules/retrieval`, `cross-cut-modules/agent` (kernel, budget).
  */
 import {
   createAgentKernel,
@@ -46,6 +62,7 @@ import { needsReplan, buildReplanContext, affectedComponentsForReplan } from '..
 import { evaluateInvestigationBurst } from '../../resilience_scorer/index.js';
 import { resilienceCapturesDir, resilienceReportsDir } from '../domain/services/artifactPaths.js';
 
+/** Load open/residual observations and optional investigation OOV burst for planner context. */
 async function loadInvestigationContext(params, reportDate) {
   let openObservations = [];
   if (openObsForAgentEnabled() || residualForAgentEnabled()) {
@@ -68,6 +85,7 @@ async function loadInvestigationContext(params, reportDate) {
   };
 }
 
+/** Global + per-component RAG seeding before evidence graph build (lazy or eager policy). */
 async function fetchAssessmentHits({
   retrieval,
   reportDate,
@@ -122,6 +140,7 @@ async function fetchAssessmentHits({
   return { hits: dedupeHits([globalHits, componentHits]), componentHits };
 }
 
+/** Factory for tier-C abstention specialists on components skipped by budget/selection. */
 function createAbstainedSpecialistRunner({
   epistemicProfileEnriched,
   evidenceGraph,
@@ -153,6 +172,7 @@ function createAbstainedSpecialistRunner({
   });
 }
 
+/** Run focus components (parallel); under budget degrade, cap at top 3 + abstain rest. */
 async function runAllComponentAssessments({
   toRun,
   budget,
@@ -174,6 +194,7 @@ async function runAllComponentAssessments({
   return componentAssessments;
 }
 
+/** Optional replan round when critic/cross-component checks trigger replanPolicy. */
 async function maybeReplanAndRefresh({
   componentAssessments,
   crossComponentIssues,
@@ -218,6 +239,7 @@ async function maybeReplanAndRefresh({
   return { currentPlan: nextPlan, plannerSource: 'replan', crossComponentIssues: refreshedIssues };
 }
 
+/** Assemble validated assessment v2 payload from synthesizer output and run metadata. */
 function buildAssessmentV2Result({
   v2Partial,
   synth,
@@ -263,7 +285,16 @@ function buildAssessmentV2Result({
 }
 
 /**
+ * Run full assessment agent pipeline for one report date/scope.
+ *
  * @param {object} params
+ * @param {object[]} params.signals — investigation/scoring signal pool
+ * @param {object} params.epistemicProfile — frozen count-based profile from resilience_scorer
+ * @param {string} params.reportDate
+ * @param {string} [params.reportScopeId='national']
+ * @param {import('../../resilience_scorer/domain/ports/IResilienceLlmPort.js').IResilienceLlmPort} params.llmPort
+ * @returns {Promise<{ assessmentV2: object, assessment: object, traceId: string, budget: object, evidenceGraph: object }>}
+ * @sideEffects LLM tool rounds across planner/specialists/synthesizer; RAG retrieval calls
  */
 export async function runAssessmentAgent(params) {
   const {
@@ -580,6 +611,7 @@ export async function runAssessmentAgent(params) {
   };
 }
 
+/** Collect open/residual observation claims from evidence graph for synthesizer prompt. */
 function collectOpenObservationClaims(evidenceGraph) {
   const out = [];
   for (const [componentId, graph] of Object.entries(evidenceGraph?.by_component ?? {})) {

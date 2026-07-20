@@ -1,5 +1,18 @@
 /**
- * Planner agent — one round investigation plan with gap-first and exploration tasks.
+ * Planner agent — one-round investigation plan (LLM or deterministic).
+ *
+ * **Owns:** focus component selection, investigation/gap-closure task lists, abstention set,
+ * and planner_source tagging (`llm` | `deterministic` | `replan`).
+ *
+ * **Pipeline position:** first agent stage in `assessmentOrchestrator` (and optional replan).
+ *
+ * **Inputs:** frozen epistemic profile, planner context (gaps, OOV, anomalies), assessment mode.
+ *
+ * **Outputs:** `{ plan, traceId, prompt_version }`.
+ *
+ * **Does NOT:** run specialists, retrieve evidence, or mutate signals.
+ *
+ * **Collaborators:** `plannerContextBuilder`, `plannerPolicy`, `investigationEpistemic`.
  */
 import {
   createAgentKernel,
@@ -53,6 +66,10 @@ function buildPlannerSystem(epistemicProfile, plannerContext) {
   return { stable, dynamic };
 }
 
+/**
+ * Deterministic fallback plan from epistemic hints (no LLM).
+ * @exports via named export for tests
+ */
 function defaultPlan(epistemicProfile, plannerContext = null) {
   const focus = [];
   const abstention = [];
@@ -112,7 +129,14 @@ function finalizePlan(plan, epistemicProfile, plannerContext, plannerSource) {
 }
 
 /**
+ * Produce investigation plan via deterministic rules or single-round Haiku planner.
+ *
  * @param {object} params
+ * @param {object} params.epistemicProfile
+ * @param {object|null} [params.plannerContext=null]
+ * @param {boolean} [params.forceLlm=false] — skip deterministic shortcut (replan)
+ * @returns {Promise<{ plan: object, traceId: string, prompt_version: string }>}
+ * @sideEffects One LLM round when not deterministic; consumes agent budget rounds
  */
 export async function runPlannerAgent(params) {
   const {

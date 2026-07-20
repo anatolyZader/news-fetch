@@ -1,17 +1,27 @@
 /**
  * STAGE 1 — extraction stage orchestrator.
- * Runs closed-catalogue extraction as the primary path.
- * When isOpenExtractParallelEnabled(), also runs open-vocabulary extraction concurrently
- * (fire-and-forget side artifact; only the closed result is returned).
  *
- * Callers may supply closedExtractFn to override the default closed-catalogue extractor
- * (used by pbo_report muni/regional inputs which need module-specific geo stamping).
+ * Pipeline position: between extractSignalsCli and the closed/open extract
+ * services. Always runs closed-catalogue extraction as the primary path.
+ * When isOpenExtractParallelEnabled(), also runs open-vocabulary extraction
+ * concurrently (side artifact only; only the closed result is returned).
+ *
+ * Owns: Promise.all wiring of closed + open; optional closedExtractFn override
+ * (pbo muni/regional inputs that need module-specific geo stamping);
+ * story-cluster indexing helper.
+ *
+ * Does NOT: implement LLM calls or write artifacts itself — delegates to
+ * closedCatalogueExtractService / openVocabularyExtractService.
+ *
+ * Key collaborators: openExtractConfig.js, closedCatalogueExtractService.js,
+ * openVocabularyExtractService.js.
  */
 import { isOpenExtractParallelEnabled } from '../../domain/services/oov/openExtractConfig.js';
 import { runClosedCatalogueExtract } from './closedCatalogueExtractService.js';
 import { runOpenVocabularyExtract } from './openVocabularyExtractService.js';
 
 /**
+ * Run Stage-1 extraction for one source batch.
  * @param {{
  *   repoRoot: string,
  *   articles: Array<object>,
@@ -25,6 +35,7 @@ import { runOpenVocabularyExtract } from './openVocabularyExtractService.js';
  *   trace?: object|null,
  * }} opts
  * @returns {Promise<{ signals: Array<object>, bundleDistrictId: string|null }>}
+ *   Always the closed-catalogue result (open observations are a side write).
  */
 export async function runExtractionStage(opts) {
   const {
@@ -84,6 +95,13 @@ export async function runExtractionStage(opts) {
   return closedResult;
 }
 
+/**
+ * Best-effort upsert of extracted evidence spans into the story-cluster index.
+ * Non-fatal on failure.
+ * @param {object|null|undefined} retrievalService
+ * @param {Array<object>} signals
+ * @returns {Promise<void>}
+ */
 export async function indexExtractStoryClusters(retrievalService, signals) {
   if (!retrievalService?.storyClusterIndex) return;
   try {

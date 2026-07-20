@@ -1,3 +1,18 @@
+/**
+ * LLM closed-catalogue signal extraction (Anthropic / Haiku by default).
+ *
+ * Pipeline position: infrastructure adapter used by closedCatalogueExtract
+ * (via claudeEvaluator). Builds system prompts from SIGNAL_CATALOG, runs
+ * single- or multipass batch calls, optional self-check / evidence verification,
+ * and returns validated signal instances.
+ *
+ * Owns: extractSignals entry, prompt builders, stripTraceFields, stream progress.
+ * Does NOT: write signals-*.json (closedCatalogueExtractService does) or assess
+ * components. Does not invent numeric resilience scores (min-math).
+ *
+ * Key collaborators: extractionPasses.js, signalCatalogPrompt.js,
+ * claudeSignalValidation.js, signalVerification.js, extractionPrompt contracts.
+ */
 import { createHash } from 'node:crypto';
 import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { withLlmRetry } from '../../../cross-cut-modules/llm/withLlmRetry.js';
@@ -48,6 +63,13 @@ const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? HAIK
 function formatSignalCatalogForPrompt() {
   return formatSignalCatalog();
 }
+
+/**
+ * Consume an Anthropic streaming response, printing progress dots on stderr.
+ * @param {AsyncIterable} stream
+ * @param {string} label
+ * @returns {Promise<void>}
+ */
 export async function streamWithProgress(stream, label) {
   process.stderr.write(`${label} `);
   let dots = 0;
@@ -502,6 +524,13 @@ function buildExtractionContentKindPrefix(contentKind) {
   return '';
 }
 
+/**
+ * Build system prompt parts for one extract call (stable + dynamic).
+ * When domainGroupKey is set, appends a multipass scope suffix limiting types.
+ * @param {string} contentKind
+ * @param {string|null} [domainGroupKey]
+ * @returns {{ stable: string, dynamic: string }}
+ */
 export function buildExtractionSystemForCall(contentKind, domainGroupKey = null) {
   const parts = buildExtractionSystemParts(contentKind, {
     formatDisambiguationBlock,
@@ -515,6 +544,12 @@ export function buildExtractionSystemForCall(contentKind, domainGroupKey = null)
   };
 }
 
+/**
+ * Single concatenated system prompt (dynamic + stable) for non-multipass extract.
+ * Prefer buildExtractionSystemForCall when you need separate cacheable parts.
+ * @param {string} contentKind
+ * @returns {string}
+ */
 export function buildSignalExtractionSystemPrompt(contentKind) {
   const parts = buildExtractionSystemForCall(contentKind, null);
   return `${parts.dynamic}${parts.stable}`;
@@ -1006,6 +1041,25 @@ async function extractSignalsInBatches(batches, onUsage, onProgress, contentKind
   return allSignals;
 }
 
+/**
+ * Main closed-catalogue extract entry: batch articles through the LLM,
+ * validate against SIGNAL_CATALOG, optional multipass / self-check / cache.
+ * Mapping to components is NOT done here — assess uses signalRouting.js.
+ *
+ * Side effects: LLM API calls (cost via onUsage), optional cache writes, stderr.
+ *
+ * @param {Array<object>} articles Flat array from loadMdFiles() / content batch
+ * @param {{
+ *   onUsage?: Function,
+ *   onProgress?: Function,
+ *   contentKind?: string,
+ *   extractModel?: string|null,
+ *   retrievalService?: object|null,
+ *   reportDate?: string|null,
+ *   trace?: object|null,
+ * }} [opts]
+ * @returns {Promise<Array<object>>} Signal objects for hygiene + persist
+ */
 export async function extractSignals(articles, {
   onUsage,
   onProgress,

@@ -1,23 +1,32 @@
 #!/usr/bin/env node
 /**
- * Stage-2 CLI: load pre-extracted signal files, score per-source + full, narrate once, write report.
+ * Stage-2 assessment CLI orchestrator: load bundles → evidence pipeline → narrate → persist report.
+ *
+ * **Owns:** CLI argument parsing delegation, budget/cost tracking, bundle discovery wiring,
+ * scoped evidence preparation, and report finalization handoff.
+ *
+ * **Pipeline position:** Stage 2 of the resilience pipeline; invoked by `input/assess-signals.js`
+ * and indirectly by `input/run-pipeline.js` after ingest completes.
+ *
+ * **Inputs:** `--date`, `--days` (1–14), `--scope`, optional bundle source/profile flags;
+ * pre-extracted JSON bundles on disk (news, radio, whatsapp, visits, PBO, regional PBO,
+ * Naftali, social). Bundle dates must be ≤ `--date` and within the N-day window (no forward
+ * leakage on historical replay).
+ *
+ * **Outputs:** console progress to stderr; assessment report JSON via `finalizeAndWriteReport`;
+ * optional RAG index backfill for article corpus.
+ *
+ * **Does NOT:** run signal extraction, compute numeric 1–10 resilience scores, or invoke
+ * the specialist agent directly (delegates to `assessmentStageRunner` / `produceAssessment`).
+ *
+ * **Collaborators:** `assessSignalsDeps.js` (load bundles), `buildScopedScoring.js`
+ * (scope + evidence prep), `assessmentStageRunner.js` (shared assess core),
+ * `finalizeReport.js` (write artifacts), `cross-cut-modules/budget` (cost caps).
  *
  * Usage:
- *   node assess-signals.js --date YYYY-MM-DD [--days N] [--scope national|north|south|jerusalem|dan|haifa] [--output <path-without-ext>]
+ *   node assess-signals.js --date YYYY-MM-DD [--days N] [--scope national|north|…] [--output <path-without-ext>]
  *
- * All sources—including field, PBO, and Naftali—may only load bundles whose basename date `YYYY-MM-DD` is:
- * - on or before `--date` (no forward leakage from later calendar days when replaying history), and
- * - inside the assessment window `{ --date , --date-1 , … }` of length `--days` (default 1, max 14).
- * So `--date D --days 14` uses D through D−13. Up to `--days` bundles per channel may load within the window;
- * Naftali at most one within the window.
- *
- * Auto-discovers business_modules/resilience_scorer/data/signals/signals-{type}-{date}.json,
- * field signals under business_modules/visits/data/signals/, and social OSINT under
- * business_modules/social_media/data/ for the requested date window.
- * Temporal weights: T=1, T-1=0.85, T-2=0.70, then geometric decay (floor 0.50).
- *
- * Split across: assessSignalsDeps.js (bundle loading + safe service factories),
- * buildScopedScoring.js (scoring), finalizeReport.js (report finalization).
+ * Temporal weights on loaded bundles: T=1, T-1=0.85, T-2=0.70, then geometric decay (floor 0.50).
  */
 
 import 'dotenv/config';
@@ -39,12 +48,14 @@ import {
 import { buildScopedScoring } from './buildScopedScoring.js';
 import { finalizeAndWriteReport } from './finalizeReport.js';
 
+/** Fail fast when ANTHROPIC_API_KEY is missing (narrative/agent paths require it). */
 function assertApiKey() {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new Error('ANTHROPIC_API_KEY is not set');
   }
 }
 
+/** stderr banner: date window, scope label, per-source bundle weights, signal/article counts. */
 function logAssessmentHeader({ targetDate, days, reportScope, loadedFiles, allSignals, totalArticles, contentKind }) {
   const suffix = formatDaysSuffix(days);
   console.error(`\nResilience Assessment (${contentKind})`);
@@ -58,6 +69,10 @@ function logAssessmentHeader({ targetDate, days, reportScope, loadedFiles, allSi
   console.error(`Signals:  ${allSignals.length} total  Articles: ${totalArticles}\n`);
 }
 
+/**
+ * stderr summary after evidence pipeline: metrics-eligible signal count, optional geo stats,
+ * and per-component evidence rows (legacy log shape; score fields are null in min-math).
+ */
 function logScoringResults(scopedSignals, signalsForScoring, scoredFull) {
   console.error(`  → ${signalsForScoring.length} metrics-eligible behavioral signals\n`);
   if (scopedSignals.some((s) => s && 'geo' in s)) {
@@ -76,6 +91,12 @@ function logScoringResults(scopedSignals, signalsForScoring, scoredFull) {
   }
 }
 
+/**
+ * Main Stage-2 CLI entry: parse args, load bundles, run scoped evidence + assessment, write report.
+ *
+ * @returns {Promise<void>} Resolves when report is written; throws on fatal errors (caller exits 1).
+ * @sideEffects stderr logging; LLM/RAG usage via cost tracker; may write report + epistemic artifacts.
+ */
 export async function runAssessSignalsCli() {
   const {
     targetDate,

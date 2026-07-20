@@ -1,9 +1,20 @@
 /**
- * Closed-vocabulary signal catalog — the shared extraction TAXONOMY: which signal types exist, how the LLM distinguishes them, and how legacy names
- * canonicalize. Scoring policy (component routing weights, routing roles,
- * scoring priors, polarity-override whitelist) is owned by the
- * resilience_scorer business module (domain/services/signals/routing/signalRouting.js,
- * signalInstanceSchema.js).
+ * Closed-vocabulary signal catalog — shared extraction TAXONOMY.
+ *
+ * Pipeline position: Phase 1 foundation. Extraction (closed catalogue) may only
+ * emit types listed here; assess partitions signals into components via
+ * SIGNAL_TO_COMPONENTS (signalRouting.js); specialist agents cite these type ids.
+ *
+ * Owns: which signal types exist, domain groupings, labels/disambiguation for
+ * extraction prompts, mirrors/related integrity, legacy aliases.
+ *
+ * Does NOT own: component routing weights or primary/inferred roles (those live
+ * in domain/services/signals/routing/signalRouting.js). Does not produce
+ * numeric resilience scores (min-math).
+ *
+ * Key collaborators: signalCatalogPrompt.js (LLM prompts), extractionPasses.js
+ * (per-domain extract), signalRouting.js (must map every catalog type),
+ * signalRouter.js (facade re-export).
  *
  * Every field is load-bearing for a specific downstream consumer — see the
  * SignalCatalogEntry typedef below before adding/removing fields.
@@ -11,7 +22,7 @@
  * Note: polarity_override is a signal INSTANCE field, not a catalog field: for
  * whitelisted types (signalInstanceSchema.js), an extracted signal may carry
  * polarity_override: 'positive'|'negative'; when it contradicts
- * defaultPolarity, scoring flips the sign of the routing weights.
+ * defaultPolarity, routing/evidence polarity flips accordingly.
  */
 
 /**
@@ -31,13 +42,15 @@
  *   extractionPasses.js run focused per-domain-group passes (smaller prompts,
  *   cheaper calls).
  * @property {'behavior'|'attitude'|'structural_state'|'narrative'|'event'|'capacity'} signal_class
- *   Scoring analytics: analyst class-mix / behavior_to_attitude_ratio
- *   (scoringShared.js); only 'event'-class types can trigger the high-salience
- *   bypass (highSalienceBypass.js).
+ *   Semantic tag rendered into the extraction prompt as a bracketed hint
+ *   (signalCatalogPrompt.js). Former consumers (class-mix analytics, class-gated
+ *   salience bypass) were removed with the scoring engine; the salience bypass
+ *   is now the per-type CRITICAL_BYPASS_SIGNAL_TYPES set in
+ *   domain/epistemic/highSalienceBypass.js.
  * @property {'positive'|'negative'} defaultPolarity
- *   Scoring direction: massContribution.js flips routing-weight sign when an
- *   instance polarity_override contradicts it; signalRouting.js validates
- *   weight-sign coherence; socialChannelQuarantine.js derives +/− from it.
+ *   Default +/− for an instance of this type. Instance polarity_override (when
+ *   allowed) can flip evidence polarity; signalRouting.js validates weight-sign
+ *   coherence against this field; socialChannelQuarantine.js derives +/− from it.
  * @property {string} [mirror]
  *   Reciprocal opposite-polarity twin (same phenomenon, inverted outcome).
  *   Feeds the extraction self-check hint (signalCatalogPrompt.js). Validated:
@@ -58,6 +71,11 @@
  *   Few-shot evidence examples for the extraction prompt's boundaries block.
  */
 
+/**
+ * Human-bump when the closed vocabulary changes in a way that affects
+ * extraction prompts, report comparability, or routing coherence checks.
+ * Keep in sync with methodology / changelog when types are added or redefined.
+ */
 export const CATALOG_VERSION = 'v8';
 
 /**
@@ -74,12 +92,23 @@ export const SIGNAL_ALIASES = {
   non_compliance: 'non_compliance_ignore_guidelines',
 };
 
-/** @param {string | null | undefined} type */
+/**
+ * Map a raw extracted/legacy type string to its canonical catalog id.
+ * Trims whitespace; unknown names pass through unchanged (callers validate).
+ * @param {string | null | undefined} type
+ * @returns {string}
+ */
 export function canonicalizeSignalType(type) {
   const raw = String(type ?? '').trim();
   return SIGNAL_ALIASES[raw] ?? raw;
 }
 
+/**
+ * Thematic buckets for extraction prompt sections and focused domain passes.
+ * Keys are machine ids used on each catalog entry's `domain` field; values are
+ * human labels shown in prompts.
+ * @type {Record<string, string>}
+ */
 export const SIGNAL_DOMAINS = {
   compliance: "Compliance & Discipline",
   risk: "Risk & Safety",
@@ -104,8 +133,10 @@ export const SIGNAL_DOMAINS = {
 /** @typedef {'behavior'|'attitude'|'structural_state'|'narrative'|'event'|'capacity'} SignalClass */
 
 /**
- * All valid signal types the LLM may emit.
- * @type {Array<{ type: string, domain: string, label: string, defaultPolarity: 'positive'|'negative', signal_class: SignalClass, indicator_kind?: 'state'|'response'|'capacity', mirror?: string, related?: string[], disambiguation?: { not_confused_with?: string[], accept_patterns?: string[], reject_patterns?: string[] }, example_evidence?: string[], norris_capacity?: string }>}
+ * Authoritative closed vocabulary: one object per extractable signal type.
+ * Do not add per-row essays here — labels, mirrors, and disambiguation on each
+ * entry are the documentation the extraction LLM and validators need.
+ * @type {Array<{ type: string, domain: string, label: string, defaultPolarity: 'positive'|'negative', signal_class: SignalClass, indicator_kind?: 'state'|'response'|'capacity', mirror?: string, related?: string[], disambiguation?: { not_confused_with?: string[], accept_patterns?: string[], reject_patterns?: string[] }, example_evidence?: string[] }>}
  */
 export const SIGNAL_CATALOG = [
   // Compliance & Discipline
@@ -145,8 +176,8 @@ export const SIGNAL_CATALOG = [
     type: 'compliance_partial',
     domain: 'compliance',
     signal_class: 'behavior',
-    label: 'Residents enter shelter or follow instructions incompletely (late entry, partial compliance)',
-    defaultPolarity: 'positive',
+    label: 'Residents comply only partially or late (late shelter entry, incomplete adherence) — deficiency reading; set polarity_override: positive when the evidence emphasizes that compliance mostly succeeded',
+    defaultPolarity: 'negative',
     related: ['non_compliance_exit_early'],
   },
   {
@@ -185,6 +216,17 @@ export const SIGNAL_CATALOG = [
     signal_class: 'behavior',
     label: 'Chaotic or unsafe reactions during alerts',
     defaultPolarity: 'negative',
+    disambiguation: {
+      not_confused_with: ['fear_expression'],
+      accept_patterns: [
+        'crush or trampling at a shelter entrance',
+        'drivers abandoning cars mid-road to flee during an alert',
+      ],
+      reject_patterns: [
+        "the word 'panic' describing mood or fear without a concrete unsafe act → fear_expression",
+        'reporter characterizes residents as panicked with no described behavior → abstain',
+      ],
+    },
   },
   {
     type: 'unsafe_gathering',
@@ -199,6 +241,16 @@ export const SIGNAL_CATALOG = [
     signal_class: 'structural_state',
     label: 'A defensive measure demonstrably averted harm (Iron Dome interception, mamad/shelter doctrine, drill saved lives in documented hit)',
     defaultPolarity: 'positive',
+    disambiguation: {
+      not_confused_with: ['near_miss_reported'],
+      accept_patterns: [
+        'documented hit with no casualties BECAUSE a protective measure functioned (interception, mamad held, site empty due to closure order)',
+        'missile fell near school with no injuries because schools were closed by order',
+      ],
+      reject_patterns: [
+        'harm averted by luck or chance timing with no measure credited → near_miss_reported',
+      ],
+    },
   },
   {
     type: 'near_miss_reported',
@@ -208,6 +260,7 @@ export const SIGNAL_CATALOG = [
     defaultPolarity: 'negative',
     disambiguation: {
       not_confused_with: [
+        'protection_effective',
         'resilience_narrative_positive',
         'resilience_narrative_negative',
         'fear_narrative',
@@ -215,10 +268,11 @@ export const SIGNAL_CATALOG = [
         'educational_disruption',
       ],
       accept_patterns: [
-        'missile crater in open ground near school with no injuries because schools were closed',
-        'documented close call where timing or empty site prevented casualties',
+        'impact meters from residents with no warning — harm averted by chance, not by any measure',
+        'documented close call where sheer luck or coincidental timing prevented casualties',
       ],
       reject_patterns: [
+        'harm averted because a protective measure worked as designed (interception, closure order, shelter held) → protection_effective',
         'generic salvo or siren activation headline without documented close call → abstain',
         'public mood or media framing without a documented close call → narrative types, not near_miss',
         'building or kindergarten physically damaged with no injuries → infrastructure_damage_acute',
@@ -359,6 +413,7 @@ export const SIGNAL_CATALOG = [
     signal_class: 'behavior',
     label: 'Free-riding or norm-breaking in shared emergency resources (shelter hogging, aid queue jumping)',
     defaultPolarity: 'negative',
+    related: ['panic_buying_hoarding'],
   },
   // Leadership & Governance
   {
@@ -551,6 +606,25 @@ export const SIGNAL_CATALOG = [
     label: 'Rumors or misinformation are circulating',
     defaultPolarity: 'negative',
     mirror: 'rumor_correction',
+    related: ['misinformation_acted_upon'],
+  },
+  {
+    type: 'misinformation_acted_upon',
+    domain: 'information',
+    signal_class: 'behavior',
+    label: 'Residents act on rumors or misinformation (fleeing on a false alarm, refusing protection based on false claims) — behavioral adherence, distinct from circulation',
+    defaultPolarity: 'negative',
+    related: ['rumor_spread'],
+    disambiguation: {
+      not_confused_with: [
+        'rumor_spread',
+        'non_compliance_due_to_distrust',
+      ],
+      reject_patterns: [
+        'rumor circulating without documented action taken on it → rumor_spread',
+        'refusal grounded in distrust of a real official source → non_compliance_due_to_distrust',
+      ],
+    },
   },
   {
     type: 'rumor_correction',
@@ -667,8 +741,9 @@ export const SIGNAL_CATALOG = [
     type: 'news_avoidance_behavior',
     domain: 'information',
     signal_class: 'behavior',
-    label: 'Residents intentionally tune out emergency news or alerts as coping',
+    label: 'Residents intentionally tune out emergency news coverage as coping (media dosing). NOT ignoring alerts or sirens — that is complacency_or_normalization or non-compliance. Set polarity_override: positive when described as deliberate, adaptive dosing',
     defaultPolarity: 'negative',
+    related: ['complacency_or_normalization'],
   },
   {
     type: 'media_literacy_demonstrated',
@@ -786,7 +861,7 @@ export const SIGNAL_CATALOG = [
     type: 'self_evacuation_unauthorized',
     domain: 'continuity',
     signal_class: 'behavior',
-    label: 'Residents leave home or community without official evacuation order (self-evacuation, unauthorized departure)',
+    label: 'Residents leave home or community without official evacuation order (self-evacuation, unauthorized departure). Negative as a guidance-system signal (official guidance lagging or mistrusted); set polarity_override: positive when the departure was clearly protective and timely',
     defaultPolarity: 'negative',
     related: ['evacuation_displacement'],
     disambiguation: {
@@ -806,6 +881,33 @@ export const SIGNAL_CATALOG = [
     label: 'Evacuees return home or displacement is visibly resolved (mirror of evacuation_displacement)',
     defaultPolarity: 'positive',
     mirror: 'evacuation_displacement',
+  },
+  {
+    type: 'return_intention_expressed',
+    domain: 'continuity',
+    signal_class: 'attitude',
+    label: 'Evacuees or displaced residents state the intention to return home (commitment to place and community) — stated intention only, not the actual return',
+    defaultPolarity: 'positive',
+    mirror: 'relocation_intention_expressed',
+    disambiguation: {
+      reject_patterns: [
+        'actual documented return of evacuees → displacement_resolved',
+      ],
+    },
+  },
+  {
+    type: 'relocation_intention_expressed',
+    domain: 'continuity',
+    signal_class: 'attitude',
+    label: 'Evacuees or residents state the intention to leave permanently or not return (relocation, emigration from the area) — stated intention only, not the departure itself',
+    defaultPolarity: 'negative',
+    mirror: 'return_intention_expressed',
+    disambiguation: {
+      reject_patterns: [
+        'actual unauthorized departure → self_evacuation_unauthorized',
+        'official evacuation or prolonged displacement fact → evacuation_displacement',
+      ],
+    },
   },
   {
     type: 'system_overload',
@@ -873,6 +975,7 @@ export const SIGNAL_CATALOG = [
     signal_class: 'structural_state',
     label: 'Affected residents or businesses receive promised compensation (Property Tax Fund, pitsuim, grants)',
     defaultPolarity: 'positive',
+    mirror: 'compensation_blocked',
   },
   {
     type: 'compensation_blocked',
@@ -880,6 +983,7 @@ export const SIGNAL_CATALOG = [
     signal_class: 'structural_state',
     label: 'Promised compensation or aid payments are delayed, denied, or not reaching claimants',
     defaultPolarity: 'negative',
+    mirror: 'compensation_received',
   },
   {
     type: 'cultural_continuity',
@@ -911,6 +1015,7 @@ export const SIGNAL_CATALOG = [
     indicator_kind: 'response',
     label: 'Resources/services are mobilized quickly to meet needs (rapid access, timely restoration, fast deployment)',
     defaultPolarity: 'positive',
+    mirror: 'delayed_mobilization',
   },
   {
     type: 'delayed_mobilization',
@@ -918,6 +1023,7 @@ export const SIGNAL_CATALOG = [
     signal_class: 'structural_state',
     label: 'Resources/services are mobilized too slowly, increasing disruption (slow response, delays in opening/repairing/deploying)',
     defaultPolarity: 'negative',
+    mirror: 'rapid_mobilization',
   },
   {
     type: 'supply_chain_disruption',
@@ -979,6 +1085,7 @@ export const SIGNAL_CATALOG = [
     signal_class: 'attitude',
     label: 'Residents express fear, anxiety, or trauma',
     defaultPolarity: 'negative',
+    mirror: 'calm_confidence',
     disambiguation: {
       not_confused_with: [
         'psychological_distress',
@@ -995,6 +1102,7 @@ export const SIGNAL_CATALOG = [
     signal_class: 'attitude',
     label: 'Residents express calm, confidence, or sense of control',
     defaultPolarity: 'positive',
+    mirror: 'fear_expression',
   },
   {
     type: 'resilience_narrative_positive',
@@ -1068,14 +1176,23 @@ export const SIGNAL_CATALOG = [
     type: 'heroism_overframing',
     domain: 'narrative',
     signal_class: 'narrative',
-    label: 'Heroism stories obscure systemic failures or unmet needs',
+    label: 'Heroism stories obscure systemic failures or unmet needs — requires an explicit obscured-need or failure claim in the text, never infer the obscuring',
     defaultPolarity: 'negative',
+    disambiguation: {
+      not_confused_with: [
+        'solidarity_help_others',
+        'resilience_narrative_positive',
+      ],
+      reject_patterns: [
+        'plain heroism or bravery coverage without an explicit claim that needs or failures are being obscured → abstain or the concrete positive type',
+      ],
+    },
   },
   {
     type: 'historical_analogy_frame',
     domain: 'narrative',
     signal_class: 'narrative',
-    label: 'Explicit invocation of past wars or traumas to frame the present emergency',
+    label: "Explicit invocation of past wars or traumas to frame the present emergency. Trauma re-activation ('this is X again') is negative; set polarity_override: positive for mastery framing ('we survived X, we will survive this')",
     defaultPolarity: 'negative',
   },
   {
@@ -1142,6 +1259,15 @@ export const SIGNAL_CATALOG = [
     label: 'Community depends heavily on external aid due to local capacity gaps',
     defaultPolarity: 'negative',
     mirror: 'local_capacity_demonstrated',
+    disambiguation: {
+      not_confused_with: [
+        'international_aid_arrival',
+        'diaspora_solidarity',
+      ],
+      reject_patterns: [
+        'arrival of aid alone → international_aid_arrival / diaspora_solidarity; dependency requires stated inability to function without it',
+      ],
+    },
   },
   {
     type: 'local_capacity_demonstrated',
@@ -1167,6 +1293,28 @@ export const SIGNAL_CATALOG = [
     label: 'Crowdfunding, WhatsApp/Telegram mutual-aid channels mobilize resources',
     defaultPolarity: 'positive',
     related: ['self_organization'],
+  },
+  {
+    type: 'panic_buying_hoarding',
+    domain: 'resources',
+    signal_class: 'behavior',
+    label: 'Rush buying or private stockpiling well beyond official guidance (emptied shelves, fuel queues, hoarding). Set polarity_override: positive when described as orderly stocking that stayed within guidance',
+    defaultPolarity: 'negative',
+    related: ['prosocial_norm_violation', 'food_security_stress'],
+    disambiguation: {
+      not_confused_with: [
+        'prosocial_norm_violation',
+        'household_readiness_demonstrated',
+        'food_security_stress',
+      ],
+      accept_patterns: [
+        'supermarket shelves emptied within hours as residents stockpile far beyond guidance',
+      ],
+      reject_patterns: [
+        'household stocking per official HFC preparedness guidance → household_readiness_demonstrated',
+        'shortage without a buying rush → resource_shortage / food_security_stress',
+      ],
+    },
   },
   {
     type: 'resource_allocation_transparency',
@@ -1197,7 +1345,10 @@ export const SIGNAL_CATALOG = [
         'near_miss_reported',
       ],
       accept_patterns: ['61-year-old injured by shrapnel in Tamra'],
-      reject_patterns: ['accidents, crime, or building damage without injuries'],
+      reject_patterns: [
+        'accidents, crime, or building damage without injuries',
+        'aggregate injury statistics from protective action itself (hurt while reaching shelters), reported as a named survey/institutional figure → population_survey_finding',
+      ],
     },
   },
   {
@@ -1491,7 +1642,7 @@ export const SIGNAL_CATALOG = [
     type: 'novel_behavior_observed',
     domain: 'adaptation',
     signal_class: 'behavior',
-    label: 'Repeated novel behavior pattern detected outside catalog (OOV cluster)',
+    label: 'Repeated novel behavior pattern detected outside catalog (OOV cluster). Set polarity_override: positive when the novel pattern is clearly adaptive',
     defaultPolarity: 'negative',
   },
   // Children & Education
@@ -1608,6 +1759,9 @@ export const SIGNAL_CATALOG = [
     label: 'International aid or volunteers arrive to support the community',
     defaultPolarity: 'positive',
     mirror: 'international_aid_withdrawal',
+    disambiguation: {
+      not_confused_with: ['dependency_on_external_aid'],
+    },
   },
   {
     type: 'international_aid_withdrawal',
@@ -1652,8 +1806,13 @@ export const SIGNAL_CATALOG = [
     type: 'hostage_return_event',
     domain: 'hostage',
     signal_class: 'event',
-    label: 'Hostage or captive returns home (documented event)',
+    label: 'Hostage or captive returns home alive (documented event)',
     defaultPolarity: 'positive',
+    disambiguation: {
+      reject_patterns: [
+        'return of remains / body repatriation of deceased hostages → commemoration_event_observed if a memorial is described, else abstain',
+      ],
+    },
   },
   {
     type: 'hostage_uncertainty_distress',
@@ -1687,14 +1846,22 @@ export const SIGNAL_CATALOG = [
   },
 ];
 
+/** Flat list of canonical type ids (derived from SIGNAL_CATALOG). */
 export const SIGNAL_TYPES = SIGNAL_CATALOG.map((s) => s.type);
 
+/** O(1) lookup map — prefer getSignalCatalogEntry for external callers. */
 const CATALOG_BY_TYPE = Object.fromEntries(SIGNAL_CATALOG.map((s) => [s.type, s]));
 
+/**
+ * Look up a catalog entry by type id (does not canonicalize aliases).
+ * @param {string} type
+ * @returns {SignalCatalogEntry | null}
+ */
 export function getSignalCatalogEntry(type) {
   return CATALOG_BY_TYPE[type] ?? null;
 }
 
+/** Mirror pairs must exist, be reciprocal, and have opposite defaultPolarity. */
 function checkCatalogEntryMirror(entry, errors) {
   if (!entry.mirror) return;
   const target = CATALOG_BY_TYPE[entry.mirror];
@@ -1710,6 +1877,7 @@ function checkCatalogEntryMirror(entry, errors) {
   }
 }
 
+/** `related` targets must still exist in the catalog (maintainer breadcrumbs). */
 function checkCatalogEntryRelated(entry, errors) {
   for (const rel of entry.related ?? []) {
     if (!CATALOG_BY_TYPE[rel]) {
@@ -1718,6 +1886,7 @@ function checkCatalogEntryRelated(entry, errors) {
   }
 }
 
+/** No duplicate types; aliases must not collide with catalog ids; alias targets must exist. */
 function checkDuplicatesAndAliases(errors) {
   const seen = new Set();
   for (const entry of SIGNAL_CATALOG) {
@@ -1749,7 +1918,11 @@ export function validateSignalCatalog() {
   return { errors, warnings };
 }
 
-/** Throws if the catalog violates its taxonomy contract. */
+/**
+ * Throws if the catalog violates its taxonomy contract.
+ * Call from startup/tests — not on every extract request.
+ * @throws {Error}
+ */
 export function assertValidSignalCatalog() {
   const { errors } = validateSignalCatalog();
   if (errors.length > 0) {

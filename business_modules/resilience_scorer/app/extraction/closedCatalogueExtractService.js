@@ -1,7 +1,17 @@
 /**
  * STAGE 1 — closed-catalogue extraction.
- * Prompts the LLM with the fixed SIGNAL_CATALOG taxonomy, applies resilience-specific
- * hygiene, geo-attributes signals, and writes signals-{stem}-{date}.json.
+ *
+ * Pipeline position: primary extract path. Prompts the LLM with the fixed
+ * SIGNAL_CATALOG taxonomy, applies resilience-specific hygiene, geo-attributes
+ * signals, stamps source ids / article dates, strips trace fields, and writes
+ * signals-{stem}-{date}.json for assess-signals to load.
+ *
+ * Owns: runClosedCatalogueExtract orchestration (LLM → hygiene → geo → persist).
+ * Does NOT: open-vocabulary observations (see openVocabularyExtractService.js)
+ * or component assessment. Does not invent numeric scores (min-math).
+ *
+ * Key collaborators: claudeEvaluator/claudeExtraction (LLM), signalTypeHygiene,
+ * fieldReportHygiene, attributeSignalScope, closedSignalsDir.
  */
 import { basename, resolve } from 'node:path';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -15,6 +25,7 @@ import { isVisitsSourceType, normalizeVisitsSourceType } from '../../domain/serv
 import { applySignalTypeHygiene } from '../../domain/services/signals/routing/signalTypeHygiene.js';
 import { applyFieldReportSignalHygiene } from '../../domain/services/signals/fieldReportHygiene.js';
 
+/** Stamp article_date from the 1-based article_index when publishedAt is a YYYY-MM-DD. */
 function attachArticleDatesToSignals(signals, articles) {
   return (signals ?? []).map((s) => {
     const idx = Number(s?.article_index);
@@ -32,6 +43,8 @@ function attachArticleDatesToSignals(signals, articles) {
  * Run the closed-catalogue extraction path: LLM with fixed SIGNAL_CATALOG,
  * hygiene, geo attribution, source-id/date stamping, trace-field strip, and
  * write of signals-{stem}-{date}.json.
+ *
+ * Side effects: filesystem write of the closed signal bundle; stderr progress.
  *
  * @param {{
  *   repoRoot: string,
@@ -89,7 +102,7 @@ export async function runClosedCatalogueExtract(opts) {
   signals = attachSourceIdsToSignals(signals, filePaths, repoRoot);
   signals = attachArticleDatesToSignals(signals, articles);
 
-  // Drop trace-only / rationale (B) fields so the persisted bundle and everything
+  // Drop trace-only / experiment (B) fields so the persisted bundle and everything
   // downstream (assess/agent) stay clean.
   signals = signals.map(stripTraceFields);
 
