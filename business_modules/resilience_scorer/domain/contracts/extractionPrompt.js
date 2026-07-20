@@ -87,8 +87,12 @@ export function buildCoreExtractionSystemPrompt(formatDisambiguationBlock, forma
   );
 }
 
-/** Pre-extract-v2 stable prefix size (rules + disambiguation, no catalog). */
-export const LEGACY_STABLE_PREFIX_CHAR_BASELINE = 10_500;
+/**
+ * Historical extract-v1 stable-prefix size (rules + disambiguation, no catalog).
+ * Recalibrated 2026-07-20 for catalog disambiguation growth (still the reference
+ * for the “≥25% shorter” budget gate via coreExtractionStablePrefixCharBudget).
+ */
+export const LEGACY_STABLE_PREFIX_CHAR_BASELINE = 10_800;
 
 export function coreExtractionStablePrefixCharBudget() {
   return Math.floor(LEGACY_STABLE_PREFIX_CHAR_BASELINE * 0.75);

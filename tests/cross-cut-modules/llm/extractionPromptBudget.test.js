@@ -25,9 +25,11 @@ describe('extractionPromptBudget', () => {
 
   it('stable prefix (no catalog) is at least 25% shorter than extract-v1 baseline', () => {
     const stable = buildCoreExtractionStablePrefix(formatDisambiguationBlock);
-    assert.ok(stable.length < coreExtractionStablePrefixCharBudget(), {
-      message: `stable prefix ${stable.length} exceeds budget ${coreExtractionStablePrefixCharBudget()} (baseline ${LEGACY_STABLE_PREFIX_CHAR_BASELINE})`,
-    });
+    const budget = coreExtractionStablePrefixCharBudget();
+    assert.ok(
+      stable.length < budget,
+      `stable prefix ${stable.length} exceeds budget ${budget} (baseline ${LEGACY_STABLE_PREFIX_CHAR_BASELINE})`,
+    );
   });
 
   it('includes closed-vocabulary and JSON output rules', () => {
