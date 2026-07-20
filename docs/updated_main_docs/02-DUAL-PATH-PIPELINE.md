@@ -100,7 +100,7 @@ Canonical signal bundles (`pipelineArtifactPaths.js`):
 business_modules/resilience_scorer/data/signals/signals-{source}-{date}.json
 ```
 
-with source-specific exceptions: field at `business_modules/visits/data/signals/signals-field-{date}.json`, social at `business_modules/social_media/data/signals-social-{date}.json`, regional PBO as `signals-pbo_regional-{date}.json`.
+with source-specific exceptions: visits at `business_modules/visits/data/signals/signals-visits-{date}.json` (legacy `signals-field-*` still readable), social at `business_modules/social_media/data/signals-social-{date}.json`, regional PBO as `signals-pbo_regional-{date}.json`.
 
 Bundle shape: `{ source_type, content_kind, [district_id], date, extracted_at, source_files, total_articles, signals[] }`. Each signal carries a catalog `signal_type`, `evidence`, `evidence_class`, `scope_level`, `confidence`, etc.
 

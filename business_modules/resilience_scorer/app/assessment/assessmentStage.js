@@ -76,7 +76,6 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
     dataVoid: investigationPrep.dataVoid,
     epistemicStatus: investigationEpistemic.epistemicStatus,
     assessmentMode: investigationEpistemic.assessmentMode,
-    staleDigitalScores: pipelineResult?.staleDigitalScores ?? null,
     quarantinedDigital: pipelineResult?.quarantinedDigital ?? null,
     digitalQuarantineState: pipelineResult?.digitalQuarantineState ?? null,
   });
@@ -502,7 +501,6 @@ export async function runPostExtractionAssessmentCore(params) {
     epistemicStatus: investigationEpistemic.epistemicStatus,
     scoringAssessmentMode: pipelineResult.assessmentMode,
     scoringEpistemicStatus: pipelineResult.epistemicStatus,
-    staleDigitalScores: pipelineResult.staleDigitalScores,
     quarantinedDigital: pipelineResult.quarantinedDigital,
     validationMaturity,
     epistemicEnrichment: pipelineResult.epistemicEnrichment,

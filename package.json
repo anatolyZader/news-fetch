@@ -62,6 +62,7 @@
     "pipeline:audit": "node business_modules/resilience_scorer/input/pipeline-run-audit.js",
     "pipeline:run": "node business_modules/resilience_scorer/input/run-pipeline.js",
     "ingest-visits": "node business_modules/visits/input/visitsInput.js",
+    "ingest-visits-reports": "node business_modules/visits/input/visitsInput.js",
     "ingest-field-reports": "node business_modules/visits/input/visitsInput.js",
     "audio-to-md": "node business_modules/audio/input/audio-to-md.js",
     "video-grab-url": "node business_modules/video/input/video-grab-url.js",

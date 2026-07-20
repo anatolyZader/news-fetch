@@ -16,7 +16,7 @@ describe('componentEvidenceBundle', () => {
           ref: 'fear@url:http://x',
           evidence: 'Field observation about leadership.',
           operator_epistemic_role: 'scored',
-          source_type: 'field',
+          source_type: 'visits',
         }],
       }],
     },

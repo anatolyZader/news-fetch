@@ -1,9 +1,9 @@
 {
-  "source_type": "field",
+  "source_type": "visits",
   "content_kind": "field_report",
   "district_id": "north",
   "date": "2026-03-29",
-  "extracted_at": "2026-06-19T12:42:11.709Z",
+  "extracted_at": "2026-06-19T13:27:25.659Z",
   "source_files": [
     "articles-field-reports-2026-03-29.md"
   ],

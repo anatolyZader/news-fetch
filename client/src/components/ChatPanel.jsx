@@ -40,7 +40,6 @@ export function ChatPanel({
   toolProfile = 'default',
   systemHint = null,
   initialMessage = null,
-  displayView = 'operator',
 }) {
   const {
     sessions,
@@ -100,11 +99,11 @@ export function ChatPanel({
   const chatSendOpts = useMemo(() => ({
     reportGeoScope,
     toolProfile,
-    view: displayView === 'analyst' ? 'analyst' : 'operator',
+    view: 'operator',
     systemHint,
     scope: reportScope?.type === 'component' ? reportScope.id : null,
     lang,
-  }), [reportGeoScope, toolProfile, displayView, systemHint, reportScope, lang]);
+  }), [reportGeoScope, toolProfile, systemHint, reportScope, lang]);
 
   useEffect(() => {
     seededInitialRef.current = false;
@@ -581,7 +580,6 @@ ChatPanel.propTypes = {
   toolProfile: PropTypes.string,
   systemHint: PropTypes.string,
   initialMessage: PropTypes.string,
-  displayView: PropTypes.oneOf(['operator', 'analyst']),
 };
 
 function ChatAvatar({ isUser }) {

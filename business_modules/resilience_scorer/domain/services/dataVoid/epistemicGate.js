@@ -51,7 +51,6 @@ export function applyScoreAbstention(scored) {
  *   scoredFull: Record<string, object>,
  *   assessmentMode: string,
  *   epistemicStatus: object,
- *   staleDigitalScores: object|null,
  *   salienceContext: object,
  *   quarantinedDigital: object|null,
  * }}
@@ -85,7 +84,6 @@ export function applyEpistemicGate({
       scoredFull,
       assessmentMode: 'field_anchor_only',
       epistemicStatus,
-      staleDigitalScores: null,
       salienceContext: { ...salienceCtx, fieldAnchorOnly: true },
       quarantinedDigital,
     };
@@ -101,7 +99,6 @@ export function applyEpistemicGate({
       scoredFull: abstained,
       assessmentMode: 'abstained',
       epistemicStatus,
-      staleDigitalScores: null,
       salienceContext: { ...salienceCtx, voidAbstention: true },
       quarantinedDigital: null,
     };
@@ -126,7 +123,6 @@ export function applyEpistemicGate({
       scoredFull: fieldScored,
       assessmentMode: 'field_anchor_only',
       epistemicStatus,
-      staleDigitalScores: null,
       salienceContext: salienceCtx,
       quarantinedDigital,
     };
@@ -142,7 +138,6 @@ export function applyEpistemicGate({
       scoredFull: abstained,
       assessmentMode: 'abstained',
       epistemicStatus,
-      staleDigitalScores: null,
       salienceContext: { ...salienceCtx, voidAbstention: true },
       quarantinedDigital: null,
     };
@@ -156,7 +151,6 @@ export function applyEpistemicGate({
     scoredFull,
     assessmentMode: 'normal',
     epistemicStatus,
-    staleDigitalScores: null,
     salienceContext: salienceCtx,
     quarantinedDigital: null,
   };
@@ -171,7 +165,6 @@ export function attachEpistemicToAssessment(assessment, {
   dataVoid,
   epistemicStatus,
   assessmentMode,
-  staleDigitalScores,
   quarantinedDigital,
   digitalQuarantineState,
 }) {
@@ -179,9 +172,6 @@ export function attachEpistemicToAssessment(assessment, {
   assessment.data_void = dataVoid;
   assessment.epistemic_status = epistemicStatus;
   assessment.assessment_mode = assessmentMode;
-  if (staleDigitalScores) {
-    assessment.stale_digital_scores = staleDigitalScores;
-  }
   if (quarantinedDigital && quarantinedDigital.count > 0) {
     assessment.quarantined_digital = quarantinedDigital;
   }

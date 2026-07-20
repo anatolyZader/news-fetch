@@ -2,10 +2,9 @@
  * Derive unified attention items from a (possibly redacted) assessment for operator/analyst UI.
  */
 
-import { deriveInstrumentState } from './assessmentDisplayTier.js';
+import { deriveInstrumentState, DISPLAY_VIEWS } from './assessmentDisplayTier.js';
 import { THIN_EVIDENCE_INSTRUMENT } from '../../epistemic/thinEvidencePolicy.js';
 import { isSoftVoidWarning } from '../../contracts/softVoidReasons.js';
-import { DISPLAY_VIEWS } from './assessmentDisplayTier.js';
 
 export const ATTENTION_LEVELS = Object.freeze({
   critical: 0,
@@ -48,10 +47,6 @@ const KIND_BY_CODE = Object.freeze({
   presence_gate: ATTENTION_KINDS.situational,
   critical_single_signal: ATTENTION_KINDS.situational,
   unverified_alert: ATTENTION_KINDS.situational,
-  significant_delta: ATTENTION_KINDS.situational,
-  high_delta_z: ATTENTION_KINDS.situational,
-  long_term_degradation: ATTENTION_KINDS.situational,
-  erosion_elevated: ATTENTION_KINDS.situational,
   oov_burst: ATTENTION_KINDS.situational,
   macro_signals: ATTENTION_KINDS.situational,
   // Tasking — a concrete action with a target/channel
@@ -82,12 +77,8 @@ const COMPONENT_INSTRUMENT_CODES = new Set([
   'presence_gate',
   'critical_single_signal',
   'unverified_alert',
-  'significant_delta',
   'thin_evidence',
   'contested_evidence',
-  'high_delta_z',
-  'long_term_degradation',
-  'erosion_elevated',
 ]);
 
 /**
@@ -128,8 +119,6 @@ function kindForItem(it) {
  */
 function magnitudeForItem(it) {
   const p = it.detail_params ?? {};
-  if (typeof p.z === 'number') return Math.abs(p.z);
-  if (typeof p.erosion === 'number') return p.erosion;
   if (typeof it.evidence_count === 'number' && it.evidence_count > 0) return it.evidence_count;
   if (typeof p.n === 'number') return p.n;
   if (typeof p.count === 'number') return p.count;
@@ -248,7 +237,7 @@ export function buildAttentionItems(assessment, opts = {}) {
   addAbstentionFatigueItems(push, item, assessment, opts.priorReports ?? []);
   addEpistemicAttentionItems(push, item, assessment, assessmentMode, epistemicStatus);
   addGeoAttentionItems(push, item, methodology, reportScopeId);
-  addComponentAttentionItems(push, item, assessment.components, isAnalyst, {
+  addComponentAttentionItems(push, item, assessment.components, {
     dataVoid,
     epistemicStatus,
   });
@@ -416,9 +405,7 @@ function addEpistemicAttentionItems(push, item, assessment, assessmentMode, epis
   if (assessmentMode === 'field_anchor_only') {
     push(item('warning', 'epistemic:field_anchor_only', 'field_anchor_only', 'attention.epistemic.fieldAnchorOnly', {
       detail_key: 'attention.epistemic.fieldAnchorOnlyDetail',
-      detail_params: {
-        stale_at: assessment.stale_digital_scores?.scored_at ?? null,
-      },
+      detail_params: {},
       suggested_action_key: 'attention.suggested.fieldCorroboration',
     }));
   }
@@ -469,10 +456,9 @@ function addGeoAttentionItems(push, item, methodology, reportScopeId) {
  * @param {Function} push
  * @param {Function} item
  * @param {object} comp
- * @param {boolean} isAnalyst
  * @param {object} assessmentContext
  */
-function addSingleComponentAttentionItems(push, item, comp, isAnalyst, assessmentContext) {
+function addSingleComponentAttentionItems(push, item, comp, assessmentContext) {
   const componentId = comp.component_id;
   if (!componentId) return;
 
@@ -506,15 +492,6 @@ function addSingleComponentAttentionItems(push, item, comp, isAnalyst, assessmen
     }));
   }
 
-  if (inst.significant_delta === true) {
-    push(item('watch', `component:${componentId}:delta`, 'significant_delta', 'attention.component.significantDelta', {
-      component_id: componentId,
-      detail_key: 'attention.component.significantDeltaDetail',
-      detail_params: { component_id: componentId },
-      suggested_action_key: 'attention.suggested.reviewComponent',
-    }));
-  }
-
   if (inst.contested_thin === true || (inst.evidence_sufficiency === 'thin' && thinInstrument === THIN_EVIDENCE_INSTRUMENT.limited_evidence_neutral)) {
     push(item('watch', `component:${componentId}:thin`, 'thin_evidence', 'attention.component.thinEvidence', {
       component_id: componentId,
@@ -532,60 +509,17 @@ function addSingleComponentAttentionItems(push, item, comp, isAnalyst, assessmen
       suggested_action_key: 'attention.suggested.reviewComponent',
     }));
   }
-
-  if (isAnalyst) {
-    addAnalystComponentAttentionItems(push, item, comp, componentId);
-  }
-}
-
-/**
- * @param {Function} push
- * @param {Function} item
- * @param {object} comp
- * @param {string} componentId
- */
-function addAnalystComponentAttentionItems(push, item, comp, componentId) {
-  const deltaZ = comp.delta_significance;
-  if (typeof deltaZ === 'number' && Math.abs(deltaZ) >= 2 && comp.delta_flag !== 'significant') {
-    push(item('watch', `component:${componentId}:delta_z`, 'high_delta_z', 'attention.component.highDeltaZ', {
-      component_id: componentId,
-      detail_key: 'attention.component.highDeltaZDetail',
-      detail_params: { component_id: componentId, z: Math.round(deltaZ * 10) / 10 },
-      suggested_action_key: 'attention.suggested.reviewComponent',
-    }));
-  }
-
-  const chronicZ = comp.z_score_chronic;
-  if (typeof chronicZ === 'number' && chronicZ <= -2) {
-    push(item('warning', `component:${componentId}:chronic`, 'long_term_degradation', 'attention.component.chronicDegradation', {
-      component_id: componentId,
-      detail_key: 'attention.component.chronicDegradationDetail',
-      detail_params: { component_id: componentId, z: Math.round(chronicZ * 10) / 10 },
-      suggested_action_key: 'attention.suggested.reviewComponent',
-    }));
-  }
-
-  const erosion = comp.erosion_index;
-  if (typeof erosion === 'number' && erosion > 0.35) {
-    push(item('watch', `component:${componentId}:erosion`, 'erosion_elevated', 'attention.component.erosionElevated', {
-      component_id: componentId,
-      detail_key: 'attention.component.erosionElevatedDetail',
-      detail_params: { component_id: componentId, erosion: Math.round(erosion * 100) / 100 },
-      suggested_action_key: 'attention.suggested.reviewComponent',
-    }));
-  }
 }
 
 /**
  * @param {Function} push
  * @param {Function} item
  * @param {Array<object>} components
- * @param {boolean} isAnalyst
  * @param {object} assessmentContext
  */
-function addComponentAttentionItems(push, item, components, isAnalyst, assessmentContext) {
+function addComponentAttentionItems(push, item, components, assessmentContext) {
   for (const comp of components ?? []) {
-    addSingleComponentAttentionItems(push, item, comp, isAnalyst, assessmentContext);
+    addSingleComponentAttentionItems(push, item, comp, assessmentContext);
   }
 }
 

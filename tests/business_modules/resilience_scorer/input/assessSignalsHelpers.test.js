@@ -30,12 +30,12 @@ describe('crossSourceDedup', () => {
   it('does NOT collapse identical evidence across different source_types (A4)', () => {
     const sigs = [
       { signal_type: 'compliance_enter_shelter', source_type: 'news', evidence: 'residents entered shelters', article_source: 'ynet', temporal_weight: 1, evidence_type: 'observational_reported_fact' },
-      { signal_type: 'compliance_enter_shelter', source_type: 'field', evidence: 'Residents entered shelters.', article_source: 'field-team-2', temporal_weight: 1, evidence_type: 'observational_reported_fact' },
+      { signal_type: 'compliance_enter_shelter', source_type: 'visits', evidence: 'Residents entered shelters.', article_source: 'field-team-2', temporal_weight: 1, evidence_type: 'observational_reported_fact' },
     ];
     const out = crossSourceDedup(sigs);
     assert.equal(out.length, 2, 'press quote and field observation must both survive');
     const types = new Set(out.map((s) => s.source_type));
-    assert.ok(types.has('news') && types.has('field'));
+    assert.ok(types.has('news') && types.has('visits'));
   });
 
   it('does not collapse different signal_types even with same evidence', () => {
@@ -156,12 +156,12 @@ describe('parseSignalBundleFilename', () => {
       fileDate: '2026-05-01',
       districtId: null,
     });
-    assert.deepEqual(parseSignalBundleFilename('signals-field-2026-05-01.json'), {
+    assert.deepEqual(parseSignalBundleFilename('signals-visits-2026-05-01.json'), {
       sourceType: 'visits',
       fileDate: '2026-05-01',
       districtId: null,
     });
-    assert.deepEqual(parseSignalBundleFilename('signals-visits-2026-05-01.json'), {
+    assert.deepEqual(parseSignalBundleFilename('signals-field-2026-05-01.json'), {
       sourceType: 'visits',
       fileDate: '2026-05-01',
       districtId: null,
@@ -225,17 +225,17 @@ describe('discoverSignalBundles field history', () => {
     const root = mkdtempSync(join(tmpdir(), 'field-hist-'));
     try {
       const signalsDir = join(root, 'business_modules/resilience_scorer/data/signals');
-      const fieldSignalsDir = join(root, 'business_modules/visits/data/signals');
+      const visitsSignalsDir = join(root, 'business_modules/visits/data/signals');
       const socialSignalsDir = join(root, 'business_modules/social_media/data');
       mkdirSync(signalsDir, { recursive: true });
-      mkdirSync(fieldSignalsDir, { recursive: true });
+      mkdirSync(visitsSignalsDir, { recursive: true });
       mkdirSync(socialSignalsDir, { recursive: true });
 
-      const oldField = 'signals-field-2026-05-01.json';
-      const inWindowField = 'signals-field-2026-06-10.json';
+      const oldField = 'signals-visits-2026-05-01.json';
+      const inWindowField = 'signals-visits-2026-06-10.json';
       const oldNews = 'signals-news-2026-05-01.json';
-      writeFileSync(join(fieldSignalsDir, oldField), JSON.stringify({ signals: [{ evidence: 'old visit' }] }));
-      writeFileSync(join(fieldSignalsDir, inWindowField), JSON.stringify({ signals: [{ evidence: 'recent visit' }] }));
+      writeFileSync(join(visitsSignalsDir, oldField), JSON.stringify({ signals: [{ evidence: 'old visit' }] }));
+      writeFileSync(join(visitsSignalsDir, inWindowField), JSON.stringify({ signals: [{ evidence: 'recent visit' }] }));
       writeFileSync(join(signalsDir, oldNews), JSON.stringify({ signals: [{ evidence: 'old news' }] }));
 
       const targetDate = '2026-06-10';
@@ -244,7 +244,7 @@ describe('discoverSignalBundles field history', () => {
         targetDate,
         days,
         signalsDir,
-        fieldSignalsDir,
+        visitsSignalsDir,
         socialSignalsDir,
       });
       const loaded = loadAssessSignalFiles({
@@ -268,18 +268,18 @@ describe('discoverSignalBundles field history', () => {
   it('skips placeholder field bundle dates (1970-01-01)', () => {
     const root = join(tmpdir(), `assess-signals-${Date.now()}`);
     const signalsDir = join(root, 'signals');
-    const fieldSignalsDir = join(root, 'field');
+    const visitsSignalsDir = join(root, 'field');
     const socialSignalsDir = join(root, 'social');
     mkdirSync(signalsDir, { recursive: true });
-    mkdirSync(fieldSignalsDir, { recursive: true });
+    mkdirSync(visitsSignalsDir, { recursive: true });
     mkdirSync(socialSignalsDir, { recursive: true });
     try {
       writeFileSync(
-        join(fieldSignalsDir, 'signals-field-1970-01-01.json'),
+        join(visitsSignalsDir, 'signals-visits-1970-01-01.json'),
         JSON.stringify({ signals: [{ evidence: 'placeholder' }] }),
       );
       writeFileSync(
-        join(fieldSignalsDir, 'signals-field-2026-04-10.json'),
+        join(visitsSignalsDir, 'signals-visits-2026-04-10.json'),
         JSON.stringify({ signals: [{ evidence: 'valid' }] }),
       );
       const targetDate = '2026-04-10';
@@ -287,7 +287,7 @@ describe('discoverSignalBundles field history', () => {
         targetDate,
         days: 1,
         signalsDir,
-        fieldSignalsDir,
+        visitsSignalsDir,
         socialSignalsDir,
       });
       const loaded = loadAssessSignalFiles({
@@ -298,8 +298,8 @@ describe('discoverSignalBundles field history', () => {
         enabledSources: new Set(['visits']),
       });
       const fieldFiles = loaded.filter((f) => f.sourceType === 'visits').map((f) => f.file);
-      assert.ok(!fieldFiles.includes('signals-field-1970-01-01.json'));
-      assert.ok(fieldFiles.includes('signals-field-2026-04-10.json'));
+      assert.ok(!fieldFiles.includes('signals-visits-1970-01-01.json'));
+      assert.ok(fieldFiles.includes('signals-visits-2026-04-10.json'));
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

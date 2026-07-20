@@ -1,5 +1,5 @@
 {
-  "source_type": "field",
+  "source_type": "visits",
   "content_kind": "field_report",
   "date": "2026-03-24",
   "extracted_at": "2026-04-13T12:11:00.763Z",
@@ -17,7 +17,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "פרופ' משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -28,7 +28,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "פרופ' משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -39,7 +39,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "פרופ' משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -50,7 +50,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "פרופ' משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -61,7 +61,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "פרופ' משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -72,7 +72,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "פרופ' משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -83,7 +83,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "פרופ' משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -94,7 +94,7 @@
       "scope_level": "single_case",
       "article_source": "פרופ' משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -105,7 +105,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "פרופ' משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 2,
@@ -116,7 +116,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "איתמר שפר ולדי ליצ'אק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 2,
@@ -127,7 +127,7 @@
       "scope_level": "quantified_or_broad",
       "article_source": "איתמר שפר ולדי ליצ'אק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 2,
@@ -138,7 +138,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "איתמר שפר ולדי ליצ'אק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 2,
@@ -149,7 +149,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "איתמר שפר ולדי ליצ'אק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 2,
@@ -160,7 +160,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "איתמר שפר ולדי ליצ'אק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 3,
@@ -171,7 +171,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "איתמר שפר ולדי ליצ'אק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 3,
@@ -182,7 +182,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "איתמר שפר ולדי ליצ'אק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 3,
@@ -193,7 +193,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "איתמר שפר ולדי ליצ'אק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 3,
@@ -204,7 +204,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "איתמר שפר ולדי ליצ'אק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 3,
@@ -215,7 +215,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "איתמר שפר ולדי ליצ'אק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 3,
@@ -226,7 +226,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "איתמר שפר ולדי ליצ'אק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 3,
@@ -237,7 +237,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "איתמר שפר ולדי ליצ'אק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 3,
@@ -248,7 +248,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "איתמר שפר ולדי ליצ'אק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 4,
@@ -259,7 +259,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "פרופ' משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 4,
@@ -270,7 +270,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "פרופ' משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 4,
@@ -281,7 +281,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "פרופ' משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 4,
@@ -292,7 +292,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "פרופ' משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 4,
@@ -303,7 +303,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "פרופ' משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 5,
@@ -314,7 +314,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 5,
@@ -325,7 +325,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 5,
@@ -336,7 +336,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 5,
@@ -347,7 +347,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 5,
@@ -358,7 +358,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 5,
@@ -369,7 +369,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 5,
@@ -380,7 +380,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 5,
@@ -391,7 +391,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 6,
@@ -402,7 +402,7 @@
       "scope_level": "single_case",
       "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 6,
@@ -413,7 +413,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 6,
@@ -424,7 +424,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 6,
@@ -435,7 +435,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 6,
@@ -446,7 +446,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 6,
@@ -457,7 +457,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 6,
@@ -468,7 +468,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 6,
@@ -479,7 +479,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 6,
@@ -490,7 +490,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 6,
@@ -501,7 +501,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 6,
@@ -512,7 +512,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "ציפי כהן סוקולר וצפונאת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 7,
@@ -523,7 +523,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "גלי מליק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 7,
@@ -534,7 +534,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "גלי מליק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 7,
@@ -545,7 +545,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "גלי מליק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 7,
@@ -556,7 +556,7 @@
       "scope_level": "single_case",
       "article_source": "גלי מליק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 7,
@@ -567,7 +567,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "גלי מליק",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 8,
@@ -578,7 +578,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 8,
@@ -589,7 +589,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 8,
@@ -600,7 +600,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 8,
@@ -611,7 +611,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 8,
@@ -622,7 +622,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 8,
@@ -633,7 +633,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 8,
@@ -644,7 +644,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 8,
@@ -655,7 +655,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 8,
@@ -666,7 +666,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 9,
@@ -677,7 +677,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 9,
@@ -688,7 +688,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 9,
@@ -699,7 +699,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 9,
@@ -710,7 +710,7 @@
       "scope_level": "quantified_or_broad",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 9,
@@ -721,7 +721,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 9,
@@ -732,7 +732,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 9,
@@ -743,7 +743,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 9,
@@ -754,7 +754,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 9,
@@ -765,7 +765,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 9,
@@ -776,7 +776,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 10,
@@ -787,7 +787,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 10,
@@ -798,7 +798,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 10,
@@ -809,7 +809,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 10,
@@ -820,7 +820,7 @@
       "scope_level": "quantified_or_broad",
       "article_source": "משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 10,
@@ -831,7 +831,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 10,
@@ -842,7 +842,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 10,
@@ -853,7 +853,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 11,
@@ -864,7 +864,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 11,
@@ -875,7 +875,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 11,
@@ -886,7 +886,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 11,
@@ -897,7 +897,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 11,
@@ -908,7 +908,7 @@
       "scope_level": "quantified_or_broad",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 11,
@@ -919,7 +919,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 11,
@@ -930,7 +930,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 11,
@@ -941,7 +941,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 11,
@@ -952,7 +952,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט ואילת יוסף",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 12,
@@ -963,7 +963,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 12,
@@ -974,7 +974,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 12,
@@ -985,7 +985,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 12,
@@ -996,7 +996,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 12,
@@ -1007,7 +1007,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 12,
@@ -1018,7 +1018,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "משה פרחי ורינת לוי",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 13,
@@ -1029,7 +1029,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "עומרי אפרת צפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 13,
@@ -1040,7 +1040,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "עומרי אפרת צפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 13,
@@ -1051,7 +1051,7 @@
       "scope_level": "quantified_or_broad",
       "article_source": "עומרי אפרת צפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 13,
@@ -1062,7 +1062,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "עומרי אפרת צפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 13,
@@ -1073,7 +1073,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "עומרי אפרת צפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 13,
@@ -1084,7 +1084,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "עומרי אפרת צפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 14,
@@ -1095,7 +1095,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "עומרי אפרת וצפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 14,
@@ -1106,7 +1106,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "עומרי אפרת וצפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 14,
@@ -1117,7 +1117,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "עומרי אפרת וצפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 14,
@@ -1128,7 +1128,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "עומרי אפרת וצפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 14,
@@ -1139,7 +1139,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "עומרי אפרת וצפואת שחאדה",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 15,
@@ -1150,7 +1150,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 15,
@@ -1161,7 +1161,7 @@
       "scope_level": "repeated_pattern",
       "article_source": "יואב בן בסט",
       "temporal_weight": 1,
-      "source_type": "field"
+      "source_type": "visits"
     }
   ]
 }

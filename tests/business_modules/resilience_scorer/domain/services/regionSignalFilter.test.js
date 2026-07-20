@@ -31,13 +31,13 @@ describe('regionSignalFilter', () => {
   });
 
   it('treats legacy structured field and PBO signals as north when scope is north', () => {
-    assert.equal(northScopeRelevant({ source_type: 'field', evidence: 'Local team active.' }), true);
+    assert.equal(northScopeRelevant({ source_type: 'visits', evidence: 'Local team active.' }), true);
     assert.equal(northScopeRelevant({ source_type: 'pbo', evidence: '[כרמיאל] רציפות תפקודית' }), true);
   });
 
   it('treats explicit district_id field signals as signal_district', () => {
     const d = scopeDecisionForSignal(
-      { source_type: 'field', district_id: 'north', evidence: 'Local team active.' },
+      { source_type: 'visits', district_id: 'north', evidence: 'Local team active.' },
       'north',
     );
     assert.equal(d.isScopeRelevant, true);

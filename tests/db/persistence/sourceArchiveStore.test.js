@@ -153,7 +153,7 @@ describe('sourceArchiveStore', () => {
     store.upsert({
       source_id: buildMdSourceId('old-field.md', 1),
       date: '2026-01-01',
-      source_type: 'field',
+      source_type: 'visits',
       body: 'old field visit',
     });
     store.upsert({
@@ -166,7 +166,7 @@ describe('sourceArchiveStore', () => {
     assert.equal(deleted, 1);
     assert.deepEqual(types, ['news', 'radio', 'social']);
     assert.equal(store.listByDate('2026-01-01').length, 1);
-    assert.equal(store.listByDate('2026-01-01')[0].source_type, 'field');
+    assert.equal(store.listByDate('2026-01-01')[0].source_type, 'visits');
     assert.equal(store.listByDate('2026-01-10').length, 1);
   });
 });

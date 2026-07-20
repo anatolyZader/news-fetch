@@ -75,7 +75,7 @@ describe('inlineCitationResolver', () => {
       narrative: {
         signals: [{
           signal_type: 'resilience_narrative_positive',
-          source_type: 'field',
+          source_type: 'visits',
           article_index: 7,
           evidence: 'Routine returning.',
         }],
@@ -109,7 +109,7 @@ describe('inlineCitationResolver', () => {
       narrative: {
         signals: [{
           signal_type: 'resilience_narrative_positive',
-          source_type: 'field',
+          source_type: 'visits',
           article_index: 7,
           evidence: 'Routine returning.',
         }],

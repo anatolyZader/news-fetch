@@ -2,7 +2,6 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   operatorEpistemicOverlayEnabled,
-  stripOperatorGuidancePayload,
 } from '../../../../../business_modules/resilience_scorer/domain/contracts/operatorEpistemicOverlay.js';
 
 describe('operatorEpistemicOverlay', () => {
@@ -17,21 +16,5 @@ describe('operatorEpistemicOverlay', () => {
 
   it('deprecated RESILIENCE_NARRATIVE_FOCUS_UI=1 disables overlay', () => {
     assert.equal(operatorEpistemicOverlayEnabled({ RESILIENCE_NARRATIVE_FOCUS_UI: '1' }), false);
-  });
-
-  it('stripOperatorGuidancePayload clears guidance fields', () => {
-    const stripped = stripOperatorGuidancePayload({
-      attention_items: [{ id: 'x' }],
-      action_compass: { actions: [] },
-      assessment: {
-        decision_brief: { summary: 'brief' },
-        operator_recommendations: [{ id: 'r1' }],
-      },
-    });
-    assert.equal(stripped.operator_epistemic_overlay, false);
-    assert.deepEqual(stripped.attention_items, []);
-    assert.equal(stripped.action_compass, null);
-    assert.equal(stripped.assessment.decision_brief, undefined);
-    assert.equal(stripped.assessment.operator_recommendations, undefined);
   });
 });

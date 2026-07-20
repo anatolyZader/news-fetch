@@ -1,5 +1,5 @@
 {
-  "source_type": "field",
+  "source_type": "visits",
   "content_kind": "field_report",
   "district_id": "north",
   "date": "2026-03-24",
@@ -27,7 +27,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -67,7 +67,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -107,7 +107,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -147,7 +147,7 @@
       "grounding_tier": "unverified_critical",
       "grounding_reason": "verification_failed_critical",
       "grounding_method": "low_similarity",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -187,7 +187,7 @@
       "grounding_tier": "unverified_critical",
       "grounding_reason": "verification_failed_critical",
       "grounding_method": "low_similarity",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -227,7 +227,7 @@
       "grounding_tier": "unverified_critical",
       "grounding_reason": "verification_failed_critical",
       "grounding_method": "low_similarity",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -267,7 +267,7 @@
       "grounding_tier": "unverified_critical",
       "grounding_reason": "verification_failed_critical",
       "grounding_method": "low_similarity",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -307,7 +307,7 @@
       "grounding_tier": "unverified_critical",
       "grounding_reason": "verification_failed_critical",
       "grounding_method": "low_similarity",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -347,7 +347,7 @@
       "grounding_tier": "unverified_critical",
       "grounding_reason": "verification_failed_critical",
       "grounding_method": "low_similarity",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -387,7 +387,7 @@
       "grounding_tier": "unverified_critical",
       "grounding_reason": "verification_failed_critical",
       "grounding_method": "low_similarity",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -426,7 +426,7 @@
       "grounding_tier": "unverified_critical",
       "grounding_reason": "verification_failed_critical",
       "grounding_method": "low_similarity",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -465,7 +465,7 @@
       "grounding_tier": "unverified_critical",
       "grounding_reason": "verification_failed_critical",
       "grounding_method": "low_similarity",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -504,7 +504,7 @@
       "grounding_tier": "unverified_critical",
       "grounding_reason": "verification_failed_critical",
       "grounding_method": "low_similarity",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -543,7 +543,7 @@
       "grounding_tier": "unverified_critical",
       "grounding_reason": "verification_failed_critical",
       "grounding_method": "low_similarity",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -582,7 +582,7 @@
       "grounding_tier": "unverified_critical",
       "grounding_reason": "verification_failed_critical",
       "grounding_method": "low_similarity",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -622,7 +622,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -662,7 +662,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -701,7 +701,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -740,7 +740,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -779,7 +779,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -818,7 +818,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -858,7 +858,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -898,7 +898,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -938,7 +938,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -978,7 +978,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1018,7 +1018,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1057,7 +1057,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1097,7 +1097,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1136,7 +1136,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1175,7 +1175,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1214,7 +1214,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1254,7 +1254,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1294,7 +1294,7 @@
       "grounding_tier": "unverified_critical",
       "grounding_reason": "verification_failed_critical",
       "grounding_method": "low_similarity",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1333,7 +1333,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1373,7 +1373,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1413,7 +1413,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1453,7 +1453,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1493,7 +1493,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1532,7 +1532,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1571,7 +1571,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1610,7 +1610,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1650,7 +1650,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1689,7 +1689,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1728,7 +1728,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1768,7 +1768,7 @@
       "grounding_tier": "unverified_critical",
       "grounding_reason": "verification_failed_critical",
       "grounding_method": "low_similarity",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1808,7 +1808,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1848,7 +1848,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1887,7 +1887,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1926,7 +1926,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -1966,7 +1966,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2006,7 +2006,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2046,7 +2046,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2086,7 +2086,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2126,7 +2126,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2165,7 +2165,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2205,7 +2205,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2245,7 +2245,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2285,7 +2285,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2324,7 +2324,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2363,7 +2363,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2402,7 +2402,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2441,7 +2441,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2480,7 +2480,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2519,7 +2519,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2558,7 +2558,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2597,7 +2597,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2636,7 +2636,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2675,7 +2675,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2714,7 +2714,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2753,7 +2753,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2792,7 +2792,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2831,7 +2831,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2870,7 +2870,7 @@
       "grounding_tier": "weak",
       "grounding_reason": "low_similarity",
       "grounding_method": "containment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2910,7 +2910,7 @@
       "grounding_tier": "grounded",
       "grounding_reason": "entailment_rescue",
       "grounding_method": "entailment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2949,7 +2949,7 @@
       "grounding_tier": "grounded",
       "grounding_reason": "entailment_rescue",
       "grounding_method": "entailment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",
@@ -2988,7 +2988,7 @@
       "grounding_tier": "grounded",
       "grounding_reason": "entailment_rescue",
       "grounding_method": "entailment",
-      "source_type": "field",
+      "source_type": "visits",
       "geo": {
         "kind": "unknown",
         "reason": "NO_MATCH",

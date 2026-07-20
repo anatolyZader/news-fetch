@@ -612,15 +612,12 @@ function AppShell() {
     initialReportLoadDone,
     reportMissingHint,
     reportLoadError,
-    attentionItems,
-    actionCompass,
-    anomalyStrip,
+
     budgetStatus,
     suggestCrisisBudget,
-    operatorEpistemicOverlay,
     refreshReport,
     reportLocalizing,
-  } = useTodayReport(reportScope, 'operator', effectiveReportEdition, lang);
+  } = useTodayReport(reportScope, effectiveReportEdition, lang);
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
   const [activeTab, setActiveTab] = useState(() => readMainTab());
   const [activePoolTab, setActivePoolTab] = useState(() => readPoolTab());
@@ -808,12 +805,6 @@ function AppShell() {
   function jumpToReportComponent(compId) {
     setOpenReportCompId((prev) => (prev === compId ? null : compId));
     // Sidebar jump should show narrative + top of the card, not the nested evidence list.
-    setOpenReportEvidenceCompId(null);
-  }
-
-  function openReportComponent(compId) {
-    if (!compId) return;
-    setOpenReportCompId(compId);
     setOpenReportEvidenceCompId(null);
   }
 
@@ -1131,7 +1122,6 @@ function AppShell() {
                     <ReportView
                       assessment={displayReport}
                       scoreBySource={displayReport?.score_by_source ?? scoreBySource}
-                      displayView="operator"
                       readOnly
                       translating={translating}
                       translateError={translateError}
@@ -1139,12 +1129,6 @@ function AppShell() {
                       reportScope={reportScope}
                       generatedAt={reportGeneratedAt}
                       assessmentWindow={assessmentWindow}
-                      attentionItems={attentionItems ?? []}
-                      actionCompass={actionCompass}
-                      anomalyStrip={anomalyStrip}
-                      suggestCrisisBudget={suggestCrisisBudget}
-                      operatorEpistemicOverlay={operatorEpistemicOverlay}
-                      onJumpToComponent={openReportComponent}
                       openCompId={openReportCompId}
                       setOpenCompId={setOpenReportCompId}
                       openEvidenceCompId={openReportEvidenceCompId}

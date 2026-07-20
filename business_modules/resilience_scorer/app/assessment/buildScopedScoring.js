@@ -160,7 +160,6 @@ export async function buildScopedScoring(targetDate, days, allSignals, totalArti
     epistemicStatus: investigationEpistemic.epistemicStatus,
     scoringAssessmentMode: pipelineResult.assessmentMode,
     scoringEpistemicStatus: pipelineResult.epistemicStatus,
-    staleDigitalScores: pipelineResult.staleDigitalScores,
     quarantinedDigital: pipelineResult.quarantinedDigital,
     validationMaturity: coreResult.validationMaturity,
     epistemicEnrichment: pipelineResult.epistemicEnrichment,

@@ -50,14 +50,18 @@ function pushCandidate(out, seenIds, row, snippetChars, limit, filters) {
   seenIds.add(row.source_id);
 }
 
-function loadFieldArticlesForDate(date) {
-  const p = resolve(REPO_ROOT, 'business_modules/visits/data', `articles-field-reports-${date}.md`);
-  if (!existsSync(p)) return [];
+function loadVisitsArticlesForDate(date) {
+  const candidates = [
+    resolve(REPO_ROOT, 'business_modules/visits/data', `articles-visits-reports-${date}.md`),
+    resolve(REPO_ROOT, 'business_modules/visits/data', `articles-field-reports-${date}.md`),
+  ];
+  const p = candidates.find((c) => existsSync(c));
+  if (!p) return [];
   return loadMarkdownArticlesFromFile(p).map((a) => ({
     source_id: buildMdSourceIdFromPath(REPO_ROOT, p, a.idx1),
     title: a.title,
     source_url: a.url,
-    source_type: 'field',
+    source_type: 'visits',
     source_label: a.source,
     body: a.body,
     published_at: a.publishedAt || date,
@@ -147,7 +151,8 @@ function loadNewsArticlesForDate(date) {
 
 const TYPE_LOADERS = {
   news: loadNewsArticlesForDate,
-  field: loadFieldArticlesForDate,
+  visits: loadVisitsArticlesForDate,
+  field: loadVisitsArticlesForDate, // legacy alias
   radio: loadRadioArticlesForDate,
   whatsapp: loadWhatsappArticlesForDate,
   social: loadSocialFromBundle,
@@ -252,7 +257,7 @@ export function getFilesystemSourceById(sourceId, maxChars = 8000) {
 
 function inferTypeFromPath(relPath) {
   if (relPath.includes('articles-homefront') || relPath.includes('news-sites')) return 'news';
-  if (relPath.includes('field-reports') || relPath.includes('visits')) return 'field';
+  if (relPath.includes('visits-reports') || relPath.includes('field-reports') || relPath.includes('visits')) return 'visits';
   if (relPath.includes('articles-audio') || relPath.startsWith('articles-audio')) return 'radio';
   if (relPath.includes('whatsapp')) return 'whatsapp';
   return 'manual';

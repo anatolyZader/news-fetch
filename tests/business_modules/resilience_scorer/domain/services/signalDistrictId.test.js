@@ -27,7 +27,7 @@ describe('signalDistrictId', () => {
 
   it('assignedDistrictScopeMatch distinguishes explicit vs default-north', () => {
     assert.deepEqual(
-      assignedDistrictScopeMatch({ source_type: 'field', district_id: 'north' }, 'north'),
+      assignedDistrictScopeMatch({ source_type: 'visits', district_id: 'north' }, 'north'),
       { districtId: 'north', source: 'signal_district' },
     );
     assert.deepEqual(
@@ -47,7 +47,7 @@ describe('signalDistrictId', () => {
       assert.equal(isDefaultNorthFallbackEnabled(), false);
       assert.equal(signalDistrictId({ source_type: 'naftali' }), null);
       assert.equal(
-        assignedDistrictScopeMatch({ source_type: 'field' }, 'north'),
+        assignedDistrictScopeMatch({ source_type: 'visits' }, 'north'),
         null,
       );
       assert.equal(signalDistrictId({ source_type: 'pbo', district_id: 'north' }), 'north');

@@ -10,7 +10,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 test('shouldAttachGeoToSignal skips signals that already have geo', () => {
   assert.equal(shouldAttachGeoToSignal({ source_type: 'news', geo: { kind: 'unknown' } }), false);
-  assert.equal(shouldAttachGeoToSignal({ source_type: 'field', evidence: 'x' }), true);
+  assert.equal(shouldAttachGeoToSignal({ source_type: 'visits', evidence: 'x' }), true);
 });
 
 test('enrichSignalsWithGeo attaches geo envelope to pbo municipality signal', () => {

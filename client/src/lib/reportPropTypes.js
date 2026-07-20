@@ -209,19 +209,6 @@ export const driftByComponentShape = PropTypes.objectOf(
   }),
 );
 
-export const macroSignalShape = PropTypes.shape({
-  signal_type: PropTypes.string,
-  type: PropTypes.string,
-  evidence: PropTypes.string,
-});
-
-export const facetsShape = PropTypes.objectOf(
-  PropTypes.shape({
-    score: PropTypes.number,
-    signal_count: PropTypes.number,
-  }),
-);
-
 export const statusTagVariantPropType = PropTypes.oneOf([
   'neutral',
   'success',

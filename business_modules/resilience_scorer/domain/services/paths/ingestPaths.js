@@ -37,6 +37,11 @@ export function socialSignalsPath(date, rootDir) {
 }
 
 export function visitsSignalsPath(date, rootDir) {
+  return resolve(resolveRepoRoot(rootDir), `business_modules/visits/data/signals/signals-visits-${date}.json`);
+}
+
+/** Legacy on-disk stem (pre field→visits rewrite); prefer visitsSignalsPath. */
+export function legacyFieldSignalsPath(date, rootDir) {
   return resolve(resolveRepoRoot(rootDir), `business_modules/visits/data/signals/signals-field-${date}.json`);
 }
 

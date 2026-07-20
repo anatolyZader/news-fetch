@@ -25,7 +25,7 @@ describe('northClusterNarrative', () => {
   it('buildNorthClusterNarrativesFromSignals groups by cluster', () => {
     const signals = [
       {
-        source_type: 'field',
+        source_type: 'visits',
         signal_type: 'information_clarity',
         evidence: 'Naftali field note.',
         geo: { kind: 'resolved', classification: { pboSubregionId: 'naftali' } },

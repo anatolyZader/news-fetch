@@ -68,26 +68,30 @@ function buildRecencySources(sortedField, sortedRoot, sortedSocial, targetDate, 
 
 /**
  * Discover signal bundle filenames inside the assessment window for each channel.
+ * @param {{ targetDate: string, days: number, signalsDir: string, visitsSignalsDir?: string, fieldSignalsDir?: string, socialSignalsDir: string, enabledSources?: Set<string>|null }} opts
+ *   `fieldSignalsDir` is a deprecated alias of `visitsSignalsDir`.
  */
 export function discoverSignalBundles({
   targetDate,
   days,
   signalsDir,
+  visitsSignalsDir,
   fieldSignalsDir,
   socialSignalsDir,
   enabledSources: _enabledSources,
 }) {
+  const visitsDir = visitsSignalsDir ?? fieldSignalsDir;
   const store = getStore();
   const signalsRootExists = store.existsSync(signalsDir);
-  const fieldSignalsRootExists = store.existsSync(fieldSignalsDir);
+  const visitsSignalsRootExists = store.existsSync(visitsDir);
   const socialSignalsRootExists = store.existsSync(socialSignalsDir);
 
   const rootFiles = signalsRootExists
     ? store.readdirSync(signalsDir).filter((f) => f.startsWith('signals-') && f.endsWith('.json'))
     : [];
 
-  const fieldDirFiles = fieldSignalsRootExists
-    ? store.readdirSync(fieldSignalsDir).filter((f) => f.startsWith('signals-') && f.endsWith('.json'))
+  const visitsDirFiles = visitsSignalsRootExists
+    ? store.readdirSync(visitsDir).filter((f) => f.startsWith('signals-') && f.endsWith('.json'))
     : [];
 
   const socialDirFiles = socialSignalsRootExists
@@ -97,12 +101,12 @@ export function discoverSignalBundles({
   const targetDates = buildTargetDates(targetDate, days);
   const bundleCap = days;
 
-  const sortedFieldDirFiles = [...fieldDirFiles].sort((a, b) => a.localeCompare(b));
+  const sortedVisitsDirFiles = [...visitsDirFiles].sort((a, b) => a.localeCompare(b));
   const sortedRootFiles = [...rootFiles].sort((a, b) => a.localeCompare(b));
   const sortedSocialDirFiles = [...socialDirFiles].sort((a, b) => a.localeCompare(b));
 
   const recencySources = buildRecencySources(
-    sortedFieldDirFiles,
+    sortedVisitsDirFiles,
     sortedRootFiles,
     sortedSocialDirFiles,
     targetDate,
@@ -111,15 +115,19 @@ export function discoverSignalBundles({
   );
 
   return {
-    anyDirExists: signalsRootExists || fieldSignalsRootExists || socialSignalsRootExists,
+    anyDirExists: signalsRootExists || visitsSignalsRootExists || socialSignalsRootExists,
     rootFiles,
-    fieldDirFiles,
+    visitsDirFiles,
+    /** @deprecated use visitsDirFiles */
+    fieldDirFiles: visitsDirFiles,
     socialDirFiles,
     targetDates,
     recencySources,
     bundleCap,
     signalsDir,
-    fieldSignalsDir,
+    visitsSignalsDir: visitsDir,
+    /** @deprecated use visitsSignalsDir */
+    fieldSignalsDir: visitsDir,
     socialSignalsDir,
   };
 }
@@ -157,9 +165,11 @@ export function loadPipelineConfig(configPath) {
  */
 export function loadAssessSignalFiles({
   rootFiles,
+  visitsDirFiles,
   fieldDirFiles,
   socialDirFiles,
   signalsDir,
+  visitsSignalsDir,
   fieldSignalsDir,
   socialSignalsDir,
   targetDate,
@@ -167,6 +177,8 @@ export function loadAssessSignalFiles({
   recencySources,
   enabledSources,
 }) {
+  const visitsDir = visitsSignalsDir ?? fieldSignalsDir;
+  const visitFiles = visitsDirFiles ?? fieldDirFiles ?? [];
   const loadedFiles = [];
 
   function isSourceEnabledForLoad(sourceType) {
@@ -205,10 +217,10 @@ export function loadAssessSignalFiles({
     tryLoadSignalFile(file, signalsDir);
   }
 
-  for (const file of [...fieldDirFiles].sort((a, b) => a.localeCompare(b))) {
+  for (const file of [...visitFiles].sort((a, b) => a.localeCompare(b))) {
     const parsed = parseSignalBundleFilename(file);
     if (!parsed || !isVisitsSourceType(parsed.sourceType)) continue;
-    tryLoadSignalFile(file, fieldSignalsDir);
+    tryLoadSignalFile(file, visitsDir);
   }
 
   for (const file of [...socialDirFiles].sort((a, b) => a.localeCompare(b))) {

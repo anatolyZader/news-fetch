@@ -140,7 +140,10 @@ function listVisitReportMds(rootDir, { limit = 3 } = {}) {
     return [];
   }
   const sorted = names
-    .filter((f) => f.startsWith('articles-field-reports-') && f.endsWith('.md'))
+    .filter((f) => (
+      (f.startsWith('articles-visits-reports-') || f.startsWith('articles-field-reports-'))
+      && f.endsWith('.md')
+    ))
     .sort((a, b) => a.localeCompare(b));
   const picked = limit == null ? sorted : sorted.slice(-limit);
   return picked.map((f) => resolve(dir, f));

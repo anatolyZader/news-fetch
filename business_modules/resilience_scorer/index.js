@@ -38,7 +38,6 @@ export {
 export { buildActionCompass, actionCompassEnabled } from './domain/services/actionCompass/actionCompass.js';
 export {
   operatorEpistemicOverlayEnabled,
-  stripOperatorGuidancePayload,
 } from './domain/contracts/operatorEpistemicOverlay.js';
 export {
   narrativeEpistemicMode,
@@ -83,7 +82,6 @@ export {
   reportFilenameMatchesDate,
 } from './domain/services/paths/reportNames.js';
 export { stripTraceFields } from './infrastructure/claudeExtraction.js';
-export { buildAnomalyStrip } from './domain/services/operator/anomalyStrip.js';
 
 // --- Policies (domain) ---
 export { enrichFieldProvenance } from './domain/services/signals/fieldSignalPolicy.js';

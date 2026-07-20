@@ -34,7 +34,8 @@ export const OUTPUT_SYMLINKS = [
   // Production — ingest (source MD / module exports before or alongside extract)
   { link: 'production/ingest/news-articles', target: 'business_modules/news-sites/articles_extracted' },
   { link: 'production/ingest/whatsapp-reports', target: 'business_modules/whatsapp/reports' },
-  { link: 'production/ingest/field-visits', target: 'business_modules/visits/data' },
+  { link: 'production/ingest/visits', target: 'business_modules/visits/data' },
+  { link: 'production/ingest/field-visits', target: 'business_modules/visits/data' }, // deprecated alias
   { link: 'production/ingest/pbo-muni', target: 'business_modules/pbo_report/data/muni' },
   { link: 'production/ingest/pbo-regional', target: 'business_modules/pbo_report/data/regional' },
   { link: 'production/ingest/social-media', target: 'business_modules/social_media/data' },

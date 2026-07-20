@@ -118,7 +118,6 @@ export function deriveOperatorDisplayState(assessmentState, evidenceUsageState, 
   const inputs = {
     claims_count: diagnostics.claims_count ?? 0,
     scoring_signal_count: diagnostics.coverage?.scoring_used ?? 0,
-    evidence_mass: diagnostics.evidence_mass_scoring_used ?? 0,
     quarantined_count: diagnostics.coverage?.quarantined ?? 0,
     macro_context_count: diagnostics.coverage?.macro_context ?? 0,
     specialist_tier: diagnostics.specialist_tier ?? null,

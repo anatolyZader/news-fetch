@@ -23,7 +23,7 @@ npm run output:setup
 | `agent-eval/` | `business_modules/specialist_agents/data/eval/` | Agent eval artifacts |
 | `ingest/news-articles/` | `business_modules/news-sites/articles_extracted/` | News MD exports |
 | `ingest/whatsapp-reports/` | `business_modules/whatsapp/reports/` | WhatsApp daily MD |
-| `ingest/field-visits/` | `business_modules/visits/data/` | Field visit MD + signals |
+| `ingest/visits/` | `business_modules/visits/data/` | Visits MD + signals (`field-visits/` is a deprecated alias) |
 | `ingest/pbo-muni/` | `business_modules/pbo_report_muni/data/` | Municipal PBO exports |
 | `ingest/pbo-regional/` | `business_modules/pbo_report_regional/data/` | Regional PBO data |
 | `ingest/social-media/` | `business_modules/social_media/data/` | Social signals and fetches |

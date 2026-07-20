@@ -12,7 +12,7 @@ Companion to `AGENTS.md` task routing. Start at the listed `input/` file or comp
 | `video-grab-url` | `business_modules/video/input/video-grab-url.js` |
 | `youtube-to-md` | `business_modules/video/input/youtube-to-md.js` |
 | `whatsapp-to-md` | `business_modules/whatsapp/input/whatsapp-to-md.js` |
-| `ingest-field-reports` | `business_modules/visits/input/visitsInput.js` |
+| `ingest-visits-reports` / `ingest-visits` / `ingest-field-reports` | `business_modules/visits/input/visitsInput.js` |
 | `social-media:init` | `business_modules/social_media/input/socialMediaInput.js` |
 | `social-media:gather-daily` | `business_modules/social_media/input/socialMediaInput.js` |
 | `social-media:treat` | `business_modules/social_media/input/socialMediaInput.js` |

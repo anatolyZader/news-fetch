@@ -24,11 +24,8 @@ import {
   applyDecisionBriefPriority,
   sortAttentionItems,
   buildActionCompass,
-  buildAnomalyStrip,
   updateOperatorRecommendationStatus,
   parseOperatorRecommendationRequest,
-  operatorEpistemicOverlayEnabled,
-  stripOperatorGuidancePayload,
 } from '../index.js';
 import { isRegionalReportScope } from '../../../cross-cut-modules/geo/reportScopeIds.js';
 import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
@@ -251,11 +248,21 @@ export async function reportRoutes(app, opts) {
     const analyst_denied = requestedView === DISPLAY_VIEWS.analyst
       && display_view !== DISPLAY_VIEWS.analyst;
     const redacted = redactReportPayload(data, display_view);
-    const attention_items = buildAttentionItemsWithContext(redacted, scope, display_view, dateParam);
-    const action_compass = buildActionCompass(redacted.assessment, attention_items, {
-      geoUnknownCount: countPendingGeoUnknown(geoUnknownReviewService),
-    });
-    const anomaly_strip = buildAnomalyStrip(redacted.assessment);
+    // Operator report = executive summary + narratives + evidence; guidance
+    // badges (attention items, compass, recommendations) are analyst-only.
+    // The decision brief stays — it is operator decision-support prose.
+    const isAnalystView = display_view === DISPLAY_VIEWS.analyst;
+    if (!isAnalystView && redacted.assessment) {
+      delete redacted.assessment.operator_recommendations;
+    }
+    const attention_items = isAnalystView
+      ? buildAttentionItemsWithContext(redacted, scope, display_view, dateParam)
+      : [];
+    const action_compass = isAnalystView
+      ? buildActionCompass(redacted.assessment, attention_items, {
+        geoUnknownCount: countPendingGeoUnknown(geoUnknownReviewService),
+      })
+      : null;
     const budget_status = crisisBudgetService?.getChatBudgetStatus?.() ?? null;
     const suggest_crisis_budget = crisisBudgetService?.shouldSuggestCrisisBudget?.(redacted.assessment) ?? false;
 
@@ -265,7 +272,6 @@ export async function reportRoutes(app, opts) {
       display_view,
       attention_items,
       action_compass,
-      anomaly_strip,
       budget_status,
       suggest_crisis_budget,
       ...(analyst_denied ? { analyst_denied: true, requested_view: DISPLAY_VIEWS.analyst } : {}),
@@ -274,10 +280,6 @@ export async function reportRoutes(app, opts) {
 
     if (lang !== 'en') {
       responsePayload = await localizeReportTodayPayload(responsePayload, lang);
-    }
-
-    if (!operatorEpistemicOverlayEnabled() && display_view === DISPLAY_VIEWS.operator) {
-      responsePayload = stripOperatorGuidancePayload(responsePayload);
     }
 
     return reply.send(responsePayload);
@@ -483,14 +485,14 @@ export async function reportRoutes(app, opts) {
       if (cached) {
         const displayView = resolveTranslateDisplayView(bodyDisplayView);
         const redacted = redactReportPayload(cached, displayView);
-        let localized = await localizeReportTodayPayload({
+        if (displayView !== DISPLAY_VIEWS.analyst && redacted.assessment) {
+          delete redacted.assessment.operator_recommendations;
+        }
+        const localized = await localizeReportTodayPayload({
           found: true,
           display_view: displayView,
           ...redacted,
         }, lang);
-        if (!operatorEpistemicOverlayEnabled() && displayView === DISPLAY_VIEWS.operator) {
-          localized = stripOperatorGuidancePayload(localized);
-        }
         return reply.send({ report: localized.assessment ?? report });
       }
       const translated = await getTranslatedReport(report, lang);

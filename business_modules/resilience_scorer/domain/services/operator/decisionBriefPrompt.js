@@ -23,7 +23,6 @@ function formatComponentInstrumentLine(comp) {
   return (
     `- ${id}: confidence=${inst.confidence}, sufficiency=${inst.evidence_sufficiency}` +
     `${inst.contested ? ', contested' : ''}` +
-    `${inst.significant_delta ? ', significant_delta' : ''}` +
     operatorSuffix
   );
 }

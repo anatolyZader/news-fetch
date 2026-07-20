@@ -16,9 +16,9 @@ test('GET /api/visits returns the visits dashboard', async () => {
   assert.equal(res.statusCode, 200);
   assert.ok(body.summary);
   assert.ok(Array.isArray(body.days));
-  assert.equal(body.summary.storage.rawPattern, 'business_modules/visits/data/articles-field-reports-YYYY-MM-DD.md');
+  assert.equal(body.summary.storage.rawPattern, 'business_modules/visits/data/articles-visits-reports-YYYY-MM-DD.md');
   assert.equal(
     body.summary.storage.signalsPattern,
-    'business_modules/visits/data/signals/signals-field-YYYY-MM-DD.json',
+    'business_modules/visits/data/signals/signals-visits-YYYY-MM-DD.json',
   );
 });

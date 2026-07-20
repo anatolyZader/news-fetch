@@ -50,7 +50,7 @@ describe('operatorSurfaceMode', () => {
 describe('evidencePoolGrouping', () => {
   it('groups pool items by source bucket', () => {
     const groups = groupPoolItemsBySource([
-      { source_type: 'field', evidence: 'a' },
+      { source_type: 'visits', evidence: 'a' },
       { source_type: 'pbo', evidence: 'b' },
       { source_type: 'news', evidence: 'c' },
     ]);
@@ -63,14 +63,14 @@ describe('evidencePoolGrouping', () => {
 describe('operatorInvestigationSurface', () => {
   const fearSignal = {
     signal_type: 'fear_expression',
-    source_type: 'field',
+    source_type: 'visits',
     article_url: 'https://example.com/fear',
     evidence: 'Residents report elevated anxiety in shelter.',
     metricsEligible: true,
   };
   const narrativeSignal = {
     signal_type: 'resilience_narrative_positive',
-    source_type: 'field',
+    source_type: 'visits',
     article_url: 'https://example.com/narrative',
     evidence: 'Residents describe the community as coping effectively.',
     metricsEligible: true,
@@ -240,7 +240,7 @@ describe('routing rationale on evidence items', () => {
 
   const helpSignal = {
     signal_type: 'solidarity_help_others',
-    source_type: 'field',
+    source_type: 'visits',
     article_url: 'https://example.com/help',
     evidence: 'שכנים הביאו אוכל לקשישים שלא הגיעו למקלט.',
     metricsEligible: true,

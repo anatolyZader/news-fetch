@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Stage-1 CLI: extract behavioral signals from one source type and persist JSON artifacts
- * (open_observation_extraction module data for most sources; visits module for `field`).
+ * (open_observation_extraction module data for most sources; visits module for `visits`).
  * Run this separately for each source type; then run assess-signals.js to combine and assess.
  *
  * Usage:
@@ -9,13 +9,13 @@
  *
  * Output:
  *   business_modules/resilience_scorer/data/signals/signals-{source-type}-{date}.json  (news, radio, whatsapp, …)
- *   business_modules/visits/data/signals/signals-field-{date}.json  (visits / legacy field)
+ *   business_modules/visits/data/signals/signals-visits-{date}.json  (visits; legacy alias --source-type field)
  *   business_modules/open_observation_extraction/data/observations-pipeline-{source-type}-{date}.json  (parallel open, default ON)
  */
 
 import 'dotenv/config';
+import { existsSync } from 'node:fs';
 import { resolve, basename, dirname } from 'node:path';
-import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { loadMdFiles } from '../../infrastructure/mdReportsLoader.js';
@@ -31,21 +31,19 @@ import {
 } from './extractionStage.js';
 import { CONTENT_KIND } from './contentKinds.js';
 import { getArg } from '../cliArgs.js';
-import { normalizeVisitsSourceType } from '../../domain/services/signals/visitsSourceType.js';
+import {
+  normalizeVisitsSourceType,
+  normalizePipelineSourceKey,
+} from '../../domain/services/signals/visitsSourceType.js';
+import { loadPipelineConfig } from '../../domain/services/paths/signalBundles.js';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 
 function isSourceEnabled(sourceType) {
-  const cfgPath = resolve('pipeline-config.json');
-  if (!existsSync(cfgPath)) return true;
-  try {
-    const cfg = JSON.parse(readFileSync(cfgPath, 'utf8'));
-    const key = sourceType === 'visits' ? 'visits' : sourceType;
-    const entry = cfg?.sources?.[key] ?? cfg?.sources?.field;
-    return entry?.enabled !== false;
-  } catch {
-    return true;
-  }
+  const { enabledSources } = loadPipelineConfig(resolve('pipeline-config.json'));
+  if (!enabledSources) return true;
+  const canonical = normalizePipelineSourceKey(sourceType);
+  return enabledSources.has(canonical) || (canonical === 'visits' && enabledSources.has('field'));
 }
 
 function parseExtractCliArgs(argv) {

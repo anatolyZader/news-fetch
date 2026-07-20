@@ -325,7 +325,7 @@ export function createReportBuildService({
         try {
           persistOriginalSources(sourceArchive, [{
             date,
-            source_type: 'field',
+            source_type: 'visits',
             source_label: 'report_build-web',
             source_url: '',
             title: `Field report (web): ${draftText.slice(0, 60)}`,

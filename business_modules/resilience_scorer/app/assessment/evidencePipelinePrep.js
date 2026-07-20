@@ -114,7 +114,6 @@ export function runEvidencePipeline({
     quarantinedDigital: gateResult.quarantinedDigital,
     assessmentMode: gateResult.assessmentMode,
     epistemicStatus: gateResult.epistemicStatus,
-    staleDigitalScores: null,
     digitalInclusiveScored: null,
     salienceContext: gateResult.salienceContext,
     epistemicEnrichment: { scored: scoredFull },

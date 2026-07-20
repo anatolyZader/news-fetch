@@ -41,7 +41,7 @@ export function componentToDoc(component) {
   const text =
     `${id}\n` +
     `Instrument: confidence=${inst.confidence}, sufficiency=${inst.evidence_sufficiency}` +
-    `${inst.contested ? ', contested' : ''}${inst.significant_delta ? ', significant_delta' : ''}\n\n` +
+    `${inst.contested ? ', contested' : ''}\n\n` +
     `${narrative}\n\nEvidence:\n${evidence}`;
   return { docId: `component:${id}`, kind: 'component', text };
 }

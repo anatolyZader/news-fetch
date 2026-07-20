@@ -62,15 +62,12 @@ function attachRegionalNationalComparison(assessment, {
   comparisonContext,
   nationalSignals,
   nationalDataVoid,
-  staleDigitalScores,
 }) {
   if (!isRegionalReportScope(reportScopeId)) return;
   assessment.comparison_context = comparisonContext;
-  const stale = staleDigitalScores ? { stale_at: staleDigitalScores.scored_at } : {};
   const base = {
     total_signals: nationalSignals.length,
     national_data_void: nationalDataVoid,
-    ...stale,
   };
   if (comparisonContext?.comparable) {
     assessment.national_comparison = {
@@ -153,7 +150,6 @@ export async function finalizeAndWriteReport({
     scopedSignals,
     signalsForScoring,
     scoreBySource,
-    staleDigitalScores,
   } = scoring;
 
   const priorReports = loadPriorReports(targetDate);
@@ -199,7 +195,6 @@ export async function finalizeAndWriteReport({
     comparisonContext,
     nationalSignals,
     nationalDataVoid,
-    staleDigitalScores,
   });
 
   buildReportMethodology(assessment, {

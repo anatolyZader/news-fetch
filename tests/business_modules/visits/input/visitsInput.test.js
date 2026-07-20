@@ -9,7 +9,7 @@ import XLSX from 'xlsx';
 test('visits input converts squad visit spreadsheet to markdown source data', () => {
   const dir = mkdtempSync(join(tmpdir(), 'visits-input-'));
   const xlsxPath = join(dir, 'visits.xlsx');
-  const outputPath = join(dir, 'articles-field-reports-2026-03-15.md');
+  const outputPath = join(dir, 'articles-visits-reports-2026-03-15.md');
 
   try {
     const wb = XLSX.utils.book_new();

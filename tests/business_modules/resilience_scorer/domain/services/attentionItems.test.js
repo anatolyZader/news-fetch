@@ -95,12 +95,7 @@ describe('attentionItems', () => {
     const assessment = {
       oov_capture_count: 5,
       methodology: { calibration: { deficit: 0.6, trust: 0.4 } },
-      components: [{
-        component_id: 'narrative',
-        delta_significance: 2.5,
-        z_score_chronic: -2.5,
-        erosion_index: 0.4,
-      }],
+      components: [{ component_id: 'narrative' }],
     };
 
     const operatorItems = buildAttentionItems(assessment, { view: DISPLAY_VIEWS.operator });
@@ -108,11 +103,9 @@ describe('attentionItems', () => {
 
     assert.ok(!operatorItems.some((i) => i.code === 'oov_capture'));
     assert.ok(!operatorItems.some((i) => i.code === 'calibration_deficit'));
-    assert.ok(!operatorItems.some((i) => i.code === 'long_term_degradation'));
 
     assert.ok(analystItems.some((i) => i.code === 'oov_capture'));
     assert.ok(analystItems.some((i) => i.code === 'calibration_deficit'));
-    assert.ok(analystItems.some((i) => i.code === 'long_term_degradation'));
   });
 
   it('includes macro signal count as info', () => {
@@ -186,7 +179,7 @@ describe('attentionItems', () => {
       components: [{
         component_id: 'narrative',
         instrument: {
-          significant_delta: true,
+          thin_evidence_instrument: 'critical_single_signal',
           contested: true,
           contested_thin: false,
           evidence_sufficiency: 'adequate',
@@ -195,8 +188,8 @@ describe('attentionItems', () => {
     });
     const narrativeItems = items.filter((i) => i.component_id === 'narrative');
     assert.equal(narrativeItems.length, 1);
-    // significant_delta (situational) wins the tie over contested_evidence (epistemic)
-    assert.equal(narrativeItems[0].code, 'significant_delta');
+    // critical_single_signal (critical) wins over contested_evidence (watch)
+    assert.equal(narrativeItems[0].code, 'critical_single_signal');
     assert.deepEqual(narrativeItems[0].sub_codes, ['contested_evidence']);
   });
 

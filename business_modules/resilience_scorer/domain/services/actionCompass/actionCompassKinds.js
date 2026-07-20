@@ -62,10 +62,6 @@ const CODE_TO_KIND = Object.freeze({
   unverified_alert: ACTION_KINDS.investigate,
   contested_evidence: ACTION_KINDS.investigate,
   thin_evidence: ACTION_KINDS.investigate,
-  significant_delta: ACTION_KINDS.investigate,
-  high_delta_z: ACTION_KINDS.investigate,
-  long_term_degradation: ACTION_KINDS.investigate,
-  erosion_elevated: ACTION_KINDS.investigate,
   gap: ACTION_KINDS.investigate,
 
   // allocate — which locations/clusters need triage before dispatch

@@ -141,7 +141,7 @@ The table below lists **primary entrypoints** (npm scripts reference [`package.j
 | **Server full run** | Internal: [`runResilienceAssessment`](../../business_modules/resilience_scorer/app/resilienceAnalysisService.js) | `ANTHROPIC_API_KEY`, optional evidence **store** for DB merge, `HOMEFRONT_MD` | Assessment + cost; persists via resilience report adapter when configured. |
 | **Audio / radio** | `npm run audio-to-md`, `npm run analyze-audio` | Audio pipelines, then same resilience CLI with `--content-kind audio` | MD then same extraction stack. |
 | **WhatsApp** | `npm run whatsapp-to-md` plus server routes | Meta WhatsApp Cloud API, `ANTHROPIC_API_KEY` | Messages analyzed with [`whatsappResilienceAnalyzer.js`](../../business_modules/whatsapp/app/whatsappResilienceAnalyzer.js); **geo** attached when port is wired in composition. |
-| **Field visits** | `npm run ingest-field-reports` | Visit ingest module | Feeds evidence store / MD depending on configuration. |
+| **Field visits** | `npm run ingest-visits-reports` | Visit ingest module | Feeds evidence store / MD depending on configuration. |
 | **PBO municipal event log** | `npm run analyze-event-log` | Event log adapter | Specialized municipal reporting. |
 | **Survey (Excel)** | *(archived)* — see [`archive/survey-excel-cli/README.md`](../../archive/survey-excel-cli/README.md) | Was: Google Forms `.xlsx` → per-municipality MD under `data/survey/`; not shown in srulik.ai | Removed from active codebase 2026-07-09 |
 | **Naftali pool** | `business_modules/pool/input/extract-naftali-signals.js` (see package or module docs) | Pool-specific inputs | Signals with explicit geographic scope in prompts. |

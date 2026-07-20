@@ -24,7 +24,7 @@ describe('narrativeScopeSignals', () => {
 
   it('selectRegionalPressContext includes scope-excluded press with north keywords', () => {
     const scoped = [{
-      source_type: 'field',
+      source_type: 'visits',
       signal_type: 'information_clarity',
       evidence: 'Local north field note.',
       district_id: 'north',
@@ -45,7 +45,7 @@ describe('narrativeScopeSignals', () => {
 
   it('selectNarrativeNationalContext tier B includes central press without macro keywords', () => {
     const scoped = [{
-      source_type: 'field',
+      source_type: 'visits',
       signal_type: 'information_clarity',
       evidence: 'North field note.',
       district_id: 'north',
@@ -83,7 +83,7 @@ describe('narrativeScopeSignals', () => {
 
   it('selectNarrativeNationalContext excludes out-of-scope harm tickers', () => {
     const scoped = [{
-      source_type: 'field',
+      source_type: 'visits',
       signal_type: 'information_clarity',
       evidence: 'North field note.',
       district_id: 'north',
@@ -133,7 +133,7 @@ describe('narrativeScopeSignals', () => {
   it('scopeAndPartitionSignals keeps national context out of metricsSignals', () => {
     const all = [
       {
-        source_type: 'field',
+        source_type: 'visits',
         signal_type: 'information_clarity',
         evidence: 'Field north note.',
         district_id: 'north',
@@ -157,7 +157,7 @@ describe('narrativeScopeSignals', () => {
   it('scopeAndPartitionSignals adds tier B central press to narrative pool', () => {
     const all = [
       {
-        source_type: 'field',
+        source_type: 'visits',
         signal_type: 'information_clarity',
         evidence: 'Field north note.',
         district_id: 'north',
@@ -210,7 +210,7 @@ describe('narrativeScopeSignals', () => {
       signal_file_date: i < 40 ? '2026-04-05' : '2026-04-04',
     }));
     const field = [{
-      source_type: 'field',
+      source_type: 'visits',
       signal_type: 'information_clarity',
       evidence: 'Visit note from north community.',
       district_id: 'north',

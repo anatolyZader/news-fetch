@@ -82,8 +82,7 @@ function formatComponentBlock(c, { includeScores }) {
   const inst = c.instrument ?? deriveInstrumentState(c);
   const instLine =
     `confidence=${inst.confidence}, sufficiency=${inst.evidence_sufficiency}` +
-    `${inst.contested ? ', contested' : ''}` +
-    `${inst.significant_delta ? ', significant_delta' : ''}`;
+    `${inst.contested ? ', contested' : ''}`;
   return `### ${id} (${instLine})\n${narrative}`;
 }
 
@@ -99,8 +98,7 @@ function formatComponentInstrumentSummary(c, { includeScores }) {
   const inst = c.instrument ?? deriveInstrumentState(c);
   const instLine =
     `confidence=${inst.confidence}, sufficiency=${inst.evidence_sufficiency}` +
-    `${inst.contested ? ', contested' : ''}` +
-    `${inst.significant_delta ? ', significant_delta' : ''}`;
+    `${inst.contested ? ', contested' : ''}`;
   return `- ${id} (${instLine}) — ${narrative}`;
 }
 

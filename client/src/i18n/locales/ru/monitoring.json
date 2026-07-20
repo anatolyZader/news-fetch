@@ -1,7 +1,0 @@
-{
-  "monitoring.health.degraded": "Ограничен",
-  "monitoring.health.ok": "Исправен",
-  "monitoring.health.unhealthy": "Неисправен",
-  "monitoring.stageTelemetry.stageLine": "{stage}: {dropped}/{input} отброшено ({rate}%)",
-  "monitoring.stageTelemetry.summary": "{dropped} сигнал(ов) отброшено на этапах конвейера"
-}

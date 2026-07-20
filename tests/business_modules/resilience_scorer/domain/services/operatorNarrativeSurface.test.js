@@ -210,7 +210,7 @@ describe('operatorNarrativeSurface', () => {
         entries: [{
           label: 'S7',
           ref: 'resilience_narrative_positive@idx:7',
-          source_type: 'field',
+          source_type: 'visits',
           article_source: 'visitor-name',
           article_url: null,
         }],

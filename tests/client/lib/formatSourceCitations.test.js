@@ -144,7 +144,7 @@ describe('formatSourceCitations', () => {
       [{
         label: 'S7',
         ref: 'resilience_narrative_positive@idx:7',
-        source_type: 'field',
+        source_type: 'visits',
         article_url: null,
       }],
       { componentId: 'narrative' },

@@ -32,7 +32,6 @@ export {
 } from './assessmentV2.js';
 export {
   operatorEpistemicOverlayEnabled,
-  stripOperatorGuidancePayload,
 } from './operatorEpistemicOverlay.js';
 export {
   narrativeEpistemicMode,

@@ -163,10 +163,15 @@ async function main() {
     pattern: (d) => `articles-homefront-${d}.md`,
     source_type: 'news',
   });
-  const fromField = backfillMdDir(archive, dates, {
+  const fromVisits = backfillMdDir(archive, dates, {
     dir: resolve(repoRoot, 'business_modules/visits/data'),
-    pattern: (d) => `articles-field-reports-${d}.md`,
-    source_type: 'field',
+    pattern: (d) => {
+      const visitsName = `articles-visits-reports-${d}.md`;
+      const legacyName = `articles-field-reports-${d}.md`;
+      const visitsPath = resolve(repoRoot, 'business_modules/visits/data', visitsName);
+      return existsSync(visitsPath) ? visitsName : legacyName;
+    },
+    source_type: 'visits',
   });
   const fromWhatsapp = backfillMdDir(archive, dates, {
     dir: resolve(repoRoot, 'business_modules/whatsapp/reports'),
@@ -187,9 +192,9 @@ async function main() {
   evidenceStore.close();
   retrievalService.close();
 
-  const total = fromDb + fromNews + fromField + fromWhatsapp + fromRadio + fromSocial + fromProbes;
+  const total = fromDb + fromNews + fromVisits + fromWhatsapp + fromRadio + fromSocial + fromProbes;
   console.log(
-    `backfill-source-archive: days=${days} evidence=${fromDb} news=${fromNews} field=${fromField} ` +
+    `backfill-source-archive: days=${days} evidence=${fromDb} news=${fromNews} visits=${fromVisits} ` +
     `whatsapp=${fromWhatsapp} radio=${fromRadio} social=${fromSocial} probes=${fromProbes} total=${total}` +
     (reindexRag ? ` rag_chunks=${ragChunks}` : ' rag_skipped'),
   );

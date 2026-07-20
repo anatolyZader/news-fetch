@@ -2,8 +2,9 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 import { IVisitsRepositoryPort } from '../../domain/ports/IVisitsRepositoryPort.js';
 
-const FIELD_REPORT_FILE_RE = /^articles-field-reports-(\d{4}-\d{2}-\d{2})\.md$/;
-const FIELD_SIGNAL_FILE_RE = /^signals-field-(\d{4}-\d{2}-\d{2})\.json$/;
+/** Dual-read: canonical `visits` stem + legacy `field` stem (pre rewrite). */
+const VISIT_REPORT_FILE_RE = /^articles-(?:visits|field)-reports-(\d{4}-\d{2}-\d{2})\.md$/;
+const VISIT_SIGNAL_FILE_RE = /^signals-(?:visits|field)-(\d{4}-\d{2}-\d{2})\.json$/;
 const VISIT_HEADING_RE = /^##\s+(\d+)\.\s+(.+)$/m;
 const VISIT_PUBLISHED_RE = /^- \*\*Published:\*\*\s*(.+)$/m;
 const VISIT_SOURCE_RE = /^- \*\*Source:\*\*\s*(.+)$/m;
@@ -68,20 +69,28 @@ function readJson(filePath) {
   }
 }
 
-/** Prefer module data dir; fall back to resilience_scorer closed-signals dir for older deployments. */
-function collectFieldSignalPaths(primaryDir, rootDir) {
-  const byFile = new Map();
+/**
+ * Prefer module data dir; fall back to resilience_scorer closed-signals dir for older deployments.
+ * When both `signals-visits-DATE` and `signals-field-DATE` exist, prefer visits.
+ */
+function collectVisitSignalPaths(primaryDir, rootDir) {
+  const byDate = new Map();
   const legacyDir = resolve(rootDir, 'business_modules', 'resilience_scorer', 'data', 'signals');
   const tryDir = (dir) => {
     if (!existsSync(dir)) return;
     for (const name of readdirSync(dir)) {
-      if (!FIELD_SIGNAL_FILE_RE.test(name) || byFile.has(name)) continue;
-      byFile.set(name, resolve(dir, name));
+      const match = VISIT_SIGNAL_FILE_RE.exec(name);
+      if (!match) continue;
+      const date = match[1];
+      const isCanonical = name.startsWith('signals-visits-');
+      const prev = byDate.get(date);
+      if (prev && prev.canonical && !isCanonical) continue;
+      byDate.set(date, { name, path: resolve(dir, name), canonical: isCanonical });
     }
   };
   tryDir(primaryDir);
   if (legacyDir !== primaryDir) tryDir(legacyDir);
-  return byFile;
+  return new Map([...byDate.values()].map((e) => [e.name, e.path]));
 }
 
 function attachSignalsToVisits(day, signals) {
@@ -106,7 +115,7 @@ function summarizeVisitSignals(day) {
 }
 
 function mergeSignalFileIntoDays(daysByDate, file, filePath) {
-  const match = FIELD_SIGNAL_FILE_RE.exec(file);
+  const match = VISIT_SIGNAL_FILE_RE.exec(file);
   if (!match) return;
   const date = match[1];
   if (INVALID_PLACEHOLDER_DATES.has(date)) return;
@@ -136,11 +145,11 @@ export class VisitsFsAdapter extends IVisitsRepositoryPort {
 
   listVisitDays() {
     const reportFiles = existsSync(this.reportsDir) ? readdirSync(this.reportsDir) : [];
-    const signalPathByName = collectFieldSignalPaths(this.signalsDir, this.rootDir);
+    const signalPathByName = collectVisitSignalPaths(this.signalsDir, this.rootDir);
     const daysByDate = new Map();
 
     for (const file of reportFiles) {
-      const match = FIELD_REPORT_FILE_RE.exec(file);
+      const match = VISIT_REPORT_FILE_RE.exec(file);
       if (!match) continue;
       const date = match[1];
       if (INVALID_PLACEHOLDER_DATES.has(date)) continue;

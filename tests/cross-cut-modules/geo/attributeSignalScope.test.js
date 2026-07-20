@@ -52,7 +52,7 @@ test('attributeSignalScope is idempotent when geo and district_id already set', 
 
 test('attributeSignalScope uses bundleDistrictId when signal has no district_id', () => {
   const { signals, districtStamped } = attributeSignalScope(
-    [{ source_type: 'field', evidence: 'generic field note without geo' }],
+    [{ source_type: 'visits', evidence: 'generic field note without geo' }],
     { rootDir: ROOT, sourceType: 'field', bundleDistrictId: 'north' },
   );
   assert.equal(signals[0].district_id, 'north');

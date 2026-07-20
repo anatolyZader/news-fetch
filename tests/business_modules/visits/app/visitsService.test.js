@@ -8,7 +8,7 @@ test('visits service summarizes visit days and signal types', () => {
       return [
         {
           date: '2026-03-24',
-          file: 'articles-field-reports-2026-03-24.md',
+          file: 'articles-visits-reports-2026-03-24.md',
           visitCount: 1,
           signalCount: 2,
           municipalities: ['מטה אשר/איילון'],

@@ -32,7 +32,7 @@ export const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..
 
 const SIGNAL_DIRS = {
   signalsDir: closedSignalsDir(),
-  fieldSignalsDir: resolve('business_modules', 'visits', 'data', 'signals'),
+  visitsSignalsDir: resolve('business_modules', 'visits', 'data', 'signals'),
   socialSignalsDir: resolve('business_modules', 'social_media', 'data'),
 };
 

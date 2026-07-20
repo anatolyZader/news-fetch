@@ -55,10 +55,11 @@ export async function loadOpenObservationsForAssess(opts) {
     profile: 'pipeline',
   });
 
-  const fieldHistoricalBundles = service.loadPipelineBundlesUpToDate({
-    endDate: targetDate,
-    sourceType: 'field',
-  });
+  // Unlimited history for visits (canonical) + legacy field stem.
+  const visitsHistoricalBundles = [
+    ...service.loadPipelineBundlesUpToDate({ endDate: targetDate, sourceType: 'visits' }),
+    ...service.loadPipelineBundlesUpToDate({ endDate: targetDate, sourceType: 'field' }),
+  ];
 
   /** @type {Array<object>} */
   const openObservations = [];
@@ -66,14 +67,15 @@ export async function loadOpenObservationsForAssess(opts) {
   const bundleFiles = [];
   const seenFilenames = new Set();
 
-  for (const entry of fieldHistoricalBundles) {
+  for (const entry of visitsHistoricalBundles) {
+    if (seenFilenames.has(entry.filename)) continue;
     seenFilenames.add(entry.filename);
     appendBundleObservations(openObservations, bundleFiles, entry, normalizeObservations);
   }
 
   for (const entry of windowBundles) {
     const sourceType = entry.bundle?.source_type ?? null;
-    if (sourceType === 'field') continue;
+    if (sourceType === 'field' || sourceType === 'visits') continue;
     if (seenFilenames.has(entry.filename)) continue;
     seenFilenames.add(entry.filename);
     appendBundleObservations(openObservations, bundleFiles, entry, normalizeObservations);

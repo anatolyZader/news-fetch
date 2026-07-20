@@ -46,7 +46,7 @@ describe('evidenceEligibility', () => {
 
   it('marks field source as metricsEligible', () => {
     const s = {
-      source_type: 'field',
+      source_type: 'visits',
       scopeDecision: { isNorthRelevant: true, source: 'source_type', confidence: 'high' },
     };
     assert.equal(metricsEligible(s), true);
@@ -54,7 +54,7 @@ describe('evidenceEligibility', () => {
 
   it('partitions macro signals out of north metrics', () => {
     const signals = annotateSignalsEpistemics([
-      { source_type: 'field', evidence: 'ok', scopeDecision: { isNorthRelevant: true, source: 'source_type' } },
+      { source_type: 'visits', evidence: 'ok', scopeDecision: { isNorthRelevant: true, source: 'source_type' } },
       {
         source_type: 'news',
         evidence: 'national',

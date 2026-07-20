@@ -1,5 +1,5 @@
 /**
- * Closed-vocabulary signal bundles from resilience_scorer/data/signals + field + social dirs.
+ * Closed-vocabulary signal bundles from resilience_scorer/data/signals + visits + social dirs.
  */
 import { ISignalBundlePort } from '../../domain/ports/ISignalBundlePort.js';
 import {
@@ -8,7 +8,7 @@ import {
 } from '../../domain/services/paths/signalBundles.js';
 
 /**
- * @param {{ signalsDir: string, fieldSignalsDir: string, socialSignalsDir: string }} dirs
+ * @param {{ signalsDir: string, visitsSignalsDir?: string, fieldSignalsDir?: string, socialSignalsDir: string }} dirs
  */
 export function createClosedSignalBundleFsAdapter(dirs) {
   return new ClosedSignalBundleFsAdapter(dirs);
@@ -16,11 +16,15 @@ export function createClosedSignalBundleFsAdapter(dirs) {
 
 export class ClosedSignalBundleFsAdapter extends ISignalBundlePort {
   /**
-   * @param {{ signalsDir: string, fieldSignalsDir: string, socialSignalsDir: string }} dirs
+   * @param {{ signalsDir: string, visitsSignalsDir?: string, fieldSignalsDir?: string, socialSignalsDir: string }} dirs
    */
   constructor(dirs) {
     super();
-    this.dirs = dirs;
+    this.dirs = {
+      signalsDir: dirs.signalsDir,
+      visitsSignalsDir: dirs.visitsSignalsDir ?? dirs.fieldSignalsDir,
+      socialSignalsDir: dirs.socialSignalsDir,
+    };
   }
 
   /**
@@ -42,10 +46,10 @@ export class ClosedSignalBundleFsAdapter extends ISignalBundlePort {
   loadBundles(discovery, opts) {
     return loadAssessSignalFiles({
       rootFiles: discovery.rootFiles,
-      fieldDirFiles: discovery.fieldDirFiles,
+      visitsDirFiles: discovery.visitsDirFiles ?? discovery.fieldDirFiles,
       socialDirFiles: discovery.socialDirFiles,
       signalsDir: discovery.signalsDir,
-      fieldSignalsDir: discovery.fieldSignalsDir,
+      visitsSignalsDir: discovery.visitsSignalsDir ?? discovery.fieldSignalsDir,
       socialSignalsDir: discovery.socialSignalsDir,
       targetDate: opts.targetDate,
       targetDates: discovery.targetDates,

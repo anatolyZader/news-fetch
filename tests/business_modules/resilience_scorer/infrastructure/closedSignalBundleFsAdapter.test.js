@@ -19,7 +19,7 @@ describe('closedSignalBundleFsAdapter', () => {
 
     const port = createClosedSignalBundleFsAdapter({
       signalsDir,
-      fieldSignalsDir: join(root, 'field'),
+      visitsSignalsDir: join(root, 'field'),
       socialSignalsDir: join(root, 'social'),
     });
 

@@ -5,6 +5,7 @@ export const RESILIENCE_GEO_SOURCE_TYPES = Object.freeze([
   'social',
   'whatsapp',
   'field',
+  'visits',
   'pbo',
   'pbo_regional',
   'naftali',

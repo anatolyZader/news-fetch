@@ -28,7 +28,7 @@ describe('citationDisplay', () => {
   it('citationAuthorForSignal always uses Field visit for field source without URL', () => {
     assert.equal(
       citationAuthorForSignal({
-        source_type: 'field',
+        source_type: 'visits',
         article_source: 'Hebrew visitor name',
       }),
       'Field visit',
@@ -44,7 +44,7 @@ describe('citationDisplay', () => {
       {
         label: 'S1',
         ref: 'fear_expression@idx:3',
-        source_type: 'field',
+        source_type: 'visits',
         article_url: null,
       },
     ]);

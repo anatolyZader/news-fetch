@@ -1,5 +1,5 @@
 {
-  "source_type": "field",
+  "source_type": "visits",
   "content_kind": "field_report",
   "date": "2026-03-29",
   "extracted_at": "2026-04-13T12:11:20.649Z",
@@ -15,7 +15,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "Community coordinator (רכז קהילה) actively engaged in coordinating emergency response and community support in northern border community",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -24,7 +24,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "צח״י (community resilience volunteer corps) mobilized and coordinating with local council, emergency services, and IDF in response to security situation",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -33,7 +33,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "Public shelters (מקלטים) operational and accessible to residents in northern border community",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -42,7 +42,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "Residents entering shelters and safe rooms (ממ״ד) when alert sirens (אזעקה) sound in response to security threats",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -51,7 +51,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "Community mobilizing material resources including food packages, medical supplies, and emergency equipment for vulnerable populations",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -60,7 +60,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "Residents accessing psychological support services and trauma counseling through community welfare programs and mental health hotlines",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -69,7 +69,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "Schools operating on reduced schedule or remotely; some businesses and clinics closed or operating at limited capacity due to security situation",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -78,7 +78,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "Residents reporting sleep disruption, anxiety, and cumulative stress (שחיקה) from ongoing security alerts and displacement",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -87,7 +87,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "Residents bringing food, supplies, and assistance to elderly neighbors (קשישים) and people with disabilities (אוכלוסיה עם מוגבלויות) who cannot reach shelters independently",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -96,7 +96,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "Shortage of accessible safe rooms (ממ״ד) in some neighborhoods; insufficient armored field protection booths (מיגוניות) for farmers in open fields",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -105,7 +105,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "Home Front Command (פיקוד העורף) providing clear alert protocols and shelter location information through official channels and community coordinators",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -114,7 +114,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "Residents actively seeking information about shelter locations, alert procedures, and evacuation routes through HFC hotlines and community coordinators",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -123,7 +123,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "Casualties and injuries reported in northern border communities from security incidents; residents injured during evacuation to shelters",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -132,7 +132,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "Emergency medical services and hospitals operating at elevated capacity; ambulance response times extended due to high volume of alerts and injuries",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -141,7 +141,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "Community members organizing informal support networks for vulnerable populations; residents coordinating childcare and meal preparation during alerts",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     },
     {
       "article_index": 1,
@@ -150,7 +150,7 @@
       "evidence_type": "observational_reported_fact",
       "evidence": "Some residents maintaining daily routines including work, shopping, and community activities between security alerts; adaptation to new normal",
       "scope_level": "repeated_pattern",
-      "source_type": "field"
+      "source_type": "visits"
     }
   ]
 }

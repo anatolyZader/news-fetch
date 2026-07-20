@@ -97,7 +97,7 @@ export async function runClosedCatalogueExtract(opts) {
     ? resolve('business_modules', 'visits', 'data', 'signals')
     : closedSignalsDir();
   mkdirSync(outDir, { recursive: true });
-  const fileStem = isVisitsSourceType(sourceType) ? 'field' : canonicalType;
+  const fileStem = isVisitsSourceType(sourceType) ? 'visits' : canonicalType;
   const outPath = resolve(outDir, `signals-${fileStem}-${date}.json`);
   const archived = archiveArtifactBeforeWrite(outPath);
   if (archived) {

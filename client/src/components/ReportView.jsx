@@ -6,7 +6,6 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Alert from '@mui/material/Alert';
-import LinearProgress from '@mui/material/LinearProgress';
 import { useTheme, alpha } from '@mui/material/styles';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import CellTowerOutlinedIcon from '@mui/icons-material/CellTowerOutlined';
@@ -34,15 +33,8 @@ import {
 } from '../lib/evidenceSourceMeta.js';
 import { isStubNarrative } from '../lib/isStubNarrative.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { StatusTag, MarkdownArticle } from '../ui/index.js';
-import { AttentionPanel } from './AttentionPanel.jsx';
-import { ActionCompassPanel } from './ActionCompassPanel.jsx';
-import { EpistemicStatusBanner } from './EpistemicStatusBanner.jsx';
+import { MarkdownArticle } from '../ui/index.js';
 import { ReportEditionContextBar } from './ReportEditionContextBar.jsx';
-import { OperatorReportContextLine } from './OperatorReportContextLine.jsx';
-import { EvidenceOverviewPanel } from './EvidenceOverviewPanel.jsx';
-import { OovAnomalyClustersPanel } from './OovAnomalyClustersPanel.jsx';
-import { OperatorRecommendationsPanel } from './OperatorRecommendationsPanel.jsx';
 import { DecisionBriefPanel } from './DecisionBriefPanel.jsx';
 import { OperatorClaimEvidenceList } from './OperatorClaimEvidenceList.jsx';
 import {
@@ -52,15 +44,10 @@ import {
   useExpandedSourceGroups,
 } from '../lib/evidenceNavigation.jsx';
 import { EpistemicRoleBadge } from './EpistemicRoleBadge.jsx';
-import { InstrumentMetricsBadges } from './InstrumentMetricsBadges.jsx';
-import { ReportComponentFilterBar, readReportComponentFilter } from './ReportComponentFilterBar.jsx';
-import { filterReportComponents } from '../lib/reportComponentFilter.js';
 import PropTypes from 'prop-types';
 import {
   assessmentShape,
   componentScoreShape,
-  facetsShape,
-  macroSignalShape,
   scoreBySourceShape,
   sourceKindPropType,
   translationFnPropType,
@@ -157,11 +144,6 @@ GeoEpistemicBadge.propTypes = {
   t: PropTypes.func.isRequired,
 };
 
-function fmt01(x) {
-  if (x == null || Number.isNaN(x)) return '—';
-  return `${Math.round(x * 100)}%`;
-}
-
 function flatAccordionSx(theme) {
   return {
     marginBottom: 0,
@@ -230,143 +212,6 @@ function ReportSection({ title, children, flat = false, ...props }) {
   );
 }
 
-function deltaToneColor(delta, theme) {
-  return delta > 0 ? theme.palette.success.main : theme.palette.error.main;
-}
-
-function deltaAdornmentBorder(delta, significant, theme) {
-  if (!significant) return `1px solid ${theme.palette.divider}`;
-  return `1.5px solid ${deltaToneColor(delta, theme)}`;
-}
-
-function facetBarColor(score) {
-  if (score == null) return 'inherit';
-  if (score <= 4) return 'error';
-  if (score <= 6) return 'warning';
-  return 'success';
-}
-
-function deltaLineColor(comp, theme) {
-  if (comp.delta_flag !== 'significant') return 'text.secondary';
-  return deltaToneColor(comp.delta_score, theme);
-}
-
-function formatNorrisRapidity(value) {
-  if (value == null) return '—';
-  return fmt01(value);
-}
-
-function DeltaAdornment({ delta, significant, t }) {
-  if (delta == null || delta === 0) return null;
-  const tpl = delta > 0 ? t('report.delta.up') : t('report.delta.down');
-  const text = tpl.replace('{delta}', String(delta));
-  return (
-    <Box
-      component="span"
-      title={significant ? t('report.delta.significant') : undefined}
-      sx={(theme) => ({
-        marginInlineStart: theme.spacing(0.5),
-        paddingInline: theme.spacing(0.6),
-        paddingBlock: '1px',
-        borderRadius: `${theme.custom.radius.section}px`,
-        fontSize: theme.typography.eyebrow.fontSize,
-        fontWeight: 600,
-        lineHeight: 1.2,
-        color: deltaToneColor(delta, theme),
-        border: deltaAdornmentBorder(delta, significant, theme),
-        background: theme.palette.background.paper,
-      })}
-    >
-      {text}
-    </Box>
-  );
-}
-
-function InstrumentStateBadges({ instrument, t }) {
-  const inst = instrument ?? {};
-  const suffKey = `report.instrument.sufficiency.${inst.evidence_sufficiency ?? 'adequate'}`;
-
-  const tags = [
-    <StatusTag key="confidence" variant="neutral">
-      {t(`confidence.${inst.confidence}`) ?? inst.confidence}
-    </StatusTag>,
-    <StatusTag key="sufficiency" variant="neutral">{t(suffKey)}</StatusTag>,
-    inst.contested && <ContestedBadge key="contested" t={t} />,
-    inst.contested_evidence && !inst.contested && (
-      <StatusTag key="contested-evidence" variant="alert">{t('report.instrument.contestedEvidence')}</StatusTag>
-    ),
-    inst.significant_delta && (
-      <StatusTag key="sig-delta" variant="alert">{t('report.delta.significant')}</StatusTag>
-    ),
-    inst.ci_unstable && (
-      <StatusTag key="ci-unstable" variant="alert">{t('report.scoreInterval.ciUnstable')}</StatusTag>
-    ),
-    inst.contested_thin && (
-      <StatusTag key="contested-thin" variant="alert">{t('report.instrument.contestedThin')}</StatusTag>
-    ),
-    inst.thin_evidence_instrument === 'unverified_alert' && (
-      <StatusTag key="unverified" variant="alert">{t('report.instrument.unverifiedAlert')}</StatusTag>
-    ),
-    inst.thin_evidence_instrument === 'critical_presence_failure' && (
-      <StatusTag key="presence-failure" variant="critical">{t('report.instrument.criticalPresenceFailure')}</StatusTag>
-    ),
-    inst.thin_evidence_instrument === 'critical_single_signal' && (
-      <StatusTag key="single-signal" variant="alert">{t('report.instrument.criticalSingleSignal')}</StatusTag>
-    ),
-    inst.salience_critical && inst.floor_bypassed && (
-      <StatusTag key="floor-bypass" variant="alert">{t('report.instrument.salienceFloorBypass')}</StatusTag>
-    ),
-    inst.thin_evidence_instrument === 'limited_evidence_neutral' && (
-      <StatusTag key="limited-neutral" variant="neutral">{t('report.instrument.limitedNeutral')}</StatusTag>
-    ),
-    inst.interpretive_summary && (
-      <StatusTag key="interpretive" variant="warning">{t('report.instrument.interpretiveSummary')}</StatusTag>
-    ),
-    inst.source_cap_binding && (
-      <StatusTag key="source-cap" variant="warning">{t('report.instrument.sourceCapBinding')}</StatusTag>
-    ),
-  ].filter(Boolean);
-
-  return (
-    <Stack
-      direction="row"
-      flexWrap="wrap"
-      sx={(theme) => ({
-        gap: theme.spacing(0.75),
-        width: '100%',
-        justifyContent: { xs: 'center', sm: 'flex-end' },
-        maxWidth: '100%',
-        [theme.breakpoints.down('sm')]: {
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-          justifyItems: 'stretch',
-          alignItems: 'stretch',
-        },
-      })}
-    >
-      {tags.map((tag) => (
-        <Box
-          key={tag.key}
-          sx={(theme) => ({
-            display: 'flex',
-            justifyContent: 'center',
-            minWidth: 0,
-            [theme.breakpoints.down('sm')]: {
-              width: '100%',
-              '& .MuiChip-root': {
-                width: '100%',
-                justifyContent: 'center',
-              },
-            },
-          })}
-        >
-          {tag}
-        </Box>
-      ))}
-    </Stack>
-  );
-}
-
 function ContestedBadge({ t }) {
   return (
     <Box
@@ -388,506 +233,10 @@ function ContestedBadge({ t }) {
   );
 }
 
-function contributorPolaritySign(polarity) {
-  if (polarity === '-') return '−';
-  if (polarity === '+') return '+';
-  return '·';
-}
-
-function contributorPolarityColor(polarity) {
-  if (polarity === '-') return 'error.main';
-  if (polarity === '+') return 'success.main';
-  return 'text.secondary';
-}
-
-function WhyThisScore({ comp, t }) {
-  const contributors = comp.top_contributors ?? comp.instrument?.top_contributors;
-  if (!Array.isArray(contributors) || contributors.length === 0) return null;
-  const top = contributors.slice(0, 3);
-
-  return (
-    <Box sx={(theme) => ({
-      marginTop: theme.spacing(0.75),
-      marginBottom: theme.spacing(0.75),
-      paddingTop: theme.spacing(0.75),
-      paddingBottom: theme.spacing(0.75),
-      paddingLeft: theme.spacing(1),
-      paddingRight: theme.spacing(1),
-      borderRadius: `${theme.custom.radius.section}px`,
-      background: theme.palette.action.hover,
-    })}>
-      <Typography
-        variant="eyebrow"
-        component="div"
-        sx={(theme) => ({ marginBottom: theme.spacing(0.25), color: 'text.secondary' })}
-      >
-        {t('report.whyThisScore.label')}
-      </Typography>
-      <Stack spacing={0.25}>
-        {top.map((s, i) => {
-          const polarity = s._polarity;
-          const sign = contributorPolaritySign(polarity);
-          const signColor = contributorPolarityColor(polarity);
-          const signalLabel = (s.signal_type ?? '').replaceAll('_', ' ');
-          const contribution = s._contribution ?? s._contribution_raw;
-          const preCap = s._contribution_pre_cap;
-          const showPreCap = preCap != null && contribution != null && Math.abs(preCap - contribution) > 0.01;
-          return (
-            <Stack
-              key={`${s.signal_type ?? 'signal'}-${i}`}
-              direction="row"
-              alignItems="baseline"
-              spacing={0.75}
-              sx={{ minWidth: 0 }}
-            >
-              <Typography variant="caption" sx={{ color: signColor, fontWeight: 700, width: '1em' }}>
-                {sign}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  fontWeight: 600,
-                  color: 'text.secondary',
-                  textTransform: 'lowercase',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {signalLabel}
-              </Typography>
-              {s.source_type && (
-                <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-                  · {s.source_type}{s.article_source ? ` · ${s.article_source.replace(/^pbo-/, '')}` : ''}
-                </Typography>
-              )}
-              {contribution != null && (
-                <Typography
-                  variant="caption"
-                  sx={{ color: 'text.secondary', marginInlineStart: 'auto', whiteSpace: 'nowrap' }}
-                >
-                  {showPreCap
-                    ? t('report.whyThisScore.contributionCapped')
-                      .replace('{pre}', Number(preCap).toFixed(2))
-                      .replace('{post}', Number(contribution).toFixed(2))
-                    : t('report.whyThisScore.contribution')
-                      .replace('{value}', Number(contribution).toFixed(2))}
-                  {s._cap_layer && s._cap_scale_factor != null && s._cap_scale_factor < 0.999 && (
-                    <> · {s._cap_layer} ×{s._cap_scale_factor.toFixed(2)}</>
-                  )}
-                </Typography>
-              )}
-              {contribution == null && s.evidence && (
-                <Typography variant="caption" sx={{ color: 'text.disabled', marginInlineStart: 'auto' }}>
-                  {String(s.evidence).slice(0, 80)}
-                </Typography>
-              )}
-            </Stack>
-          );
-        })}
-      </Stack>
-    </Box>
-  );
-}
-
-function CounterfactualHint({ comp, t }) {
-  if (comp.counterfactual_delta == null) return null;
-  if (Math.abs(comp.counterfactual_delta) < 1) return null;
-  const sign = comp.counterfactual_delta > 0 ? '+' : '';
-  const text = t('report.counterfactual')
-    .replace('{delta}', `${sign}${comp.counterfactual_delta}`);
-  return (
-    <Typography
-      variant="caption"
-      sx={(theme) => ({
-        display: 'block',
-        marginTop: theme.spacing(0.5),
-        marginBottom: theme.spacing(0.75),
-        color: 'text.secondary',
-        fontStyle: 'italic',
-      })}
-    >
-      {text}
-    </Typography>
-  );
-}
-
-function FacetBars({ facets, t }) {
-  if (!facets) return null;
-  const entries = Object.entries(facets);
-  if (entries.length === 0) return null;
-  return (
-    <Box sx={(theme) => ({ marginTop: theme.spacing(1.5) })}>
-      <Typography
-        variant="eyebrow"
-        component="div"
-        sx={(theme) => ({ marginBottom: theme.spacing(0.5), color: 'text.secondary' })}
-      >
-        {t('report.facets.label')}
-      </Typography>
-      <Stack spacing={0.5}>
-        {entries.map(([name, f]) => {
-          const labelKey = `report.facet.${name}`;
-          const facetLabel = t(labelKey) === labelKey ? name : t(labelKey);
-          const pct = f.score == null ? 0 : (f.score / 10) * 100;
-          const showScore = f.score != null;
-          return (
-            <Box key={name}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Typography variant="caption" sx={{ textTransform: 'capitalize' }}>
-                  {facetLabel}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {showScore ? `${f.score}/10 · ` : ''}
-                  {f.signal_count ?? 0}
-                </Typography>
-              </Stack>
-              {showScore && (
-                <LinearProgress
-                  variant="determinate"
-                  value={pct}
-                  color={facetBarColor(f.score)}
-                  sx={{ height: 6, borderRadius: 3, opacity: f.score == null ? 0.3 : 1 }}
-                />
-              )}
-            </Box>
-          );
-        })}
-      </Stack>
-    </Box>
-  );
-}
-
-function DeltaLine({ comp, t }) {
-  if (comp.delta_score == null) return null;
-  const sign = comp.delta_score > 0 ? '+' : '';
-  const sigText = comp.delta_significance == null
-    ? ''
-    : ` (z=${comp.delta_significance.toFixed(2)})`;
-  return (
-    <Typography
-      variant="caption"
-      sx={(theme) => ({
-        display: 'block',
-        marginTop: theme.spacing(0.25),
-        color: deltaLineColor(comp, theme),
-        fontWeight: comp.delta_flag === 'significant' ? 600 : 400,
-      })}
-    >
-      {t('report.delta.label')}: {sign}{comp.delta_score}{sigText}
-      {comp.delta_flag === 'significant' && ` — ${t('report.delta.significant')}`}
-    </Typography>
-  );
-}
-
-function provenanceLabel(provenance, t) {
-  if (!provenance) return t('report.nationalContext.provenance.unknown');
-  const key = `report.nationalContext.provenance.${provenance}`;
-  const label = t(key);
-  return label === key ? provenance : label;
-}
-
-function ScopeAttributionBanner({ assessment, t }) {
-  const scopeAttr = assessment?.scope_attribution;
-  const count = assessment?.default_district_signal_count ?? scopeAttr?.default_district_signal_count ?? 0;
-  if (count <= 0 && !scopeAttr?.gate_warning) return null;
-
-  const pct = scopeAttr?.default_district_pct;
-  const threshold = scopeAttr?.gate_threshold_pct;
-  const lines = [];
-  if (count > 0) {
-    lines.push(
-      t('report.scopeAttribution.defaultNorth')
-        .replace('{count}', String(count))
-        .replace('{pct}', pct == null ? '?' : String(pct)),
-    );
-  }
-  if (scopeAttr?.gate_warning && threshold != null) {
-    lines.push(
-      t('report.scopeAttribution.gateWarning')
-        .replace('{threshold}', String(threshold)),
-    );
-  }
-
-  return (
-    <Alert severity="warning" sx={{ marginBottom: 2 }}>
-      <Stack spacing={0.25}>
-        {lines.map((line) => (
-          <Typography key={line} variant="body2">{line}</Typography>
-        ))}
-      </Stack>
-    </Alert>
-  );
-}
-
-function NationalContextSection({ nationalContextSignals, t, richMode = false }) {
-  const list = Array.isArray(nationalContextSignals) ? nationalContextSignals : [];
-  if (list.length === 0) return null;
-  const displayList = richMode ? list : list.slice(0, 12);
-
-  return (
-    <Accordion defaultExpanded={false} disableGutters sx={{ '&:before': { display: 'none' } }}>
-      <AccordionSummary expandIcon={<Typography component="span" aria-hidden>▾</Typography>}>
-        <Box>
-          <Typography variant="cardTitle">
-            {t('report.nationalContext.title').replace('{n}', String(list.length))}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {t('report.nationalContext.collapsedHint')}
-          </Typography>
-        </Box>
-      </AccordionSummary>
-      <AccordionDetails>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginBottom: 1 }}>
-          {t('report.nationalContext.body')}
-        </Typography>
-        <Stack spacing={0.75}>
-          {displayList.map((s, i) => (
-            <Box key={`${s.signal_type ?? 'macro'}-${i}`}>
-              <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ marginBottom: 0.25 }}>
-                <Typography variant="caption" color="text.secondary">
-                  {provenanceLabel(s.signalProvenance, t)}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {(s.signal_type ?? 'macro').replaceAll('_', ' ')}
-                </Typography>
-              </Stack>
-              <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
-                {String(s.evidence ?? '').slice(0, 240)}
-              </Typography>
-            </Box>
-          ))}
-        </Stack>
-      </AccordionDetails>
-    </Accordion>
-  );
-}
-
-function NorthClusterNarrativesSection({ clusterNarratives, t, reportScope }) {
-  const scopeId = reportScope?.id ?? reportScope ?? 'national';
-  if (scopeId !== 'north') return null;
-  const clusters = clusterNarratives && typeof clusterNarratives === 'object'
-    ? Object.entries(clusterNarratives)
-    : [];
-  if (clusters.length === 0) return null;
-
-  return (
-    <Accordion defaultExpanded={false} disableGutters sx={{ '&:before': { display: 'none' } }}>
-      <AccordionSummary expandIcon={<Typography component="span" aria-hidden>▾</Typography>}>
-        <Typography variant="cardTitle">
-          {t('report.northClusters.title').replace('{n}', String(clusters.length))}
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails>
-        <Stack spacing={1.5}>
-          {clusters.map(([clusterId, summary]) => (
-            <Box
-              key={clusterId}
-              sx={(theme) => ({
-                padding: theme.spacing(1),
-                border: theme.custom.border.hairline,
-                borderRadius: `${theme.custom.radius.section}px`,
-              })}
-            >
-              <Typography variant="cardTitle" sx={{ marginBottom: 0.5 }}>
-                {t(`report.northClusters.${clusterId}`) === `report.northClusters.${clusterId}`
-                  ? clusterId
-                  : t(`report.northClusters.${clusterId}`)}
-                {' '}
-                ({summary.signal_count ?? 0})
-              </Typography>
-              {(summary.top_evidence ?? []).map((ev, idx) => (
-                <Typography key={`${clusterId}-${idx}`} variant="body2" sx={{ fontSize: '0.85rem' }}>
-                  {String(ev).slice(0, 200)}
-                </Typography>
-              ))}
-            </Box>
-          ))}
-        </Stack>
-      </AccordionDetails>
-    </Accordion>
-  );
-}
-
-function specialistRanLabel(comp, t) {
-  if (comp.specialist_ran === true) return t('report.investigation.specialistRan');
-  if (comp.specialist_ran === false) return t('report.investigation.specialistNotRan');
-  return null;
-}
-
-function OperatorComponentStateBanner({ comp, t }) {
-  const state = comp.operator_display_state;
-  if (!state || state === 'assessed_claims') return null;
-  const stateLabel = t(`report.operatorState.${state}`);
-  const reason = comp.operator_state_reason;
-  const reasonLabel = reason ? t(`report.operatorState.reason.${reason}`) : null;
-  const severity = state === 'insufficient_data' ? 'warning' : 'info';
-  const tierLabel = comp.specialist_tier
-    ? t('report.investigation.specialistTier').replace('{tier}', String(comp.specialist_tier))
-    : null;
-  const ranLabel = specialistRanLabel(comp, t);
-  return (
-    <Alert severity={severity} sx={{ marginBottom: 1 }}>
-      {stateLabel}
-      {reasonLabel && reasonLabel !== `report.operatorState.reason.${reason}` && (
-        <>
-          {' — '}
-          {reasonLabel}
-        </>
-      )}
-      {(tierLabel || ranLabel) && (
-        <Typography variant="body2" sx={{ marginTop: 0.5, opacity: 0.9 }}>
-          {[tierLabel, ranLabel].filter(Boolean).join(' · ')}
-        </Typography>
-      )}
-    </Alert>
-  );
-}
-
-function InvestigationSummaryBanner({ summary, t }) {
-  if (!summary || typeof summary !== 'object') return null;
-  const show = summary.degrade_reason
-    || summary.synthesis_mode === 'deterministic'
-    || summary.synthesis_mode === 'cached'
-    || (summary.signals_scoring_quarantined ?? 0) > 0
-    || summary.scoring_partition_applied === true
-    || summary.budget_degrade_mode;
-  if (!show) return null;
-
-  const lines = [];
-  if (summary.degrade_reason) {
-    lines.push(t('report.investigation.degradeReason').replace('{reason}', String(summary.degrade_reason)));
-  }
-  if (summary.synthesis_mode === 'deterministic' || summary.synthesis_mode === 'cached') {
-    lines.push(t('report.investigation.synthesisMode').replace('{mode}', String(summary.synthesis_mode)));
-  }
-  if (summary.scoring_partition_applied === true) {
-    lines.push(
-      t('report.investigation.scoringPartitionDualUse')
-        .replace('{scoring}', String(summary.signals_scoring_used ?? 0))
-        .replace('{narrative}', String(summary.signals_narrative_scope ?? 0)),
-    );
-  }
-  if ((summary.signals_scoring_quarantined ?? 0) > 0) {
-    lines.push(
-      t('report.investigation.scoringQuarantined').replace('{n}', String(summary.signals_scoring_quarantined)),
-    );
-  }
-  if (summary.budget_degrade_mode) {
-    lines.push(
-      t('report.investigation.budgetDegrade').replace('{mode}', String(summary.budget_degrade_mode)),
-    );
-  }
-
-  return (
-    <Alert severity="info" sx={{ marginBottom: 2 }}>
-      <Typography variant="cardTitle" sx={{ marginBottom: 0.5 }}>
-        {t('report.investigation.summaryTitle')}
-      </Typography>
-      <Stack spacing={0.25}>
-        {lines.map((line) => (
-          <Typography key={line} variant="body2">{line}</Typography>
-        ))}
-      </Stack>
-    </Alert>
-  );
-}
-
 function resolveHighlightedEvidenceItems(isRichMode, curatedEvidence, isFiltered, signals) {
   if (isRichMode) return curatedEvidence ?? [];
   if (isFiltered) return signals;
   return curatedEvidence;
-}
-
-function buildRichRoleCountRows(pool, t) {
-  const roleCounts = {};
-  for (const item of pool) {
-    const role = item.operator_epistemic_role ?? 'investigation_only';
-    roleCounts[role] = (roleCounts[role] ?? 0) + 1;
-  }
-  const rows = [];
-  for (const role of ['scored', 'investigation_only', 'context_only', 'quarantined']) {
-    if (roleCounts[role] > 0) {
-      rows.push(
-        t('report.evidencePartition.roleCount')
-          .replace('{role}', t(`report.epistemicRole.${role}`))
-          .replace('{n}', String(roleCounts[role])),
-      );
-    }
-  }
-  return rows;
-}
-
-function buildCoveragePartitionRows(coverage, usage, t) {
-  const rows = [];
-  if ((coverage?.investigation_used ?? 0) > 0) {
-    rows.push(t('report.evidencePartition.investigationUsed').replace('{n}', String(coverage.investigation_used)));
-  }
-  if ((coverage?.scoring_quarantined ?? 0) > 0) {
-    rows.push(
-      t('report.evidencePartition.scoringQuarantined').replace('{n}', String(coverage.scoring_quarantined)),
-    );
-  }
-  if (usage === 'field_anchor_only' || usage === 'mixed') {
-    if ((coverage?.scoring_used ?? 0) > 0) {
-      rows.push(t('report.evidencePartition.fieldAnchor').replace('{n}', String(coverage.scoring_used)));
-    }
-  } else if ((coverage?.scoring_used ?? 0) > 0) {
-    rows.push(t('report.evidencePartition.scoringUsed').replace('{n}', String(coverage.scoring_used)));
-  }
-  if ((coverage?.quarantined ?? 0) > 0) {
-    rows.push(t('report.evidencePartition.quarantined').replace('{n}', String(coverage.quarantined)));
-  }
-  if ((coverage?.macro_context ?? 0) > 0) {
-    rows.push(t('report.evidencePartition.macroContext').replace('{n}', String(coverage.macro_context)));
-  }
-  if ((coverage?.claims ?? 0) > 0) {
-    rows.push(t('report.evidencePartition.claims').replace('{n}', String(coverage.claims)));
-  }
-  return rows;
-}
-
-function EvidencePartitionPanel({ comp, t, isRichMode = false }) {
-  const coverage = comp.coverage;
-  const pool = comp.operator_investigation_pool ?? [];
-  if (!coverage && !isRichMode) return null;
-  const state = comp.operator_display_state;
-  const usage = comp.evidence_usage_state;
-  const show = isRichMode
-    || state === 'specialist_skipped'
-    || state === 'evidence_quarantined'
-    || state === 'insufficient_data'
-    || usage === 'field_anchor_only'
-    || usage === 'mixed'
-    || (coverage?.investigation_used ?? 0) !== (coverage?.scoring_used ?? 0)
-    || (coverage?.scoring_quarantined ?? 0) > 0;
-  if (!show) return null;
-
-  const rows = [];
-  if (isRichMode && pool.length > 0) {
-    rows.push(...buildRichRoleCountRows(pool, t));
-  }
-  rows.push(...buildCoveragePartitionRows(coverage, usage, t));
-
-  if (rows.length === 0) return null;
-
-  return (
-    <Box sx={(theme) => ({
-      marginBottom: theme.spacing(1),
-      padding: theme.spacing(1),
-      borderRadius: `${theme.custom.radius.section}px`,
-      border: theme.custom.border.hairline,
-      backgroundColor: theme.palette.action.hover,
-    })}
-    >
-      <Typography variant="meta" color="text.secondary" sx={{ display: 'block', marginBottom: 0.5 }}>
-        {t('report.evidencePartition.title')}
-      </Typography>
-      <Stack spacing={0.25}>
-        {rows.map((row) => (
-          <Typography key={row} variant="body2" sx={{ fontSize: '0.85rem' }}>{row}</Typography>
-        ))}
-      </Stack>
-    </Box>
-  );
 }
 
 function resolveCuratedEvidence(comp) {
@@ -1038,8 +387,8 @@ function componentIsInsufficient(comp) {
   return comp.confidence === 'insufficient_data' || comp.instrument?.operator_shows_score === false;
 }
 
-function evidenceAccordionTitle({ isFiltered, isAnalyst, operatorDisplayState, t }) {
-  if (operatorDisplayState === 'insufficient_data' && !isAnalyst && isFiltered) {
+function evidenceAccordionTitle({ isFiltered, operatorDisplayState, t }) {
+  if (operatorDisplayState === 'insufficient_data' && isFiltered) {
     return t('report.evidencePartition.rawScored');
   }
   return t('report.supportingEvidence');
@@ -1151,8 +500,6 @@ function ComponentCard({
   reportDate,
   citationRegistryEntries = null,
   sourceSignals,
-  displayView = 'operator',
-  operatorSimpleView = false,
   flat = false,
   open,
   evidenceOpen,
@@ -1160,7 +507,6 @@ function ComponentCard({
   onEvidenceToggle,
 }) {
   const theme = useTheme();
-  const isAnalyst = displayView === 'analyst';
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replaceAll('_', ' ');
 
   const curatedEvidence = resolveCuratedEvidence(comp);
@@ -1168,7 +514,7 @@ function ComponentCard({
   const narrativeIsStub = isStubNarrative(narrativeBody);
   const isRichMode = comp.operator_surface_mode === 'rich';
   const fullPool = comp.operator_investigation_pool ?? [];
-  const allowRawSignalFallback = isAnalyst || (!narrativeIsStub || Boolean(curatedEvidence?.length));
+  const allowRawSignalFallback = !narrativeIsStub || Boolean(curatedEvidence?.length);
   const signals = isRichMode ? null : resolveComponentSignals(curatedEvidence, allowRawSignalFallback, sourceSignals);
   const isFiltered = Boolean(signals?.length);
   const highlightedCount = curatedEvidence?.length ?? 0;
@@ -1329,41 +675,13 @@ function ComponentCard({
               </Stack>
             </Stack>
           </Stack>
-          {isAnalyst && comp.instrument?.significant_delta && (
-            <Stack
-              direction="row"
-              alignItems="center"
-              flexWrap="wrap"
-              spacing={0.75}
-              useFlexGap
-              sx={() => ({
-                flexShrink: 0,
-                width: { xs: '100%', sm: 'auto' },
-                maxWidth: { xs: '100%', sm: '55%' },
-                marginLeft: { xs: 0, sm: 'auto' },
-                justifyContent: { xs: 'center', sm: 'flex-end' },
-              })}
-            >
-              <Box sx={{ width: { xs: '100%', sm: 'auto' }, display: 'flex', justifyContent: { xs: 'center', sm: 'flex-end' } }}>
-                <StatusTag variant="alert">{t('report.delta.significant')}</StatusTag>
-              </Box>
-            </Stack>
-          )}
         </Stack>
       </AccordionSummary>
       <AccordionDetails>
-        {isAnalyst && <InstrumentMetricsBadges instrument={comp.instrument} t={t} />}
-        {isAnalyst && <WhyThisScore comp={comp} t={t} />}
-        {isAnalyst && <DeltaLine comp={comp} t={t} />}
-        {isAnalyst && <CounterfactualHint comp={comp} t={t} />}
-        {(!operatorSimpleView || isRichMode) && comp.data_quality_caveat && String(comp.data_quality_caveat).trim() && (
+        {isRichMode && comp.data_quality_caveat && String(comp.data_quality_caveat).trim() && (
           <Typography variant="caption" color="info.main" sx={{ display: 'block', marginBottom: 1 }}>
             {t('report.dataQualityCaveat')}: {comp.data_quality_caveat}
           </Typography>
-        )}
-        {!operatorSimpleView && !isAnalyst && <OperatorComponentStateBanner comp={comp} t={t} />}
-        {!operatorSimpleView && !isAnalyst && (
-          <EvidencePartitionPanel comp={comp} t={t} isRichMode={isRichMode} />
         )}
         <EvidenceNavigationProvider onNavigateToAnchor={navigateToAnchor}>
           <MarkdownArticle
@@ -1379,21 +697,6 @@ function ComponentCard({
             formatEvidenceMd={formatEvidenceMd}
             t={t}
           />
-        )}
-        {!operatorSimpleView && (comp.instrument?.interpretive_summary === true) && (
-          <Box sx={(theme) => ({ marginTop: theme.spacing(1) })}>
-            <Typography variant="caption" color="warning.main" sx={{ display: 'block', fontWeight: 600 }}>
-              {t('report.narrative.interpretiveTitle')}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginTop: 0.25 }}>
-              {t('report.narrative.interpretiveCaveat')}
-            </Typography>
-          </Box>
-        )}
-        {isAnalyst && comp.narrative_grounding_score != null && comp.narrative_grounding_score < 1 && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginTop: 0.5 }}>
-            {t('report.narrative.groundingScore').replace('{score}', String(comp.narrative_grounding_score))}
-          </Typography>
         )}
         {showEvidenceAccordion && evidenceCount > 0 && (
           <Accordion
@@ -1420,7 +723,6 @@ function ComponentCard({
                   ? t('report.evidence.highlighted')
                   : evidenceAccordionTitle({
                     isFiltered,
-                    isAnalyst,
                     operatorDisplayState: comp.operator_display_state,
                     t,
                   })}
@@ -1433,7 +735,7 @@ function ComponentCard({
               gap: theme.spacing(1),
               fontSize: theme.typography.body2.fontSize,
             })}>
-              {isFiltered && !isAnalyst && !isRichMode && (
+              {isFiltered && !isRichMode && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginBottom: 0.5 }}>
                   {t('report.evidence.rawSourceHint')}
                 </Typography>
@@ -1497,43 +799,6 @@ function ComponentCard({
             </Box>
           </Box>
         )}
-        {isAnalyst && comp.media_mention_mass != null && comp.media_mention_mass > 0 && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginTop: 0.5 }}>
-            {t('report.mediaMentionMass').replace('{value}', comp.media_mention_mass.toFixed(2))}
-          </Typography>
-        )}
-        {isAnalyst && comp.suppression_delta != null && Math.abs(comp.suppression_delta) >= 1 && (
-          <Typography variant="caption" color="warning.main" sx={{ display: 'block', marginTop: 1 }}>
-            {t('report.suppression.delta')
-              .replace('{raw}', String(comp.score_raw ?? '—'))
-              .replace('{headline}', String(comp.score_headline ?? comp.score ?? '—'))}
-            {comp.suppression_breakdown && (
-              <>
-                {' · '}
-                {t('report.suppression.breakdown')
-                  .replace('{cap}', comp.suppression_breakdown.source_cap ?? '—')
-                  .replace('{floor}', comp.suppression_breakdown.min_mass_floor ?? '—')}
-              </>
-            )}
-          </Typography>
-        )}
-        {isAnalyst && comp.score_calibrated != null && (comp.calibration_trust ?? 1) < 1 && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginTop: 0.5 }}>
-            {t('report.calibration.component')
-              .replace('{score}', String(comp.score_calibrated))
-              .replace('{trust}', String(Math.round((comp.calibration_trust ?? 0) * 100)))}
-          </Typography>
-        )}
-        {isAnalyst && comp.weight_sensitivity?.reliable && comp.weight_sensitivity?.band_width != null && (
-          <Typography variant="caption" color={comp.weight_sensitivity.fragile ? 'warning.main' : 'text.secondary'} sx={{ display: 'block', marginTop: 0.5 }}>
-            {t('report.weightSensitivity.band')
-              .replace('{low}', String(comp.weight_sensitivity.perturbed_low ?? '—'))
-              .replace('{high}', String(comp.weight_sensitivity.perturbed_high ?? '—'))
-              .replace('{width}', String(comp.weight_sensitivity.band_width))}
-          </Typography>
-        )}
-        {isAnalyst && <FacetBars facets={comp.facets} t={t} />}
-
         {isFiltered && signals.length === 0 && (
           <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
             {t('report.noSourceEvidence') ?? 'No signals from this source for this component.'}
@@ -1547,7 +812,6 @@ function ComponentCard({
 export function ReportView({
   assessment,
   scoreBySource,
-  displayView = 'operator',
   readOnly = false,
   translating,
   translateError,
@@ -1555,27 +819,15 @@ export function ReportView({
   reportScope,
   generatedAt,
   assessmentWindow,
-  attentionItems,
-  actionCompass,
-  anomalyStrip,
-  suggestCrisisBudget,
-  operatorEpistemicOverlay = true,
-  driftAlerts,
-  onJumpToComponent,
   openCompId: openCompIdProp,
   setOpenCompId: setOpenCompIdProp,
   openEvidenceCompId: openEvidenceCompIdProp,
   setOpenEvidenceCompId: setOpenEvidenceCompIdProp,
 }) {
-  const isAnalyst = displayView === 'analyst';
-  const operatorSimpleView = !isAnalyst;
   const { t } = useLanguage();
   const theme = useTheme();
   const [openCompIdInternal, setOpenCompIdInternal] = useState(null);
   const [openEvidenceCompIdInternal, setOpenEvidenceCompIdInternal] = useState(null);
-  const [componentFilter, setComponentFilter] = useState(() => (
-    isAnalyst ? readReportComponentFilter(reportScope ?? 'national') : { preset: 'all', selectedComponentIds: null }
-  ));
   const compRefs = useRef({});
 
   const openCompId = openCompIdProp ?? openCompIdInternal;
@@ -1583,25 +835,7 @@ export function ReportView({
   const openEvidenceCompId = openEvidenceCompIdProp ?? openEvidenceCompIdInternal;
   const setOpenEvidenceCompId = setOpenEvidenceCompIdProp ?? setOpenEvidenceCompIdInternal;
 
-  const norrisCaps = assessment.norris_capacities ?? [];
-
-  const [recommendations, setRecommendations] = useState(
-    () => assessment?.operator_recommendations ?? [],
-  );
-
-  useEffect(() => {
-    queueMicrotask(() => { setRecommendations(assessment?.operator_recommendations ?? []); });
-  }, [assessment?.operator_recommendations, assessment?.date]);
-
-  const visibleComponents = isAnalyst
-    ? filterReportComponents(assessment.components ?? [], {
-      preset: componentFilter.preset,
-      selectedComponentIds: componentFilter.selectedComponentIds,
-      attentionItems: attentionItems ?? [],
-    })
-    : (assessment.components ?? []);
-
-  const showGuidancePanels = isAnalyst && operatorEpistemicOverlay;
+  const visibleComponents = assessment.components ?? [];
 
   function getSourceSignals(compId) {
     if (!scoreBySource) return null;
@@ -1645,198 +879,10 @@ export function ReportView({
         assessmentWindow={assessmentWindow}
       />
 
-      {!operatorSimpleView && (
-        <OperatorReportContextLine
-          assessment={assessment}
-          reportScope={reportScope ?? assessment?.report_scope?.id ?? 'national'}
-        />
-      )}
-
-      {showGuidancePanels && (
-        <EpistemicStatusBanner
-          assessment={assessment}
-          displayView={displayView}
-          attentionItems={attentionItems}
-          suggestCrisisBudget={suggestCrisisBudget}
-        />
-      )}
-
-      {showGuidancePanels && (
-        <ActionCompassPanel
-          actionCompass={actionCompass}
-          onJumpToComponent={onJumpToComponent}
-        />
-      )}
-
-      {isAnalyst && (
-        <OovAnomalyClustersPanel
-          oovBurst={assessment?.oov_burst}
-          anomalyStrip={anomalyStrip}
-          oovCaptureCount={assessment?.oov_capture_count}
-          oovScoringApplied={assessment?.oov_scoring_applied}
-          isAnalyst={isAnalyst}
-        />
-      )}
-
-      {isAnalyst && (
-        <EvidenceOverviewPanel
-          assessment={assessment}
-          reportScope={reportScope}
-          displayView={displayView}
-        />
-      )}
-
-      {showGuidancePanels && (
-        <AttentionPanel
-          items={attentionItems}
-          driftAlerts={driftAlerts}
-          displayView={displayView}
-          onJumpToComponent={onJumpToComponent}
-        />
-      )}
-
-      {showGuidancePanels && (
-        <DecisionBriefPanel
-          decisionBrief={assessment?.decision_brief}
-          retrievalGaps={assessment?.retrieval_gaps}
-        />
-      )}
-
-      {showGuidancePanels && (
-        <OperatorRecommendationsPanel
-          recommendations={recommendations}
-          reportDate={reportDate ?? assessment?.date}
-          reportScope={reportScope ?? assessment?.report_scope?.id ?? 'national'}
-          onUpdated={(updated) => {
-            setRecommendations((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
-          }}
-        />
-      )}
-
-      {isAnalyst && (
-        <ReportComponentFilterBar
-          reportScope={reportScope ?? assessment?.report_scope?.id ?? 'national'}
-          filterState={componentFilter}
-          onFilterChange={setComponentFilter}
-        />
-      )}
-
-      {!operatorSimpleView && (
-        <ScopeAttributionBanner assessment={assessment} t={t} />
-      )}
-
-      {isAnalyst && (
-        <NationalContextSection
-          nationalContextSignals={assessment.national_context_signals ?? assessment.macro_signals}
-          t={t}
-          richMode={assessment.operator_surface_mode === 'rich'}
-        />
-      )}
-
-      {isAnalyst && (
-        <NorthClusterNarrativesSection
-          clusterNarratives={assessment.north_cluster_narratives}
-          reportScope={reportScope ?? assessment?.report_scope}
-          t={t}
-        />
-      )}
-
-      {isAnalyst && Array.isArray(norrisCaps) && norrisCaps.length > 0 && (
-        <ReportSection flat={readOnly} title={t('report.norris.titleDiagnostic') ?? t('report.norris.title')}>
-          <Box
-            sx={(theme) => (readOnly
-              ? {
-                border: theme.custom.border.hairline,
-                borderRadius: `${theme.custom.radius.section}px`,
-                overflow: 'hidden',
-                background: theme.palette.background.paper,
-              }
-              : undefined)}
-          >
-            <Stack spacing={readOnly ? 0 : 1.5}>
-              {norrisCaps.map((cap, capIndex) => (
-              <Box
-                key={cap.capacity_id}
-                sx={(theme) => (readOnly
-                  ? {
-                    padding: theme.spacing(1.5),
-                    background: theme.palette.background.default,
-                    borderBottom: capIndex < norrisCaps.length - 1
-                      ? theme.custom.border.hairline
-                      : 'none',
-                  }
-                  : {
-                    border: theme.custom.border.hairline,
-                    borderRadius: `${theme.custom.radius.section}px`,
-                    padding: theme.spacing(1.5),
-                    background: theme.palette.background.default,
-                  })}
-              >
-                <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
-                  spacing={1}
-                  alignItems={{ xs: 'flex-start', sm: 'center' }}
-                  justifyContent="space-between"
-                >
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography variant="cardTitle" sx={{ marginBottom: 0.25 }}>
-                      {t(`norris.capacity.${cap.capacity_id}`) ?? cap.label_en ?? cap.capacity_id}
-                    </Typography>
-                    {cap.label_he && (
-                      <Typography variant="body2" color="text.secondary">
-                        {cap.label_he}
-                      </Typography>
-                    )}
-                  </Box>
-
-                  <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-                    {cap.confidence && (
-                      <StatusTag variant="neutral">
-                        {t(`confidence.${cap.confidence ?? 'medium'}`)}
-                      </StatusTag>
-                    )}
-                  </Stack>
-                </Stack>
-
-                <Stack
-                  direction="row"
-                  flexWrap="wrap"
-                  sx={(theme) => ({ gap: theme.spacing(1), marginTop: 1 })}
-                >
-                  <StatusTag variant="neutral">
-                    {t('norris.diag.robustness') ?? 'robustness'} {fmt01(cap.diagnostics?.robustness)}
-                  </StatusTag>
-                  <StatusTag variant="neutral">
-                    {t('norris.diag.redundancy') ?? 'redundancy'} {fmt01(cap.diagnostics?.redundancy)}
-                  </StatusTag>
-                  <StatusTag variant="neutral">
-                    {t('norris.diag.rapidity') ?? 'rapidity'} {formatNorrisRapidity(cap.diagnostics?.rapidity)}
-                  </StatusTag>
-                </Stack>
-
-                {cap.top_contributors?.length > 0 && (
-                  <Box sx={{ marginTop: 1 }}>
-                    <Typography variant="eyebrow" color="text.secondary" sx={{ marginBottom: 0.5 }}>
-                      {t('norris.topContributors') ?? 'Top contributors'}
-                    </Typography>
-                    <Stack spacing={0.5}>
-                      {cap.top_contributors.slice(0, 3).map((tc, idx) => (
-                        <Typography key={`${cap.capacity_id}-${idx}`} variant="body2">
-                          <Box component="span" sx={{ fontFamily: 'monospace' }}>
-                            {tc.signal_type}
-                          </Box>
-                          {tc.evidence ? ` — ${tc.evidence}` : ''}
-                        </Typography>
-                      ))}
-                    </Stack>
-                  </Box>
-                )}
-              </Box>
-              ))}
-            </Stack>
-          </Box>
-        </ReportSection>
-      )}
+      <DecisionBriefPanel
+        decisionBrief={assessment?.decision_brief}
+        retrievalGaps={assessment?.retrieval_gaps}
+      />
 
       <ReportSection flat={readOnly} title={t('report.executiveSummary')}>
         <Box
@@ -1846,43 +892,6 @@ export function ReportView({
             marginRight: 'auto',
           }}
         >
-          {isAnalyst && (
-            <InvestigationSummaryBanner summary={assessment.investigation_summary} t={t} />
-          )}
-          {isAnalyst && assessment?.headline_band && (
-            <Box sx={{ mb: 1, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
-              <Box
-                component="span"
-                sx={(theme) => ({
-                  fontSize: '0.8rem',
-                  px: 1,
-                  py: 0.25,
-                  borderRadius: '4px',
-                  border: `1px solid ${theme.palette.divider}`,
-                  color: theme.palette.text.secondary,
-                })}
-              >
-                {t('report.headline.band')
-                  .replace('{low}', t(`report.instrument.certainty.${assessment.headline_band.low}`))
-                  .replace('{high}', t(`report.instrument.certainty.${assessment.headline_band.high}`))}
-              </Box>
-              {assessment.narrative_score_divergence && (
-                <Box
-                  component="span"
-                  sx={(theme) => ({
-                    fontSize: '0.8rem',
-                    px: 1,
-                    py: 0.25,
-                    borderRadius: '4px',
-                    border: `1px solid ${theme.palette.warning.main}`,
-                    color: theme.palette.warning.dark,
-                  })}
-                >
-                  {t('report.headline.divergence')}
-                </Box>
-              )}
-            </Box>
-          )}
           <MarkdownArticle
             variant="report"
             markdown={formatNarrativeMarkdown(
@@ -1927,8 +936,6 @@ export function ReportView({
                 t={t}
                 reportDate={assessment.date}
                 citationRegistryEntries={assessment.narrative_citation_registry?.entries}
-                displayView={displayView}
-                operatorSimpleView={operatorSimpleView}
                 flat={readOnly}
                 sourceSignals={getSourceSignals(c.component_id)}
                 open={openCompId === c.component_id}
@@ -1974,55 +981,7 @@ ReportSection.propTypes = {
   flat: PropTypes.bool,
 };
 
-DeltaAdornment.propTypes = {
-  delta: PropTypes.number,
-  significant: PropTypes.bool,
-  t: translationFnPropType,
-};
-
-InstrumentStateBadges.propTypes = {
-  instrument: PropTypes.object,
-  t: translationFnPropType,
-};
-
 ContestedBadge.propTypes = {
-  t: translationFnPropType,
-};
-
-WhyThisScore.propTypes = {
-  comp: componentScoreShape.isRequired,
-  t: translationFnPropType,
-};
-
-CounterfactualHint.propTypes = {
-  comp: componentScoreShape.isRequired,
-  t: translationFnPropType,
-};
-
-FacetBars.propTypes = {
-  facets: facetsShape,
-  t: translationFnPropType,
-};
-
-DeltaLine.propTypes = {
-  comp: componentScoreShape.isRequired,
-  t: translationFnPropType,
-};
-
-ScopeAttributionBanner.propTypes = {
-  assessment: assessmentShape,
-  t: translationFnPropType,
-};
-
-NationalContextSection.propTypes = {
-  nationalContextSignals: PropTypes.arrayOf(macroSignalShape),
-  t: translationFnPropType,
-  richMode: PropTypes.bool,
-};
-
-NorthClusterNarrativesSection.propTypes = {
-  clusterNarratives: PropTypes.object,
-  reportScope: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   t: translationFnPropType,
 };
 
@@ -2032,8 +991,6 @@ ComponentCard.propTypes = {
   reportDate: PropTypes.string,
   citationRegistryEntries: PropTypes.arrayOf(PropTypes.object),
   sourceSignals: PropTypes.arrayOf(PropTypes.object),
-  displayView: PropTypes.oneOf(['operator', 'analyst']),
-  operatorSimpleView: PropTypes.bool,
   flat: PropTypes.bool,
   open: PropTypes.bool,
   evidenceOpen: PropTypes.bool,
@@ -2041,26 +998,9 @@ ComponentCard.propTypes = {
   onEvidenceToggle: PropTypes.func.isRequired,
 };
 
-OperatorComponentStateBanner.propTypes = {
-  comp: componentScoreShape.isRequired,
-  t: translationFnPropType,
-};
-
-InvestigationSummaryBanner.propTypes = {
-  summary: PropTypes.object,
-  t: translationFnPropType,
-};
-
-EvidencePartitionPanel.propTypes = {
-  comp: componentScoreShape.isRequired,
-  t: translationFnPropType,
-  isRichMode: PropTypes.bool,
-};
-
 ReportView.propTypes = {
   assessment: assessmentShape.isRequired,
   scoreBySource: scoreBySourceShape,
-  displayView: PropTypes.oneOf(['operator', 'analyst']),
   readOnly: PropTypes.bool,
   translating: PropTypes.bool,
   translateError: PropTypes.string,
@@ -2074,20 +1014,6 @@ ReportView.propTypes = {
     window_end: PropTypes.string,
     pipeline_preset: PropTypes.string,
   }),
-  attentionItems: PropTypes.arrayOf(PropTypes.object),
-  actionCompass: PropTypes.shape({
-    uncertainty_band: PropTypes.string,
-    actions: PropTypes.arrayOf(PropTypes.object),
-  }),
-  anomalyStrip: PropTypes.shape({
-    level: PropTypes.string,
-    clusters: PropTypes.arrayOf(PropTypes.object),
-    show_operator: PropTypes.bool,
-  }),
-  suggestCrisisBudget: PropTypes.bool,
-  operatorEpistemicOverlay: PropTypes.bool,
-  driftAlerts: PropTypes.arrayOf(PropTypes.object),
-  onJumpToComponent: PropTypes.func,
   openCompId: PropTypes.string,
   setOpenCompId: PropTypes.func,
   openEvidenceCompId: PropTypes.string,

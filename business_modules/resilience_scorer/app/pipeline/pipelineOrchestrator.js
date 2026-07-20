@@ -344,13 +344,13 @@ async function executeIngestStep(step, ctx) {
 
 function countLoadedBundles(targetDate, days, enabledSources, rootDir) {
   const signalsDir = closedSignalsDir();
-  const fieldSignalsDir = resolve(resolveRepoRoot(rootDir), 'business_modules/visits/data/signals');
+  const visitsSignalsDir = resolve(resolveRepoRoot(rootDir), 'business_modules/visits/data/signals');
   const socialSignalsDir = resolve(resolveRepoRoot(rootDir), 'business_modules/social_media/data');
   const discovery = discoverSignalBundles({
     targetDate,
     days,
     signalsDir,
-    fieldSignalsDir,
+    visitsSignalsDir,
     socialSignalsDir,
     enabledSources,
   });

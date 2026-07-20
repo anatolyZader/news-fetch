@@ -1,7 +1,0 @@
-{
-  "monitoring.health.degraded": "Degraded",
-  "monitoring.health.ok": "Healthy",
-  "monitoring.health.unhealthy": "Unhealthy",
-  "monitoring.stageTelemetry.stageLine": "{stage}: {dropped}/{input} dropped ({rate}%)",
-  "monitoring.stageTelemetry.summary": "{dropped} signal(s) dropped across pipeline stages"
-}

@@ -8,7 +8,7 @@ import { createMappedObservationBundleAdapter } from '../../infrastructure/adapt
  * @param {{
  *   bundleSource?: string,
  *   observationsProfile?: string|null,
- *   signalDirs: { signalsDir: string, fieldSignalsDir: string, socialSignalsDir: string },
+ *   signalDirs: { signalsDir: string, visitsSignalsDir?: string, fieldSignalsDir?: string, socialSignalsDir: string },
  * }} opts
  */
 export async function createSignalBundlePort(opts) {

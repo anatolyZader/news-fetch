@@ -23,7 +23,7 @@ describe('sourceMixIndex', () => {
     const regional = computeSourceMix([
       { source_type: 'pbo' },
       { source_type: 'pbo' },
-      { source_type: 'field' },
+      { source_type: 'visits' },
     ]);
     const national = computeSourceMix([
       { source_type: 'news' },

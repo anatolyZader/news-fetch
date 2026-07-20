@@ -27,9 +27,9 @@ export function createVisitsService({ visitsRepository }) {
           totalDays: days.length,
           dateRange: visitDates.length ? { from: visitDates[0], to: visitDates.at(-1) } : null,
           storage: {
-            rawPattern: 'business_modules/visits/data/articles-field-reports-YYYY-MM-DD.md',
+            rawPattern: 'business_modules/visits/data/articles-visits-reports-YYYY-MM-DD.md',
             signalsPattern:
-              'business_modules/visits/data/signals/signals-field-YYYY-MM-DD.json',
+              'business_modules/visits/data/signals/signals-visits-YYYY-MM-DD.json',
           },
         },
         municipalities,

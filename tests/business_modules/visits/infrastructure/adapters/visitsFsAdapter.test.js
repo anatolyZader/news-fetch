@@ -13,7 +13,7 @@ test('visits fs adapter parses raw field reports and attaches signals', () => {
   mkdirSync(signalsDir, { recursive: true });
 
   try {
-    writeFileSync(join(reportsDir, 'articles-field-reports-2026-03-24.md'), [
+    writeFileSync(join(reportsDir, 'articles-visits-reports-2026-03-24.md'), [
       '# Field-reports articles (2026-03-24)',
       '',
       '## 1. מטה אשר/איילון — ברעם (ביקור שטח)',
@@ -28,8 +28,8 @@ test('visits fs adapter parses raw field reports and attaches signals', () => {
       '---',
       '',
     ].join('\n'));
-    writeFileSync(join(signalsDir, 'signals-field-2026-03-24.json'), JSON.stringify({
-      source_type: 'field',
+    writeFileSync(join(signalsDir, 'signals-visits-2026-03-24.json'), JSON.stringify({
+      source_type: 'visits',
       date: '2026-03-24',
       total_articles: 1,
       signals: [
@@ -70,7 +70,7 @@ test('visits fs adapter loads field signals from resilience_scorer closed-signal
   mkdirSync(legacySignalsDir, { recursive: true });
 
   try {
-    writeFileSync(join(reportsDir, 'articles-field-reports-2026-03-24.md'), [
+    writeFileSync(join(reportsDir, 'articles-visits-reports-2026-03-24.md'), [
       '# Field-reports articles (2026-03-24)',
       '',
       '## 1. מטה אשר/איילון — ברעם (ביקור שטח)',
@@ -85,8 +85,8 @@ test('visits fs adapter loads field signals from resilience_scorer closed-signal
       '---',
       '',
     ].join('\n'));
-    writeFileSync(join(legacySignalsDir, 'signals-field-2026-03-24.json'), JSON.stringify({
-      source_type: 'field',
+    writeFileSync(join(legacySignalsDir, 'signals-visits-2026-03-24.json'), JSON.stringify({
+      source_type: 'visits',
       date: '2026-03-24',
       total_articles: 1,
       signals: [
@@ -115,7 +115,7 @@ test('visits fs adapter ignores 1970 placeholder visit exports', () => {
   mkdirSync(signalsDir, { recursive: true });
 
   try {
-    writeFileSync(join(reportsDir, 'articles-field-reports-1970-01-01.md'), [
+    writeFileSync(join(reportsDir, 'articles-visits-reports-1970-01-01.md'), [
       '# Field-reports articles (1970-01-01)',
       '',
       '## 1. Placeholder (ביקור שטח)',
@@ -128,8 +128,8 @@ test('visits fs adapter ignores 1970 placeholder visit exports', () => {
       '---',
       '',
     ].join('\n'));
-    writeFileSync(join(signalsDir, 'signals-field-1970-01-01.json'), JSON.stringify({
-      source_type: 'field',
+    writeFileSync(join(signalsDir, 'signals-visits-1970-01-01.json'), JSON.stringify({
+      source_type: 'visits',
       date: '1970-01-01',
       signals: [{ article_index: 1, signal_type: 'resource_shortage' }],
     }));
@@ -150,14 +150,14 @@ test('visits fs adapter ignores dates with no parsed visits', () => {
   mkdirSync(signalsDir, { recursive: true });
 
   try {
-    writeFileSync(join(reportsDir, 'articles-field-reports-2026-03-29.md'), [
+    writeFileSync(join(reportsDir, 'articles-visits-reports-2026-03-29.md'), [
       '# Field-reports articles (2026-03-29)',
       '',
       'Professional squad visits to municipalities.',
       '',
     ].join('\n'));
-    writeFileSync(join(signalsDir, 'signals-field-2026-03-29.json'), JSON.stringify({
-      source_type: 'field',
+    writeFileSync(join(signalsDir, 'signals-visits-2026-03-29.json'), JSON.stringify({
+      source_type: 'visits',
       date: '2026-03-29',
       total_articles: 0,
       signals: [{ article_index: 1, signal_type: 'resource_shortage' }],

@@ -259,7 +259,7 @@ export function inferLocalityCandidateForSignal(signal, opts = {}) {
   }
 
   const fromTitle =
-    sourceType === 'field'
+    sourceType === 'field' || sourceType === 'visits'
       ? (parseFieldReportTitleLocality(signal?.article_title)
         ?? parseFieldReportTitleLocality(signal?.articleTitle))
       : null;

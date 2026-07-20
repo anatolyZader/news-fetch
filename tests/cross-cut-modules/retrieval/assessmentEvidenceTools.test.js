@@ -11,7 +11,7 @@ describe('assessmentEvidenceTools', () => {
     }, {
       signals: [{
         signal_type: 'shelter_compliance',
-        source_type: 'field',
+        source_type: 'visits',
         evidence: 'Residents used shelter during alert',
         component: 'leadership',
       }],

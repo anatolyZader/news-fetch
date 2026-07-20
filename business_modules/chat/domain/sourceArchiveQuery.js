@@ -239,7 +239,7 @@ function lookupMdByParsed(mdParsed, maxChars) {
 
 function inferTypeFromMdPath(relPath) {
   if (relPath.includes('homefront') || relPath.includes('news-sites')) return 'news';
-  if (relPath.includes('field-reports') || relPath.includes('visits')) return 'field';
+  if (relPath.includes('visits-reports') || relPath.includes('field-reports') || relPath.includes('visits')) return 'visits';
   if (relPath.includes('articles-audio')) return 'radio';
   if (relPath.includes('whatsapp')) return 'whatsapp';
   return 'manual';

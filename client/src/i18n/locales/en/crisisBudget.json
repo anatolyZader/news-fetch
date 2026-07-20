@@ -1,9 +1,7 @@
 {
   "crisisBudget.activate": "Activate crisis chat budget",
   "crisisBudget.activeUntil": "Crisis chat pool active until {expires}",
-  "crisisBudget.dailyExceeded": "Daily spend ${spent} / ${limit}",
   "crisisBudget.deactivate": "Deactivate crisis pool",
-  "crisisBudget.operatorBanner": "LLM chat budget exhausted — ask an analyst to enable the crisis chat budget pool.",
   "crisisBudget.operatorSuggest": "Crisis epistemic signals detected while chat budget is exhausted.",
   "crisisBudget.panelTitle": "Crisis chat budget",
   "crisisBudget.reasonLabel": "Activation reason (required)"

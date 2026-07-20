@@ -1,17 +1,15 @@
 import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 
-const LS_REPORT_VIEW = 'resilienceReportView';
 const REPORT_FETCH_TIMEOUT_MS = 15_000;
 const REPORT_FETCH_TIMEOUT_TRANSLATE_MS = 120_000;
 const TOKEN_REFRESH_RETRY_MS = 5_000;
 
 const RETRY_AUTH_CODES = new Set(['missing_token', 'invalid_token', 'token_revoked']);
 
-async function fetchTodayReportPayload(scope, view, accessToken, getIdToken, signal, selectedEdition, lang) {
+async function fetchTodayReportPayload(scope, accessToken, getIdToken, signal, selectedEdition, lang) {
   const params = new URLSearchParams();
   if (scope !== 'national') params.set('scope', scope);
-  if (view === 'analyst') params.set('view', 'analyst');
   if (selectedEdition?.date) params.set('date', selectedEdition.date);
   if (selectedEdition?.run_id) params.set('run', selectedEdition.run_id);
   if (lang && lang !== 'en') params.set('lang', lang);
@@ -64,13 +62,8 @@ function applyFoundReport(data, setters) {
       ? data.assessment_window
       : null,
   );
-  setters.setDisplayView(data.display_view === 'analyst' ? 'analyst' : 'operator');
-  setters.setAttentionItems(Array.isArray(data.attention_items) ? data.attention_items : []);
-  setters.setActionCompass(data.action_compass ?? null);
-  setters.setAnomalyStrip(data.anomaly_strip ?? null);
   setters.setBudgetStatus(data.budget_status ?? null);
   setters.setSuggestCrisisBudget(data.suggest_crisis_budget === true);
-  setters.setOperatorEpistemicOverlay(data.operator_epistemic_overlay !== false);
   setters.setReportMissingHint(null);
   setters.setReportLoadError(null);
 }
@@ -88,10 +81,9 @@ function applyTodayReportPayload(data, setters) {
 /**
  * Loads today's cached report from GET /api/report/today (requires auth when enabled).
  * @param {string} scope report scope id (national | north | south | …)
- * @param {'operator'|'analyst'} [view]
  * @param {import('../lib/reportEditionFormat.js').ReportEditionSelection} [selectedEdition]
  */
-export function useTodayReport(scope = 'national', view = 'operator', selectedEdition = null, lang = 'en') {
+export function useTodayReport(scope = 'national', selectedEdition = null, lang = 'en') {
   const {
     getIdToken,
     apiReady,
@@ -116,17 +108,12 @@ export function useTodayReport(scope = 'national', view = 'operator', selectedEd
   const [reportDate, setReportDate] = useState(null);
   const [reportGeneratedAt, setReportGeneratedAt] = useState(null);
   const [assessmentWindow, setAssessmentWindow] = useState(null);
-  const [displayView, setDisplayView] = useState(view);
   const [refreshTick, setRefreshTick] = useState(0);
   const [initialReportLoadDone, setInitialReportLoadDone] = useState(false);
   const [reportMissingHint, setReportMissingHint] = useState(null);
   const [reportLoadError, setReportLoadError] = useState(null);
-  const [attentionItems, setAttentionItems] = useState(null);
-  const [actionCompass, setActionCompass] = useState(null);
-  const [anomalyStrip, setAnomalyStrip] = useState(null);
   const [budgetStatus, setBudgetStatus] = useState(null);
   const [suggestCrisisBudget, setSuggestCrisisBudget] = useState(false);
-  const [operatorEpistemicOverlay, setOperatorEpistemicOverlay] = useState(true);
   const [reportLocalizing, setReportLocalizing] = useState(false);
 
   const editionDate = selectedEdition?.date ?? null;
@@ -145,15 +132,10 @@ export function useTodayReport(scope = 'national', view = 'operator', selectedEd
       setReportDate,
       setReportGeneratedAt,
       setAssessmentWindow,
-      setDisplayView,
       setInitialReportLoadDone,
       setReportMissingHint,
-      setAttentionItems,
-      setActionCompass,
-      setAnomalyStrip,
       setBudgetStatus,
       setSuggestCrisisBudget,
-      setOperatorEpistemicOverlay,
       setReportLoadError,
     };
 
@@ -176,15 +158,10 @@ export function useTodayReport(scope = 'national', view = 'operator', selectedEd
       setReportDate(null);
       setReportGeneratedAt(null);
       setAssessmentWindow(null);
-      setDisplayView(view);
       setInitialReportLoadDone(false);
       setReportMissingHint(null);
-      setAttentionItems(null);
-      setActionCompass(null);
-      setAnomalyStrip(null);
       setBudgetStatus(null);
       setSuggestCrisisBudget(false);
-      setOperatorEpistemicOverlay(true);
       setReportLoadError(null);
 
       if (authRequired && tokenWarmFailed && !accessTokenRef.current) {
@@ -196,7 +173,6 @@ export function useTodayReport(scope = 'national', view = 'operator', selectedEd
       try {
         const data = await fetchTodayReportPayload(
           scope,
-          view,
           accessTokenRef.current,
           (...args) => getIdTokenRef.current(...args),
           controller.signal,
@@ -234,7 +210,7 @@ export function useTodayReport(scope = 'national', view = 'operator', selectedEd
       if (localizingTimer) clearTimeout(localizingTimer);
       setReportLocalizing(false);
     };
-  }, [reportFetchReady, authRequired, accessToken, tokenWarmFailed, scope, view, editionDate, editionRunId, lang, refreshTick]);
+  }, [reportFetchReady, authRequired, accessToken, tokenWarmFailed, scope, editionDate, editionRunId, lang, refreshTick]);
 
   const refreshReport = useCallback(() => {
     setRefreshTick((t) => t + 1);
@@ -247,17 +223,12 @@ export function useTodayReport(scope = 'national', view = 'operator', selectedEd
     reportDate,
     reportGeneratedAt,
     assessmentWindow,
-    displayView,
     refreshReport,
     initialReportLoadDone,
     reportMissingHint,
     reportLoadError,
-    attentionItems,
-    actionCompass,
-    anomalyStrip,
     budgetStatus,
     suggestCrisisBudget,
-    operatorEpistemicOverlay,
     reportLocalizing,
   };
 }
@@ -308,18 +279,3 @@ export function useReportDates(scope, accessToken) {
   return { dates, loading };
 }
 
-export function readStoredReportView() {
-  if (typeof sessionStorage === 'undefined') return 'operator';
-  try {
-    const v = sessionStorage.getItem(LS_REPORT_VIEW);
-    return v === 'analyst' ? 'analyst' : 'operator';
-  } catch {
-    return 'operator';
-  }
-}
-
-export function writeStoredReportView(view) {
-  try {
-    sessionStorage.setItem(LS_REPORT_VIEW, view === 'analyst' ? 'analyst' : 'operator');
-  } catch { /* */ }
-}

@@ -25,20 +25,18 @@ const VALID_COMPONENT_SET = new Set(COMPONENT_IDS);
  * @param {string} componentId
  * @param {Array<object>} signals
  * @param {object} [signalWeights]
- * @returns {{ count: number, mass: number }}
+ * @returns {number}
  */
 export function countSignalsForComponent(componentId, signals, signalWeights = SIGNAL_TO_COMPONENTS) {
   const list = Array.isArray(signals) ? signals : [];
   let count = 0;
-  let mass = 0;
   for (const signal of list) {
     const signalType = signal.signal_type ?? signal.type;
     const mapping = signalWeights[signalType];
     if (mapping == null || !(componentId in mapping)) continue;
     count += 1;
-    mass += 1;
   }
-  return { count, mass };
+  return count;
 }
 
 function buildComponentEvidencePartition(
@@ -62,8 +60,8 @@ function buildComponentEvidencePartition(
   const quarantined = countSignalsForComponent(componentId, quarantinedSignals, signalWeights);
   const macroContext = countSignalsForComponent(componentId, macroSignals, signalWeights);
 
-  let fieldAnchorUsed = { count: 0, mass: 0 };
-  if (assessmentMode === 'field_anchor_only' && scoringUsed.count > 0) {
+  let fieldAnchorUsed = 0;
+  if (assessmentMode === 'field_anchor_only' && scoringUsed > 0) {
     const fieldSignals = signalsForScoring.filter((s) => FIELD_SOURCE_TYPES.has(s?.source_type));
     fieldAnchorUsed = countSignalsForComponent(componentId, fieldSignals, signalWeights);
   }
@@ -78,17 +76,13 @@ function buildComponentEvidencePartition(
   const excludedByScope = countSignalsForComponent(componentId, excludedSignals, signalWeights);
 
   return {
-    scoring_used: scoringUsed.count,
-    evidence_mass_scoring_used: scoringUsed.mass,
-    investigation_used: investigationUsed.count,
-    evidence_mass_investigation_used: investigationUsed.mass,
-    scoring_quarantined: scoringQuarantined.count,
-    evidence_mass_scoring_quarantined: scoringQuarantined.mass,
-    quarantined: quarantined.count,
-    evidence_mass_quarantined: quarantined.mass,
-    macro_context: macroContext.count,
-    field_anchor_used: fieldAnchorUsed.count,
-    excluded_by_scope: excludedByScope.count,
+    scoring_used: scoringUsed,
+    investigation_used: investigationUsed,
+    scoring_quarantined: scoringQuarantined,
+    quarantined: quarantined,
+    macro_context: macroContext,
+    field_anchor_used: fieldAnchorUsed,
+    excluded_by_scope: excludedByScope,
   };
 }
 
@@ -175,8 +169,6 @@ export function buildSingleComponentDiagnostics(comp, partitions, ctx) {
   const diagnostics = {
     component_id: componentId,
     coverage,
-    evidence_mass_scoring_used: part.evidence_mass_scoring_used ?? 0,
-    evidence_mass_quarantined: part.evidence_mass_quarantined ?? 0,
     specialist_selected: specialistSelected,
     specialist_tier: specialistTier,
     specialist_ran: specialistRan,
@@ -329,8 +321,6 @@ export function attachInvestigationDiagnostics(assessment, params) {
   return assessment;
 }
 
-/** @deprecated use attachInvestigationDiagnostics */
-
 /**
  * Mirrors selectSpecialistComponents without cross-module import.
  * @param {object} params
@@ -357,8 +347,4 @@ function buildSpecialistSelectedSet({ abstentionSet, focusComponents, epistemicP
     }
   }
   return selected;
-}
-
-function round2(n) {
-  return Math.round(n * 100) / 100;
 }

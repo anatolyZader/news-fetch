@@ -4,13 +4,13 @@
  * to the markdown source format consumed by the resilience analysis pipeline.
  *
  * Usage:
- *   npm run ingest-field-reports -- --file north_muni_data_1.xlsx
- *   npm run ingest-field-reports -- --file <path.xlsx> --output articles-field-reports-YYYY-MM-DD.md
+ *   npm run ingest-visits-reports -- --file north_muni_data_1.xlsx
+ *   npm run ingest-visits-reports -- --file <path.xlsx> --output articles-visits-reports-YYYY-MM-DD.md
  *
  * Expected sheet columns (Hebrew headers tolerated; matched by position/name):
  *   id | date | team | municipality | region | stakeholders | expert analysis
  *
- * Output: articles-field-reports-<latest-visit-date>.md
+ * Output: articles-visits-reports-<latest-visit-date>.md
  * Each row becomes one source document for one municipal visit.
  */
 
@@ -29,7 +29,7 @@ const getArg = (flag) => { const idx = args.indexOf(flag); return idx >= 0 ? arg
 
 const fileArg = getArg('--file');
 if (!fileArg) {
-  console.error('Usage: npm run ingest-field-reports -- --file <path.xlsx> [--output <path.md>]');
+  console.error('Usage: npm run ingest-visits-reports -- --file <path.xlsx> [--output <path.md>]');
   process.exit(1);
 }
 
@@ -66,7 +66,7 @@ const latestDate = allDates.length
   : new Date().toISOString().slice(0, 10);
 
 const defaultOutputDir = resolve('business_modules', 'visits', 'data');
-const outputPath = getArg('--output') ?? resolve(defaultOutputDir, `articles-field-reports-${latestDate}.md`);
+const outputPath = getArg('--output') ?? resolve(defaultOutputDir, `articles-visits-reports-${latestDate}.md`);
 
 function col(row, ...keys) {
   for (const k of keys) {
@@ -146,5 +146,5 @@ try {
   console.error(`  ⚠ Source archive failed (continuing): ${err.message}`);
 }
 console.error(`  Latest visit date: ${latestDate}`);
-console.error(`  Run analysis with: npm run extract-signals -- --source-type field --files ${basename(outputPath)} --date YYYY-MM-DD`);
+console.error(`  Run analysis with: npm run extract-signals -- --source-type visits --files ${basename(outputPath)} --date YYYY-MM-DD`);
 console.error(`  Then: npm run assess-signals -- --date YYYY-MM-DD --days 3 --scope north`);

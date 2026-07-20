@@ -182,7 +182,7 @@ Stable IDs (used in JSON, code, and i18n):
 | Homefront news | `news` | NewsAPI.ai article JSON | `business_modules/resilience_scorer/data/signals/signals-news-YYYY-MM-DD.json` (after `extract-signals`) | LLM from `articles-homefront.md` | National; **north** only when resolved geo matches target district |
 | Radio / audio | `radio` | mp3/mp4 | `business_modules/resilience_scorer/data/signals/signals-radio-*.json` | Transcribe → MD → LLM | National; regional scope requires resolved geo |
 | WhatsApp (groups) | `whatsapp` | Export | `business_modules/resilience_scorer/data/signals/signals-whatsapp-*.json` | MD → LLM | **`legacy_north_fallback`** when `district_id` absent (see `signalDistrictId.js`) |
-| Field visits | `field` | Hebrew visit notes (MD) | `business_modules/visits/data/signals/signals-field-*.json` | LLM | **`legacy_north_fallback`** when `district_id` absent |
+| Field visits | `visits` | Hebrew visit notes (MD) | `business_modules/visits/data/signals/signals-visits-*.json` | LLM | **`legacy_north_fallback`** when `district_id` absent |
 | PBO municipality | `pbo` | Excel | `business_modules/resilience_scorer/data/signals/signals-pbo-*.json` | **Direct** signal emission (no extraction LLM) | **`legacy_north_fallback`** when `district_id` absent |
 | PBO regional | `pbo_regional` | Excel | `business_modules/resilience_scorer/data/signals/signals-pbo_regional-*.json` | **Direct** | **`legacy_north_fallback`** when `district_id` absent |
 | Naftali | `naftali` | Weekly questionnaire | `business_modules/resilience_scorer/data/signals/signals-naftali-*.json` | Mapper (structured → signals) | **`legacy_north_fallback`** when `district_id` absent |

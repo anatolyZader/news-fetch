@@ -21,11 +21,11 @@ export function buildPipelineStageDefinitions(date) {
       { id: 'signals_pbo_regional', key: 'pbo_regional', label: 'Regional PBO signals', kind: 'signals', relativePath: `business_modules/resilience_scorer/data/signals/signals-pbo_regional-${date}.json` },
       { id: 'signals_naftali', key: 'naftali', label: 'Naftali signals', kind: 'signals', relativePath: `business_modules/resilience_scorer/data/signals/signals-naftali-${date}.json` },
       {
-        id: 'signals_field',
-        key: 'field',
-        label: 'Field signals',
+        id: 'signals_visits',
+        key: 'visits',
+        label: 'Visits signals',
         kind: 'signals',
-        relativePath: `business_modules/visits/data/signals/signals-field-${date}.json`,
+        relativePath: `business_modules/visits/data/signals/signals-visits-${date}.json`,
       },
       {
         id: 'signals_social',

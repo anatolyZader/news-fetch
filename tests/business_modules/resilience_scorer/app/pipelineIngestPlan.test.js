@@ -535,7 +535,7 @@ describe('buildPipelineIngestPlan', () => {
         const sigDir = join(visitsDir, 'signals');
         mkdirSync(sigDir, { recursive: true });
         writeFileSync(
-          join(visitsDir, `articles-field-reports-${date}.md`),
+          join(visitsDir, `articles-visits-reports-${date}.md`),
           '# field report',
         );
         writeFileSync(fieldSignalsPath(date, root), '{"signals":[]}');
@@ -635,7 +635,7 @@ describe('buildPipelineIngestPlan', () => {
       const visitsDir = join(root, 'business_modules/visits/data');
       mkdirSync(visitsDir, { recursive: true });
       for (const d of ['2026-04-01', '2026-04-02', '2026-04-03', '2026-04-04']) {
-        writeFileSync(join(visitsDir, `articles-field-reports-${d}.md`), '# visit');
+        writeFileSync(join(visitsDir, `articles-visits-reports-${d}.md`), '# visit');
       }
 
       const plan = buildPipelineIngestPlan({
