@@ -1,3 +1,15 @@
+/**
+ * Public re-export barrel for narrative grounding (post-hoc prose vs evidence QA).
+ *
+ * Pipeline position: consumed by narrative LLM pipeline and operator finalize;
+ * NOT related to GROUNDING_TIER evidence verification.
+ *
+ * Owns: facade exports for config, signal refs, co-occurrence, validation, scoring.
+ * Does NOT: implement logic (see submodules) or run specialist agent grounding.
+ *
+ * Key collaborators: all modules under `narrativeGrounding/`, `contracts/inlineCitationResolve.js`.
+ */
+
 export {
   isNarrativeGroundingEnabled,
   isNarrativeFactsPassEnabled,

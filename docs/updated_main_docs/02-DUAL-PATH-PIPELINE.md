@@ -65,7 +65,7 @@ Omission audit (`RESILIENCE_OMISSION_AUDIT`, default ON) replaces pipeline open 
 
 The closed vocabulary lives in `cross-cut-modules/resilience-contracts/`:
 
-- `signalCatalog.js` - `SIGNAL_CATALOG`, `SIGNAL_TO_COMPONENTS` (many-to-many signal -> component weights), `CATALOG_VERSION`.
+- `signalCatalog.js` - `SIGNAL_CATALOG`, `SIGNAL_TO_COMPONENTS` (many-to-many signal -> component polarity/role edges), `CATALOG_VERSION`.
 - `componentIds.js` - the eight canonical component ids:
 
 ```2:11:cross-cut-modules/resilience-contracts/componentIds.js

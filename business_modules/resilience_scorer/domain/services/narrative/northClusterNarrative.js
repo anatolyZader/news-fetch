@@ -1,6 +1,15 @@
 /**
  * North subregion cluster partitions and deterministic summaries for regional reports.
+ *
+ * Pipeline position: optional regional report enrichment — groups scoped signals
+ * by PBO subregion for cluster-level narrative context.
+ *
+ * Owns: resolveNorthClusterId, partition/summary builders, UNCLUSTERED bucket.
+ * Does NOT: compute void index cluster voids (see dataVoid/clusterVoid.js).
+ *
+ * Key collaborators: `business_modules/geo` north subregion ids, regional report scope.
  */
+
 import { isNorthSubregionId } from '../../../../../business_modules/geo/index.js';
 
 const UNCLUSTERED = 'unclustered';
@@ -14,7 +23,11 @@ function readPboSubregionId(g) {
   return g?.classification?.pboSubregionId ?? g?.pboSubregionId ?? g?.subregionId ?? null;
 }
 
+// ── Cluster resolution ──────────────────────────────────────────────────────────
+
 /**
+ * Resolve north PBO subregion cluster id for a signal (or unclustered).
+ *
  * @param {object} signal
  * @returns {string}
  */
@@ -95,4 +108,5 @@ export function buildNorthClusterNarrativesFromSignals(signals) {
   return buildNorthClusterSummaries(partitions);
 }
 
+/** Cluster id for signals without a resolved north subregion. */
 export { UNCLUSTERED as NORTH_CLUSTER_UNCLUSTERED };

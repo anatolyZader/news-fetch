@@ -1,21 +1,37 @@
 /**
- * Extraction prompt versioning and stable prompt blocks (cache-friendly layout).
+ * Extraction prompt versioning, env gates, and cache-friendly prompt blocks.
+ *
+ * Pipeline position: extract path — assembles stable LLM system prompts for closed-
+ * vocabulary signal extraction. Server-side (process.env, cross-cut llm config).
+ *
+ * Owns: EXTRACT_PROMPT_VERSION, stable prefix builders, token/cache env helpers.
+ * Does NOT: signal catalog content (signalCatalog.js) or post-extract validation.
+ *
+ * Key collaborators: signalCatalogPrompt.js, closedCatalogueExtractService.js,
+ * extractionPasses.js, cross-cut-modules/llm/promptCacheConfig.js.
  */
 import { promptCacheEnabledForFeature } from '../../../../cross-cut-modules/llm/promptCacheConfig.js';
 
+/** Current extraction prompt version identifier. */
 export const EXTRACT_PROMPT_VERSION = 'extract-v3';
+
+/** Stable prompt id for telemetry and cache keys. */
 export const EXTRACT_PROMPT_ID = 'signal-extraction';
 
 /**
- * Trace mode (B): when on, each extracted signal carries a model-authored `rationale`
- * and the model appends a trailing `{"_rejected": [...]}` object. Gated off by default
- * because it adds output tokens and perturbs determinism — intended for tuning runs.
+ * Return true when trace mode (per-signal rationale + _rejected block) is enabled.
+ * Gated off by default — adds tokens and perturbs determinism.
+ * @returns {boolean}
  */
 export function extractRationaleEnabled() {
   const v = process.env.RESILIENCE_EXTRACT_RATIONALE;
   return v === '1' || v === 'true' || v === 'full';
 }
 
+/**
+ * Return true when extraction response caching is enabled (disabled in trace mode).
+ * @returns {boolean}
+ */
 export function extractionCacheEnabled() {
   // Bypass the extraction cache when trace mode is on so B-off cached signals
   // (which lack `rationale`/`_rejected`) are never reused on a B-on run.
@@ -24,24 +40,45 @@ export function extractionCacheEnabled() {
   return process.env.RESILIENCE_EXTRACT_CACHE !== 'false';
 }
 
+/**
+ * Resolved max output tokens for extraction LLM calls (env-clamped).
+ * @returns {number}
+ */
 export function extractMaxTokens() {
   const n = Number.parseInt(process.env.RESILIENCE_EXTRACT_MAX_TOKENS ?? '5000', 10);
   return Number.isFinite(n) ? Math.min(12000, Math.max(1500, n)) : 5000;
 }
 
+/**
+ * Resolved max tokens cap for extraction self-check pass (env-clamped).
+ * @returns {number}
+ */
 export function selfCheckMaxTokensCap() {
   const n = Number.parseInt(process.env.RESILIENCE_SELF_CHECK_MAX_TOKENS ?? '2000', 10);
   return Number.isFinite(n) ? Math.min(4000, Math.max(500, n)) : 2000;
 }
 
+/**
+ * Return true when Anthropic prompt caching is enabled for extract feature.
+ * @returns {boolean}
+ */
 export function extractPromptCacheEnabled() {
   return promptCacheEnabledForFeature('extract');
 }
 
+/**
+ * Return true when batched multi-article extraction is enabled.
+ * @returns {boolean}
+ */
 export function extractBatchEnabled() {
   return process.env.RESILIENCE_EXTRACT_BATCH === '1';
 }
 
+/**
+ * Build the cache-stable extraction rules prefix (no catalog — disambiguation only).
+ * @param {() => string} formatDisambiguationBlock
+ * @returns {string}
+ */
 export function buildCoreExtractionStablePrefix(formatDisambiguationBlock) {
   return (
     `You are a behavioral signal extractor for Israeli community resilience under emergency.\n` +
@@ -75,9 +112,10 @@ export function buildCoreExtractionStablePrefix(formatDisambiguationBlock) {
 }
 
 /**
- * Condensed extraction rules (extract-v2) — stable prefix for prompt caching.
+ * Full extraction system prompt: stable rules prefix plus closed catalog block.
  * @param {() => string} formatDisambiguationBlock
  * @param {() => string} formatSignalCatalog
+ * @returns {string}
  */
 export function buildCoreExtractionSystemPrompt(formatDisambiguationBlock, formatSignalCatalog) {
   return (
@@ -88,19 +126,22 @@ export function buildCoreExtractionSystemPrompt(formatDisambiguationBlock, forma
 }
 
 /**
- * Historical extract-v1 stable-prefix size (rules + disambiguation, no catalog).
- * Recalibrated 2026-07-20 for catalog disambiguation growth (still the reference
- * for the “≥25% shorter” budget gate via coreExtractionStablePrefixCharBudget).
+ * Historical extract-v1 stable-prefix char baseline for cache budget gate
+ * (coreExtractionStablePrefixCharBudget targets ≥25% shorter).
  */
 export const LEGACY_STABLE_PREFIX_CHAR_BASELINE = 10_800;
 
+/**
+ * Max allowed stable-prefix character count (75% of legacy baseline).
+ * @returns {number}
+ */
 export function coreExtractionStablePrefixCharBudget() {
   return Math.floor(LEGACY_STABLE_PREFIX_CHAR_BASELINE * 0.75);
 }
 
 /**
- * Trace-mode (B) prompt suffix: ask for a per-signal `rationale` plus a trailing
- * `{"_rejected": [...]}` object listing considered-but-not-emitted facts.
+ * Trace-mode prompt suffix: per-signal rationale + trailing _rejected JSON object.
+ * @returns {string}
  */
 export function buildRationaleInstructionSuffix() {
   return (
@@ -115,7 +156,7 @@ export function buildRationaleInstructionSuffix() {
 }
 
 /**
- * Cache-friendly extraction system split: stable catalog block vs dynamic content-kind prefix.
+ * Split extraction system prompt into cache-stable and dynamic parts for Anthropic caching.
  * @param {string} contentKind
  * @param {{
  *   formatDisambiguationBlock: () => string,
@@ -123,6 +164,7 @@ export function buildRationaleInstructionSuffix() {
  *   contentKindPrefix?: string,
  *   passScopeSuffix?: string,
  * }} opts
+ * @returns {{ stable: string, dynamic: string }}
  */
 export function buildExtractionSystemParts(_contentKind, opts) {
   let stable = buildCoreExtractionSystemPrompt(

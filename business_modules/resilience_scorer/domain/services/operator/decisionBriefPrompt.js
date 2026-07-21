@@ -1,5 +1,14 @@
 /**
- * Prompt blocks for batch operator decision brief (no re-scoring).
+ * Prompt blocks and payload shaping for batch operator decision brief (no re-scoring).
+ *
+ * Pipeline position: post-assessment LLM call — consumes finalized assessment +
+ * attention items; does not mutate scoring or evidence partitions.
+ *
+ * Owns: decision-brief JSON payload, system/user prompt strings with grounding facts.
+ * Does NOT: assign numeric scores, re-run assessment, or build attention items from scratch.
+ *
+ * Key collaborators: `operator/attentionItems.js`, `operator/assessmentDisplayTier.js`,
+ * `actionCompass/actionCompassGrounding.js`, decision-brief LLM orchestrator in app layer.
  */
 
 import { buildAttentionItems } from './attentionItems.js';
@@ -13,6 +22,7 @@ const NARRATIVE_SLICE = 280;
 
 /**
  * @param {object} comp
+ * @returns {string}
  */
 function formatComponentInstrumentLine(comp) {
   const inst = comp.instrument ?? deriveInstrumentState(comp);
@@ -27,9 +37,14 @@ function formatComponentInstrumentLine(comp) {
   );
 }
 
+// ── Payload builders ──────────────────────────────────────────────────────────
+
 /**
- * @param {object} assessment
- * @param {string} reportScopeId
+ * Build structured payload for decision-brief LLM (attention items, grounding, instruments).
+ *
+ * @param {object} assessment Finalized assessment object.
+ * @param {string} [reportScopeId='national']
+ * @returns {object}
  */
 export function buildDecisionBriefPayload(assessment, reportScopeId = 'national') {
   const attentionItems = buildAttentionItems(assessment, {
@@ -83,6 +98,13 @@ export function buildDecisionBriefPayload(assessment, reportScopeId = 'national'
   };
 }
 
+// ── Prompt templates ──────────────────────────────────────────────────────────
+
+/**
+ * System prompt for operator decision-brief JSON synthesis (no numeric scores).
+ *
+ * @returns {string}
+ */
 export function buildDecisionBriefSystemPrompt() {
   return (
     'You are an operator decision-support assistant for Israeli homefront community resilience assessments.\n' +
@@ -120,7 +142,10 @@ export function buildDecisionBriefSystemPrompt() {
 }
 
 /**
+ * User prompt wrapping the decision-brief payload for the LLM call.
+ *
  * @param {ReturnType<typeof buildDecisionBriefPayload>} payload
+ * @returns {string}
  */
 export function buildDecisionBriefUserPrompt(payload) {
   return (

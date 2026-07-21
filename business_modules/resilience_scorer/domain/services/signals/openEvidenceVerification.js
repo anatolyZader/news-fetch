@@ -1,5 +1,12 @@
 /**
- * Verify open observation claims after specialist investigation (Phase 2).
+ * Verify open observation claims after specialist investigation (Phase 2 open evidence).
+ *
+ * Pipeline position: assess — post-agent, links specialist claims citing open: refs to open observations.
+ *
+ * Owns: corroboration_level resolution from multi-hop tool usage and RAG evidence refs.
+ * Does NOT: synthetic signal creation (openEvidenceScoringSignals.js), closed catalogue extraction, or grounding tiers.
+ *
+ * Key collaborators: openEvidenceScoringSignals.js, ../oov/openExtractConfig.js, specialist_agents assessment output, evidenceEligibility.js.
  */
 
 const OPEN_REF_PREFIX = /^open:/;
@@ -112,10 +119,12 @@ function verifyOpenClaimsFromGraph(assessment, evidenceGraph, obsById, seen) {
 }
 
 /**
- * @param {object} assessment
- * @param {object[]} openObservations
- * @param {object} [evidenceGraph]
- * @returns {Array<{ observation_id: string, component_id: string, claim_id: string, corroboration_level: string }>}
+ * Collect verified open evidence claims from specialist assessment output.
+ *
+ * @param {object} assessment post-agent assessment with component claims
+ * @param {object[]} openObservations loaded open observation records
+ * @param {object} [evidenceGraph] optional evidence graph fallback when component claims empty
+ * @returns {Array<{ observation_id: string, component_id: string, claim_id: string|null, corroboration_level: string, observation?: object|null }>}
  */
 export function verifyOpenEvidenceClaims(assessment, openObservations = [], evidenceGraph = null) {
   if (!assessment || !openObservations.length) return [];

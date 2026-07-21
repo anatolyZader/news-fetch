@@ -1,7 +1,19 @@
 /**
- * Source channel classification for data-void / epistemic sampling analysis.
+ * Source channel classification for data-void and epistemic sampling analysis.
+ *
+ * Pipeline position: shared utility across void index, scoring partition, and
+ * epistemic gate — classifies signals by digital/field/probe family.
+ *
+ * Owns: source-type sets, volume counters, anchor/field filters.
+ * Does NOT: decide assessment_mode or quarantine policy.
+ *
+ * Key collaborators: `dataVoid/computeDataVoidIndex.js`, `dataVoid/scoringPartition.js`,
+ * `dataVoid/epistemicGate.js`, `operator/componentDiagnostics.js`.
  */
 
+// ── Source type sets ──────────────────────────────────────────────────────────
+
+/** All digital channels counted toward void baselines. */
 export const DIGITAL_SOURCE_TYPES = new Set([
   'whatsapp',
   'telegram',
@@ -26,8 +38,8 @@ export const SOFT_DIGITAL_SOURCE_TYPES = new Set([
 ]);
 
 export const FIELD_SOURCE_TYPES = new Set([
-  'field',
-  'visits', // canonical assess-time alias of 'field' (see visitsSourceType.js)
+  'visits',
+  'field', // read-compat for older bundles
   'field_whatsapp',
   'pbo',
   'pbo_regional',
@@ -38,6 +50,8 @@ export const FIELD_SOURCE_TYPES = new Set([
 export const PROBE_SOURCE_TYPES = new Set(['infrastructure_probe']);
 
 const ALL_DIGITAL_CHANNELS = [...DIGITAL_SOURCE_TYPES];
+
+// ── Type predicates ───────────────────────────────────────────────────────────
 
 /**
  * @param {object} signal
@@ -95,8 +109,11 @@ export function isProbeSignal(signal) {
   return PROBE_SOURCE_TYPES.has(signal?.source_type);
 }
 
+// ── Volume metrics ────────────────────────────────────────────────────────────
+
 /**
- * Distinct article/outlet count for a signal list filtered by source types.
+ * Distinct article/outlet count for signals filtered by source types.
+ *
  * @param {Array<object>} signals
  * @param {Set<string>} types
  * @returns {number}
@@ -159,7 +176,11 @@ export function totalFieldVolume(signals) {
   return distinctSourceVolume(signals, FIELD_SOURCE_TYPES);
 }
 
+// ── Anchor filters ────────────────────────────────────────────────────────────
+
 /**
+ * Whether signal is field-anchor or infrastructure-probe family.
+ *
  * @param {object} signal
  * @returns {boolean}
  */

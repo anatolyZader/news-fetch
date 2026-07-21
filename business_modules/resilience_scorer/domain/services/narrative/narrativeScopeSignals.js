@@ -1,6 +1,17 @@
 /**
- * Narrative scope pool: scoped signals + scope-excluded national context (not scored).
+ * Narrative scope pool: scoped signals plus scope-excluded national/regional context.
+ *
+ * Pipeline position: evidence pipeline prep — builds narrativeScopeSignals used by
+ * investigation pool, narrative digest, and LLM narrative pipeline.
+ *
+ * Owns: scope decision annotation, national/regional context selection, dedupe keys,
+ * merged narrative scope signal list.
+ * Does NOT: score signals or run narrative LLM calls.
+ *
+ * Key collaborators: `signals/regionSignalFilter.js`, `signals/evidenceEligibility.js`,
+ * `narrative/buildFullSignalDigest.js`, operator investigation surface.
  */
+
 import { isRegionalReportScope } from '../../../../../cross-cut-modules/geo/reportScopeIds.js';
 import {
   MACRO_NATIONAL_TERMS,
@@ -12,7 +23,11 @@ import { isExcludedNationalContextSignalType } from '../signals/routing/signalTy
 
 const NATIONAL_PRESS_SOURCE_TYPES = new Set(['news', 'radio']);
 
+// ── Dedupe and macro matching ─────────────────────────────────────────────────
+
 /**
+ * Stable dedupe key for a signal (url, evidence text, or type fallback).
+ *
  * @param {object} signal
  * @returns {string}
  */
@@ -37,7 +52,11 @@ export function evidenceMatchesMacroNationalTerms(evidence) {
   return false;
 }
 
+// ── Env caps ──────────────────────────────────────────────────────────────────
+
 /**
+ * Max national-context signals for regional narrative scope (env override).
+ *
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {number}
  */
@@ -56,6 +75,8 @@ export function narrativeNationalCapPerDay(env = process.env) {
   const n = Number.parseInt(raw, 10);
   return Number.isFinite(n) && n > 0 ? Math.min(n, 200) : null;
 }
+
+// ── Scope annotation ──────────────────────────────────────────────────────────
 
 /**
  * Stamp scopeDecision on every signal before regional filtering.
@@ -123,7 +144,7 @@ function isRegionalPressContextCandidate(signal, reportScopeId) {
 function componentBreadth(signal) {
   const signalType = signal?.signal_type ?? signal?.type;
   const comps = SIGNAL_TO_COMPONENTS[signalType];
-  return Array.isArray(comps) ? comps.length : 0;
+  return comps ? Object.keys(comps).length : 0;
 }
 
 /**
@@ -200,7 +221,11 @@ function applyNationalContextCap(sorted, totalCap, perDayCap) {
   return out;
 }
 
+// ── National / regional context selection ─────────────────────────────────────
+
 /**
+ * Select scope-excluded national press/macro context for regional reports.
+ *
  * @param {object[]} allSignals
  * @param {string} reportScopeId
  * @param {Set<string>} scopedKeys
@@ -276,7 +301,11 @@ export function selectRegionalPressContext(allSignals, reportScopeId, scopedKeys
   }));
 }
 
+// ── Scope merge and persistence helpers ───────────────────────────────────────
+
 /**
+ * Merge scoped, regional press, and national context into deduped narrative scope list.
+ *
  * @param {{ scopedSignals: object[], narrativeNationalContext: object[], regionalPressContext?: object[] }} params
  * @returns {object[]}
  */

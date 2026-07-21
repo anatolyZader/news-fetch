@@ -1,6 +1,14 @@
 /**
- * Canonical path for the closed-signal bundles written by resilience_scorer.
- * Shared by all modules that read or write signals-{source}-{date}.json.
+ * Canonical filesystem path for closed-signal bundle artifacts.
+ *
+ * Pipeline position: extract/assess CLI and adapters — resolves
+ * signals-{source}-{date}.json directory. Node-only (path imports).
+ *
+ * Owns: closedSignalsDir absolute path resolver with optional override.
+ * Does NOT: bundle read/write logic or open-observation paths.
+ *
+ * Key collaborators: ISignalBundlePort adapters, extract-signals.js,
+ * assess-signals.js, path helpers under domain/services/paths/.
  */
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

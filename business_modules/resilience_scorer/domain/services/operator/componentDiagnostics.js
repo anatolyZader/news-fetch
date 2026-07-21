@@ -1,6 +1,17 @@
 /**
  * Finalize-time component diagnostics: evidence partitions, two-axis states, operator display.
+ *
+ * Pipeline position: assessment finalize — after scoring partition and specialist agent;
+ * attaches per-component coverage, assessment_state, and operator_display_state.
+ *
+ * Owns: evidence partition counts per component, diagnostic flags, investigation summary
+ * hook-up, unknown component_id warnings.
+ * Does NOT: score components, run specialists, or build narrative prose.
+ *
+ * Key collaborators: `operator/operatorDisplayState.js`, `operator/investigationSummary.js`,
+ * `signals/routing/signalRouter.js`, `specialist_agents` abstention policy.
  */
+
 import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { shouldAbstainFromInvestigation } from '../../../../specialist_agents/index.js';
 import { narrativeInvestigationPermissive } from '../../contracts/narrativeEpistemicMode.js';
@@ -13,6 +24,8 @@ import {
   deriveOperatorDisplayState,
 } from './operatorDisplayState.js';
 
+// ── Re-exports ────────────────────────────────────────────────────────────────
+
 export {
   deriveAssessmentState,
   deriveEvidenceUsageState,
@@ -21,10 +34,14 @@ export {
 
 const VALID_COMPONENT_SET = new Set(COMPONENT_IDS);
 
+// ── Signal counting ───────────────────────────────────────────────────────────
+
 /**
+ * Count routed signals belonging to a component (primary + inferred edges).
+ *
  * @param {string} componentId
  * @param {Array<object>} signals
- * @param {object} [signalWeights]
+ * @param {object} [signalWeights] Defaults to SIGNAL_TO_COMPONENTS.
  * @returns {number}
  */
 export function countSignalsForComponent(componentId, signals, signalWeights = SIGNAL_TO_COMPONENTS) {
@@ -86,8 +103,20 @@ function buildComponentEvidencePartition(
   };
 }
 
+// ── Evidence partitions ───────────────────────────────────────────────────────
+
 /**
+ * Build per-component evidence usage partitions (scoring vs investigation vs quarantine).
+ *
  * @param {object} params
+ * @param {string[]} [params.componentIds]
+ * @param {object[]} [params.signalsForScoring]
+ * @param {object[]} [params.investigationSignals]
+ * @param {object[]} [params.macroSignals]
+ * @param {object[]} [params.quarantinedSignals]
+ * @param {object[]} [params.scopedSignals]
+ * @param {string} [params.assessmentMode]
+ * @param {object} [params.signalWeights]
  * @returns {Record<string, object>}
  */
 export function buildEvidencePartitionsByComponent({
@@ -133,9 +162,11 @@ export function buildEvidencePartitionsByComponent({
 }
 
 /**
- * @param {object} comp — legacy/v2 merged component
- * @param {object} partitions
- * @param {object} ctx
+ * Derive full diagnostic record for one component (two-axis states + coverage).
+ *
+ * @param {object} comp Legacy/v2 merged component.
+ * @param {object} partitions From buildEvidencePartitionsByComponent.
+ * @param {object} ctx Finalize context (assessmentMode, epistemicProfile, specialist selection).
  * @returns {object}
  */
 export function buildSingleComponentDiagnostics(comp, partitions, ctx) {
@@ -199,9 +230,15 @@ export function buildSingleComponentDiagnostics(comp, partitions, ctx) {
   };
 }
 
+// ── Validation ────────────────────────────────────────────────────────────────
+
 /**
  * Collect non-canonical component ids across report layers.
+ *
  * @param {object} params
+ * @param {Record<string, Record<string, object>>} [params.scoreBySource]
+ * @param {object|null} [params.epistemicProfile]
+ * @param {object[]} [params.components]
  * @returns {string[]}
  */
 export function findUnknownComponentIds({
@@ -221,9 +258,18 @@ export function findUnknownComponentIds({
   return [...ids].filter((id) => !VALID_COMPONENT_SET.has(id));
 }
 
+// ── Assessment attachment ─────────────────────────────────────────────────────
+
 /**
+ * Attach per-component diagnostics and merge display fields onto components.
+ *
  * @param {object} assessment
  * @param {object} params
+ * @param {object} params.scoring Scoring pipeline output (signals, partition, mode).
+ * @param {Record<string, Record<string, object>>} [params.scoreBySource]
+ * @param {object|null} [params.epistemicProfile]
+ * @param {object|null} [params.investigationPlan]
+ * @returns {object}
  */
 export function attachComponentDiagnostics(assessment, params) {
   const {
@@ -299,9 +345,11 @@ export function attachComponentDiagnostics(assessment, params) {
 }
 
 /**
- * Attach component diagnostics and assessment-level investigation summary.
+ * Attach component diagnostics plus assessment-level investigation summary.
+ *
  * @param {object} assessment
- * @param {object} params
+ * @param {object} params Same shape as attachComponentDiagnostics.
+ * @returns {object}
  */
 export function attachInvestigationDiagnostics(assessment, params) {
   attachComponentDiagnostics(assessment, params);
@@ -321,9 +369,15 @@ export function attachInvestigationDiagnostics(assessment, params) {
   return assessment;
 }
 
+// ── Specialist selection mirror ─────────────────────────────────────────────────
+
 /**
  * Mirrors selectSpecialistComponents without cross-module import.
+ *
  * @param {object} params
+ * @param {Set<string>} params.abstentionSet
+ * @param {string[]} params.focusComponents
+ * @param {object|null} [params.epistemicProfile]
  * @returns {Set<string>}
  */
 function buildSpecialistSelectedSet({ abstentionSet, focusComponents, epistemicProfile }) {

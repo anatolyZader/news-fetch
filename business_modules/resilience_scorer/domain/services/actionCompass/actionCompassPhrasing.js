@@ -1,18 +1,40 @@
 /**
- * Action compass — per-kind operator phrasing.
- * Produces i18n keys + params (resolved client-side) for title, "why now", and a
- * "success signal" so each action reads as a decision, not a field dump.
+ * Action compass — per-kind operator phrasing (i18n keys, no LLM).
+ *
+ * Pipeline position: STAGE-2 assess finalize — produces title/why-now/success-signal
+ * i18n keys and params for each selected compass action.
+ *
+ * Owns: per-kind phrasing templates and grounding-aware param injection.
+ * Does NOT: rank actions or build grounding context (see sibling modules).
+ *
+ * Key collaborators: `actionCompass/actionCompassGrounding.js`, `actionCompass/actionCompass.js`,
+ * client i18n resolver.
  */
 
 import { ACTION_KINDS, KIND_I18N } from './actionCompassKinds.js';
 
+// ---------------------------------------------------------------------------
+// Template key helper
+// ---------------------------------------------------------------------------
+
+/**
+ * Build i18n template key for a kind and suffix.
+ * @param {string} kind
+ * @param {string} suffix
+ * @returns {string}
+ */
 function tplKey(kind, suffix) {
   return `actionCompass.tpl.${KIND_I18N[kind] ?? kind}.${suffix}`;
 }
 
+// ---------------------------------------------------------------------------
+// Phrasing API
+// ---------------------------------------------------------------------------
+
 /**
- * @param {object} action merged action { kind, source, ground, analyst_detail, evidence_codes }
- * @param {object} ground grounding context from buildGroundingContext
+ * Produce i18n keys and params for a merged compass action.
+ * @param {object} action merged action `{ kind, source, ground, analyst_detail, evidence_codes }`
+ * @param {object} [ground] grounding context from `buildGroundingContext`
  * @returns {{
  *   title_key: string,
  *   why_now_key: string|null,

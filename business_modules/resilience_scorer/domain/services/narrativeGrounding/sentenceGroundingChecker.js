@@ -1,5 +1,14 @@
 /**
- * Sentence-level grounding scores for narratives.
+ * Sentence-level narrative grounding scores (post-hoc prose vs cited evidence QA).
+ *
+ * Pipeline position: after narrative LLM output parse — computes narrative_grounding_score
+ * per component; NOT GROUNDING_TIER signal verification.
+ *
+ * Owns: scoreTextGrounding, computeGroundingScores, interpretive_summary flag.
+ * Does NOT: block publish (see groundingConfig block flag) or validate JSON schema.
+ *
+ * Key collaborators: `narrativeTextUtils.js`, `groundingConfig.js`, `signalRefRegistry.js`,
+ * app claudeNarratives / operatorNarrativePipeline.
  */
 
 import { RESILIENCE_COMPONENTS } from '../../resilienceComponents.js';
@@ -28,9 +37,14 @@ function componentEvidenceTexts(scored, registry, componentId, claims) {
   return texts;
 }
 
+// ── Sentence scoring ────────────────────────────────────────────────────────────
+
 /**
- * @param {string} text
- * @param {string[]} evidenceTexts
+ * Score how well prose sentences overlap cited evidence texts (0–1).
+ *
+ * @param {string} text Narrative prose.
+ * @param {string[]} evidenceTexts Cited signal evidence strings.
+ * @returns {{ score: number, issues: Array<object> }}
  */
 export function scoreTextGrounding(text, evidenceTexts) {
   const sentences = splitSentences(stripMarkdownLinks(text));
@@ -50,10 +64,15 @@ export function scoreTextGrounding(text, evidenceTexts) {
   return { score: Math.round(score * 1000) / 1000, issues };
 }
 
+// ── Assessment-wide grounding ───────────────────────────────────────────────────
+
 /**
- * @param {object} narratives LLM output
- * @param {Record<string, object>} scoredComponents
- * @param {{ byRef: Map<string, object> }} registry
+ * Compute per-component and synthesis narrative_grounding_score from LLM output.
+ *
+ * @param {object} narratives LLM output object.
+ * @param {Record<string, object>} scoredComponents Digest/scored components by id.
+ * @param {{ byRef: Map<string, object> }} registry Signal ref registry.
+ * @returns {object} byComponent scores, synthesis score, summary, allIssues.
  */
 export function computeGroundingScores(narratives, scoredComponents, registry) {
   const byComponent = {};

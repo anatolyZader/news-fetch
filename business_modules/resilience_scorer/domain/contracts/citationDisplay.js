@@ -1,5 +1,16 @@
 /**
- * Operator-facing citation labels and registry helpers (server + client).
+ * Operator-facing citation labels and citation registry helpers (server + client).
+ *
+ * Pipeline position: report display — resolves signal metadata to APA authors
+ * and builds lookup registries for inline citation replacement. Client-safe
+ * isomorphic (React imports this layer deliberately).
+ *
+ * Owns: sourceTypeCitationLabel, citationAuthorForSignal, registry builders.
+ * Does NOT: full APA parenthetical assembly (apaCitationFormat.js) or
+ * narrativeGrounding QA.
+ *
+ * Key collaborators: apaCitationFormat.js, inlineCitationResolve.js,
+ * signalCatalog.js (labels), client report citation components.
  */
 import { apaAuthorFromUrl } from './apaCitationFormat.js';
 
@@ -9,6 +20,7 @@ export const INTERNAL_REF_BRACKET = /\[([^\]]+@[^\]]+)\]/g;
 const FIELD_SOURCE_TYPES = new Set(['field', 'field_report', 'field_whatsapp', 'visits']);
 
 /**
+ * Human label for a source_type in citations (Field visit, Press, etc.).
  * @param {string|null|undefined} sourceType
  * @returns {string}
  */
@@ -34,6 +46,7 @@ function cleanArticleUrl(url) {
 }
 
 /**
+ * Derive APA-style author label from a signal's url, source_type, or article_source.
  * @param {object|null|undefined} signal
  * @returns {string}
  */
@@ -49,8 +62,9 @@ export function citationAuthorForSignal(signal) {
 }
 
 /**
+ * Build { author, url } APA source from a stored citation registry entry.
  * @param {object} entry
- * @returns {{ author: string, url: string|null }}
+ * @returns {{ author: string, url: string|null }|null}
  */
 export function apaSourceFromSignalEntry(entry) {
   const signal = entry?.signal ?? entry;
@@ -61,6 +75,7 @@ export function apaSourceFromSignalEntry(entry) {
 }
 
 /**
+ * Build byLabel and byRef lookup maps from persisted citation registry rows.
  * @param {Array<object>|null|undefined} entries
  * @returns {{ byLabel: Map<string, object>, byRef: Map<string, object> }|null}
  */
@@ -91,6 +106,7 @@ export function buildCitationRegistryFromStored(entries) {
 }
 
 /**
+ * Return true when prose contains resolvable citation markers ([S#], markdown links, internal refs).
  * @param {string} prose
  * @returns {boolean}
  */

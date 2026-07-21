@@ -1,5 +1,12 @@
 /**
- * Synthesize discounted scoring signals from verified open observations (Phase 2).
+ * Synthesize discounted closed-catalogue signals from verified open observations (Phase 2).
+ *
+ * Pipeline position: assess — after openEvidenceVerification, before merged signal bundle scoring.
+ *
+ * Owns: synthetic signal construction from verified open claims with open_score_weight discount.
+ * Does NOT: open claim verification (openEvidenceVerification.js), closed catalogue extraction, or routing weights.
+ *
+ * Key collaborators: openEvidenceVerification.js, ../oov/openExtractConfig.js, evidenceEligibility.js, groundingPolicy.js.
  */
 import {
   isOpenEvidenceScoringEnabled,
@@ -7,7 +14,10 @@ import {
 } from '../oov/openExtractConfig.js';
 
 /**
+ * Pick a closed-catalogue signal type for a verified open observation.
+ *
  * @param {object|null|undefined} observation
+ * @returns {string} catalogue type or novel_behavior_observed fallback
  */
 function signalTypeForObservation(observation) {
   const hints = observation?.suggested_catalog_types ?? observation?.nearest_existing_types ?? [];
@@ -16,9 +26,12 @@ function signalTypeForObservation(observation) {
 }
 
 /**
- * @param {Array<object>} verifiedClaims — output of verifyOpenEvidenceClaims
- * @param {object[]} openObservations
- * @param {object} [opts]
+ * Build synthetic closed-catalogue signals from verified open evidence claims.
+ *
+ * @param {Array<object>} verifiedClaims output of verifyOpenEvidenceClaims
+ * @param {object[]} openObservations loaded open observation records
+ * @param {object} [opts] env and config overrides
+ * @returns {{ signals: object[], applied: object|null }} synthetic signals and summary metadata
  */
 export function synthesizeOpenEvidenceScoringSignals(verifiedClaims, openObservations = [], opts = {}) {
   if (!isOpenEvidenceScoringEnabled(opts.env) || !verifiedClaims?.length) {

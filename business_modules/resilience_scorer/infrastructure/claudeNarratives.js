@@ -412,7 +412,7 @@ function buildNarrativeSystemPrompt({
     (socialQuarantineContext ?? '') +
     formatMacroSignalsContext(macroSignals) +
     (contentKind === 'audio' ? AUDIO_NARRATIVE_CONTEXT : '') +
-    (sourceTypes.has('field') ? FIELD_REPORT_NARRATIVE_CONTEXT : '') +
+    (sourceTypes.has('visits') || sourceTypes.has('field') ? FIELD_REPORT_NARRATIVE_CONTEXT : '') +
     (sourceTypes.has('naftali') ? NAFTALI_NARRATIVE_CONTEXT : '') +
     (priorContext || '') +
     (comparisonContext || '') +

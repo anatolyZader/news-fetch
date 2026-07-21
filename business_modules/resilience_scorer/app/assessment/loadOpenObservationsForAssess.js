@@ -55,10 +55,9 @@ export async function loadOpenObservationsForAssess(opts) {
     profile: 'pipeline',
   });
 
-  // Unlimited history for visits (canonical) + legacy field stem.
+  // Unlimited history for visits (sparse channel — not limited to assess window).
   const visitsHistoricalBundles = [
     ...service.loadPipelineBundlesUpToDate({ endDate: targetDate, sourceType: 'visits' }),
-    ...service.loadPipelineBundlesUpToDate({ endDate: targetDate, sourceType: 'field' }),
   ];
 
   /** @type {Array<object>} */
@@ -75,7 +74,7 @@ export async function loadOpenObservationsForAssess(opts) {
 
   for (const entry of windowBundles) {
     const sourceType = entry.bundle?.source_type ?? null;
-    if (sourceType === 'field' || sourceType === 'visits') continue;
+    if (sourceType === 'visits' || sourceType === 'field') continue;
     if (seenFilenames.has(entry.filename)) continue;
     seenFilenames.add(entry.filename);
     appendBundleObservations(openObservations, bundleFiles, entry, normalizeObservations);

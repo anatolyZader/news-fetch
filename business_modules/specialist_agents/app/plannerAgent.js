@@ -88,7 +88,7 @@ function defaultPlan(epistemicProfile, plannerContext = null) {
     type: 'cross_source',
     topic: id,
     component_id: id,
-    sources: ['pbo', 'field', 'news'],
+    sources: ['pbo', 'visits', 'news'],
   }));
 
   if (plannerContext?.exploration_candidates?.length) {
@@ -98,7 +98,7 @@ function defaultPlan(epistemicProfile, plannerContext = null) {
         type: 'archive_explore',
         topic: ex.topic,
         component_id: ex.component_id,
-        sources: ['news', 'field'],
+        sources: ['news', 'visits'],
         reason: ex.reason,
       });
     }

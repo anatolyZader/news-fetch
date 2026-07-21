@@ -1,11 +1,20 @@
 /**
- * Epistemic eligibility: which signals may drive component metrics vs scope/narrative context.
+ * Epistemic eligibility — which signals may drive component metrics vs scope/narrative context.
+ *
+ * Pipeline position: assess — after filterSignalsForScope, before evidence partition and component evidence.
+ *
+ * Owns: SIGNAL_PROVENANCE derivation, metricsEligible flag, macro/context signal partition.
+ * Does NOT: scope decisions (regionSignalFilter.js), grounding tiers, or count-based evidence_basis assembly.
+ *
+ * Key collaborators: regionSignalFilter.js, signalDistrictId.js, ../../contracts/componentEvidence.js, openEvidenceScoringSignals.js.
+ *
  * @see docs/MODEL-CARD.md (epistemic tiers)
  */
 
 import { isRegionalReportScope } from '../../../../../cross-cut-modules/geo/reportScopeIds.js';
 import { signalDistrictId } from './signalDistrictId.js';
 
+/** Provenance labels explaining why a signal is or is not metrics-eligible. */
 export const SIGNAL_PROVENANCE = Object.freeze({
   verified_geo: 'verified_geo',
   source_assigned: 'source_assigned',
@@ -26,7 +35,8 @@ export const MACRO_NATIONAL_TERMS = [
 
 /**
  * Derive provenance from scopeDecision + geo policy (call after filterSignalsForScope).
- * @param {object} signal
+ *
+ * @param {object} signal signal with scopeDecision and optional geo
  * @returns {string} SIGNAL_PROVENANCE value
  */
 export function deriveSignalProvenance(signal) {
@@ -67,9 +77,11 @@ export function deriveSignalProvenance(signal) {
 }
 
 /**
- * Whether signal may contribute mass to component headline scores.
+ * Whether signal may contribute to count-based component metrics (evidence_basis inputs).
+ *
  * @param {object} signal
  * @param {{ reportScope?: string, epistemicGeoV2?: boolean }} [opts]
+ * @returns {boolean}
  */
 export function metricsEligible(signal, opts = {}) {
   const epistemicV2 = opts.epistemicGeoV2 !== false
@@ -92,9 +104,11 @@ export function metricsEligible(signal, opts = {}) {
 }
 
 /**
- * Attach provenance + metrics flags to signals (immutable copy).
+ * Attach provenance + metricsEligible flags to signals (immutable copy).
+ *
  * @param {Array<object>} signals
  * @param {{ reportScope?: string }} [opts]
+ * @returns {object[]}
  */
 export function annotateSignalsEpistemics(signals, opts = {}) {
   return (signals ?? []).map((s) => {
@@ -110,9 +124,11 @@ export function annotateSignalsEpistemics(signals, opts = {}) {
 }
 
 /**
- * Split macro/context-only signals for regional report scopes.
+ * Split macro/context-only signals from metrics-eligible signals for regional report scopes.
+ *
  * @param {Array<object>} signals
  * @param {string} reportScope
+ * @returns {{ metricsSignals: object[], macroSignals: object[] }}
  */
 export function partitionMacroSignals(signals, reportScope = 'national') {
   if (!isRegionalReportScope(reportScope)) {
@@ -133,6 +149,11 @@ export function partitionMacroSignals(signals, reportScope = 'national') {
   return { metricsSignals, macroSignals };
 }
 
+/**
+ * Whether epistemic geo v2 policy is enabled (env RESILIENCE_EPISTEMIC_GEO_V2).
+ *
+ * @returns {boolean}
+ */
 export function isEpistemicGeoV2Enabled() {
   return process.env.RESILIENCE_EPISTEMIC_GEO_V2 !== '0';
 }

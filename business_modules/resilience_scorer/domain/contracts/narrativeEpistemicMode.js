@@ -1,13 +1,21 @@
 /**
- * Narrative epistemic mode — decouples investigation/narrative path from scoring epistemics.
- * Scoring and instrument badges stay strict; permissive mode allows rich specialist narratives.
+ * Narrative epistemic mode — decouples investigation narrative from strict abstention.
+ *
+ * Pipeline position: assess/agent path — controls whether specialists may narrate
+ * from thin investigation pools while instrument badges stay honest. Client-safe.
+ *
+ * Owns: narrativeEpistemicMode and narrativeInvestigationPermissive flags.
+ * Does NOT: numeric scoring, GROUNDING_TIER verification, or narrativeGrounding QA.
+ *
+ * Key collaborators: operatorEpistemicOverlay.js, assessmentOrchestrator.js,
+ * operatorSurfaceMode.js.
  */
-
 import { operatorEpistemicOverlayEnabled } from './operatorEpistemicOverlay.js';
 
 /** @typedef {'strict' | 'permissive'} NarrativeEpistemicMode */
 
 /**
+ * Resolve narrative epistemic mode from env (strict default).
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {NarrativeEpistemicMode}
  */
@@ -16,8 +24,9 @@ export function narrativeEpistemicMode(env = process.env) {
 }
 
 /**
- * When true, specialists/planner may summarize investigation-pool signals even when
- * scoring epistemics would abstain (thin/single-channel). Instrument badges stay honest.
+ * Return true when specialists may summarize investigation-pool signals even when
+ * epistemic gates would otherwise abstain (thin/single-channel). Instrument badges
+ * remain honest regardless.
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {boolean}
  */

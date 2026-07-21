@@ -1,8 +1,18 @@
 /**
  * Action compass — value ranking and kind-diversity selection.
- * Replaces the old source-insertion-order ranking so verb-bearing, specific,
- * novel, high-severity actions win the limited slots.
+ *
+ * Pipeline position: STAGE-2 assess finalize — ranks merged compass candidates
+ * and selects top-N with kind diversity (replaces source-insertion-order ranking).
+ *
+ * Owns: action value scoring and greedy kind-diversity slot selection.
+ * Does NOT: collect candidates or phrase actions (see sibling modules).
+ *
+ * Key collaborators: `actionCompass/actionCompass.js`, `actionCompass/actionCompassKinds.js`.
  */
+
+// ---------------------------------------------------------------------------
+// Scoring weights
+// ---------------------------------------------------------------------------
 
 const LEVEL_SCORE = { critical: 100, warning: 60, watch: 30, info: 10 };
 
@@ -15,8 +25,13 @@ const SOURCE_ACTIONABILITY = {
   attention: 0,
 };
 
+// ---------------------------------------------------------------------------
+// Ranking
+// ---------------------------------------------------------------------------
+
 /**
- * @param {object} action merged action with { level, source, component_id, ground, code, novelty }
+ * Compute a value score for a merged compass action (higher = more actionable).
+ * @param {object} action merged action with `{ level, source, component_id, ground, code, novelty }`
  * @returns {number}
  */
 export function scoreAction(action) {
@@ -46,10 +61,14 @@ export function scoreAction(action) {
   return score;
 }
 
+// ---------------------------------------------------------------------------
+// Kind-diversity selection
+// ---------------------------------------------------------------------------
+
 /**
  * Greedily select up to `limit` actions, preferring kind diversity (at most
- * `maxPerKind` of any one kind) on the first pass, then filling any remaining
- * slots from the highest-scored leftovers so the panel stays full when possible.
+ * `maxPerKind` of any one kind) on the first pass, then filling remaining slots
+ * from highest-scored leftovers.
  *
  * @param {Array<object>} actions already scored (have `_score` and `kind`)
  * @param {number} limit

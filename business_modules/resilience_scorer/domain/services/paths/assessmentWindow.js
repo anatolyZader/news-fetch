@@ -1,12 +1,25 @@
 /**
  * Assessment-window math and signal-bundle filename parsing (pure).
- * Shared by app assessment/pipeline code and infrastructure bundle adapters —
- * lives in domain/services/paths (naming/window policy) so infrastructure
- * never has to import app helpers.
+ *
+ * Pipeline position: STAGE-2 assess load — shared by app assessment/pipeline code
+ * and infrastructure bundle adapters before signals merge.
+ *
+ * Owns: window date sets, temporal decay weights, bundle filename parsing,
+ * persisted `assessment_window` metadata shape.
+ * Does NOT: read filesystem (see `signalBundles.js`), filter by enabled sources,
+ * or score components.
+ *
+ * Key collaborators: `paths/signalBundles.js`, `signals/visitsSourceType.js`,
+ * infrastructure `ISignalBundlePort` adapters.
  */
 
 import { normalizeVisitsSourceType } from '../signals/visitsSourceType.js';
 
+// ---------------------------------------------------------------------------
+// Window constants
+// ---------------------------------------------------------------------------
+
+/** Maximum assessment window length in days (CLI and metadata cap). */
 export const MAX_ASSESSMENT_DAYS = 14;
 
 /** Placeholder bundle dates that must not enter the assessment window. */
@@ -16,7 +29,12 @@ const PBO_BUNDLE_FILENAME_PATTERN =
   /^signals-pbo-(?:(north|south|jerusalem|haifa|dan)-)?(\d{4}-\d{2}-\d{2})\.json$/;
 const STANDARD_BUNDLE_FILENAME_PATTERN = /^signals-(\w+)-(\d{4}-\d{2}-\d{2})\.json$/;
 
+// ---------------------------------------------------------------------------
+// Filename parsing
+// ---------------------------------------------------------------------------
+
 /**
+ * Parse a signal bundle filename into source type, date, and optional district.
  * @param {string} filename
  * @returns {{ sourceType: string, fileDate: string, districtId: string | null } | null}
  */
@@ -42,7 +60,15 @@ export function parseSignalBundleFilename(filename) {
   };
 }
 
-/** @param {number} dayOffset days before --date (0 = target day) */
+// ---------------------------------------------------------------------------
+// Temporal weighting
+// ---------------------------------------------------------------------------
+
+/**
+ * Temporal decay weight by day offset from target date (0 = target day).
+ * @param {number} dayOffset days before `--date` (0 = target day)
+ * @returns {number}
+ */
 export function temporalWeightForOffset(dayOffset) {
   if (dayOffset <= 0) return 1;
   if (dayOffset === 1) return 0.85;
@@ -51,6 +77,12 @@ export function temporalWeightForOffset(dayOffset) {
   return Math.max(0.5, decay);
 }
 
+/**
+ * Build the set of calendar dates in the assessment window ending at targetDate.
+ * @param {string} targetDate YYYY-MM-DD
+ * @param {number} days
+ * @returns {Set<string>}
+ */
 export function buildTargetDates(targetDate, days) {
   const targetDates = new Set();
   const base = new Date(targetDate);
@@ -62,19 +94,28 @@ export function buildTargetDates(targetDate, days) {
   return targetDates;
 }
 
+/**
+ * Whole-day offset from fileDate to targetDate (positive = file is older).
+ * @param {string} fileDate YYYY-MM-DD
+ * @param {string} targetDate YYYY-MM-DD
+ * @returns {number}
+ */
 export function dateOffset(fileDate, targetDate) {
   const a = new Date(fileDate);
   const b = new Date(targetDate);
   return Math.round((b - a) / 86_400_000);
 }
 
-const SOURCE_FILE_DATE_RE = /(\d{4}-\d{2}-\d{2})/;
+// ---------------------------------------------------------------------------
+// Assessment window metadata
+// ---------------------------------------------------------------------------
 
 /**
- * Build persisted assessment_window metadata for report JSON.
+ * Build persisted `assessment_window` metadata for report JSON.
  * @param {string} reportDate YYYY-MM-DD
  * @param {number} days
  * @param {{ pipelinePreset?: string | null }} [opts]
+ * @returns {object}
  */
 export function buildAssessmentWindowMetadata(reportDate, days, { pipelinePreset = null } = {}) {
   const safeDays = Math.min(MAX_ASSESSMENT_DAYS, Math.max(1, Number(days) || 1));
@@ -127,9 +168,21 @@ export function inferAssessmentWindowFromSourceFiles(reportDate, sourceFiles) {
   };
 }
 
+const SOURCE_FILE_DATE_RE = /(\d{4}-\d{2}-\d{2})/;
+
+// ---------------------------------------------------------------------------
+// Generic window filter (regex-based)
+// ---------------------------------------------------------------------------
+
 /**
- * basename-dated bundles only inside { targetDates } ∩ { ≤ targetDate }.
+ * Basename-dated bundles only inside `{ targetDates } ∩ { ≤ targetDate }`.
  * `retainLast` keeps up to N newest-by-filename-date within that set (deterministic replay).
+ * @param {string[]} sortedFilenames
+ * @param {RegExp} regex
+ * @param {string} targetDate YYYY-MM-DD
+ * @param {Set<string>} targetDates
+ * @param {number|null} retainLast
+ * @returns {Set<string>}
  */
 export function signalBundlesInAssessmentWindow(sortedFilenames, regex, targetDate, targetDates, retainLast) {
   const inWindow = [];

@@ -297,18 +297,13 @@ function componentEvidenceSource(c) {
  * Routing rationale suffix carried on structured evidence items (stamped by
  * resilience_scorer's operator surface). Markdown is rebuilt from text+url
  * after translation, so the label must be re-appended or it is lost.
- * @param {{ signal_type?: string|null, routing_role?: string|null, routing_weight?: number|null }} e
+ * @param {{ signal_type?: string|null, routing_role?: string|null }} e
  * @returns {string}
  */
 function routingLabelSuffix(e) {
   if (!e?.signal_type) return '';
   const role = e.routing_role ?? 'primary';
-  let weightPart = '';
-  if (Number.isFinite(e.routing_weight)) {
-    const sign = e.routing_weight > 0 ? '+' : '';
-    weightPart = ` ${sign}${e.routing_weight}`;
-  }
-  return ` \`${e.signal_type} · ${role}${weightPart}\``;
+  return ` \`${e.signal_type} · ${role}\``;
 }
 
 /**

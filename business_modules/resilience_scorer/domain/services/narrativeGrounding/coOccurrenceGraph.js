@@ -1,13 +1,27 @@
 /**
- * Co-occurrence constraints: which signals may share a sentence.
+ * Co-occurrence constraints: which signals may share a sentence in narrative claims.
+ *
+ * Pipeline position: narrative LLM prompt rules and post-parse claim validation;
+ * part of post-hoc narrative grounding (not GROUNDING_TIER).
+ *
+ * Owns: same-URL/source/field-family grouping, validateClaimRelation, prompt block formatter.
+ * Does NOT: score component evidence or partition quarantined signals.
+ *
+ * Key collaborators: `signalRefRegistry.js`, `narrativeSchemaValidator.js`,
+ * narrative facts-pass LLM prompts.
  */
 
 import { signalArticleKey } from './signalRefRegistry.js';
 
 const FIELD_FAMILY = new Set(['field', 'visits', 'pbo', 'pbo_regional', 'naftali', 'whatsapp']);
 
+// ── Group construction ────────────────────────────────────────────────────────
+
 /**
+ * Build url/source/field co-occurrence groups from signal ref registry.
+ *
  * @param {{ byRef: Map<string, object> }} registry
+ * @returns {{ urlGroups: Map<string, string[]>, sourceGroups: Map<string, string[]>, fieldGroups: Map<string, string[]> }}
  */
 export function buildCoOccurrenceGroups(registry) {
   const urlGroups = new Map();
@@ -39,8 +53,13 @@ export function buildCoOccurrenceGroups(registry) {
   return { urlGroups, sourceGroups, fieldGroups };
 }
 
+// ── Prompt formatting ─────────────────────────────────────────────────────────
+
 /**
+ * Format co-occurrence rules block for narrative LLM system prompt.
+ *
  * @param {{ byRef: Map<string, object> }} registry
+ * @returns {string}
  */
 export function formatCoOccurrenceForPrompt(registry) {
   const { urlGroups, fieldGroups } = buildCoOccurrenceGroups(registry);
@@ -73,10 +92,15 @@ export function formatCoOccurrenceForPrompt(registry) {
   return lines.join('\n');
 }
 
+// ── Validation ────────────────────────────────────────────────────────────────
+
 /**
+ * Validate multi-ref claim relation against co-occurrence rules.
+ *
  * @param {string[]} refs
  * @param {string} relation
  * @param {{ byRef: Map<string, object> }} registry
+ * @returns {{ ok: boolean, reason?: string, relation?: string }}
  */
 export function validateClaimRelation(refs, relation, registry) {
   if (!Array.isArray(refs) || refs.length === 0) {
@@ -116,8 +140,11 @@ function resolveEntry(ref, registry) {
 }
 
 /**
+ * Whether two signals may appear in the same narrative sentence.
+ *
  * @param {object} a
  * @param {object} b
+ * @returns {boolean}
  */
 export function signalsMayCoOccur(a, b) {
   if (!a || !b) return false;

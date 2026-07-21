@@ -58,7 +58,7 @@ const CHART = {
 };
 
 const SOURCE = {
-  field:   { main: BRAND.primary,       fg: BRAND.primaryDark },
+  visits:  { main: BRAND.primary,       fg: BRAND.primaryDark },
   radio:   { main: SCORE.alert.main,    fg: '#c2410c' },
   naftali: { main: CHART.purple,        fg: '#7c3aed' },
   press:   { main: SCORE.good.main,     fg: '#15803d' },

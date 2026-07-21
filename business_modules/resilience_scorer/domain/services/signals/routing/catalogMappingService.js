@@ -1,10 +1,24 @@
 /**
  * Map open observations to closed-vocabulary signals for assess (rule-based v1).
+ *
+ * Pipeline position: open → closed bridge on the assess path. Takes open
+ * observations (suggested_catalog_types / nearest_existing_types) and emits
+ * closed signal instances consumable by routing / componentEvidence.
+ *
+ * Owns: resolveCatalogTypeForObservation, mapObservation(s)ToSignal(s),
+ * confidence → extraction_confidence mapping.
+ * Does NOT: run LLM mapping, invent catalog types, or verify grounding
+ * (openEvidenceVerification.js owns verification).
+ *
+ * Key collaborators: signalRouter.js (SIGNAL_TYPES), open observation loaders,
+ * openEvidenceScoringSignals / assess CLIs.
  */
 import { SIGNAL_TYPES } from './signalRouter.js';
 
+/** Closed catalog type ids allowed as mapping targets. */
 const VALID_TYPES = new Set(SIGNAL_TYPES);
 
+/** Open observation confidence band → closed extraction_confidence float. */
 const CONFIDENCE_TO_EXTRACTION = Object.freeze({
   low: 0.55,
   medium: 0.75,
@@ -12,8 +26,9 @@ const CONFIDENCE_TO_EXTRACTION = Object.freeze({
 });
 
 /**
- * @param {object} observation
- * @returns {string|null}
+ * Pick the first suggested or nearest type that exists in SIGNAL_TYPES.
+ * @param {object} observation open observation row
+ * @returns {string|null} catalog type id, or null if nothing maps
  */
 export function resolveCatalogTypeForObservation(observation) {
   const suggested = observation?.suggested_catalog_types ?? [];
@@ -28,6 +43,8 @@ export function resolveCatalogTypeForObservation(observation) {
 }
 
 /**
+ * Map one open observation to a closed signal instance, or skip if unmappable.
+ * mappingMethod is 'rule' when suggested_catalog_types[0] is valid, else 'residual_hint'.
  * @param {object} observation
  * @param {{ sourceType?: string, fileDate?: string, bundleProfile?: string }} ctx
  * @returns {{ signal: object|null, skipped: boolean, mappingMethod: string|null }}
@@ -73,6 +90,7 @@ export function mapObservationToSignal(observation, ctx = {}) {
 }
 
 /**
+ * Batch map open observations → closed signals with mapped/skipped counts.
  * @param {Array<object>} observations
  * @param {{ sourceType?: string, fileDate?: string, bundleProfile?: string }} ctx
  * @returns {{ signals: Array<object>, mapped: number, skipped: number }}

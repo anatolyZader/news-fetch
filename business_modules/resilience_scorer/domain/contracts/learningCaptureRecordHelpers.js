@@ -1,10 +1,20 @@
 /**
- * Helpers for learning-capture records (OOV JSONL).
+ * Learning-capture record helpers for OOV JSONL clustering and display.
+ *
+ * Pipeline position: tuning and review tooling — pure transforms on capture rows.
+ * Client-safe isomorphic.
+ *
+ * Owns: cluster keys, evidence text extraction, source-density classifiers.
+ * Does NOT: JSONL I/O, catalog updates, or assess routing.
+ *
+ * Key collaborators: learningCaptureKinds.js, OOV capture review UI, tuning scripts.
  */
 import { LEARNING_CAPTURE_KINDS } from './learningCaptureKinds.js';
 
 /**
+ * Derive a stable cluster key for grouping similar capture records in review UI.
  * @param {object} record
+ * @returns {string}
  */
 export function clusterKeyForRecord(record) {
   if (record.capture_kind === LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE) {
@@ -23,7 +33,9 @@ export function clusterKeyForRecord(record) {
 }
 
 /**
+ * Best-effort evidence text from a capture record for display or dedup.
  * @param {object} record
+ * @returns {string}
  */
 export function evidenceTextForRecord(record) {
   return String(
@@ -36,13 +48,16 @@ export function evidenceTextForRecord(record) {
 }
 
 /**
+ * Human-readable capture kind label with unknown_type fallback.
  * @param {object} record
+ * @returns {string}
  */
 export function captureKindLabel(record) {
   return record.capture_kind ?? LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE;
 }
 
 /**
+ * Classify a source label into a coarse density bucket for review clustering.
  * @param {string} sourceLabel
  * @returns {'field' | 'social' | 'news' | 'radio' | 'default'}
  */
@@ -56,6 +71,7 @@ export function inferSourceDensityClass(sourceLabel) {
 }
 
 /**
+ * Pick the dominant source-density class across a batch of capture records.
  * @param {Array<object>} records
  * @returns {'field' | 'social' | 'news' | 'radio' | 'default'}
  */

@@ -7,7 +7,7 @@
  * built for cheap, repeatable, one-by-one inspection of model reasoning.
  *
  * Usage:
- *   node trace-article.js --file <path> [--source-type news|radio|field] [--date YYYY-MM-DD]
+ *   node trace-article.js --file <path> [--source-type news|radio|visits|whatsapp] [--date YYYY-MM-DD]
  *   node trace-article.js --text "<article text>" [--title T] [--source S] [--url U]
  *   [--all] trace every section of a multi-article file (default: first only)
  *   [--no-rationale] disable model rationale (B); A-only trace
@@ -124,7 +124,7 @@ export async function runTraceArticleCli() {
 
   const contentKind = CONTENT_KIND[cli.sourceType];
   if (!contentKind) {
-    console.error('Usage: trace-article.js --file <path> --source-type news|radio|visits|field|whatsapp [--date YYYY-MM-DD]');
+    console.error('Usage: trace-article.js --file <path> --source-type news|radio|visits|whatsapp [--date YYYY-MM-DD]');
     process.exit(1);
   }
 

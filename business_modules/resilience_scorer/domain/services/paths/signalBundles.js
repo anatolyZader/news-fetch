@@ -1,8 +1,15 @@
 /**
- * Signal-bundle discovery/loading/merging for the assessment window.
- * Filesystem-backed (like the rest of domain/services/paths) so both the app
- * assessment path and the infrastructure ISignalBundlePort adapters can share
- * it without an infrastructure → app dependency.
+ * Signal-bundle discovery, loading, and merging for the assessment window.
+ *
+ * Pipeline position: STAGE-2 assess load — filesystem-backed bundle I/O shared by
+ * app assessment path and infrastructure `ISignalBundlePort` adapters.
+ *
+ * Owns: bundle discovery, pipeline-config source filtering, temporal-weight merge.
+ * Does NOT: parse window math (see `assessmentWindow.js`), extract signals, or
+ * score components.
+ *
+ * Key collaborators: `paths/assessmentWindow.js`, `signals/visitsSourceType.js`,
+ * `cross-cut-modules/geo/israelDistricts.js`, infrastructure bundle adapters.
  */
 
 import { resolve } from 'node:path';
@@ -25,6 +32,10 @@ import {
   ISRAEL_REGIONAL_DISTRICT_ORDER,
   normalizeIsraelDistrictId,
 } from '../../../../../cross-cut-modules/geo/israelDistricts.js';
+
+// ---------------------------------------------------------------------------
+// Recency selection (internal)
+// ---------------------------------------------------------------------------
 
 function buildRecencySource(sortedFiles, sourceType, targetDate, targetDates, retainLast) {
   const inWindow = [];
@@ -50,12 +61,10 @@ function buildAllHistoricalSource(sortedFiles, sourceType, targetDate) {
   return new Set(out);
 }
 
-function buildRecencySources(sortedField, sortedRoot, sortedSocial, targetDate, targetDates, bundleCap) {
-  // 'field' is a legacy alias of 'visits' (see visitsSourceType.js) — same bundle set under both keys.
-  const fieldVisitBundles = buildAllHistoricalSource(sortedField, 'visits', targetDate);
+function buildRecencySources(sortedVisits, sortedRoot, sortedSocial, targetDate, targetDates, bundleCap) {
+  const visitBundles = buildAllHistoricalSource(sortedVisits, 'visits', targetDate);
   return {
-    visits: fieldVisitBundles,
-    field: fieldVisitBundles,
+    visits: visitBundles,
     pbo: buildRecencySource(sortedRoot, 'pbo', targetDate, targetDates, bundleCap),
     pbo_regional: buildRecencySource(sortedRoot, 'pbo_regional', targetDate, targetDates, bundleCap),
     naftali: buildRecencySource(sortedRoot, 'naftali', targetDate, targetDates, 1),
@@ -66,10 +75,15 @@ function buildRecencySources(sortedField, sortedRoot, sortedSocial, targetDate, 
   };
 }
 
+// ---------------------------------------------------------------------------
+// Discovery
+// ---------------------------------------------------------------------------
+
 /**
  * Discover signal bundle filenames inside the assessment window for each channel.
  * @param {{ targetDate: string, days: number, signalsDir: string, visitsSignalsDir?: string, fieldSignalsDir?: string, socialSignalsDir: string, enabledSources?: Set<string>|null }} opts
  *   `fieldSignalsDir` is a deprecated alias of `visitsSignalsDir`.
+ * @returns {object}
  */
 export function discoverSignalBundles({
   targetDate,
@@ -132,7 +146,13 @@ export function discoverSignalBundles({
   };
 }
 
+// ---------------------------------------------------------------------------
+// Pipeline config
+// ---------------------------------------------------------------------------
+
 /**
+ * Load `pipeline-config.json` and derive enabled source types.
+ * @param {string} configPath
  * @returns {{ enabledSources: Set<string>|null, pipelineConfig: object|null }}
  */
 export function loadPipelineConfig(configPath) {
@@ -160,8 +180,14 @@ export function loadPipelineConfig(configPath) {
   return { enabledSources, pipelineConfig };
 }
 
+// ---------------------------------------------------------------------------
+// Load and merge
+// ---------------------------------------------------------------------------
+
 /**
  * Load signal JSON bundles matching the assessment window and recency caps.
+ * @param {object} opts
+ * @returns {Array<object>} loaded file records with weight and parsed data
  */
 export function loadAssessSignalFiles({
   rootFiles,
@@ -184,8 +210,10 @@ export function loadAssessSignalFiles({
   function isSourceEnabledForLoad(sourceType) {
     if (!enabledSources) return true;
     if (sourceType === 'pbo_regional') return true;
-    if (enabledSources.has(sourceType)) return true;
-    if (sourceType === 'visits' && enabledSources.has('field')) return true;
+    const canonical = normalizePipelineSourceKey(sourceType);
+    for (const s of enabledSources) {
+      if (normalizePipelineSourceKey(s) === canonical) return true;
+    }
     return false;
   }
 
@@ -230,7 +258,12 @@ export function loadAssessSignalFiles({
   return loadedFiles;
 }
 
-/** Merge loaded bundles into flat signal list with temporal weights. */
+/**
+ * Merge loaded bundles into a flat signal list with temporal weights.
+ * @param {Array<object>} loadedFiles
+ * @param {{ targetDate?: string }} [opts]
+ * @returns {{ allSignals: Array<object>, totalArticles: number, sourceFiles: string[], sourceTypesSeen: Set<string> }}
+ */
 export function mergeLoadedSignalFiles(loadedFiles, { targetDate } = {}) {
   let allSignals = [];
   let totalArticles = 0;

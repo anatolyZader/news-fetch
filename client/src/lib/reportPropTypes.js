@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 export const translationFnPropType = PropTypes.func.isRequired;
 
 export const sourceKindPropType = PropTypes.oneOf([
-  'field',
+  'visits',
   'radio',
   'naftali',
   'press',

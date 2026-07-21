@@ -1,5 +1,14 @@
 /**
  * Multi-channel EWMA baselines and z-score drop detection for data void.
+ *
+ * Pipeline position: called by computeDataVoidIndex — builds expected volumes
+ * and per-channel baselines from historical signal days.
+ *
+ * Owns: EWMA/stddev/z-score helpers, volume baseline computation, silence thresholds.
+ * Does NOT: assign void level or quarantine signals.
+ *
+ * Key collaborators: `dataVoid/sourceChannels.js`, `dataVoid/computeDataVoidIndex.js`,
+ * `dataVoid/clusterVoid.js`.
  */
 
 import {
@@ -18,6 +27,13 @@ function parseEnvInt(name, fallback) {
   return Number.isFinite(raw) ? raw : fallback;
 }
 
+// ── Env thresholds ────────────────────────────────────────────────────────────
+
+/**
+ * Minimum expected digital baseline for total-silence detection.
+ *
+ * @returns {number}
+ */
 export function totalSilenceMinBaseline() {
   return parseEnvInt('RESILIENCE_VOID_TOTAL_SILENCE_MIN_BASELINE', 3);
 }
@@ -27,8 +43,12 @@ export function meetsSilenceBaseline(value, min = totalSilenceMinBaseline()) {
   return Number(value) >= min - 1e-6;
 }
 
+// ── Statistical helpers ───────────────────────────────────────────────────────
+
 /**
- * @param {number[]} series oldest-first daily values
+ * Exponential weighted moving average over a numeric series (oldest first).
+ *
+ * @param {number[]} series
  * @returns {number}
  */
 export function ewma(series) {
@@ -91,9 +111,13 @@ export function buildHistoricalVolumeSeries(historicalDays) {
   return { digitalSeries, fieldSeries, channelSeries };
 }
 
+// ── Volume baselines ──────────────────────────────────────────────────────────
+
 /**
- * @param {Array<object>} signals today
- * @param {Array<Array<object>>} historicalDays
+ * Compute today vs expected digital/field volumes and per-channel baselines.
+ *
+ * @param {Array<object>} signals Today's signals.
+ * @param {Array<Array<object>>} historicalDays Prior days oldest-first.
  * @returns {{
  *   digitalToday: number,
  *   fieldToday: number,

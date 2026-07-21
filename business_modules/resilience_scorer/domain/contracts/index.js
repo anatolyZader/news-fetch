@@ -1,6 +1,15 @@
 /**
- * Shared resilience taxonomy, policy constants, and pure helpers.
- * Other modules import from here instead of business_modules/resilience.
+ * Public re-export barrel for the isomorphic contracts layer.
+ *
+ * Pipeline position: client-safe isomorphic — imported by server assess/report paths,
+ * React client citation UI, and sibling modules (pbo_report, cross-cut retrieval)
+ * via the resilience_scorer facade.
+ *
+ * Owns: stable export surface for taxonomy, policy constants, and pure helpers.
+ * Does NOT: orchestrate pipelines, call LLMs, or hold mutable runtime state.
+ *
+ * Key collaborators: resilience_scorer/index.js (facade), client report components,
+ * citationDisplay.js, signalCatalog.js, componentEvidence.js.
  */
 
 // Load-bearing for external consumers (pbo_report, cross-cut retrieval) via the module facade.

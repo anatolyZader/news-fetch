@@ -1,11 +1,25 @@
 /**
- * assessment.v2 schema constants and validators.
+ * assessment.v2 schema version constant, validators, and empty shell factory.
+ *
+ * Pipeline position: assess/agent path — validates specialist agent output shape
+ * before persistence. Client-safe isomorphic.
+ *
+ * Owns: ASSESSMENT_SCHEMA_VERSION, validateAssessmentV2, createEmptyAssessmentV2.
+ * Does NOT: agent orchestration, epistemic profile computation, or numeric scores.
+ *
+ * Key collaborators: assessmentOrchestrator.js, report persistence, openapi schema.
  */
 
+/** Current assessment artifact schema version string. */
 export const ASSESSMENT_SCHEMA_VERSION = '2.0';
 
+/** Allowed component severity labels in assessment.v2. */
 export const SEVERITY_VALUES = Object.freeze(['low', 'moderate', 'high', 'critical', 'abstain']);
+
+/** Allowed claim confidence labels in assessment.v2. */
 export const CONFIDENCE_VALUES = Object.freeze(['low', 'medium', 'high']);
+
+/** Allowed operator_status values on component rows. */
 export const OPERATOR_STATUS_VALUES = Object.freeze([
   'stable', 'watch', 'critical_failure', 'insufficient_data',
 ]);
@@ -28,6 +42,7 @@ function validateComponent(component, index, errors) {
 }
 
 /**
+ * Validate an assessment.v2 object against the schema contract.
  * @param {object} assessment
  * @returns {{ valid: boolean, errors: string[] }}
  */
@@ -51,7 +66,17 @@ export function validateAssessmentV2(assessment) {
 }
 
 /**
+ * Create an empty assessment.v2 shell with required metadata fields.
  * @param {object} params
+ * @param {string} params.date
+ * @param {string} [params.prompt_version]
+ * @param {string} [params.model_card_ref]
+ * @param {string} [params.report_scope_id]
+ * @param {string} [params.assessment_mode]
+ * @param {string|null} [params.agent_trace_id]
+ * @param {string|null} [params.epistemic_profile_ref]
+ * @param {number} [params.total_articles_analyzed]
+ * @returns {object}
  */
 export function createEmptyAssessmentV2(params) {
   return {

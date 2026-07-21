@@ -1,15 +1,26 @@
 /**
- * Priority-ranked, article-deduped signal pools for the operator narrative
- * pipeline only. Ranking is count/quality-based (grounding tier, evidence
- * class, intensity, catalog weight) — no evidence mass.
+ * Priority-ranked, article-deduped signal pools for the operator narrative pipeline.
+ *
+ * Pipeline position: narrative preflight — feeds signal ref registry and LLM facts/polish
+ * prompts; ranking is count/quality-based (no evidence mass).
+ *
+ * Owns: per-component digest caps, evidence char limits, ranked signal picks.
+ * Does NOT: run LLM calls or perform narrative grounding QA.
+ *
+ * Key collaborators: `operator/topContributors.js`, `narrativeGrounding/signalRefRegistry.js`,
+ * `narrative/narrativePromptBudget.js`.
  */
+
 import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { collectComponentSignals } from '../signals/componentSignalGroups.js';
-import { defaultSignalWeights } from '../signals/routing/signalWeights.js';
 import { contributorRankKey } from '../operator/topContributors.js';
 import { signalArticleKey } from '../narrativeGrounding/signalRefRegistry.js';
 
+// ── Env caps ──────────────────────────────────────────────────────────────────
+
 /**
+ * Max signals per component in narrative digest (env RESILIENCE_NARRATIVE_DIGEST_SIGNALS).
+ *
  * @returns {number}
  */
 export function narrativeDigestSignalCap() {
@@ -55,20 +66,24 @@ function sliceEvidence(signal, maxChars) {
   return { ...signal, evidence: String(signal.evidence).slice(0, maxChars) };
 }
 
+// ── Digest build ──────────────────────────────────────────────────────────────
+
 /**
+ * Build per-component ranked signal digest from narrative scope pool.
+ *
  * @param {object[]} narrativeScopeSignals
- * @param {Record<string, object>|null} [evidenceFull] evidence components (for basis passthrough)
+ * @param {Record<string, object>|null} [evidenceFull] Evidence components for basis passthrough.
  * @param {{ digestCap?: number, evidenceChars?: number }} [opts]
+ * @returns {Record<string, object>}
  */
 export function buildFullSignalDigest(narrativeScopeSignals, evidenceFull = null, opts = {}) {
   const signals = narrativeScopeSignals ?? [];
-  const signalWeights = defaultSignalWeights();
   const cap = opts.digestCap ?? narrativeDigestSignalCap();
   const evidenceChars = opts.evidenceChars ?? narrativeDigestEvidenceChars();
   const out = {};
 
   for (const componentId of COMPONENT_IDS) {
-    const { items } = collectComponentSignals(componentId, signals, signalWeights);
+    const { items } = collectComponentSignals(componentId, signals);
     const picked = pickDigestItems(items, componentId, cap);
     const componentSignals = picked.map((item) => {
       const signal = { ...item.signal };

@@ -27,11 +27,14 @@ describe('topContributorsFromScored', () => {
     };
 
     const top = topContributorsFromScored(scored, 'leadership');
-    // Three strong-linked signals exist, so the weak spillover link is filtered out.
+    // Three primary-edge signals exist, so the weak spillover link is filtered out.
     assert.equal(top.length, 3);
     assert.ok(!top.some((t) => t.signal_type === 'compliance_enter_shelter'));
-    // At equal grounding/evidence/intensity, catalog weight breaks the tie.
-    assert.equal(top[0].signal_type, 'leadership_clear_guidance');
+    // Discrete roles carry no magnitude tiebreak: equal-rank items keep input order.
+    assert.deepEqual(
+      top.map((t) => t.signal_type),
+      ['leadership_visible_presence', 'leadership_clear_guidance', 'symbolic_vs_substantive_action'],
+    );
   });
 
   it('falls back to full pool ranking when fewer than three strong links exist', () => {

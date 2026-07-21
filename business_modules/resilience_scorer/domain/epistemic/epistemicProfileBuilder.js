@@ -1,25 +1,22 @@
 /**
- * Epistemic profile builder — count-based hints per component for agents/RAG.
+ * Epistemic profile builder — count-based hints per component for agents and RAG.
  *
- * Pipeline position: after (or alongside) component evidence. Produces
- * `by_component[id]` fields consumed by specialist_agents prompts and
- * retrieval policies: thin_evidence, signal_count, contested, certainty_band,
- * distinct_article_count, dominance_warnings, delta_significance.
+ * Pipeline position: assess — after buildComponentEvidence; output feeds specialist prompts and retrieval.
  *
- * Owns: computeEpistemicProfile and the mapping from evidence_basis bands →
- * agent-facing profile fields (including evidence_mass as a compat alias for
- * signal_count).
+ * Owns: computeEpistemicProfile and mapping from evidence_basis bands → agent-facing profile fields.
+ * Does NOT: run LLM assessment, mutate signals, or emit numeric resilience scores (min-math).
  *
- * Does NOT: run LLM assessment, invent headline scores, or mutate signals.
- * Delegates evidence assembly to buildComponentEvidence.
- *
- * Key collaborators: componentEvidence.js, assessmentOrchestrator.js,
- * retrieval policies under cross-cut-modules/retrieval/.
+ * Key collaborators: componentEvidence.js, assessmentOrchestrator.js, thinEvidencePolicy.js, retrieval policies.
  */
 import { COMPONENT_IDS } from '../contracts/componentIds.js';
 import { buildComponentEvidence, SUFFICIENCY, BALANCE } from '../contracts/componentEvidence.js';
 
-/** sufficiency band → coarse certainty label for agent prompts. */
+// --- Band → prompt label maps ---
+
+/**
+ * Sufficiency band → coarse certainty label for specialist agent prompts.
+ * @type {Record<string, string>}
+ */
 const CERTAINTY_BAND_BY_SUFFICIENCY = {
   [SUFFICIENCY.none]: 'low',
   [SUFFICIENCY.thin]: 'low',
@@ -27,7 +24,10 @@ const CERTAINTY_BAND_BY_SUFFICIENCY = {
   [SUFFICIENCY.adequate]: 'high',
 };
 
-/** balance band → polarization label for agent prompts. */
+/**
+ * Balance band → polarization label for specialist agent prompts.
+ * @type {Record<string, string>}
+ */
 const POLARIZATION_BAND_BY_BALANCE = {
   [BALANCE.one_sided_pos]: 'one_sided',
   [BALANCE.one_sided_neg]: 'one_sided',
@@ -35,7 +35,13 @@ const POLARIZATION_BAND_BY_BALANCE = {
   [BALANCE.contested]: 'contested',
 };
 
-/** Turn concentration_warning into a list of human-readable dominance warnings. */
+// --- Per-component profile assembly ---
+
+/**
+ * Turn evidence_basis.concentration_warning into human-readable dominance warnings.
+ * @param {object} basis — component evidence_basis object
+ * @returns {Array<{ layer: string, key: string, share: number, message: string }>}
+ */
 function dominanceWarnings(basis) {
   const w = basis.concentration_warning;
   if (!w) return [];
@@ -48,8 +54,11 @@ function dominanceWarnings(basis) {
 }
 
 /**
- * Derive retrieval policy hints from the per-component profile (diversify
- * concentrated source types; require corroboration for thin/contested comps).
+ * Derive retrieval policy hints from the per-component profile.
+ * Diversify concentrated source types; require corroboration for thin/contested components.
+ *
+ * @param {Record<string, object>} byComponent
+ * @returns {{ diversify: object[], boost: object[], require_corroboration: object[] }}
  */
 function buildRetrievalPolicies(byComponent) {
   const diversify = [];
@@ -75,7 +84,10 @@ function buildRetrievalPolicies(byComponent) {
 
 /**
  * Map one component's evidence object → agent-facing epistemic profile row.
- * Preserves key names expected by specialist prompts / retrieval.
+ * Uses signal_count as the canonical count field; evidence_mass is a compat alias.
+ *
+ * @param {object} ev — single component from buildComponentEvidence output
+ * @returns {object}
  */
 function profileFromEvidence(ev) {
   const basis = ev.evidence_basis;
@@ -99,10 +111,10 @@ function profileFromEvidence(ev) {
 }
 
 /**
- * Build the full epistemic profile for a signal batch.
+ * Build the full epistemic profile for a signal batch (count-based, no numeric scores).
  *
- * @param {object[]} signals metrics-eligible signals for this assess run
- * @param {{ reportDate?: string, weightOverlay?: object, assessmentEpistemic?: object }} [ctx]
+ * @param {object[]} signals — metrics-eligible signals for this assess run
+ * @param {{ reportDate?: string, assessmentEpistemic?: object }} [ctx]
  * @returns {{
  *   schema_version: string,
  *   report_date: string|null,
@@ -112,9 +124,7 @@ function profileFromEvidence(ev) {
  * }}
  */
 export function computeEpistemicProfile(signals, ctx = {}) {
-  const { by_component: evidence } = buildComponentEvidence(signals ?? [], {
-    weightOverlay: ctx.weightOverlay ?? null,
-  });
+  const { by_component: evidence } = buildComponentEvidence(signals ?? []);
 
   const byComponent = {};
   for (const id of COMPONENT_IDS) {

@@ -1,5 +1,12 @@
 /**
- * Post-extract cleanup for PBO / field-report signals.
+ * Post-extract cleanup for PBO and field-report signals.
+ *
+ * Pipeline position: extract/assess — hygiene pass before verification and scope filtering.
+ *
+ * Owns: trivial-evidence drop, officer score-blob stripping, misclassified type rewrite on field reports.
+ * Does NOT: catalogue routing (routing/signalTypeHygiene.js owns rewrite rules), or gaming/grounding policy.
+ *
+ * Key collaborators: routing/signalTypeHygiene.js, fieldSignalPolicy.js, visitsSourceType.js, harmInfrastructureSplit.js.
  */
 import { rewriteMisclassifiedSignalType } from './routing/signalTypeHygiene.js';
 
@@ -8,7 +15,9 @@ const TRIVIAL_FIELD_REPORT_EVIDENCE_RE = /^(אין|ללא שינוי|אותו ד
 const AVG_SCORE_BLOB_RE = /\[([^\]]+)\]\s*[^:]+:\s*avg=\d+%(?:\s*\([^)]*\))?\s*(?:—\s*)?/gi;
 
 /**
- * @param {string | null | undefined} text
+ * Whether field-report evidence text is too short or boilerplate to retain as a signal.
+ *
+ * @param {string|null|undefined} text
  * @returns {boolean}
  */
 export function isTrivialFieldReportEvidence(text) {
@@ -22,9 +31,10 @@ export function isTrivialFieldReportEvidence(text) {
 }
 
 /**
- * Strip officer score-summary blobs; return substantive remainder.
- * @param {string} evidence
- * @returns {string}
+ * Strip officer score-summary blobs from evidence; return substantive remainder.
+ *
+ * @param {string} evidence raw evidence text
+ * @returns {string} cleaned evidence string
  */
 export function stripFieldReportScoreBlob(evidence) {
   let out = String(evidence ?? '');
@@ -34,8 +44,10 @@ export function stripFieldReportScoreBlob(evidence) {
 }
 
 /**
+ * Sanitize one field-report signal; returns null when evidence is trivial after cleanup.
+ *
  * @param {object} signal
- * @returns {object | null}
+ * @returns {object|null} cleaned signal or null if dropped
  */
 export function sanitizeFieldReportSignal(signal) {
   if (!signal || typeof signal !== 'object') return null;
@@ -54,8 +66,10 @@ export function sanitizeFieldReportSignal(signal) {
 }
 
 /**
+ * Apply field-report hygiene to a signal array; drops signals that fail sanitization.
+ *
  * @param {object[]} signals
- * @returns {object[]}
+ * @returns {object[]} retained signals
  */
 export function applyFieldReportSignalHygiene(signals) {
   if (!Array.isArray(signals)) return [];

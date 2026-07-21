@@ -1,6 +1,16 @@
 /**
  * Preflight token budgeting and degrade ladder for closed-core / hybrid narrative LLM calls.
+ *
+ * Pipeline position: before narrative LLM invocation — selects digest cap, shard sizes,
+ * and whether to skip LLM entirely when budget exhausted.
+ *
+ * Owns: DEGRADE_LEVELS ladder, token estimates, resolveNarrativeContextPlan.
+ * Does NOT: invoke LLM or validate narrative JSON output.
+ *
+ * Key collaborators: `narrative/buildFullSignalDigest.js`, `narrativeGrounding/signalRefRegistry.js`,
+ * cross-cut-modules/retrieval RAG config.
  */
+
 import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { RESILIENCE_COMPONENTS } from '../../resilienceComponents.js';
 import { buildFullSignalDigest, narrativeDigestEvidenceChars, narrativeDigestSignalCap } from './buildFullSignalDigest.js';
@@ -13,7 +23,11 @@ import { resilienceNarrativeRagEnabled, resilienceNarrativeRagTopK } from '../..
 /** Conservative static overhead (facts/polish system prompts + rules blocks). */
 const STATIC_RULES_CHARS = 14_000;
 
+// ── Env readers ───────────────────────────────────────────────────────────────
+
 /**
+ * Max estimated tokens for a single narrative LLM call.
+ *
  * @returns {number}
  */
 export function narrativeContextMaxTokens() {
@@ -60,6 +74,7 @@ export function chunkComponentIds(componentIds, shardSize) {
   return chunks;
 }
 
+/** Degrade ladder settings from full context down to skip-LLM stub claims. */
 /** @type {Array<object>} */
 export const DEGRADE_LEVELS = [
   {
@@ -241,8 +256,17 @@ export function estimateNarrativePromptSections(params) {
   };
 }
 
+// ── Context plan resolution ───────────────────────────────────────────────────
+
 /**
+ * Walk degrade ladder until narrative prompt fits token budget or skip LLM.
+ *
  * @param {object} params
+ * @param {object[]} params.narrativeScopeSignals
+ * @param {Record<string, object>} params.scoredFull
+ * @param {object} [params.scoringContext]
+ * @param {object[]} [params.macroSignals]
+ * @param {number} [params.startLevel]
  * @returns {object}
  */
 export function resolveNarrativeContextPlan(params) {

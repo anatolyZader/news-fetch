@@ -16,7 +16,7 @@ Trace the closed-catalog signal extraction for the SINGLE article the user attac
 npm run trace-article -- --file <path> --source-type news --date <today's date>
 ```
 - Use today's date (YYYY-MM-DD) from the context above for `--date`.
-- Use `--source-type radio` or `--source-type field` only if the user says the article is a radio transcript or a field report.
+- Use `--source-type radio` or `--source-type visits` only if the user says the article is a radio transcript or a visits/field report.
 - Rationale (model reasoning) is ON by default; add `--no-rationale` only if the user asks for the cheapest A-only trace.
 
 **Step 3 — Present the result**

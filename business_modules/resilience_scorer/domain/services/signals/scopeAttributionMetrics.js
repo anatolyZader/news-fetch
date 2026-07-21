@@ -1,23 +1,43 @@
+/**
+ * Scope attribution metrics and default-north quality gate for regional assessments.
+ *
+ * Pipeline position: assess — during scope filtering and post-scope quality checks.
+ *
+ * Owns: default-north fallback counters, gate threshold evaluation, assessment annotation.
+ * Does NOT: district assignment (signalDistrictId.js), scope decisions (regionSignalFilter.js), or blocking logic elsewhere.
+ *
+ * Key collaborators: regionSignalFilter.js, signalDistrictId.js, evidenceEligibility.js, cross-cut-modules/monitoring/.
+ */
+
 const METRIC = 'resilience.scope.default_north_fallback';
 
 /** @type {import('../../../../../cross-cut-modules/monitoring/domain/ports/IMetricsPort.js').noopMetricsPort | null} */
 let metricsPort = null;
 
 /**
+ * Inject metrics port for default-north fallback counters (composition wiring).
+ *
  * @param {import('../../../../../cross-cut-modules/monitoring/domain/ports/IMetricsPort.js').noopMetricsPort | null} port
  */
 export function setScopeAttributionMetricsPort(port) {
   metricsPort = port;
 }
 
+/**
+ * Increment the default-north fallback metric by count.
+ *
+ * @param {number} [count=1]
+ */
 export function recordDefaultNorthFallback(count = 1) {
   metricsPort?.increment(METRIC, count, { source: 'default_north_district' });
 }
 
 /**
- * @param {object[]} scopedSignals
+ * Count scoped signals using default-north district, log warning, and annotate assessment.
+ *
+ * @param {object[]} scopedSignals signals after filterSignalsForScope
  * @param {{ log?: boolean, assessment?: object }} [opts]
- * @returns {number}
+ * @returns {number} count of default-north signals
  */
 export function countAndLogDefaultNorthSignals(scopedSignals, opts = {}) {
   const { log = true, assessment = null } = opts;
@@ -41,8 +61,10 @@ export function countAndLogDefaultNorthSignals(scopedSignals, opts = {}) {
 }
 
 /**
+ * Percentage threshold above which default-north share triggers gate (env RESILIENCE_DEFAULT_NORTH_GATE_PCT).
+ *
  * @param {NodeJS.ProcessEnv} [env]
- * @returns {number}
+ * @returns {number} 0–100
  */
 export function defaultNorthGateThresholdPct(env = process.env) {
   const n = Number.parseFloat(env.RESILIENCE_DEFAULT_NORTH_GATE_PCT ?? '30');
@@ -50,6 +72,8 @@ export function defaultNorthGateThresholdPct(env = process.env) {
 }
 
 /**
+ * Whether the default-north gate may block assessment (env RESILIENCE_DEFAULT_NORTH_GATE_BLOCK).
+ *
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {boolean}
  */
@@ -60,6 +84,8 @@ export function defaultNorthGateBlockEnabled(env = process.env) {
 }
 
 /**
+ * Evaluate default-north share against gate threshold for scoped signals.
+ *
  * @param {object[]} scopedSignals
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {{ count: number, pct: number, blocked: boolean, thresholdPct: number, blockEnabled: boolean }}

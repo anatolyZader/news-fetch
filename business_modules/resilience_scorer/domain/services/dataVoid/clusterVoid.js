@@ -1,5 +1,14 @@
 /**
  * Per-cluster (PBO subregion) digital void detection.
+ *
+ * Pipeline position: called by computeDataVoidIndex — adds geo-cluster entries
+ * to affected_clusters alongside channel-level voids.
+ *
+ * Owns: cluster digital darkness detection, channelLevelVoids for global drops.
+ * Does NOT: group signals for scoring or build operator cluster attention text.
+ *
+ * Key collaborators: `geo/index.js` (groupSignalsBySubregion), `dataVoid/channelBaselines.js`,
+ * `dataVoid/sourceChannels.js`.
  */
 
 import { groupSignalsBySubregion } from '../../../../geo/index.js';
@@ -33,9 +42,11 @@ function clusterFieldVolume(daySignals, clusterKey) {
 }
 
 /**
- * @param {Array<object>} signals today (scoped)
- * @param {Array<Array<object>>} historicalDays oldest-first
- * @returns {Array<object>} affected_clusters
+ * Detect per-subregion digital voids for today's scoped signals.
+ *
+ * @param {Array<object>} signals Today (scoped).
+ * @param {Array<Array<object>>} historicalDays Oldest-first prior days.
+ * @returns {Array<object>} affected_clusters entries.
  */
 export function computeClusterVoids(signals, historicalDays) {
   const list = Array.isArray(signals) ? signals : [];

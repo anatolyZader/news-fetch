@@ -1,6 +1,14 @@
 /**
  * OSINT channel quarantine — detect high polarization on social + telegram.
- * Auto-exclusion from scoring when suggested (default); analyst dismiss suppresses.
+ *
+ * Pipeline position: pre-score filter — may auto-exclude OSINT from metrics pool;
+ * surfaced in operator attention items when active/suggested.
+ *
+ * Owns: polarization detection, auto-exclusion filter, OSINT source type set.
+ * Does NOT: digital darkness void logic or scoring partition.
+ *
+ * Key collaborators: `signals/routing/signalRouter.js` (catalog polarity),
+ * `operator/attentionItems.js`, evidence pipeline prep.
  */
 
 import { getSignalCatalogEntry } from '../signals/routing/signalRouter.js';
@@ -9,6 +17,8 @@ const DEFAULT_MIN_SIGNALS = 4;
 const MIN_SHARE = 0.25;
 const POLARIZATION_THRESHOLD = 0.85;
 
+// ── Constants ─────────────────────────────────────────────────────────────────
+
 /** OSINT channels subject to polarization quarantine (not whatsapp — curated north). */
 export const OSINT_SOURCE_TYPES = new Set(['social', 'telegram']);
 
@@ -16,11 +26,23 @@ export const SOCIAL_QUARANTINE_ARTICLE_KEY = '__epistemic__:social_channel_quara
 
 export const QUARANTINE_REASON_OSINT = 'osint_polarization';
 
+// ── Feature flags ─────────────────────────────────────────────────────────────
+
+/**
+ * Whether OSINT social quarantine evaluation is enabled.
+ *
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {boolean}
+ */
 export function isSocialQuarantineEnabled(env = process.env) {
   return env.RESILIENCE_SOCIAL_QUARANTINE !== '0';
 }
 
 /** Default on: auto-exclude OSINT from metrics when polarization triggers. */
+/**
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {boolean}
+ */
 export function isOsintQuarantineAutoEnabled(env = process.env) {
   return env.RESILIENCE_OSINT_QUARANTINE_AUTO !== '0';
 }
@@ -66,14 +88,25 @@ function osintPolarization(osintSignals) {
 }
 
 /**
+ * Whether signal source_type is OSINT (social/telegram).
+ *
  * @param {object} signal
+ * @returns {boolean}
  */
 export function isOsintSourceType(signal) {
   return OSINT_SOURCE_TYPES.has(signal?.source_type);
 }
 
+// ── Quarantine evaluation ─────────────────────────────────────────────────────
+
 /**
- * @param {Array<object>} signals — scoped metrics-eligible or all scoped
+ * Evaluate OSINT channel quarantine suggestion/active state for a signal batch.
+ *
+ * @param {Array<object>} signals Scoped metrics-eligible or all scoped signals.
+ * @param {object} [opts]
+ * @param {boolean} [opts.active]
+ * @param {boolean} [opts.dismissed]
+ * @param {NodeJS.ProcessEnv} [opts.env]
  * @returns {{
  *   suggested: boolean,
  *   active: boolean,

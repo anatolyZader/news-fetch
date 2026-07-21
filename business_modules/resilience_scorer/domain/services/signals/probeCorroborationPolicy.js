@@ -1,7 +1,12 @@
 /**
  * File-based connectivity probe trust policy (Option D — no live HTTP).
- * Distinct from signalGamingPolicy.js: this measures distinct-source corroboration
- * against a minimum threshold; that one caps per-sender/per-type volume.
+ *
+ * Pipeline position: ingest/assess — probe record validation and corroboration before signal merge.
+ *
+ * Owns: probe HMAC validation, source allowlist, distinct-source corroboration thresholds.
+ * Does NOT: per-sender gaming caps (signalGamingPolicy.js), live HTTP probes, or grounding tiers.
+ *
+ * Key collaborators: signalGamingPolicy.js, ../dataVoid/sourceChannels.js, fieldSignalPolicy.js, groundingPolicy.js.
  */
 
 import { createHmac, timingSafeEqual } from 'node:crypto';
@@ -18,7 +23,10 @@ function parseEnvInt(name, fallback) {
 }
 
 /**
+ * Optional comma-separated probe source allowlist from env.
+ *
  * @param {NodeJS.ProcessEnv} [env]
+ * @returns {Set<string>|null} null when allowlist is unset (accept all)
  */
 export function probeSourceAllowlist(env = process.env) {
   const raw = env.RESILIENCE_PROBE_SOURCE_ALLOWLIST;
@@ -27,7 +35,10 @@ export function probeSourceAllowlist(env = process.env) {
 }
 
 /**
- * @param {NodeJS.ProcessEnv} [env]
+ * Minimum distinct probe sources required for confirmed outage (env RESILIENCE_PROBE_MIN_CORROBORATION).
+ *
+ * @param {NodeJS.ProcessEnv} [_env]
+ * @returns {number}
  */
 export function probeMinCorroboration(_env = process.env) {
   return parseEnvInt('RESILIENCE_PROBE_MIN_CORROBORATION', DEFAULT_MIN_CORROBORATION);
@@ -35,7 +46,8 @@ export function probeMinCorroboration(_env = process.env) {
 
 /**
  * Verify optional HMAC on probe record payload.
- * @param {object} record
+ *
+ * @param {object} record raw probe record
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {{ ok: boolean, reason?: string }}
  */
@@ -43,6 +55,13 @@ function probeHmacRequired(env = process.env) {
   return env.NODE_ENV === 'production' || env.RESILIENCE_PROBE_REQUIRE_HMAC === 'true';
 }
 
+/**
+ * Validate HMAC signature on a probe record when secret is configured.
+ *
+ * @param {object} record
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {{ ok: boolean, reason?: string }}
+ */
 export function verifyProbeRecordHmac(record, env = process.env) {
   const secret = env.RESILIENCE_PROBE_HMAC_SECRET;
   if (!secret || String(secret).trim() === '') {
@@ -72,6 +91,8 @@ export function verifyProbeRecordHmac(record, env = process.env) {
 }
 
 /**
+ * Validate one probe record (shape, allowlist, HMAC).
+ *
  * @param {object} record
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {{ accepted: boolean, reason?: string }}
@@ -93,6 +114,8 @@ export function validateProbeRecord(record, env = process.env) {
 }
 
 /**
+ * Apply corroboration policy to infrastructure_probe signals and set extraction_confidence.
+ *
  * @param {Array<object>} probeSignals infrastructure_probe signals
  * @param {Array<object>} allSignals full signal list for field corroboration
  * @param {NodeJS.ProcessEnv} [env]
@@ -135,6 +158,7 @@ export function applyProbeCorroborationPolicy(probeSignals, allSignals = [], env
 
 /**
  * Filter and transform raw probe records before signal conversion.
+ *
  * @param {Array<object>} records
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {{ records: Array<object>, rejected: number, reject_reasons: Record<string, number> }}
@@ -163,6 +187,7 @@ export function filterValidProbeRecords(records, env = process.env) {
 
 /**
  * Re-apply corroboration flags on probe signals within a merged signal list.
+ *
  * @param {Array<object>} signals
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {Array<object>}

@@ -1,12 +1,16 @@
 /**
- * Compact resilience report basenames: {scope}-{days}-{DDMMYY}-{HHmm}
- * e.g. north-3-230526-1545  → north scope, 3-day window ending 2026-05-23, run at 15:45 UTC
+ * Compact resilience report basenames: `{scope}-{days}-{DDMMYY}-{HHmm}`.
  *
- * Unlike its siblings in paths/ (which resolve absolute paths from repoRoot),
- * this module is filename format + parsing only, by design: callers pass an
- * already-resolved reportsDir and it works on basenames/regexes (compact + 3
- * legacy formats).
+ * Pipeline position: STAGE-2 assess finalize and report HTTP API — filename format
+ * and parsing only (callers pass an already-resolved `reportsDir`).
+ *
+ * Owns: compact + legacy basename regexes, build/parse helpers, report path lookup.
+ * Does NOT: resolve absolute report directories (see `outputDirs.js`) or write JSON.
+ *
+ * Key collaborators: `paths/outputDirs.js`, `input/reportRoutes.js`,
+ * `cross-cut-modules/geo/reportScopeIds.js`.
  */
+
 import { join } from 'node:path';
 import { resolveStateStore } from '../../../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
 import {
@@ -19,24 +23,33 @@ function getStore(deps = {}) {
   return resolveStateStore(deps);
 }
 
-/** @type {RegExp} */
+// ---------------------------------------------------------------------------
+// Basename regexes
+// ---------------------------------------------------------------------------
+
+/** Compact report basename: `{scope}-{days}-{DDMMYY}-{HHmm}`. */
 export const COMPACT_REPORT_BASENAME_RE = /^([a-z]+)-(\d{1,2})-(\d{6})-(\d{4})$/;
 
-/** @type {RegExp} */
+/** Legacy report basename with optional regional scope and run id. */
 export const LEGACY_REPORT_BASENAME_RE =
   /^resilience-report(?:-(north|south|jerusalem|dan|haifa))?-data-(\d{4}-\d{2}-\d{2})-run-([^.]+)$/;
 
-/** @type {RegExp} */
+/** Legacy national report basename (date only). */
 export const LEGACY_SIMPLE_DATE_RE = /^resilience-report-(\d{4}-\d{2}-\d{2})$/;
 
-/** @type {RegExp} */
+/** Legacy national report basename with run id. */
 export const LEGACY_SIMPLE_RUN_RE = /^resilience-report-(\d{4}-\d{2}-\d{2})-(\d{4})$/;
 
-/** @type {RegExp} */
+/** Legacy regional report basename with run id. */
 export const LEGACY_REGIONAL_SIMPLE_RUN_RE =
   /^resilience-report-(north|south|jerusalem|dan|haifa)-(\d{4}-\d{2}-\d{2})-(\d{4})$/;
 
+// ---------------------------------------------------------------------------
+// Date token conversion
+// ---------------------------------------------------------------------------
+
 /**
+ * Convert ISO date to compact DDMMYY token for basenames.
  * @param {string} isoDate YYYY-MM-DD
  * @returns {string} DDMMYY
  */
@@ -46,6 +59,7 @@ export function ddMmYyFromIsoDate(isoDate) {
 }
 
 /**
+ * Convert DDMMYY token back to ISO date.
  * @param {string} ddmmyy
  * @returns {string} YYYY-MM-DD
  */
@@ -53,13 +67,21 @@ export function isoDateFromDdMmYy(ddmmyy) {
   return `20${ddmmyy.slice(4, 6)}-${ddmmyy.slice(2, 4)}-${ddmmyy.slice(0, 2)}`;
 }
 
-/** @deprecated legacy compact token (YYMMDD); used only when re-reading old filenames */
+/**
+ * @deprecated legacy compact token (YYMMDD); used only when re-reading old filenames
+ * @param {string} isoDate YYYY-MM-DD
+ * @returns {string}
+ */
 export function yyMmDdFromIsoDate(isoDate) {
   const [y, m, d] = String(isoDate).split('-');
   return `${y.slice(-2)}${m}${d}`;
 }
 
-/** @deprecated legacy compact token (YYMMDD) */
+/**
+ * @deprecated legacy compact token (YYMMDD)
+ * @param {string} yymmdd
+ * @returns {string} YYYY-MM-DD
+ */
 export function isoDateFromYyMmDd(yymmdd) {
   return `20${yymmdd.slice(0, 2)}-${yymmdd.slice(2, 4)}-${yymmdd.slice(4, 6)}`;
 }
@@ -67,20 +89,27 @@ export function isoDateFromYyMmDd(yymmdd) {
 /**
  * Parse compact 6-digit date token (DDMMYY).
  * @param {string} token
+ * @returns {string} YYYY-MM-DD
  */
 export function isoDateFromCompactToken(token) {
   return isoDateFromDdMmYy(token);
 }
 
+// ---------------------------------------------------------------------------
+// Scope and basename builders
+// ---------------------------------------------------------------------------
+
 /**
+ * Normalize scope id to report filename slug (e.g. `national`, `north`).
  * @param {string} scopeId
- * @returns {string} e.g. national | north
+ * @returns {string}
  */
 export function reportScopeSlug(scopeId) {
   return normalizeReportScopeId(scopeId);
 }
 
 /**
+ * Build compact report basename without extension.
  * @param {object} params
  * @param {string} params.scopeId
  * @param {number} params.days assessment window length (counts back from reportDate)
@@ -96,7 +125,12 @@ export function buildReportBasename({ scopeId, days, reportDate, runAt = new Dat
   return `${scope}-${safeDays}-${ddmmyy}-${hhmm}`;
 }
 
+// ---------------------------------------------------------------------------
+// Parse and classify filenames
+// ---------------------------------------------------------------------------
+
 /**
+ * Parse compact or legacy report filename into structured fields.
  * @param {string} filename or basename
  * @returns {{
  *   format: 'compact' | 'legacy',
@@ -173,6 +207,7 @@ export function parseReportFilename(filename) {
 }
 
 /**
+ * Whether a filename matches any known resilience report basename format.
  * @param {string} filename
  * @returns {boolean}
  */
@@ -181,6 +216,7 @@ export function isResilienceReportFilename(filename) {
 }
 
 /**
+ * Whether a filename is a regional-scope compact/legacy report.
  * @param {string} filename
  * @returns {boolean}
  */
@@ -191,6 +227,7 @@ export function isRegionalReportFilenameCompact(filename) {
 }
 
 /**
+ * Whether a filename is a national-scope report.
  * @param {string} filename
  * @returns {boolean}
  */
@@ -201,6 +238,7 @@ export function isNationalReportFilename(filename) {
 }
 
 /**
+ * Whether a report filename matches a given date and scope.
  * @param {string} filename
  * @param {string} date YYYY-MM-DD
  * @param {string} scopeId
@@ -214,7 +252,12 @@ export function reportFilenameMatchesDate(filename, date, scopeId) {
   return parsed.reportDate === date;
 }
 
+// ---------------------------------------------------------------------------
+// Filesystem lookup
+// ---------------------------------------------------------------------------
+
 /**
+ * Resolve absolute path to a specific report JSON by date, scope, and run id.
  * @param {string} reportsDir
  * @param {string} date YYYY-MM-DD
  * @param {string} scopeId
@@ -259,6 +302,7 @@ export function resolveSpecificReportJsonPath(reportsDir, date, scopeId, runId) 
 }
 
 /**
+ * List report JSON filenames for a given date and scope.
  * @param {string} reportsDir
  * @param {string} date YYYY-MM-DD
  * @param {string} scopeId

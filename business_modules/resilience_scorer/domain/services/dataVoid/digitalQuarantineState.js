@@ -1,5 +1,14 @@
 /**
  * Same-day digital quarantine persistence — block re-ingestion on re-assess.
+ *
+ * Pipeline position: post-partition — load prior quarantine before partition;
+ * build new quarantine state after partition for assessment persistence.
+ *
+ * Owns: loadActiveQuarantine from prior report JSON, buildQuarantineState for same-day expiry.
+ * Does NOT: partition signals or compute void index.
+ *
+ * Key collaborators: `dataVoid/scoringPartition.js`, report artifact paths,
+ * cross-cut-modules/persistence state store.
  */
 
 import { resolveStateStore } from '../../../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
@@ -15,8 +24,13 @@ import {
 import { listReportJsonFilenamesForDate } from '../paths/reportNames.js';
 import { resilienceReportsDir } from '../paths/outputDirs.js';
 
+// ── Quarantine load ───────────────────────────────────────────────────────────
+
 /**
+ * End-of-UTC-day ISO timestamp for quarantine expiry.
+ *
  * @param {string} dateIso YYYY-MM-DD
+ * @returns {string}
  */
 export function endOfUtcDayIso(dateIso) {
   const [y, m, d] = dateIso.split('-').map((s) => Number.parseInt(s, 10));
@@ -52,6 +66,8 @@ function findLatestReportForDate(reportsDir, scopeId, date) {
 }
 
 /**
+ * Load active same-day digital quarantine from the latest report for date/scope.
+ *
  * @param {string} date YYYY-MM-DD
  * @param {string} scopeId
  * @param {string} [reportsDir]
@@ -74,12 +90,17 @@ export function loadActiveQuarantine(date, scopeId, reportsDir = resilienceRepor
   return state;
 }
 
+// ── Quarantine state build ──────────────────────────────────────────────────────
+
 /**
- * @param {object} partition from resolveScoringPartition
+ * Build digital_quarantine_state to persist when partition quarantines digital signals.
+ *
+ * @param {object} partition From resolveScoringPartition.
  * @param {object|null|undefined} dataVoid
  * @param {object} [opts]
  * @param {string} [opts.scopeId]
  * @param {string} [opts.reportDate]
+ * @returns {object|null}
  */
 export function buildQuarantineState(partition, dataVoid, opts = {}) {
   if (!partition?.partitionApplied) return null;

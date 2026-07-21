@@ -1,7 +1,17 @@
 /**
- * Finalize operator-readable narrative + curated evidence on each component.
- * Deterministic only — no LLM calls.
+ * Finalize operator-readable narrative and curated evidence on each component.
+ *
+ * Pipeline position: assessment finalize — deterministic only, after rich pool
+ * attachment and LLM narrative pipeline; last prose/evidence shaping before UI.
+ *
+ * Owns: narrative_operator resolution, citation linking, curated evidence bullets,
+ * epistemic fallback prose when claims absent.
+ * Does NOT: call LLMs, re-run narrative grounding QA, or mutate scoring.
+ *
+ * Key collaborators: `narrative/narrativeClaims.js`, `narrativeGrounding/signalRefRegistry.js`,
+ * `contracts/citationDisplay.js`, `operator/operatorInvestigationSurface.js`.
  */
+
 import { agentClaimsForComponent } from '../narrative/narrativeClaims.js';
 import { resolveNarrativePipelineMode } from '../narrativeGrounding/groundingConfig.js';
 import {
@@ -24,7 +34,7 @@ import {
 } from '../../contracts/inlineCitationResolve.js';
 import { formatApaCitationDate } from '../../contracts/apaCitationFormat.js';
 import { buildDeterministicNarrativeFromClaims } from './operatorInvestigationSurface.js';
-import { getComponentWeight, getRoutingRole } from '../signals/routing/signalRouter.js';
+import { getRoutingRole } from '../signals/routing/signalRouter.js';
 import {
   formatEvidenceBullet,
   isRichSurfaceMode,
@@ -37,6 +47,9 @@ import {
   urlFromClaim,
 } from './evidenceFormatting.js';
 
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+/** Fallback prose when LLM synthesis is missing or stubbed. */
 export const INSUFFICIENT_SYNTHESIS_NARRATIVE =
   'Insufficient LLM synthesis — see supporting evidence below.';
 
@@ -61,7 +74,11 @@ function hasHybridPolishedNarrative(comp) {
   return existing.length > 80 && !existing.includes('avg=');
 }
 
+// ── Narrative stub detection ──────────────────────────────────────────────────
+
 /**
+ * Whether narrative text is a placeholder stub rather than substantive prose.
+ *
  * @param {string | null | undefined} text
  * @returns {boolean}
  */
@@ -72,7 +89,11 @@ export function isStubNarrative(text) {
   return t.toLowerCase().includes('see supporting evidence below');
 }
 
+// ── Prose assembly ────────────────────────────────────────────────────────────
+
 /**
+ * Build operator prose from claims (capped; rich mode uses role-section layout).
+ *
  * @param {object[]} claims
  * @returns {string}
  */
@@ -221,7 +242,11 @@ function applyCitationResolverToField(text, registry, reportDate, componentId = 
   return out;
 }
 
+// ── Citation resolution ───────────────────────────────────────────────────────
+
 /**
+ * Resolve inline signal citations and APA parentheticals in operator narrative text.
+ *
  * @param {string} text
  * @param {{ byLabel?: Map<string, object>, byRef?: Map<string, object> }|null} registry
  * @param {string|null|undefined} reportDate
@@ -242,10 +267,13 @@ function componentLabel(componentId) {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
+// ── Epistemic fallback prose ──────────────────────────────────────────────────
+
 /**
- * Build qualitative operator prose from epistemic slice (no raw quotes).
+ * Build qualitative operator prose from epistemic slice when claims are absent.
+ *
  * @param {string} componentId
- * @param {object} ep
+ * @param {object} [ep={}] Count-based epistemic fields (signal_count, contested, thin).
  * @returns {string}
  */
 export function buildEpistemicOperatorProse(componentId, ep = {}) {
@@ -332,9 +360,6 @@ function structuredItemFromSignal(signal, fallbackText, refOverride = null, comp
     url: meta.url,
     signal_type: signalType,
     routing_role: componentId && signalType ? getRoutingRole(signalType, componentId) : null,
-    routing_weight: componentId && signalType
-      ? getComponentWeight(signalType, componentId) ?? null
-      : null,
   };
   item.markdown = `${formatEvidenceBullet(text, meta.url)}${routingLabelSuffix(item)}`;
   return item;
@@ -378,7 +403,11 @@ function buildEvidenceFromClaims(comp) {
     .flatMap((c) => structuredItemsFromClaim(c, comp));
 }
 
+// ── Evidence curation ─────────────────────────────────────────────────────────
+
 /**
+ * Build markdown evidence bullet strings for operator display.
+ *
  * @param {object} comp
  * @returns {string[]}
  */
@@ -419,6 +448,8 @@ function rawClaimsForComponent(comp) {
 }
 
 /**
+ * Build structured evidence items (text, ref, markdown) for operator UI.
+ *
  * @param {object} comp
  * @returns {Array<{ text: string, source_type?: string|null, article_source?: string|null, url?: string|null, markdown?: string }>}
  */
@@ -436,7 +467,11 @@ export function buildStructuredEvidenceItems(comp) {
   }));
 }
 
+// ── Component narrative resolution ────────────────────────────────────────────
+
 /**
+ * Resolve final operator narrative for one component (hybrid LLM vs deterministic).
+ *
  * @param {object} comp
  * @returns {string|null}
  */
@@ -548,7 +583,11 @@ function applyCitationRegistryToAssessment(assessment, citationRegistry) {
   }
 }
 
+// ── Assessment finalize entry ─────────────────────────────────────────────────
+
 /**
+ * Finalize operator narrative and evidence fields on all components (deterministic).
+ *
  * @param {object|null|undefined} assessment
  * @returns {object|null|undefined}
  */

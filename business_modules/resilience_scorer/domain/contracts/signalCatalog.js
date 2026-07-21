@@ -25,6 +25,7 @@
  * defaultPolarity, routing/evidence polarity flips accordingly.
  */
 
+// --- Version ---
 /**
  * One closed-vocabulary signal type. Who reads what:
  *
@@ -78,6 +79,7 @@
  */
 export const CATALOG_VERSION = 'v8';
 
+// --- Aliases ---
 /**
  * Legacy type-name aliases accepted at ingestion. Aliases are NOT catalog
  * entries: they never appear in SIGNAL_TYPES, the extraction vocabulary, or
@@ -103,6 +105,7 @@ export function canonicalizeSignalType(type) {
   return SIGNAL_ALIASES[raw] ?? raw;
 }
 
+// --- Domains ---
 /**
  * Thematic buckets for extraction prompt sections and focused domain passes.
  * Keys are machine ids used on each catalog entry's `domain` field; values are
@@ -132,6 +135,7 @@ export const SIGNAL_DOMAINS = {
 
 /** @typedef {'behavior'|'attitude'|'structural_state'|'narrative'|'event'|'capacity'} SignalClass */
 
+// --- Catalog entries ---
 /**
  * Authoritative closed vocabulary: one object per extractable signal type.
  * Do not add per-row essays here — labels, mirrors, and disambiguation on each
@@ -1846,6 +1850,7 @@ export const SIGNAL_CATALOG = [
   },
 ];
 
+// --- Derived exports & validation ---
 /** Flat list of canonical type ids (derived from SIGNAL_CATALOG). */
 export const SIGNAL_TYPES = SIGNAL_CATALOG.map((s) => s.type);
 

@@ -1,3 +1,13 @@
+/**
+ * Report-scope filtering and explainable scope-relevance decisions for signals.
+ *
+ * Pipeline position: assess — after district/geo enrichment, before evidenceEligibility partition.
+ *
+ * Owns: scopeDecision traces, filterSignalsForScope, report scope metadata for operator surfaces.
+ * Does NOT: district default-north logic (signalDistrictId.js), metrics gating, or geo resolution rules.
+ *
+ * Key collaborators: signalDistrictId.js, scopeAttributionMetrics.js, evidenceEligibility.js, business_modules/geo/index.js.
+ */
 import {
   ISRAEL_NATIONAL_DISTRICT_ID,
   israelDistrictLabelKey,
@@ -16,8 +26,9 @@ import { recordDefaultNorthFallback } from './scopeAttributionMetrics.js';
 
 /**
  * District ids implied by signal district assignment and resolved geo.
+ *
  * @param {object} signal
- * @returns {string[]}
+ * @returns {string[]} home-front district ids for this signal
  */
 export function deriveHomeFrontDistricts(signal) {
   const ids = new Set();
@@ -33,8 +44,9 @@ export function deriveHomeFrontDistricts(signal) {
 
 /**
  * Explainable scope-relevance decision trace for a target report scope.
+ *
  * @param {object} signal
- * @param {string} [targetScopeId]
+ * @param {string} [targetScopeId] normalized scope id (default national)
  * @returns {{
  *   isScopeRelevant: boolean,
  *   isNorthRelevant: boolean,
@@ -104,6 +116,13 @@ export function scopeDecisionForSignal(signal, targetScopeId = ISRAEL_NATIONAL_D
   };
 }
 
+/**
+ * Attach scopeDecision to each signal and filter to scope-relevant instances (regional scopes only).
+ *
+ * @param {object[]} signals
+ * @param {string} scope report scope id
+ * @returns {object[]} scoped signals with scopeDecision attached
+ */
 export function filterSignalsForScope(signals, scope) {
   const scopeId = normalizeReportScopeId(scope);
   const out = (signals ?? []).map((s) => {
@@ -118,6 +137,12 @@ export function filterSignalsForScope(signals, scope) {
   return out.filter((s) => s?.scopeDecision?.isScopeRelevant);
 }
 
+/**
+ * Normalize a report scope string to its canonical id.
+ *
+ * @param {string} scope
+ * @returns {string}
+ */
 export function normalizeReportScope(scope) {
   return normalizeReportScopeId(scope);
 }
@@ -130,6 +155,12 @@ const REGIONAL_SCOPE_LABELS = Object.freeze({
   haifa: 'Haifa District',
 });
 
+/**
+ * Operator-facing metadata for a report scope (label, comparison scope).
+ *
+ * @param {string} scope
+ * @returns {{ id: string, label: string, labelKey?: string, comparison_scope: string|null }}
+ */
 export function reportScopeMetadata(scope) {
   const id = normalizeReportScopeId(scope);
   if (id === ISRAEL_NATIONAL_DISTRICT_ID) {

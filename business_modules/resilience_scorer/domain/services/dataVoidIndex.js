@@ -1,6 +1,16 @@
 /**
- * Data void / digital darkness index — backward-compatible re-export.
- * @see dataVoid/computeDataVoidIndex.js
+ * Backward-compatible re-export barrel for data-void / digital-darkness services.
+ *
+ * Pipeline position: consumed by `evidencePipelinePrep` and assessment finalize;
+ * call sites import from here rather than `dataVoid/` subpaths for stability.
+ *
+ * Owns: public facade of computeDataVoidIndex, source channel helpers, epistemic
+ * gate, scoring partition, and epistemic status builders.
+ * Does NOT: implement void logic (see `dataVoid/computeDataVoidIndex.js`) or score
+ * components — count-based evidence only downstream.
+ *
+ * Key collaborators: `dataVoid/computeDataVoidIndex.js`, `dataVoid/epistemicGate.js`,
+ * `dataVoid/scoringPartition.js`, `app/assessment/evidencePipelinePrep.js`.
  */
 
 export {

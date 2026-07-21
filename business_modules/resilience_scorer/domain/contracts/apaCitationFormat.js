@@ -1,6 +1,13 @@
 /**
- * APA-style in-text parenthetical citations: (Author, DD Mon YYYY).
- * Uses report assessment date (not publication year alone).
+ * APA-style in-text parenthetical citation formatting (Author, DD Mon YYYY).
+ *
+ * Pipeline position: report display (server + client) — formats and links citations
+ * using the report assessment date. Client-safe isomorphic.
+ *
+ * Owns: date formatting, author labels, parenthetical assembly, markdown conversion.
+ * Does NOT: signal registry lookup (citationDisplay.js) or evidence anchor ids.
+ *
+ * Key collaborators: citationDisplay.js, inlineCitationResolve.js, evidenceAnchor.js.
  */
 
 const GENERIC_SOURCE = /^source$/i;
@@ -10,6 +17,7 @@ const MARKDOWN_LINK = /\[([^\]]+)\]\((https?:[^)\s]+)\)/gi;
 const CITATION_LINK_RUN = /(?:\[[^\]]+\]\(https?:[^)\s]+\)\s*)+/g;
 
 /**
+ * Format ISO YYYY-MM-DD report date as APA date label (DD Mon YYYY).
  * @param {string|undefined|null} reportDate ISO YYYY-MM-DD
  * @returns {string}
  */
@@ -25,6 +33,7 @@ export function formatApaCitationDate(reportDate) {
 }
 
 /**
+ * Derive a short author label from a URL hostname or path segment.
  * @param {string} url
  * @returns {string}
  */
@@ -43,6 +52,7 @@ export function apaAuthorFromUrl(url) {
 }
 
 /**
+ * Pick citation author from link text or fall back to URL-derived label.
  * @param {string} text
  * @param {string} url
  * @returns {string}
@@ -56,6 +66,7 @@ export function apaAuthorLabel(text, url) {
 }
 
 /**
+ * Format one APA citation part with optional link (external url or evidence anchor).
  * @param {string} author
  * @param {string} dateLabel DD Mon YYYY
  * @param {{ url?: string|null, linked?: boolean, linkMode?: 'none'|'external'|'evidence', evidenceHref?: string|null }} [opts]
@@ -79,6 +90,7 @@ export function formatApaCitationPart(author, dateLabel, opts = {}) {
 }
 
 /**
+ * Join multiple APA citation parts into one parenthetical (Author, Date; Author2, Date).
  * @param {Array<{ author: string, url?: string|null, evidenceHref?: string|null }>} sources
  * @param {string} dateLabel
  * @param {{ linked?: boolean, linkMode?: 'none'|'external'|'evidence' }} [opts]

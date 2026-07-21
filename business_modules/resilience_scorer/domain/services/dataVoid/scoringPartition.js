@@ -1,8 +1,15 @@
 /**
- * Pre-score epistemic partition — isolate digital before scoreComponents runs.
+ * Pre-score epistemic partition — isolate digital signals before scoreComponents runs.
  *
- * Handles digital_darkness, connectivity isolation (field or probe anchors),
- * prior same-day quarantine state, and elevated/critical abstention.
+ * Pipeline position: evidencePipelinePrep — after void index, before component scoring;
+ * output feeds epistemic gate and digital quarantine persistence.
+ *
+ * Owns: scoringSignals vs quarantinedSignals split, assessmentMode selection,
+ * prior same-day quarantine recovery rules.
+ * Does NOT: compute void index or attach fields to assessment.
+ *
+ * Key collaborators: `dataVoid/sourceChannels.js`, `dataVoid/epistemicGate.js`,
+ * `dataVoid/digitalQuarantineState.js`, `contracts/softVoidReasons.js`.
  */
 
 import { isSoftVoidWarning } from '../../contracts/softVoidReasons.js';
@@ -16,6 +23,9 @@ import {
 
 const ELEVATED_OR_ABOVE = new Set(['elevated', 'critical']);
 
+// ── Constants and feature flags ───────────────────────────────────────────────
+
+/** Reasons recorded when digital signals are quarantined from scoring. */
 export const QUARANTINE_REASON = Object.freeze({
   DIGITAL_DARKNESS: 'digital_darkness',
   CONNECTIVITY_ISOLATION: 'connectivity_isolation',
@@ -23,7 +33,10 @@ export const QUARANTINE_REASON = Object.freeze({
 });
 
 /**
+ * Whether pre-score scoring partition is enabled (RESILIENCE_SCORING_PARTITION !== '0').
+ *
  * @param {NodeJS.ProcessEnv} [env]
+ * @returns {boolean}
  */
 export function isScoringPartitionEnabled(env = process.env) {
   return env.RESILIENCE_SCORING_PARTITION !== '0';
@@ -51,7 +64,10 @@ const RECOVERY_MIN_DEFAULT = 5;
 const RECOVERY_FRACTION_DEFAULT = 0.5;
 
 /**
+ * Whether strict quarantine recovery thresholds are enabled.
+ *
  * @param {NodeJS.ProcessEnv} [env]
+ * @returns {boolean}
  */
 export function isStrictQuarantineRecoveryEnabled(env = process.env) {
   return env.RESILIENCE_QUARANTINE_STRICT_RECOVERY === '1';
@@ -128,7 +144,11 @@ function partitionAnchorPlusSoftPress(list) {
   };
 }
 
+// ── Partition resolution ────────────────────────────────────────────────────────
+
 /**
+ * Resolve scoring partition: which signals score vs quarantine under void/quarantine state.
+ *
  * @param {Array<object>} signals
  * @param {object|null|undefined} dataVoid
  * @param {object} [opts]
@@ -220,9 +240,14 @@ export function resolveScoringPartition(signals, dataVoid, opts = {}) {
   return normal;
 }
 
+// ── Quarantine summary ──────────────────────────────────────────────────────────
+
 /**
+ * Summarize quarantined signals for assessment.quarantined_digital attachment.
+ *
  * @param {Array<object>} quarantined
  * @param {string|null} [reason]
+ * @returns {object|null}
  */
 export function summarizeQuarantinedSignals(quarantined, reason = null) {
   const list = Array.isArray(quarantined) ? quarantined : [];

@@ -1,10 +1,32 @@
 /**
- * Assessment-level investigation transparency for operators.
+ * Assessment-level investigation transparency for the operator report surface.
+ *
+ * Pipeline position: finalize — attached by `attachInvestigationDiagnostics` after
+ * component diagnostics; surfaced in operator UI and decision-brief context.
+ *
+ * Owns: aggregate signal-pool counts (investigation vs scoring vs quarantine),
+ * agent-run flags, degrade/synthesis metadata.
+ * Does NOT: partition signals per component or build attention items.
+ *
+ * Key collaborators: `operator/componentDiagnostics.js`, scoring pipeline output,
+ * specialist agent trace fields on assessment.
  */
 
 /**
+ * Build the assessment-level investigation summary block.
+ *
  * @param {object} assessment
- * @param {object} ctx
+ * @param {object} [ctx]
+ * @param {object[]} [ctx.investigationSignals]
+ * @param {object[]} [ctx.scoringSignals]
+ * @param {object[]} [ctx.narrativeScopeSignals]
+ * @param {object[]} [ctx.narrativeNationalContext]
+ * @param {boolean} [ctx.shadowScoringAvailable]
+ * @param {string|null} [ctx.budgetDegradeMode]
+ * @param {boolean} [ctx.scoringPartitionApplied]
+ * @param {string|null} [ctx.scoringAssessmentMode]
+ * @param {number|null} [ctx.signalsScoringUsed]
+ * @param {string|null} [ctx.priorQuarantineSkipped]
  * @returns {object}
  */
 export function buildInvestigationSummary(assessment, ctx = {}) {

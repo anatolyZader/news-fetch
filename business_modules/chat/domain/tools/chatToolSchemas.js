@@ -5,7 +5,7 @@ import { operatorEpistemicOverlayEnabled } from '../../../resilience_scorer/inde
 import { pboReviewRagEnabled } from '../../../../cross-cut-modules/retrieval/ragConfig.js';
 
 export const SOURCE_TYPE_ENUM = [
-  'news', 'radio', 'visits', 'field', 'pbo', 'pbo_regional', 'naftali', 'whatsapp',
+  'news', 'radio', 'visits', 'pbo', 'pbo_regional', 'naftali', 'whatsapp',
   'social', 'audio', 'manual', 'video', 'probe',
 ];
 
@@ -14,7 +14,7 @@ const COMPONENT_ENUM = [
   'community_capital', 'leadership', 'belonging_solidarity', 'wellbeing_at_risk',
 ];
 
-const SIGNAL_SOURCE_ENUM = ['news', 'radio', 'visits', 'field', 'pbo', 'pbo_regional', 'naftali', 'whatsapp', 'social'];
+const SIGNAL_SOURCE_ENUM = ['news', 'radio', 'visits', 'pbo', 'pbo_regional', 'naftali', 'whatsapp', 'social'];
 
 export const CORE_CHAT_TOOLS = [
   {

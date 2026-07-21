@@ -1,10 +1,17 @@
 /**
- * Rank per-component top_contributors for assessment display.
+ * Count-based ranking of per-component top_contributors for assessment display.
  *
- * Count-based ranking (no contribution mass): strong catalog link first, then
- * verified grounding, then evidence reliability class, then severity.
+ * Pipeline position: evidence pipeline / narrative digest — ranks signals for
+ * operator evidence lists and digest caps.
+ *
+ * Owns: contributorRankKey sort key (primary edge, GROUNDING_TIER, evidence class).
+ * Does NOT: compute numeric contribution mass or resilience scores.
+ *
+ * Key collaborators: `signals/routing/signalRouter.js`, `signals/groundingPolicy.js`,
+ * `narrative/buildFullSignalDigest.js`, operator narrative surface.
  */
-import { getComponentWeight, hasStrongComponentLink } from '../signals/routing/signalRouter.js';
+
+import { isPrimaryEdge } from '../signals/routing/signalRouter.js';
 import { GROUNDING_TIER } from '../signals/groundingPolicy.js';
 
 const EVIDENCE_CLASS_RANK = {
@@ -18,22 +25,35 @@ const EVIDENCE_CLASS_RANK = {
 
 const INTENSITY_RANK = { severe: 2, moderate: 1, light: 0 };
 
+// ── Ranking ───────────────────────────────────────────────────────────────────
+
+/**
+ * Composite sort key for count-based contributor ranking (higher = more salient).
+ *
+ * @param {object} signal
+ * @param {string} componentId
+ * @returns {number}
+ */
 export function contributorRankKey(signal, componentId) {
   const signalType = signal.signal_type ?? signal.type;
-  const weight = Math.abs(getComponentWeight(signalType, componentId) ?? 0.5);
+  const primaryEdge = isPrimaryEdge(signalType, componentId) ? 1 : 0;
   const grounded = signal.grounding_tier === GROUNDING_TIER.grounded ? 1 : 0;
   const evidenceClass = EVIDENCE_CLASS_RANK[signal.evidence_type ?? signal.evidence_class] ?? 2;
   const intensity = INTENSITY_RANK[signal.intensity] ?? 1;
-  return grounded * 100 + evidenceClass * 10 + intensity * 2 + weight;
+  return grounded * 100 + evidenceClass * 10 + intensity * 2 + primaryEdge;
 }
 
 function hasStrongCatalogLink(signal, componentId) {
   const signalType = signal.signal_type ?? signal.type;
-  return hasStrongComponentLink(signalType, componentId);
+  return isPrimaryEdge(signalType, componentId);
 }
 
+// ── Top contributors list ─────────────────────────────────────────────────────
+
 /**
- * @param {object} scored evidence component with signals[]
+ * Build ranked top_contributors array for one component from scored signals.
+ *
+ * @param {object} scored Evidence component with signals[].
  * @param {string} componentId
  * @returns {object[]}
  */

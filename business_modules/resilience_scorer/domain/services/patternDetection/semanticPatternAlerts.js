@@ -1,6 +1,20 @@
 /**
  * Deterministic semantic pattern detection on scoped signals (no LLM).
+ *
+ * Pipeline position: STAGE-2 assess — scans loaded signals for cross-source
+ * information/rumor patterns before operator recommendations are built.
+ *
+ * Owns: rule-based pattern detection (vacuum+rumor, official/local conflict,
+ * active rumor clusters) and evidence ref shaping.
+ * Does NOT: invoke LLMs, rank actions (see `actionCompass/`), or mutate signals.
+ *
+ * Key collaborators: `patternDetection/operatorRecommendations.js`,
+ * `services/operator/attentionItems.js`, assess finalize.
  */
+
+// ---------------------------------------------------------------------------
+// Source and signal-type sets
+// ---------------------------------------------------------------------------
 
 const OFFICIAL_SOURCE_TYPES = new Set(['radio', 'news', 'pbo', 'pbo_regional', 'naftali']);
 const LOCAL_SOURCE_TYPES = new Set(['whatsapp', 'social', 'field', 'visits', 'field_whatsapp']);
@@ -20,6 +34,10 @@ const CONFUSION_TYPES = new Set([
   'information_vacuum_post_event',
   'mistrusted_information_source',
 ]);
+
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
 
 /**
  * @param {object} signal
@@ -61,7 +79,12 @@ function filterBySourceTypes(signals, sourceTypes) {
   return (signals ?? []).filter((s) => sourceTypes.has(s.source_type ?? ''));
 }
 
+// ---------------------------------------------------------------------------
+// Pattern detection
+// ---------------------------------------------------------------------------
+
 /**
+ * Detect semantic cross-source patterns in a scoped signal list.
  * @param {Array<object>} signals
  * @returns {Array<object>}
  */

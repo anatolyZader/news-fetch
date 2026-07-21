@@ -1,7 +1,14 @@
 /**
- * Copy for the Components table — used by report markdown export and the web UI
- * so readers understand the count-based evidence columns. There are no numeric
- * resilience scores in this system.
+ * Components table glossary copy for report markdown and web UI.
+ *
+ * Pipeline position: report display — explains count-based evidence columns to
+ * readers. Client-safe isomorphic (imported by React and markdown export).
+ *
+ * Owns: COMPONENTS_TABLE_HELP_MARKDOWN block and EVIDENCE_LEVEL_INLINE_NOTE.
+ * Does NOT: compute sufficiency/balance bands (componentEvidence.js) or numeric
+ * resilience scores (min-math).
+ *
+ * Key collaborators: componentEvidence.js, client ComponentsTable, report markdown export.
  */
 
 /** Block inserted after `## Components` in reports and injected for legacy .md in the browser. */

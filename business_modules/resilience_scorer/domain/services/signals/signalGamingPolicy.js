@@ -1,14 +1,16 @@
 /**
- * Anti-gaming policy for citizen-sourced and high-volume signals.
- * Distinct from probeCorroborationPolicy.js: this caps per-sender/per-type volume;
- * that one measures distinct-source corroboration against a minimum threshold.
+ * Anti-gaming policy for citizen-sourced and high-volume WhatsApp/field signals.
+ *
+ * Pipeline position: assess — post-verification tagging before scope filter and evidence partition.
+ *
+ * Owns: per-sender daily/hourly caps, field_whatsapp-only critical down-ranking via grounding_tier.
+ * Does NOT: probe corroboration (probeCorroborationPolicy.js), open-evidence verification, or routing.
+ *
+ * Key collaborators: groundingPolicy.js, probeCorroborationPolicy.js, ../../epistemic/highSalienceBypass.js, ../../contracts/gamingPolicy.js.
  */
-
 
 import { CRITICAL_BYPASS_SIGNAL_TYPES } from '../../epistemic/highSalienceBypass.js';
 import { GROUNDING_TIER } from './groundingPolicy.js';
-
-
 
 const DEFAULT_DAILY_CAP = 20;
 const DEFAULT_HOURLY_TYPE_CAP = 5;
@@ -18,23 +20,42 @@ function parseEnvInt(name, fallback) {
   return Number.isFinite(raw) ? raw : fallback;
 }
 
+/**
+ * Whether gaming policy is enabled (env RESILIENCE_GAMING_POLICY).
+ *
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {boolean}
+ */
 export function isGamingPolicyEnabled(env = process.env) {
   return env.RESILIENCE_GAMING_POLICY !== '0';
 }
 
+/**
+ * Max signals per sender per day for WhatsApp sources.
+ *
+ * @param {NodeJS.ProcessEnv} [_env]
+ * @returns {number}
+ */
 export function whatsappDailyCap(_env = process.env) {
   return parseEnvInt('RESILIENCE_WHATSAPP_MAX_SIGNALS_PER_SENDER', DEFAULT_DAILY_CAP);
 }
 
+/**
+ * Max signals per sender per signal_type per hour for WhatsApp sources.
+ *
+ * @param {NodeJS.ProcessEnv} [_env]
+ * @returns {number}
+ */
 export function whatsappHourlyTypeCap(_env = process.env) {
   return parseEnvInt('RESILIENCE_WHATSAPP_HOURLY_TYPE_CAP', DEFAULT_HOURLY_TYPE_CAP);
 }
 
 /**
- * Tag signals exceeding per-sender caps (whatsapp / field_whatsapp).
+ * Tag signals exceeding per-sender caps (whatsapp / field_whatsapp) with gaming_suspect and rejected tier.
+ *
  * @param {Array<object>} signals
  * @param {NodeJS.ProcessEnv} [env]
- * @returns {Array<object>}
+ * @returns {Array<object>} signals with cap violations tagged
  */
 export function applyWhatsappSenderCaps(signals, env = process.env) {
   if (!isGamingPolicyEnabled(env)) return signals ?? [];
@@ -77,7 +98,8 @@ export function applyWhatsappSenderCaps(signals, env = process.env) {
 }
 
 /**
- * Down-rank critical field_whatsapp-only signals without corroboration.
+ * Down-rank critical field_whatsapp-only signals without corroboration from other source families.
+ *
  * @param {Array<object>} signals
  * @returns {Array<object>}
  */
@@ -105,15 +127,16 @@ export function applyFieldCorroborationGaming(signals) {
 }
 
 /**
+ * Apply all signal gaming policies in sequence (caps then field corroboration).
+ *
  * @param {Array<object>} signals
  * @param {NodeJS.ProcessEnv} [env]
+ * @returns {Array<object>}
  */
 export function applySignalGamingPolicy(signals, env = process.env) {
   let out = applyWhatsappSenderCaps(signals, env);
   out = applyFieldCorroborationGaming(out);
   return out;
 }
-
-
 
 export {isDmPhoneAllowed} from '../../contracts/gamingPolicy.js';

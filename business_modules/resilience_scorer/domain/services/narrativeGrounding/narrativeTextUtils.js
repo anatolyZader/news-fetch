@@ -1,5 +1,14 @@
 /**
- * Text utilities for narrative grounding checks.
+ * Text utilities for narrative grounding overlap and connective checks.
+ *
+ * Pipeline position: used by sentenceGroundingChecker and narrativeSchemaValidator
+ * during post-hoc QA of generated prose vs cited evidence.
+ *
+ * Owns: sentence splitting, forbidden connective detection, token overlap scoring.
+ * Does NOT: resolve signal refs or call LLMs.
+ *
+ * Key collaborators: `signals/textSimilarity.js`, `sentenceGroundingChecker.js`,
+ * `narrativeSchemaValidator.js`.
  */
 
 import {
@@ -8,6 +17,9 @@ import {
   tokenize,
 } from '../signals/textSimilarity.js';
 
+// ── Connective policy ─────────────────────────────────────────────────────────
+
+/** Causal connectives disallowed when linking unrelated signal refs in one sentence. */
 export const FORBIDDEN_CONNECTIVES = [
   'because',
   'therefore',
@@ -23,7 +35,11 @@ export const FORBIDDEN_CONNECTIVES = [
   'so that',
 ];
 
+// ── Sentence utilities ──────────────────────────────────────────────────────────
+
 /**
+ * Split prose into sentences on punctuation and newlines.
+ *
  * @param {string|null|undefined} text
  * @returns {string[]}
  */
@@ -36,6 +52,8 @@ export function splitSentences(text) {
 }
 
 /**
+ * Find forbidden causal connectives present in text.
+ *
  * @param {string} text
  * @returns {string[]}
  */
@@ -45,10 +63,14 @@ export function findForbiddenConnectives(text) {
   return FORBIDDEN_CONNECTIVES.filter((c) => lower.includes(c));
 }
 
+// ── Overlap scoring ───────────────────────────────────────────────────────────
+
 /**
  * Overlap score 0..1 between narrative text and evidence string.
+ *
  * @param {string} text
  * @param {string} evidenceText
+ * @returns {number}
  */
 export function textOverlapScore(text, evidenceText) {
   const a = tokenize(text);
@@ -60,9 +82,12 @@ export function textOverlapScore(text, evidenceText) {
 }
 
 /**
+ * Best overlap score across multiple evidence strings.
+ *
  * @param {string} text
  * @param {string[]} evidenceTexts
- * @param {number} [minOverlap]
+ * @param {number} [_minOverlap]
+ * @returns {number}
  */
 export function bestEvidenceOverlap(text, evidenceTexts, _minOverlap = 0) {
   let best = 0;
@@ -75,8 +100,10 @@ export function bestEvidenceOverlap(text, evidenceTexts, _minOverlap = 0) {
 }
 
 /**
- * Strip markdown links for overlap checks.
+ * Strip markdown links before overlap checks.
+ *
  * @param {string} text
+ * @returns {string}
  */
 export function stripMarkdownLinks(text) {
   return String(text ?? '').replaceAll(/\(\[[^\]]*\]\([^)]*\)\)/g, '').trim();

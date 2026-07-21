@@ -1,8 +1,16 @@
 /**
  * Real-time OOV clustering for operator alerts during assessment.
  *
- * Groups unknown signal captures by semantic similarity (embeddings) within a
- * rolling time window, with source-adaptive thresholds and high-salience bypass.
+ * Pipeline position: STAGE-2 assess oov path — groups unknown/open capture records
+ * by semantic similarity within a rolling window and emits burst alert metadata.
+ *
+ * Owns: window filtering, salience bypass, source-adaptive thresholds, alert levels,
+ * assessment-safe cluster serialization.
+ * Does NOT: persist captures (see `oovCapture.js`) or synthesize scoring signals
+ * (see `oovScoringSignals.js`).
+ *
+ * Key collaborators: `oov/oovClusterer.js`, `oov/oovBurstAlert.js`,
+ * `contracts/learningCaptureRecordHelpers.js`.
  */
 
 import { LEARNING_CAPTURE_KINDS } from '../../contracts/learningCaptureKinds.js';
@@ -11,6 +19,10 @@ import {
   inferDominantSourceClass,
 } from '../../contracts/learningCaptureRecordHelpers.js';
 import { clusterByEmbedding, clusterByPrefix } from './oovClusterer.js';
+
+// ---------------------------------------------------------------------------
+// Salience and threshold constants
+// ---------------------------------------------------------------------------
 
 const STOP_WORDS = new Set([
   'the', 'and', 'for', 'are', 'was', 'were', 'with', 'that', 'this', 'from',
@@ -46,10 +58,22 @@ const SOURCE_CLUSTER_MIN = Object.freeze({
   default: 5,
 });
 
+const INVESTIGATION_CAPTURE_KINDS = new Set([
+  LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE,
+  LEARNING_CAPTURE_KINDS.RESIDUAL_OBSERVATION,
+  LEARNING_CAPTURE_KINDS.OPEN_OBSERVATION,
+]);
+
+// ---------------------------------------------------------------------------
+// Window and salience helpers
+// ---------------------------------------------------------------------------
+
 /**
+ * Filter capture records to a rolling time window anchored at `anchorMs`.
  * @param {Array<object>} records
  * @param {number} windowHours
  * @param {number} [anchorMs]
+ * @returns {Array<object>}
  */
 export function filterRecordsInWindow(records, windowHours, anchorMs = Date.now()) {
   const ms = windowHours * 60 * 60 * 1000;
@@ -61,7 +85,9 @@ export function filterRecordsInWindow(records, windowHours, anchorMs = Date.now(
 }
 
 /**
+ * Whether evidence text contains high-salience crisis substrings.
  * @param {string} text
+ * @returns {boolean}
  */
 export function evidenceHasHighSalience(text) {
   const normalized = String(text ?? '').toLowerCase();
@@ -69,8 +95,11 @@ export function evidenceHasHighSalience(text) {
 }
 
 /**
+ * Source-adaptive minimum cluster count for alert threshold.
  * @param {'field' | 'social' | 'news' | 'radio' | 'default'} sourceClass
  * @param {object} [opts]
+ * @param {boolean} [opts.digitalDarkness]
+ * @returns {number}
  */
 export function clusterMinThresholdForSource(sourceClass, opts = {}) {
   const base = SOURCE_CLUSTER_MIN[sourceClass] ?? SOURCE_CLUSTER_MIN.default;
@@ -81,8 +110,10 @@ export function clusterMinThresholdForSource(sourceClass, opts = {}) {
 }
 
 /**
+ * Extract top keyword tokens from cluster evidence text.
  * @param {object} cluster
- * @param {number} [max]
+ * @param {number} [max=5]
+ * @returns {string[]}
  */
 export function extractKeywordsFromCluster(cluster, max = 5) {
   /** @type {Map<string, number>} */
@@ -99,6 +130,32 @@ export function extractKeywordsFromCluster(cluster, max = 5) {
     .slice(0, max)
     .map(([w]) => w);
 }
+
+/**
+ * Strip heavy fields before serializing clusters to assessment JSON.
+ * @param {object} cluster
+ * @returns {object}
+ */
+export function serializeClusterForAssessment(cluster) {
+  const { records, ...rest } = cluster;
+  const dominantSource = inferDominantSourceClass(records ?? []);
+  return {
+    key: rest.key,
+    label: rest.label ?? rest.key,
+    count: rest.count,
+    keywords: rest.keywords ?? [],
+    high_salience: rest.high_salience === true,
+    sample_evidence: rest.sample_evidence ?? [],
+    distinct_sources: rest.distinct_sources ?? 0,
+    distinct_articles: rest.distinct_articles ?? 0,
+    related_types: rest.related_types ?? [],
+    dominant_source_class: dominantSource,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Internal cluster annotation and alert logic
+// ---------------------------------------------------------------------------
 
 /**
  * @param {object} cluster
@@ -122,27 +179,6 @@ function annotateCluster(cluster) {
     keywords,
     label: buildClusterLabel(cluster),
     high_salience: (cluster.records ?? []).some((r) => evidenceHasHighSalience(evidenceTextForRecord(r))),
-  };
-}
-
-/**
- * Strip heavy fields before serializing to assessment JSON.
- * @param {object} cluster
- */
-export function serializeClusterForAssessment(cluster) {
-  const { records, ...rest } = cluster;
-  const dominantSource = inferDominantSourceClass(records ?? []);
-  return {
-    key: rest.key,
-    label: rest.label ?? rest.key,
-    count: rest.count,
-    keywords: rest.keywords ?? [],
-    high_salience: rest.high_salience === true,
-    sample_evidence: rest.sample_evidence ?? [],
-    distinct_sources: rest.distinct_sources ?? 0,
-    distinct_articles: rest.distinct_articles ?? 0,
-    related_types: rest.related_types ?? [],
-    dominant_source_class: dominantSource,
   };
 }
 
@@ -195,75 +231,14 @@ function computeOovAlertLevel(unknowns, top, clusterMin, salienceBypass, operato
   return { alert: false, level: 'none' };
 }
 
-/**
- * @param {Array<object>} records
- * @param {object} [opts]
- * @param {number} [opts.windowHours]
- * @param {number} [opts.anchorMs]
- * @param {number} [opts.operatorMin]
- * @param {number} [opts.embedThreshold]
- * @param {boolean} [opts.digitalDarkness]
- * @param {(text: string) => Promise<{ vector: Float32Array }>} [opts.embedFn]
- */
-export async function evaluateDynamicOovClusters(records, opts = {}) {
-  const windowHours = opts.windowHours ?? parseEnvFloat('RESILIENCE_OOV_CLUSTER_WINDOW_HOURS', 2);
-  const embedThreshold = opts.embedThreshold ?? parseEnvFloat('RESILIENCE_OOV_EMBED_THRESHOLD', 0.82);
-  const operatorMinRaw = opts.operatorMin ?? parseEnvInt('RESILIENCE_OOV_OPERATOR_MIN', 5);
-  const operatorMin = Number.isFinite(operatorMinRaw) && operatorMinRaw > 0 ? operatorMinRaw : 5;
-  const salienceMinRaw = parseEnvInt('RESILIENCE_OOV_SALIENCE_MIN', 2);
-  const salienceMin = Number.isFinite(salienceMinRaw) && salienceMinRaw > 0 ? salienceMinRaw : 2;
-  const anchorMs = opts.anchorMs ?? Date.now();
-
-  const inWindow = filterRecordsInWindow(records, windowHours, anchorMs);
-  const unknowns = inWindow.filter(
-    (r) => (r.capture_kind ?? LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE) === LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE,
-  );
-
-  return evaluateClustersFromRecords(unknowns, {
-    ...opts,
-    windowHours,
-    embedThreshold,
-    operatorMin,
-    salienceMin,
-    anchorMs,
-  });
+function parseEnvFloat(name, fallback) {
+  const v = Number.parseFloat(process.env[name] ?? '');
+  return Number.isFinite(v) && v > 0 ? v : fallback;
 }
 
-const INVESTIGATION_CAPTURE_KINDS = new Set([
-  LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE,
-  LEARNING_CAPTURE_KINDS.RESIDUAL_OBSERVATION,
-  LEARNING_CAPTURE_KINDS.OPEN_OBSERVATION,
-]);
-
-/**
- * Investigation burst — includes residual/open observations for agent blackboard.
- * Scoring path should keep using evaluateDynamicOovClusters (unknown_type only).
- *
- * @param {Array<object>} records
- * @param {object} [opts]
- */
-export async function evaluateInvestigationOovClusters(records, opts = {}) {
-  const windowHours = opts.windowHours ?? parseEnvFloat('RESILIENCE_OOV_CLUSTER_WINDOW_HOURS', 2);
-  const embedThreshold = opts.embedThreshold ?? parseEnvFloat('RESILIENCE_OOV_EMBED_THRESHOLD', 0.82);
-  const operatorMinRaw = opts.operatorMin ?? parseEnvInt('RESILIENCE_OOV_OPERATOR_MIN', 5);
-  const operatorMin = Number.isFinite(operatorMinRaw) && operatorMinRaw > 0 ? operatorMinRaw : 5;
-  const salienceMinRaw = parseEnvInt('RESILIENCE_OOV_SALIENCE_MIN', 2);
-  const salienceMin = Number.isFinite(salienceMinRaw) && salienceMinRaw > 0 ? salienceMinRaw : 2;
-  const anchorMs = opts.anchorMs ?? Date.now();
-
-  const inWindow = filterRecordsInWindow(records, windowHours, anchorMs);
-  const investigationRecords = inWindow.filter((r) =>
-    INVESTIGATION_CAPTURE_KINDS.has(r.capture_kind ?? LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE));
-
-  return evaluateClustersFromRecords(investigationRecords, {
-    ...opts,
-    windowHours,
-    embedThreshold,
-    operatorMin,
-    salienceMin,
-    anchorMs,
-    investigationMode: true,
-  });
+function parseEnvInt(name, fallback) {
+  const v = Number.parseInt(process.env[name] ?? '', 10);
+  return Number.isFinite(v) && v > 0 ? v : fallback;
 }
 
 async function evaluateClustersFromRecords(records, opts) {
@@ -321,12 +296,74 @@ async function evaluateClustersFromRecords(records, opts) {
   return out;
 }
 
-function parseEnvFloat(name, fallback) {
-  const v = Number.parseFloat(process.env[name] ?? '');
-  return Number.isFinite(v) && v > 0 ? v : fallback;
+// ---------------------------------------------------------------------------
+// Public evaluators
+// ---------------------------------------------------------------------------
+
+/**
+ * Evaluate dynamic OOV clusters for operator/scoring path (unknown_type only).
+ * @param {Array<object>} records
+ * @param {object} [opts]
+ * @param {number} [opts.windowHours]
+ * @param {number} [opts.anchorMs]
+ * @param {number} [opts.operatorMin]
+ * @param {number} [opts.embedThreshold]
+ * @param {boolean} [opts.digitalDarkness]
+ * @param {(text: string) => Promise<{ vector: Float32Array }>} [opts.embedFn]
+ * @returns {Promise<object>}
+ */
+export async function evaluateDynamicOovClusters(records, opts = {}) {
+  const windowHours = opts.windowHours ?? parseEnvFloat('RESILIENCE_OOV_CLUSTER_WINDOW_HOURS', 2);
+  const embedThreshold = opts.embedThreshold ?? parseEnvFloat('RESILIENCE_OOV_EMBED_THRESHOLD', 0.82);
+  const operatorMinRaw = opts.operatorMin ?? parseEnvInt('RESILIENCE_OOV_OPERATOR_MIN', 5);
+  const operatorMin = Number.isFinite(operatorMinRaw) && operatorMinRaw > 0 ? operatorMinRaw : 5;
+  const salienceMinRaw = parseEnvInt('RESILIENCE_OOV_SALIENCE_MIN', 2);
+  const salienceMin = Number.isFinite(salienceMinRaw) && salienceMinRaw > 0 ? salienceMinRaw : 2;
+  const anchorMs = opts.anchorMs ?? Date.now();
+
+  const inWindow = filterRecordsInWindow(records, windowHours, anchorMs);
+  const unknowns = inWindow.filter(
+    (r) => (r.capture_kind ?? LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE) === LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE,
+  );
+
+  return evaluateClustersFromRecords(unknowns, {
+    ...opts,
+    windowHours,
+    embedThreshold,
+    operatorMin,
+    salienceMin,
+    anchorMs,
+  });
 }
 
-function parseEnvInt(name, fallback) {
-  const v = Number.parseInt(process.env[name] ?? '', 10);
-  return Number.isFinite(v) && v > 0 ? v : fallback;
+/**
+ * Investigation burst — includes residual/open observations for agent blackboard.
+ * Scoring path should keep using `evaluateDynamicOovClusters` (unknown_type only).
+ *
+ * @param {Array<object>} records
+ * @param {object} [opts]
+ * @returns {Promise<object>}
+ */
+export async function evaluateInvestigationOovClusters(records, opts = {}) {
+  const windowHours = opts.windowHours ?? parseEnvFloat('RESILIENCE_OOV_CLUSTER_WINDOW_HOURS', 2);
+  const embedThreshold = opts.embedThreshold ?? parseEnvFloat('RESILIENCE_OOV_EMBED_THRESHOLD', 0.82);
+  const operatorMinRaw = opts.operatorMin ?? parseEnvInt('RESILIENCE_OOV_OPERATOR_MIN', 5);
+  const operatorMin = Number.isFinite(operatorMinRaw) && operatorMinRaw > 0 ? operatorMinRaw : 5;
+  const salienceMinRaw = parseEnvInt('RESILIENCE_OOV_SALIENCE_MIN', 2);
+  const salienceMin = Number.isFinite(salienceMinRaw) && salienceMinRaw > 0 ? salienceMinRaw : 2;
+  const anchorMs = opts.anchorMs ?? Date.now();
+
+  const inWindow = filterRecordsInWindow(records, windowHours, anchorMs);
+  const investigationRecords = inWindow.filter((r) =>
+    INVESTIGATION_CAPTURE_KINDS.has(r.capture_kind ?? LEARNING_CAPTURE_KINDS.UNKNOWN_TYPE));
+
+  return evaluateClustersFromRecords(investigationRecords, {
+    ...opts,
+    windowHours,
+    embedThreshold,
+    operatorMin,
+    salienceMin,
+    anchorMs,
+    investigationMode: true,
+  });
 }

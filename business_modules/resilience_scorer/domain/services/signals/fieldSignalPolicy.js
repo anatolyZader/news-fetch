@@ -1,10 +1,17 @@
 /**
- * Optional structured metadata for field-anchor signals.
+ * Optional structured metadata enrichment for field-anchor signals.
+ *
+ * Pipeline position: extract/assess — normalizes field_provenance on visits/PBO/field family signals.
+ *
+ * Owns: field_provenance attachment from known signal fields when missing.
+ * Does NOT: extraction itself, gaming caps (signalGamingPolicy.js), or geo resolution.
+ *
+ * Key collaborators: visitsSourceType.js, fieldReportHygiene.js, signalGamingPolicy.js, probeCorroborationPolicy.js.
  */
 
 const FIELD_SOURCE_TYPES = new Set([
-  'field',
-  'visits', // canonical assess-time alias of 'field' (see visitsSourceType.js)
+  'visits',
+  'field', // read-compat for older bundles
   'field_whatsapp',
   'pbo',
   'pbo_regional',
@@ -17,9 +24,10 @@ function isFieldFamilySource(signal) {
 
 /**
  * Attach field_provenance from known signal fields when missing.
- * @param {object} signal
- * @param {object} [hints]
- * @returns {object}
+ *
+ * @param {object} signal field-family signal instance
+ * @param {object} [hints] optional overrides (officer_id, visit_locality, etc.)
+ * @returns {object} signal copy with field_provenance populated
  */
 export function enrichFieldProvenance(signal, hints = {}) {
   if (!isFieldFamilySource(signal)) return signal;

@@ -1,6 +1,17 @@
 /**
- * Claim normalization and merging helpers for the operator narrative pipeline.
+ * Claim normalization and merging for the operator narrative pipeline.
+ *
+ * Pipeline position: between specialist agent output and narrative LLM / operator
+ * narrative surface finalize.
+ *
+ * Owns: agentClaimsForComponent shape normalization, merge with facts-pass claims,
+ * digest stub claims for degrade levels.
+ * Does NOT: run LLM or compute narrative_grounding_score (post-hoc QA elsewhere).
+ *
+ * Key collaborators: `narrativeGrounding/signalRefRegistry.js`, `operator/operatorNarrativeSurface.js`,
+ * narrative LLM orchestrator in app layer.
  */
+
 import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { buildRefKey } from '../narrativeGrounding/signalRefRegistry.js';
 

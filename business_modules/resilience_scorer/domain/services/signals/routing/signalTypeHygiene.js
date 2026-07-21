@@ -1,12 +1,27 @@
 /**
  * Cross-source post-extract signal_type corrections (news, radio, field, PBO).
+ *
+ * Pipeline position: after closed/open extraction, before signals land in
+ * bundles / assess. Rewrites common misclassifications and drops non-resilience
+ * noise (crime, EMS roll-ups, bare hazard tickers).
+ *
+ * Owns: rewriteMisclassifiedSignalType, shouldDrop*, applySignalTypeHygiene,
+ * national-context exclusion set, bare-hazard / crime / EMS detectors.
+ * Does NOT: define the catalog vocabulary (signalCatalog.js) or component
+ * routing (signalRouting.js). Harm/infrastructure split is delegated to
+ * harmInfrastructureSplit.js.
+ *
+ * Key collaborators: signalCatalog.js, harmInfrastructureSplit.js, extract CLIs
+ * and field-report hygiene callers.
  */
 import { canonicalizeSignalType } from '../../../contracts/signalCatalog.js';
 import { splitBundledHarmInfrastructure, testAny } from '../harmInfrastructureSplit.js';
 
+/** @deprecated Prefer SIGNAL_ALIASES / canonicalizeSignalType via signalRouter. */
 export { SIGNAL_ALIASES as FIELD_REPORT_SIGNAL_TYPE_ALIASES } from '../../../contracts/signalCatalog.js';
 
 /**
+ * Resolve legacy / alias spellings to the canonical catalog type id.
  * @param {string | null | undefined} type
  * @returns {string}
  */
@@ -54,9 +69,11 @@ const RITUAL_CONTINUITY_TYPES = new Set([
 ]);
 
 /**
+ * Evidence-driven type rewrite for known extract confusions (backbone gap →
+ * coordination_failure; disrupted ritual framed as continuity → service_disruption).
  * @param {string} signalType
  * @param {string} evidence
- * @returns {string}
+ * @returns {string} canonical type (possibly rewritten)
  */
 export function rewriteMisclassifiedSignalType(signalType, evidence) {
   const type = resolveSignalTypeAlias(signalType);
@@ -121,6 +138,7 @@ const RESILIENCE_BEHAVIORAL_CONTENT_PATTERNS = [
 ];
 
 /**
+ * True when evidence is only an alert/siren/salvo headline with no resident behavior.
  * @param {string} evidence
  * @returns {boolean}
  */
@@ -131,6 +149,7 @@ export function isBareHazardTickerEvidence(evidence) {
 }
 
 /**
+ * True when evidence reads as criminal/street violence without war-emergency framing.
  * @param {string} evidence
  * @returns {boolean}
  */
@@ -141,6 +160,7 @@ export function isCriminalViolenceEvidence(evidence) {
 }
 
 /**
+ * True when evidence is a national EMS cumulative / batch casualty roll-up.
  * @param {string} evidence
  * @returns {boolean}
  */
@@ -169,6 +189,7 @@ export function shouldDropNonResilienceCasualtySignal(signal) {
 }
 
 /**
+ * True when this type should not pad regional-report national-context pools.
  * @param {object} signal
  * @returns {boolean}
  */
@@ -178,8 +199,9 @@ export function isExcludedNationalContextSignalType(signal) {
 }
 
 /**
+ * Full post-extract hygiene pass: drop noise, rewrite types, split bundled harm/infra.
  * @param {object[]} signals
- * @returns {object[]}
+ * @returns {object[]} cleaned signal list (may expand via split)
  */
 export function applySignalTypeHygiene(signals) {
   if (!Array.isArray(signals)) return [];

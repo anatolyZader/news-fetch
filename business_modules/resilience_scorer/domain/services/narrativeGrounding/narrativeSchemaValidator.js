@@ -1,5 +1,14 @@
 /**
- * Post-parse validation of narrative LLM JSON output.
+ * Post-parse validation of narrative LLM JSON output (schema + grounding rules).
+ *
+ * Pipeline position: after facts/polish LLM parse — before persisting narrative;
+ * post-hoc QA distinct from GROUNDING_TIER on signals.
+ *
+ * Owns: narrative_claims ref validation, connective checks, synthesis URL cap.
+ * Does NOT: compute narrative_grounding_score (see sentenceGroundingChecker.js).
+ *
+ * Key collaborators: `coOccurrenceGraph.js`, `narrativeTextUtils.js`, `groundingConfig.js`,
+ * RESILIENCE_COMPONENTS manifest strings.
  */
 
 import { RESILIENCE_COMPONENTS } from '../../resilienceComponents.js';
@@ -19,6 +28,8 @@ import {
 const VALID_RELATIONS = new Set(['parallel', 'same_article_only', 'none']);
 const SIGNAL_LABEL_IN_PROSE = /\[S\d+\]/;
 const INTERNAL_REF_IN_PROSE = /\[[^\]]+@(idx|url|file):[^\]]+\]/;
+
+// ── Component validation (internal) ───────────────────────────────────────────
 
 function warnSignalLabelsInProse(text, fieldName, warnings) {
   if (text && SIGNAL_LABEL_IN_PROSE.test(text)) {
@@ -138,11 +149,16 @@ function validateResilienceComponent(comp, def, ctx) {
   warnSignalLabelsInProse(comp.narrative ?? '', `${def.id}.narrative`, warnings);
 }
 
+// ── Public API ────────────────────────────────────────────────────────────────
+
 /**
- * @param {object} narratives
+ * Validate parsed narrative LLM output against registry and catalog rules.
+ *
+ * @param {object} narratives Parsed LLM JSON.
  * @param {object} opts
  * @param {Record<string, object>} opts.scoredComponents
  * @param {{ byRef: Map<string, object> }} opts.registry
+ * @returns {{ ok: boolean, errors: string[], warnings: string[] }}
  */
 export function validateNarrativeOutput(narratives, opts = {}) {
   const errors = [];

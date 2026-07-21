@@ -1,35 +1,63 @@
 /**
  * Dynamic outlet reputation decay from verification drops and dedup collisions.
+ *
+ * Pipeline position: STAGE-1 news extract — adjusts per-outlet weight multipliers
+ * based on historical verification/dedup telemetry (opt-in via env).
+ *
+ * Owns: JSON-backed outlet stats, decay formula, and cached reads.
+ * Does NOT: verify signals (extract stage does) or compute resilience scores
+ * (min-math — multiplier clamp only).
+ *
+ * Key collaborators: news extract pipeline, `cross-cut-modules/persistence/`.
  */
 
 import { resolveStateStore } from '../../../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
+import { dirname, resolve } from 'node:path';
 
 function getStore(deps = {}) {
   return resolveStateStore(deps);
 }
-import { dirname, resolve } from 'node:path';
+
+// ---------------------------------------------------------------------------
+// Configuration
+// ---------------------------------------------------------------------------
 
 const DEFAULT_PATH = resolve('business_modules/news-sites/data/resilience-outlet-reputation.json');
 const DECAY_CLAMP_MIN = 0.1;
 const DECAY_CLAMP_MAX = 1.5;
 
+/** Minimum clamp bound for decayed outlet multipliers. */
+export { DECAY_CLAMP_MIN, DECAY_CLAMP_MAX };
+
 let cachedStats = null;
 let cachedPath = null;
 let cachedMtime = null;
 
+// ---------------------------------------------------------------------------
+// Feature flags and paths
+// ---------------------------------------------------------------------------
+
 /**
+ * Whether outlet reputation decay is enabled (`RESILIENCE_OUTLET_DECAY=1`).
  * @param {NodeJS.ProcessEnv} [env]
+ * @returns {boolean}
  */
 export function isOutletDecayEnabled(env = process.env) {
   return env.RESILIENCE_OUTLET_DECAY === '1';
 }
 
 /**
+ * Path to the outlet reputation JSON store.
  * @param {NodeJS.ProcessEnv} [env]
+ * @returns {string}
  */
 export function reputationStorePath(env = process.env) {
   return env.RESILIENCE_OUTLET_REPUTATION_PATH ?? DEFAULT_PATH;
 }
+
+// ---------------------------------------------------------------------------
+// Persistence helpers (internal)
+// ---------------------------------------------------------------------------
 
 function loadStats(path) {
   if (!getStore().existsSync(path)) return {};
@@ -64,7 +92,12 @@ function getStats(path) {
   return cachedStats;
 }
 
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
 /**
+ * Record verification/dedup telemetry for an outlet (mutates JSON store).
  * @param {string} outlet
  * @param {{ dropped?: number, verified?: number, dedupHits?: number }} delta
  * @param {NodeJS.ProcessEnv} [env]
@@ -91,6 +124,7 @@ export function recordOutletTelemetry(outlet, delta, env = process.env) {
 }
 
 /**
+ * Apply decay to a static outlet multiplier from historical drop/dedup rates.
  * @param {string} outlet
  * @param {number} baseMultiplier static prior
  * @param {NodeJS.ProcessEnv} [env]
@@ -111,11 +145,11 @@ export function decayedOutletMultiplier(outlet, baseMultiplier, env = process.en
   return Math.min(DECAY_CLAMP_MAX, Math.max(DECAY_CLAMP_MIN, decayed));
 }
 
-/** Test hook */
+/**
+ * Clear in-memory reputation cache (test hook).
+ */
 export function resetOutletReputationCacheForTests() {
   cachedStats = null;
   cachedPath = null;
   cachedMtime = null;
 }
-
-export { DECAY_CLAMP_MIN, DECAY_CLAMP_MAX };

@@ -1,11 +1,20 @@
 /**
- * Operator surface mode — Track B (rich investigation pool + hybrid narrative) vs legacy.
- * Product rule: scoring may abstain; operator surface must not starve.
+ * Operator surface mode — rich investigation pool vs legacy report path.
+ *
+ * Pipeline position: assess/narrate path — selects Track B hybrid narrative
+ * pipeline and evidence-pool sizing. Client-safe isomorphic (env-driven).
+ *
+ * Owns: operatorSurfaceMode and related env-tuned limits.
+ * Does NOT: specialist agent orchestration internals or numeric scores (min-math).
+ *
+ * Key collaborators: assessmentOrchestrator.js, operatorNarrativePipeline.js,
+ * closedCoreNarrate.js, evidence pool builders.
  */
 
 /** @typedef {'legacy' | 'rich'} OperatorSurfaceMode */
 
 /**
+ * Resolve operator surface mode from RESILIENCE_OPERATOR_SURFACE_MODE.
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {OperatorSurfaceMode}
  */
@@ -16,7 +25,6 @@ export function operatorSurfaceMode(env = process.env) {
 /**
  * When true, assessment skips assessment-agent specialists (rich Track B path).
  * Narrative uses the hybrid facts/judge/polish pipeline when closed-core assess is enabled.
- *
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {boolean}
  */
@@ -25,6 +33,7 @@ export function richSurfaceSkipSpecialists(env = process.env) {
 }
 
 /**
+ * Alias for rich-surface specialist skip — used by deterministic narrative routing.
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {boolean}
  */
@@ -32,12 +41,17 @@ export function shouldUseRichDeterministicPath(env = process.env) {
   return richSurfaceSkipSpecialists(env);
 }
 
-/** @deprecated use richSurfaceSkipSpecialists */
+/**
+ * @deprecated use richSurfaceSkipSpecialists
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {boolean}
+ */
 export function richSurfaceDeterministicOnly(env = process.env) {
   return richSurfaceSkipSpecialists(env);
 }
 
 /**
+ * Max evidence characters per highlight in rich operator surface mode.
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {number}
  */
@@ -48,7 +62,6 @@ export function operatorEvidenceChars(env = process.env) {
 
 /**
  * Max claims in deterministic narrative fallback when hybrid polish is unavailable.
- *
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {number}
  */
@@ -61,7 +74,7 @@ export function operatorMaxClaims(env = process.env) {
 }
 
 /**
- * Highlighted evidence per source in rich mode.
+ * Highlighted evidence rows per source bucket in rich operator surface mode.
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {number}
  */

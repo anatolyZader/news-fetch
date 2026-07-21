@@ -1,3 +1,13 @@
+/**
+ * Regional district assignment and default-north fallback for structured field sources.
+ *
+ * Pipeline position: assess — scope attribution before regionSignalFilter and evidenceEligibility.
+ *
+ * Owns: district_id normalization, north-only source defaults, explicit-vs-fallback district provenance.
+ * Does NOT: geo resolution (geo module), scope filtering (regionSignalFilter.js), or metrics gating.
+ *
+ * Key collaborators: regionSignalFilter.js, scopeAttributionMetrics.js, evidenceEligibility.js, cross-cut-modules/geo/israelDistricts.js.
+ */
 import {
   ISRAEL_REGIONAL_DISTRICT_ORDER,
   normalizeIsraelDistrictId,
@@ -9,8 +19,8 @@ import {
  * Extractors should write `district_id: 'north'` explicitly; this constant is a safety net.
  */
 export const DEFAULT_NORTH_SOURCE_TYPES = Object.freeze([
-  'field',
-  'visits', // canonical assess-time alias of 'field' (see visitsSourceType.js)
+  'visits',
+  'field', // read-compat for older bundles
   'field_whatsapp',
   'pbo',
   'pbo_regional',
@@ -21,8 +31,10 @@ export const DEFAULT_NORTH_SOURCE_TYPES = Object.freeze([
 const DEFAULT_NORTH_SET = new Set(DEFAULT_NORTH_SOURCE_TYPES);
 
 /**
+ * Whether default-north fallback is enabled (env RESILIENCE_DEFAULT_NORTH_FALLBACK).
+ *
  * @param {NodeJS.ProcessEnv} [env]
- * @returns {boolean}
+ * @returns {boolean} true unless explicitly disabled
  */
 export function isDefaultNorthFallbackEnabled(env = process.env) {
   const v = env.RESILIENCE_DEFAULT_NORTH_FALLBACK;
@@ -31,6 +43,8 @@ export function isDefaultNorthFallbackEnabled(env = process.env) {
 }
 
 /**
+ * Whether the source type belongs to the north-only structured feed family.
+ *
  * @param {string} [sourceType]
  * @returns {boolean}
  */
@@ -41,8 +55,9 @@ export function isDefaultNorthSource(sourceType) {
 
 /**
  * Explicit district on signal, or default-north for north-only structured source types.
+ *
  * @param {object} signal
- * @returns {string | null} regional district id, or null for geo-only sources
+ * @returns {string|null} regional district id, or null for geo-only sources
  */
 export function signalDistrictId(signal) {
   const raw = signal?.district_id;
@@ -60,6 +75,7 @@ export function signalDistrictId(signal) {
 
 /**
  * Whether the district id came from explicit signal.district_id (not default-north fallback).
+ *
  * @param {object} signal
  * @returns {boolean}
  */
@@ -72,7 +88,9 @@ export function hasExplicitSignalDistrictId(signal) {
 
 /**
  * District id used for scope when signal matches via assigned district (not geo).
+ *
  * @param {object} signal
+ * @param {string} scopeId normalized report scope id
  * @returns {{ districtId: string, source: 'signal_district' | 'default_north_district' } | null}
  */
 export function assignedDistrictScopeMatch(signal, scopeId) {

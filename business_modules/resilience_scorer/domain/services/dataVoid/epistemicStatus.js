@@ -1,10 +1,21 @@
 /**
  * Deterministic epistemic status derived from data void outcome.
+ *
+ * Pipeline position: invoked by epistemic gate after void level and assessment_mode
+ * are known; stored on assessment.epistemic_status.
+ *
+ * Owns: sampling_status, scores_reliable, void_level, assessment_mode mapping.
+ * Does NOT: partition signals or compute void index.
+ *
+ * Key collaborators: `dataVoid/epistemicGate.js`, `dataVoid/computeDataVoidIndex.js`,
+ * operator attention items (sampling_blind, field_anchor_only codes).
  */
 
 const LEVEL_ORDER = { none: 0, warning: 1, elevated: 2, critical: 3 };
 
 /**
+ * Build epistemic_status object from data_void and assessment mode.
+ *
  * @param {object|null|undefined} dataVoid
  * @param {{ assessmentMode?: string, voidStatus?: string }} [opts]
  * @returns {object}
@@ -103,6 +114,8 @@ export function buildEpistemicStatus(dataVoid, opts = {}) {
 }
 
 /**
+ * Return the higher of two void levels by severity order.
+ *
  * @param {string} levelA
  * @param {string} levelB
  * @returns {string}

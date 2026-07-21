@@ -1,3 +1,15 @@
+/**
+ * Lenient JSON extraction from LLM prose (fenced blocks, repair, array salvage).
+ *
+ * Pipeline position: extract and assess paths — parses model output before
+ * signal schema validation. Client-safe isomorphic (no Node-only deps).
+ *
+ * Owns: extractJson and extractJsonArray recovery strategies.
+ * Does NOT: signal validation, catalog checks, or prompt assembly.
+ *
+ * Key collaborators: closedCatalogueExtractService.js, openVocabularyExtractService.js,
+ * extractionPrompt.js, signal instance parsers.
+ */
 import { jsonrepair } from 'jsonrepair';
 
 function jsonStartIndex(text) {
@@ -20,6 +32,12 @@ function sliceJsonPayload(text) {
 
 const FENCED_JSON_RE = /^```(?:json)?\s*\n([\s\S]+?)\n```\s*$/m;
 
+/**
+ * Parse the first JSON object or array from LLM text (markdown fence or slice).
+ * Falls back to jsonrepair on parse failure.
+ * @param {string} text
+ * @returns {unknown}
+ */
 export function extractJson(text) {
   const fenced = FENCED_JSON_RE.exec(text);
   const raw = fenced ? fenced[1].trim() : sliceJsonPayload(text);
@@ -32,6 +50,11 @@ export function extractJson(text) {
   }
 }
 
+/**
+ * Parse a JSON array from LLM text; salvage individual objects when full parse fails.
+ * @param {string} text
+ * @returns {unknown[]}
+ */
 export function extractJsonArray(text) {
   try {
     return extractJson(text);

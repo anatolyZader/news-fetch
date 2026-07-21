@@ -1,30 +1,24 @@
 /**
- * Presence gates — curated critical signals that force a critical_failure /
- * presence-gate flag on mapped components when grounding is verified.
+ * Presence gates — curated critical signals that force presence-gate flags on components.
  *
- * Pipeline position: called from buildComponentEvidence (componentEvidence.js)
- * while assembling each component's critical_flags.presence_gate. Specialist
- * agents and operator display treat a triggered gate as non-negotiable salience
- * even when aggregate counts look mixed or thin.
+ * Pipeline position: assess — called from buildComponentEvidence while assembling critical_flags.presence_gate.
  *
- * Owns: PRESENCE_GATE_RULES, evaluatePresenceGates, env kill-switch.
- * Does NOT: change sufficiency/balance bands or invent numeric scores (min-math).
- * Only grounded signals (GROUNDING_TIER.grounded) can trip a gate.
+ * Owns: PRESENCE_GATE_RULES, evaluatePresenceGates, env kill-switch (RESILIENCE_PRESENCE_GATES).
+ * Does NOT: compute sufficiency/balance bands or numeric scores (componentEvidence.js owns count bands).
  *
- * Key collaborators: highSalienceBypass.js (extra critical types),
- * signalRouter SIGNAL_TO_COMPONENTS (negative edges for auto rules),
- * groundingPolicy.js.
- *
- * @see docs/MODEL-CARD.md
+ * Key collaborators: componentEvidence.js, highSalienceBypass.js, signalRouter.js, groundingPolicy.js.
  */
 
 import { GROUNDING_TIER } from '../services/signals/groundingPolicy.js';
 import { CRITICAL_BYPASS_SIGNAL_TYPES } from './highSalienceBypass.js';
 import { SIGNAL_TO_COMPONENTS } from '../services/signals/routing/signalRouter.js';
 
-/** Version stamp for presence-gate rule set (for audits / manifests). */
+/** Version stamp for the hand-authored presence-gate rule set (audits / manifests). */
 export const PRESENCE_GATE_VERSION = '2026-05-v1';
 
+// --- Rule tables ---
+
+/** Ordinal rank for comparing signal.intensity against rule minIntensity thresholds. */
 const INTENSITY_RANK = { light: 0, moderate: 1, severe: 2 };
 
 /**
@@ -64,8 +58,8 @@ export const PRESENCE_GATE_RULES = [
 
 /**
  * Auto-extend rules from CRITICAL_BYPASS_SIGNAL_TYPES × negative routing edges
- * so curated critical types without a hand rule still gate their primary
- * negative components.
+ * so curated critical types without a hand rule still gate their negative components.
+ * @returns {typeof PRESENCE_GATE_RULES}
  */
 function buildCriticalMappingRules() {
   const seen = new Set(PRESENCE_GATE_RULES.map((r) => r.id));
@@ -76,7 +70,7 @@ function buildCriticalMappingRules() {
     const mapping = SIGNAL_TO_COMPONENTS[signalType];
     if (!mapping) continue;
     const componentIds = Object.entries(mapping)
-      .filter(([, w]) => w < 0)
+      .filter(([, edge]) => edge.polarity === '-')
       .map(([cid]) => cid);
     if (componentIds.length === 0) continue;
     const id = `critical_${signalType}`;
@@ -87,7 +81,10 @@ function buildCriticalMappingRules() {
   return extra;
 }
 
+/** Hand-authored rules plus auto-generated critical-type rules (evaluated together). */
 const ALL_RULES = [...PRESENCE_GATE_RULES, ...buildCriticalMappingRules()];
+
+// --- Evaluation ---
 
 /**
  * Kill-switch: set RESILIENCE_PRESENCE_GATES=0 to disable all presence gates.
@@ -99,8 +96,10 @@ export function isPresenceGatesEnabled(env = process.env) {
 }
 
 /**
+ * Whether signal intensity meets a rule's minimum threshold.
  * @param {string | undefined | null} intensity
  * @param {string | undefined} minIntensity
+ * @returns {boolean}
  */
 function meetsMinIntensity(intensity, minIntensity) {
   if (!minIntensity) return true;
@@ -109,6 +108,7 @@ function meetsMinIntensity(intensity, minIntensity) {
   return got >= need;
 }
 
+/** Default result when no grounded signal trips a presence gate for the component. */
 const EMPTY_PRESENCE_GATE = {
   triggered: false,
   rule_id: null,
@@ -118,8 +118,10 @@ const EMPTY_PRESENCE_GATE = {
 
 /**
  * First matching presence-gate rule for this signal among rulesForComponent.
+ *
  * @param {object} signal
  * @param {typeof PRESENCE_GATE_RULES} rulesForComponent
+ * @returns {{ triggered: boolean, rule_id: string, signal_type: string, evidence_snippet: string|null } | null}
  */
 function matchPresenceGateRule(signal, rulesForComponent) {
   const type = signal.signal_type ?? signal.type;

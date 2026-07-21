@@ -1,6 +1,23 @@
+/**
+ * Signal reference registry for narrative grounding and operator citation display.
+ *
+ * Pipeline position: built from narrative digest/scored components before LLM
+ * facts/polish; used for ref resolution, prompt formatting, and citation labels.
+ *
+ * Owns: buildRefKey, S-label registry, formatSignalWithRef prompt lines.
+ * Does NOT: perform overlap grounding QA (see sentenceGroundingChecker.js).
+ *
+ * Key collaborators: `narrative/buildFullSignalDigest.js`, `contracts/citationDisplay.js`,
+ * `operator/evidenceFormatting.js`.
+ */
+
+// ── Ref keys ──────────────────────────────────────────────────────────────────
 
 /**
+ * Article-level dedupe key for digest ranking.
+ *
  * @param {object} signal
+ * @returns {string}
  */
 export function signalArticleKey(signal) {
   if (signal?.article_url) return `url:${signal.article_url}`;
@@ -13,15 +30,23 @@ export function signalArticleKey(signal) {
 }
 
 /**
+ * Stable signal ref key: `{signal_type}@{articleKey}`.
+ *
  * @param {object} signal
+ * @returns {string}
  */
 export function buildRefKey(signal) {
   const type = signal?.signal_type ?? signal?.type ?? 'unknown';
   return `${type}@${signalArticleKey(signal)}`;
 }
 
+// ── Registry build ────────────────────────────────────────────────────────────
+
 /**
+ * Build ref/label registry from per-component scored digest.
+ *
  * @param {Record<string, object>} scoredComponents
+ * @returns {{ byRef: Map<string, object>, byLabel: Map<string, object>, byComponent: Record<string, object[]>, refCount: number }}
  */
 export function buildSignalRefRegistry(scoredComponents) {
   /** @type {Map<string, object>} */
@@ -48,18 +73,11 @@ export function buildSignalRefRegistry(scoredComponents) {
   return { byRef, byLabel, byComponent, refCount: counter };
 }
 
-/**
- * @param {string|null|undefined} url
- * @returns {string|null}
- */
-function cleanArticleUrl(url) {
-  const u = String(url ?? '').trim();
-  if (!u || u === '(no url)' || u === 'null') return null;
-  return u;
-}
+// ── Citation labels ───────────────────────────────────────────────────────────
 
 /**
  * Human-readable citation label for APA-style parentheticals.
+ *
  * @param {object|null|undefined} signal
  * @returns {string}
  */
@@ -83,7 +101,21 @@ export function citationLabelForSignal(signal) {
 }
 
 /**
- * @param {string} label e.g. S16
+ * @param {string|null|undefined} url
+ * @returns {string|null}
+ */
+function cleanArticleUrl(url) {
+  const u = String(url ?? '').trim();
+  if (!u || u === '(no url)' || u === 'null') return null;
+  return u;
+}
+
+// ── Registry lookup ───────────────────────────────────────────────────────────
+
+/**
+ * Resolve registry entry by S-label (e.g. S16).
+ *
+ * @param {string} label
  * @param {{ byLabel?: Map<string, object> }} registry
  * @returns {object|null}
  */
@@ -92,16 +124,24 @@ export function resolveLabel(label, registry) {
 }
 
 /**
+ * Resolve registry entry by ref key.
+ *
  * @param {string} refKey
  * @param {{ byRef: Map<string, object> }} registry
+ * @returns {object|null}
  */
 export function resolveRef(refKey, registry) {
   return registry?.byRef?.get(refKey) ?? null;
 }
 
+// ── Prompt formatting ─────────────────────────────────────────────────────────
+
 /**
+ * Format one signal block for LLM prompt with ref label and attribution.
+ *
  * @param {object} signal
  * @param {{ label: string, ref: string }} entry
+ * @returns {string}
  */
 export function formatSignalWithRef(signal, entry) {
   const type = signal?.signal_type ?? signal?.type ?? 'unknown';
@@ -127,7 +167,10 @@ function geoAuditTagsForSignal(s) {
 }
 
 /**
+ * Human label for evidence_type in prompts and UI.
+ *
  * @param {string|null|undefined} evidenceType
+ * @returns {string}
  */
 export function evidenceAttributionLabel(evidenceType) {
   switch (evidenceType) {
@@ -145,7 +188,10 @@ export function evidenceAttributionLabel(evidenceType) {
 }
 
 /**
+ * LLM framing hint for evidence_type when writing claims.
+ *
  * @param {string|null|undefined} evidenceType
+ * @returns {string}
  */
 export function epistemicFramingHint(evidenceType) {
   switch (evidenceType) {

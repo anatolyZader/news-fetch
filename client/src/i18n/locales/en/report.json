@@ -35,7 +35,7 @@
   "report.evidence.highlighted": "Highlighted evidence",
   "report.evidence.openSource": "Open source article",
   "report.evidence.rawSourceHint": "Verbatim source excerpts — not synthesized narrative.",
-  "report.evidence.sourceSection.field": "Field / visits",
+  "report.evidence.sourceSection.visits": "Visits",
   "report.evidence.sourceSection.naftali": "Naftali",
   "report.evidence.sourceSection.other": "Other sources",
   "report.evidence.sourceSection.pbo": "PBO reports",

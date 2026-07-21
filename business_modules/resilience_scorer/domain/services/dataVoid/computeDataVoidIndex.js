@@ -1,5 +1,14 @@
 /**
- * Data void / digital darkness index v2 — multi-channel baselines, cluster void, expanded rules.
+ * Data void / digital darkness index — multi-channel baselines, cluster void, expanded rules.
+ *
+ * Pipeline position: pre-score in evidencePipelinePrep — before scoring partition and
+ * epistemic gate; output attached to assessment.data_void.
+ *
+ * Owns: void level/reason, affected_clusters, volume baselines, information_vacuum_index.
+ * Does NOT: quarantine signals (scoringPartition) or build operator attention items.
+ *
+ * Key collaborators: `dataVoid/channelBaselines.js`, `dataVoid/clusterVoid.js`,
+ * `dataVoid/sourceChannels.js`, `dataVoidIndex.js` re-export barrel.
  */
 
 import {
@@ -88,9 +97,10 @@ function resolveVoidLevel(ctx) {
 }
 
 /**
- * @param {Array<object>} signals — today's signals (scoped)
- * @param {Array<Array<object>>} [historicalSignals] — prior days for baseline volume (optional)
- * @param {{ reportScope?: string, voidStatus?: string }} [opts]
+ * @param {Array<object>} signals Today's scoped signals.
+ * @param {Array<Array<object>>} [historicalSignals] Prior days for baseline volume.
+ * @param {{ reportScope?: string, voidStatus?: string, allSignalsForDiagnostics?: object[] }} [opts]
+ * @returns {object} data_void payload for assessment attachment.
  */
 export function computeDataVoidIndex(signals, historicalSignals = [], opts = {}) {
   if (process.env.RESILIENCE_DATA_VOID === '0') {
@@ -219,6 +229,11 @@ export function computeDataVoidIndex(signals, historicalSignals = [], opts = {})
   };
 }
 
+/**
+ * Whether data-void computation is enabled (RESILIENCE_DATA_VOID !== '0').
+ *
+ * @returns {boolean}
+ */
 export function isDataVoidEnabled() {
   return process.env.RESILIENCE_DATA_VOID !== '0';
 }

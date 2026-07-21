@@ -1,6 +1,19 @@
 /**
- * Two-axis display-state machine: assessment state, evidence usage state, operator display.
+ * Two-axis display-state machine for operator component rows.
+ *
+ * Pipeline position: finalize diagnostics — invoked from `buildSingleComponentDiagnostics`
+ * after evidence partitions are known.
+ *
+ * Owns: assessment_state (assessed / insufficient / specialist_skipped), evidence_usage_state
+ * (normal / quarantined / field_anchor_only / mixed), operator_display_state + reason.
+ * Does NOT: attach fields to assessment or render UI copy.
+ *
+ * Key collaborators: `operator/componentDiagnostics.js`, specialist agent output,
+ * narrative grounding scores (post-hoc QA threshold only).
  */
+
+// ── Thresholds ────────────────────────────────────────────────────────────────
+
 const LOW_GROUNDING_THRESHOLD = 0.5;
 
 function deriveAssessmentStateWithClaims(comp, diagnostics, analystFlags) {
@@ -28,10 +41,15 @@ function deriveAssessmentStateWithClaims(comp, diagnostics, analystFlags) {
   return { state: 'assessed', analystFlags };
 }
 
+// ── Assessment state axis ─────────────────────────────────────────────────────
+
 /**
- * @param {object} comp
- * @param {object} diagnostics
- * @param {object} ctx
+ * Derive assessment_state from component output, coverage, and specialist status.
+ *
+ * @param {object} comp Component with claims, confidence, grounding scores.
+ * @param {object} diagnostics From buildSingleComponentDiagnostics (partial).
+ * @param {object} ctx epistemicProfileAvailable, degradeReason, assessmentMode.
+ * @returns {{ state: string, analystFlags: string[] }}
  */
 export function deriveAssessmentState(comp, diagnostics, ctx) {
   const analystFlags = [];
@@ -74,9 +92,14 @@ export function deriveAssessmentState(comp, diagnostics, ctx) {
   return { state: 'insufficient_data', analystFlags };
 }
 
+// ── Evidence usage axis ───────────────────────────────────────────────────────
+
 /**
- * @param {object} part
- * @param {string} assessmentMode
+ * Classify how evidence was used for this component (scoring vs quarantine vs macro).
+ *
+ * @param {object} part Evidence partition slice for one component.
+ * @param {string} [assessmentMode] normal | field_anchor_only | abstained.
+ * @returns {string} evidence_usage_state enum value.
  */
 export function deriveEvidenceUsageState(part, assessmentMode = 'normal') {
   const scoringUsed = part.scoring_used ?? 0;
@@ -109,10 +132,15 @@ function specialistSkippedReason(diagnostics) {
   return 'specialist_not_run';
 }
 
+// ── Operator display state ────────────────────────────────────────────────────
+
 /**
- * @param {string} assessmentState
- * @param {string} evidenceUsageState
- * @param {object} diagnostics
+ * Map two-axis diagnostic inputs to operator-facing display state + reason.
+ *
+ * @param {string} assessmentState From deriveAssessmentState.
+ * @param {string} evidenceUsageState From deriveEvidenceUsageState.
+ * @param {object} diagnostics Full diagnostic record for the component.
+ * @returns {{ state: string, reason: string, inputs: object }}
  */
 export function deriveOperatorDisplayState(assessmentState, evidenceUsageState, diagnostics) {
   const inputs = {

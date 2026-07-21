@@ -176,8 +176,9 @@ function visitDateFromFilename(filePath) {
 function isEnabled(enabledSources, key) {
   if (!enabledSources) return true;
   const canonical = normalizePipelineSourceKey(key);
-  if (enabledSources.has(canonical) || enabledSources.has(key)) return true;
-  if (canonical === 'visits' && enabledSources.has('field')) return true;
+  for (const s of enabledSources) {
+    if (normalizePipelineSourceKey(s) === canonical) return true;
+  }
   return false;
 }
 

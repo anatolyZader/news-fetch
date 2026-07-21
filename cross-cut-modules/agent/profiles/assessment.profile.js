@@ -66,7 +66,7 @@ export const MULTI_HOP_TOOLS = [
   },
   {
     name: 'cross_source_compare',
-    description: 'Compare evidence across source types (pbo, field, news, etc.) for a topic.',
+    description: 'Compare evidence across source types (pbo, visits, news, etc.) for a topic.',
     input_schema: {
       type: 'object',
       properties: {

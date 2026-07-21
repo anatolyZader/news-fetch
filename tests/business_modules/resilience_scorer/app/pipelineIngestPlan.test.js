@@ -25,7 +25,6 @@ const REPLAY_REUSE_ENV_KEYS = [
   'RESILIENCE_REPLAY_REUSE_RADIO',
   'RESILIENCE_REPLAY_REUSE_WHATSAPP',
   'RESILIENCE_REPLAY_REUSE_VISITS',
-  'RESILIENCE_REPLAY_REUSE_FIELD',
   'RESILIENCE_REPLAY_REUSE_PBO',
   'RESILIENCE_REPLAY_REUSE_NAFTALI',
   'RESILIENCE_REPLAY_REUSE_SOCIAL',
@@ -81,7 +80,7 @@ describe('buildPipelineIngestPlan', () => {
         const sigDir = join(root, 'business_modules/resilience_scorer/data/signals');
         mkdirSync(sigDir, { recursive: true });
         writeFileSync(newsSignalsPath(date, root), '{"signals":[]}');
-        const enabled = new Set(['news', 'pbo', 'field']);
+        const enabled = new Set(['news', 'pbo', 'visits']);
         const plan = buildPipelineIngestPlan({
           targetDate: date,
           days: 3,
@@ -374,14 +373,14 @@ describe('buildPipelineIngestPlan', () => {
     });
   });
 
-  it('skips field and naftali extraction in replay mode when reuse enabled', () => {
+  it('skips visits and naftali extraction in replay mode when reuse enabled', () => {
     withReplayReuseEnv({
-      RESILIENCE_REPLAY_REUSE_FIELD: '1',
+      RESILIENCE_REPLAY_REUSE_VISITS: '1',
       RESILIENCE_REPLAY_REUSE_NAFTALI: '1',
     }, () => {
       const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-'));
       try {
-        const enabled = new Set(['field', 'pbo', 'naftali']);
+        const enabled = new Set(['visits', 'pbo', 'naftali']);
         const plan = buildPipelineIngestPlan({
           targetDate: '2026-04-15',
           days: 3,

@@ -1,7 +1,15 @@
 /**
- * Closed vocabularies for per-instance signal enrichments (v5 extraction schema).
+ * Closed vocabularies and instance-level enrichment constants for extracted signals (v5 schema).
+ *
+ * Pipeline position: extract — validation vocabulary; assess — polarity override and equity tagging.
+ *
+ * Owns: allowed values for signal_class, intensity, phase, affected subgroups/systems; polarity-override whitelist.
+ * Does NOT: catalogue routing (routing/signalRouter.js), schema validation runner, or open-vocabulary types.
+ *
+ * Key collaborators: componentSignalGroups.js, routing/signalRouter.js, ../../contracts/signalCatalog.js, resilienceBatchValidation.js.
  */
 
+/** Allowed signal_class values on extracted signal instances. */
 export const SIGNAL_CLASSES = [
   'behavior',
   'attitude',
@@ -11,10 +19,13 @@ export const SIGNAL_CLASSES = [
   'capacity',
 ];
 
+/** Allowed intensity levels on extracted signal instances. */
 export const INTENSITY_LEVELS = ['light', 'moderate', 'severe'];
 
+/** Allowed operational phase levels on extracted signal instances. */
 export const PHASE_LEVELS = ['anticipation', 'response', 'recovery'];
 
+/** Closed vocabulary for affected population subgroups (equity tagging). */
 export const AFFECTED_SUBGROUPS = [
   'children',
   'elderly',
@@ -40,6 +51,7 @@ export const AFFECTED_SUBGROUPS = [
   'other',
 ];
 
+/** Closed vocabulary for affected infrastructure/system domains. */
 export const AFFECTED_SYSTEMS = [
   'power',
   'water',
@@ -66,9 +78,8 @@ export const AFFECTED_SYSTEMS = [
  * on catalog entries):
  * - Allowed only for the types listed here; validation strips it elsewhere.
  * - Valid values: 'positive' | 'negative'.
- * - When the override contradicts the entry's defaultPolarity, scoring flips
- *   the sign of the routing weights for that instance (see
- *   effectiveWeightForSignal in ../../epistemic/massContribution.js).
+ * - When the override contradicts the entry's defaultPolarity, routing polarity
+ *   is flipped for that instance (see signalPolarity in componentSignalGroups.js).
  * - Use for types whose label describes a spectrum (trust, routine, coping)
  *   where the evidence itself decides direction; prefer explicit mirror pairs
  *   when a natural opposite type exists.
@@ -105,6 +116,7 @@ export const POLARITY_OVERRIDE_SIGNAL_TYPES = new Set([
   'population_survey_finding',
 ]);
 
+/** Signal types where affected_system tagging is expected for infrastructure metrics. */
 export const AFFECTED_SYSTEM_SIGNAL_TYPES = new Set([
   'service_disruption',
   'service_continuity',
@@ -144,4 +156,3 @@ export const EQUITY_RELEVANT_TYPES = new Set([
   'educational_equity_gap',
   'food_security_stress',
 ]);
-

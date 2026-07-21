@@ -1,19 +1,22 @@
 /**
- * Definitions for the 8 community resilience components, based on the Home Front Command framework.
- * (Pikud HaOref / פיקוד העורף — Civil Defense assessment methodology, based on Fran Norris 2008)
+ * Home Front Command resilience component framework definitions (8 components).
  *
- * Community resilience is defined as the community's ability, during and after a crisis or emergency,
- * to leverage its resources, adapt to changes in the environment, continue to function, and provide
- * essential community services — in order to preserve or strengthen the physical and mental health
- * of its members.
+ * Pipeline position: client-safe isomorphic foundation — referenced by routing,
+ * extraction prompts, UI labels, and count-based evidence partitioning.
  *
- * Each component has:
- *   description        — what the component measures
- *   key_elements       — the sub-factors that drive the component (where defined in the framework)
- *   principle          — the governing principle or guiding rule (where applicable)
- *   guiding_questions  — evaluation questions used in evidence extraction and scoring (1–10)
+ * Owns: RESILIENCE_COMPONENTS metadata and COMPONENT_MAP id lookup.
+ * Does NOT: per-day evidence bands (componentEvidence.js) or routing weights
+ * (signalRouting.js). No numeric resilience scores (min-math).
+ *
+ * Key collaborators: componentIds.js, signalRouting.js, componentEvidence.js,
+ * client component display, extraction/specialist prompts.
+ *
+ * Based on Pikud HaOref / פיקוד העורף methodology (Fran Norris 2008). Each entry
+ * may include description, key_elements, principle, guiding_questions, and
+ * behavioral_manifestations for extraction and narrative grounding.
  */
 
+/** Authoritative list of eight community resilience components with framework metadata. */
 export const RESILIENCE_COMPONENTS = [
   {
     id: 'narrative',
@@ -219,6 +222,7 @@ export const RESILIENCE_COMPONENTS = [
   },
 ];
 
+/** O(1) lookup map from component id to framework definition object. */
 export const COMPONENT_MAP = Object.fromEntries(
   RESILIENCE_COMPONENTS.map((c) => [c.id, c]),
 );

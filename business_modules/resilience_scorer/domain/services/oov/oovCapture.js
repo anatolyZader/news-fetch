@@ -1,6 +1,17 @@
 /**
- * Capture out-of-vocabulary signal suggestions for catalog evolution.
+ * Capture out-of-vocabulary (oov) signal suggestions for catalog evolution.
+ *
+ * Pipeline position: STAGE-1 extract and STAGE-2 assess — appends learning captures
+ * to JSONL and buffers in-memory records for the current run.
+ *
+ * Owns: capture enable flags, JSONL append, run buffer, daily capture counts.
+ * Does NOT: cluster captures (see `dynamicOovCluster.js`) or synthesize scoring
+ * signals (see `oovScoringSignals.js`).
+ *
+ * Key collaborators: `paths/outputDirs.js` (captures dir), `contracts/learningCaptureKinds.js`,
+ * extract/assess runners.
  */
+
 import { resolve } from 'node:path';
 import { resolveStateStore } from '../../../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
 import { envFlagOn, envFlagOff } from '../../../../../cross-cut-modules/config/envFlags.js';
@@ -10,8 +21,14 @@ function getStore(deps = {}) {
   return resolveStateStore(deps);
 }
 
+// ---------------------------------------------------------------------------
+// Feature flags
+// ---------------------------------------------------------------------------
+
 /**
+ * Whether OOV learning capture is enabled (`RESILIENCE_OOV_CAPTURE` defaults on).
  * @param {NodeJS.ProcessEnv} [env]
+ * @returns {boolean}
  */
 export function isLearningCaptureEnabled(env = process.env) {
   return env.RESILIENCE_OOV_CAPTURE !== '0';
@@ -20,6 +37,7 @@ export function isLearningCaptureEnabled(env = process.env) {
 /**
  * Opt-in residual LLM pass for articles that yielded zero scored signals.
  * @param {NodeJS.ProcessEnv} [env]
+ * @returns {boolean}
  */
 export function isResidualCaptureEnabled(env = process.env) {
   if (envFlagOff(env, 'RESILIENCE_RESIDUAL_CAPTURE')) return false;
@@ -30,7 +48,15 @@ export function isResidualCaptureEnabled(env = process.env) {
   return envFlagOn(env, 'RESILIENCE_OMISSION_AUDIT');
 }
 
+// ---------------------------------------------------------------------------
+// Persistence and run buffer
+// ---------------------------------------------------------------------------
+
+/** @type {Array<object>} in-memory buffer for current run */
+let runBuffer = [];
+
 /**
+ * Append a capture record to the daily JSONL file (no-op when capture disabled).
  * @param {object} record
  * @param {string} [capturesDir]
  */
@@ -43,25 +69,37 @@ export function appendOovCapture(record, capturesDir = resilienceCapturesDir()) 
   getStore().appendFileSync(path, `${JSON.stringify(record)}\n`, 'utf8');
 }
 
-/** @type {Array<object>} in-memory buffer for current run */
-let runBuffer = [];
-
+/**
+ * Buffer a capture for the current run and persist to JSONL.
+ * @param {object} record
+ */
 export function bufferOovCapture(record) {
   runBuffer.push(record);
   appendOovCapture(record);
 }
 
+/**
+ * Clear the in-memory run buffer and return the flushed count.
+ * @returns {number}
+ */
 export function flushOovRunBuffer() {
   const n = runBuffer.length;
   runBuffer = [];
   return n;
 }
 
+/**
+ * Current in-memory capture count for the active run.
+ * @returns {number}
+ */
 export function getOovRunCount() {
   return runBuffer.length;
 }
 
-/** @returns {Array<object>} shallow copy of in-memory captures for current run */
+/**
+ * Shallow copy of in-memory captures for the current run.
+ * @returns {Array<object>}
+ */
 export function getOovRunBuffer() {
   return [...runBuffer];
 }
@@ -70,6 +108,7 @@ export function getOovRunBuffer() {
  * Count JSONL lines in today's (or given date's) OOV capture file.
  * @param {string} date YYYY-MM-DD
  * @param {string} [capturesDir]
+ * @returns {number}
  */
 export function countOovCapturesForDate(date, capturesDir = resilienceCapturesDir()) {
   if (!isLearningCaptureEnabled()) return 0;
@@ -82,5 +121,9 @@ export function countOovCapturesForDate(date, capturesDir = resilienceCapturesDi
     return 0;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Re-exports
+// ---------------------------------------------------------------------------
 
 export {LEARNING_CAPTURE_KINDS} from '../../contracts/learningCaptureKinds.js';

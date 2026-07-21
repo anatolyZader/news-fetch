@@ -163,6 +163,17 @@ describe('signalCatalog v6', () => {
     }
   });
 
+  it('every edge is a discrete polarity/role pair and every type has a primary edge', () => {
+    for (const [type, mapping] of Object.entries(SIGNAL_TO_COMPONENTS)) {
+      const roles = Object.values(mapping).map((edge) => {
+        assert.ok(edge.polarity === '+' || edge.polarity === '-', `${type}: bad polarity`);
+        assert.ok(edge.role === 'primary' || edge.role === 'inferred', `${type}: bad role`);
+        return edge.role;
+      });
+      assert.ok(roles.includes('primary'), `${type}: no primary edge`);
+    }
+  });
+
   it('aliases are resolvable and never catalog entries or mappings', () => {
     const types = new Set(SIGNAL_TYPES);
     for (const [alias, canonical] of Object.entries(SIGNAL_ALIASES)) {
@@ -187,17 +198,17 @@ describe('signalCatalog v6', () => {
   });
 
   it('routing fixes: compliance leadership spillover and harm primary-only', () => {
-    assert.equal(SIGNAL_TO_COMPONENTS.compliance_follow_instructions.leadership, 0.3);
-    assert.equal(SIGNAL_TO_COMPONENTS.non_compliance_ignore_guidelines.leadership, -0.3);
-    assert.equal(SIGNAL_TO_COMPONENTS.harm_to_population.wellbeing_at_risk, -1.2);
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.compliance_follow_instructions.leadership, { polarity: '+', role: 'inferred' });
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.non_compliance_ignore_guidelines.leadership, { polarity: '-', role: 'inferred' });
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.harm_to_population.wellbeing_at_risk, { polarity: '-', role: 'primary' });
     assert.equal(SIGNAL_TO_COMPONENTS.harm_to_population.narrative, undefined);
-    assert.equal(SIGNAL_TO_COMPONENTS.protection_effective.narrative, 0.3);
-    // v7: coping/response signals no longer add positive wellbeing_at_risk mass
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.protection_effective.narrative, { polarity: '+', role: 'inferred' });
+    // v7: coping/response signals no longer route positively into wellbeing_at_risk
     assert.equal(SIGNAL_TO_COMPONENTS.religious_coping_practice.wellbeing_at_risk, undefined);
     assert.equal(SIGNAL_TO_COMPONENTS.help_seeking_behavior.wellbeing_at_risk, undefined);
     assert.equal(SIGNAL_TO_COMPONENTS.hostage_family_advocacy.wellbeing_at_risk, undefined);
     assert.equal(SIGNAL_TO_COMPONENTS.wellbeing_support_accessed.wellbeing_at_risk, undefined);
-    assert.equal(SIGNAL_TO_COMPONENTS.wellbeing_support_accessed.community_capital, 0.5);
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.wellbeing_support_accessed.community_capital, { polarity: '+', role: 'primary' });
   });
 });
 
@@ -209,8 +220,8 @@ describe('signalCatalog v8', () => {
     assert.equal(gap.defaultPolarity, 'negative');
     assert.equal(gap.mirror, 'wellbeing_support_accessed');
     assert.equal(accessed.mirror, 'wellbeing_support_gap');
-    assert.equal(SIGNAL_TO_COMPONENTS.wellbeing_support_gap.wellbeing_at_risk, -0.8);
-    assert.equal(SIGNAL_TO_COMPONENTS.wellbeing_support_gap.community_capital, -0.3);
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.wellbeing_support_gap.wellbeing_at_risk, { polarity: '-', role: 'primary' });
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.wellbeing_support_gap.community_capital, { polarity: '-', role: 'inferred' });
   });
 
   it('restricts resilience_narrative_* to collective self-assessment via disambiguation', () => {
@@ -224,12 +235,12 @@ describe('signalCatalog v8', () => {
   });
 
   it('epoch 2026-07-15c routing edits', () => {
-    // Sub-gate types raised past the 0.5 render gate.
-    assert.equal(SIGNAL_TO_COMPONENTS.ecosystem_stress.functional_continuity, -0.5);
+    // Sub-gate types promoted to primary edges (v9: was "raised past the 0.5 render gate").
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.ecosystem_stress.functional_continuity, { polarity: '-', role: 'primary' });
     assert.equal(SIGNAL_TO_COMPONENTS.ecosystem_stress.wellbeing_at_risk, undefined);
-    assert.equal(SIGNAL_TO_COMPONENTS.equitable_resource_distribution.wellbeing_at_risk, 0.5);
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.equitable_resource_distribution.wellbeing_at_risk, { polarity: '+', role: 'primary' });
     assert.equal(getRoutingRole('equitable_resource_distribution', 'wellbeing_at_risk'), 'primary');
-    assert.equal(SIGNAL_TO_COMPONENTS.historical_analogy_frame.narrative, -0.5);
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.historical_analogy_frame.narrative, { polarity: '-', role: 'primary' });
     // Noise edges dropped.
     assert.equal(SIGNAL_TO_COMPONENTS.adaptive_practice.narrative, undefined);
     assert.equal(SIGNAL_TO_COMPONENTS.innovation_under_constraint.narrative, undefined);
@@ -243,7 +254,7 @@ describe('signalCatalog v8', () => {
     assert.equal(canonicalizeSignalType('non_compliance'), 'non_compliance_ignore_guidelines');
     // New civil-order type with routing and priors.
     assert.ok(SIGNAL_CATALOG.find((s) => s.type === 'public_order_breakdown'));
-    assert.equal(SIGNAL_TO_COMPONENTS.public_order_breakdown.community_capital, -0.6);
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.public_order_breakdown.community_capital, { polarity: '-', role: 'primary' });
   });
 
   it('epoch 2026-07-15c mirror pairs are reciprocal', () => {
@@ -264,33 +275,33 @@ describe('signalCatalog v8', () => {
   it('epoch 2026-07-20: compliance_partial flipped to deficiency reading', () => {
     const entry = SIGNAL_CATALOG.find((s) => s.type === 'compliance_partial');
     assert.equal(entry.defaultPolarity, 'negative');
-    assert.equal(SIGNAL_TO_COMPONENTS.compliance_partial.lifesaving_behavior, -0.6);
-    assert.equal(SIGNAL_TO_COMPONENTS.compliance_partial.leadership, -0.2);
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.compliance_partial.lifesaving_behavior, { polarity: '-', role: 'primary' });
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.compliance_partial.leadership, { polarity: '-', role: 'inferred' });
   });
 
   it('epoch 2026-07-20: new coverage types with routing', () => {
     const byType = Object.fromEntries(SIGNAL_CATALOG.map((s) => [s.type, s]));
     assert.equal(byType.panic_buying_hoarding.domain, 'resources');
-    assert.equal(SIGNAL_TO_COMPONENTS.panic_buying_hoarding.functional_continuity, -0.5);
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.panic_buying_hoarding.functional_continuity, { polarity: '-', role: 'primary' });
     assert.equal(byType.misinformation_acted_upon.domain, 'information');
-    assert.equal(SIGNAL_TO_COMPONENTS.misinformation_acted_upon.information_communication, -0.7);
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.misinformation_acted_upon.information_communication, { polarity: '-', role: 'primary' });
     // Return/relocation intention: stated-intention mirror pair for the north.
     assert.equal(byType.return_intention_expressed.mirror, 'relocation_intention_expressed');
     assert.equal(byType.relocation_intention_expressed.mirror, 'return_intention_expressed');
-    assert.equal(SIGNAL_TO_COMPONENTS.return_intention_expressed.belonging_solidarity, 0.5);
-    assert.equal(SIGNAL_TO_COMPONENTS.relocation_intention_expressed.belonging_solidarity, -0.5);
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.return_intention_expressed.belonging_solidarity, { polarity: '+', role: 'primary' });
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.relocation_intention_expressed.belonging_solidarity, { polarity: '-', role: 'primary' });
   });
 
   it('epoch 2026-07-15b routing edits', () => {
-    // Cohesion-decline misuse reaches belonging as a visible inferred edge.
-    assert.equal(SIGNAL_TO_COMPONENTS.resilience_narrative_negative.belonging_solidarity, -0.5);
-    assert.equal(getRoutingRole('resilience_narrative_negative', 'belonging_solidarity'), 'inferred');
-    // Positive twin intentionally NOT mirrored (would flood belonging with mass).
+    // Cohesion-decline misuse reaches belonging; v9 promoted it to primary
+    // (was a strong-but-not-max 'inferred' edge under the numeric table).
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.resilience_narrative_negative.belonging_solidarity, { polarity: '-', role: 'primary' });
+    // Positive twin intentionally NOT mirrored (would flood belonging counts).
     assert.equal(SIGNAL_TO_COMPONENTS.resilience_narrative_positive.belonging_solidarity, undefined);
     // Helping acts are not narrative-story evidence.
     assert.equal(SIGNAL_TO_COMPONENTS.solidarity_help_others.narrative, undefined);
     // Abandonment perception is a direct leadership-trust observation.
     assert.equal(getRoutingRole('institutional_abandonment_perception', 'leadership'), 'primary');
-    assert.equal(SIGNAL_TO_COMPONENTS.institutional_abandonment_perception.leadership, -0.5);
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.institutional_abandonment_perception.leadership, { polarity: '-', role: 'primary' });
   });
 });

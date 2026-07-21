@@ -4,6 +4,7 @@
  * Pipeline position: assess path after scope partition / verification. Turns a
  * flat signal list into by_component evidence objects (signals + evidence_basis
  * bands + critical_flags) consumed by epistemic profile, narratives, and agents.
+ * Client-safe isomorphic.
  *
  * Owns: sufficiency/balance/concentration band derivation and
  * buildComponentEvidence. All derivations are counts and ratios of counts.
@@ -15,17 +16,21 @@
  * - sufficiency: none | thin | moderate | adequate
  * - balance:     one_sided_pos | one_sided_neg | mixed | contested
  *
- * Key collaborators: componentSignalGroups.js, signalWeights.js,
+ * Bands are computed from primary-role routing edges only; inferred (secondary
+ * association) edges are reported as inferred_context counts and stay in the
+ * signals list labeled with routing_role, but cannot make a component look
+ * well-evidenced on their own.
+ *
+ * Key collaborators: componentSignalGroups.js, signalRouting.js,
  * presenceGates.js, highSalienceBypass.js, evidencePipelinePrep.js.
  */
 import { COMPONENT_IDS } from './componentIds.js';
-import { collectComponentSignals } from '../services/signals/componentSignalGroups.js';
-import { resolveSignalWeights, defaultSignalWeights } from '../services/signals/routing/signalWeights.js';
+import { collectComponentSignals, articleKeyForSignal } from '../services/signals/componentSignalGroups.js';
 import { evaluatePresenceGates } from '../epistemic/presenceGates.js';
 import { CRITICAL_BYPASS_SIGNAL_TYPES } from '../epistemic/highSalienceBypass.js';
 import { GROUNDING_TIER } from '../services/signals/groundingPolicy.js';
 
-// ── Band thresholds (counts) ────────────────────────────────────────────────
+// --- Band thresholds ---
 /** Sufficiency band labels (how much evidence a component has). */
 export const SUFFICIENCY = Object.freeze({
   none: 'none', thin: 'thin', moderate: 'moderate', adequate: 'adequate',
@@ -48,6 +53,7 @@ const CONTESTED_MIN_TOTAL = 4;
 const OUTLET_CONCENTRATION_SHARE = 0.6;
 const SOURCE_TYPE_CONCENTRATION_SHARE = 0.7;
 
+// --- Band derivation ---
 /**
  * Map raw counts → sufficiency band (none/thin/moderate/adequate).
  * Thin if few signals OR few articles; adequate needs signals + articles +
@@ -141,6 +147,7 @@ function deriveSalientSingleSignal(items) {
   return null;
 }
 
+// --- Component assembly ---
 /** Compact signal row for report/agent payloads (drops bulky fields). */
 function slimSignal(it, index) {
   const s = it.signal;
@@ -148,6 +155,7 @@ function slimSignal(it, index) {
     signal_ref: s.signal_id ?? s.id ?? `s${index}`,
     signal_type: it.signalType,
     polarity: it.polarity,
+    routing_role: it.role ?? 'primary',
     intensity: s.intensity ?? 'moderate',
     source_type: s.source_type ?? null,
     article_source: s.article_source ?? null,
@@ -158,30 +166,45 @@ function slimSignal(it, index) {
 
 /**
  * Assemble one component's evidence object from its collected signal items.
- * @param {Array<{signal: object, signalType: string, polarity: '+'|'-'}>} items
- * @param {Set} articleSet
- * @param {Set} sourceSet
+ * Bands and counts come from primary-role items only; inferred items are
+ * summarized in inferred_context and kept (labeled) in the signals list.
+ * @param {Array<{signal: object, signalType: string, polarity: '+'|'-', role: string}>} items
  * @param {string} componentId
  * @param {string} samplingStatus
  */
-function buildOneComponent(items, articleSet, sourceSet, componentId, samplingStatus) {
-  const sourceMix = countBy(items, (it) => it.signal.source_type);
-  const pos = items.filter((it) => it.polarity === '+').length;
-  const neg = items.length - pos;
+function buildOneComponent(items, componentId, samplingStatus) {
+  const primary = items.filter((it) => it.role !== 'inferred');
+  const inferred = items.filter((it) => it.role === 'inferred');
+  const articleSet = new Set();
+  const sourceSet = new Set();
+  for (const it of primary) {
+    const articleKey = articleKeyForSignal(it.signal);
+    if (articleKey != null) articleSet.add(articleKey);
+    if (it.signal.source_type) sourceSet.add(it.signal.source_type);
+  }
+  const sourceMix = countBy(primary, (it) => it.signal.source_type);
+  const pos = primary.filter((it) => it.polarity === '+').length;
+  const neg = primary.length - pos;
+  const inferredPos = inferred.filter((it) => it.polarity === '+').length;
   const basis = {
-    signal_count: items.length,
+    signal_count: primary.length,
     distinct_articles: articleSet.size,
     distinct_sources: sourceSet.size,
     positive_count: pos,
     negative_count: neg,
     source_mix: sourceMix,
     sufficiency: deriveSufficiency({
-      signal_count: items.length,
+      signal_count: primary.length,
       distinct_articles: articleSet.size,
       source_type_count: sourceSet.size,
     }),
     balance: deriveBalance(pos, neg),
-    concentration_warning: deriveConcentrationWarning(items),
+    concentration_warning: deriveConcentrationWarning(primary),
+    inferred_context: {
+      count: inferred.length,
+      positive_count: inferredPos,
+      negative_count: inferred.length - inferredPos,
+    },
   };
   const presence = evaluatePresenceGates(componentId, items);
   return {
@@ -203,16 +226,14 @@ function buildOneComponent(items, articleSet, sourceSet, componentId, samplingSt
  * @param {Array<object>} signals metrics-eligible, scope-partitioned signals
  * @param {object} [ctx]
  * @param {string} [ctx.samplingStatus] 'normal'|'degraded'|'field_anchor_only'|'blind'
- * @param {object|null} [ctx.weightOverlay] optional overlay on default routing weights
  * @returns {{ by_component: Record<string, object> }}
  */
 export function buildComponentEvidence(signals, ctx = {}) {
   const samplingStatus = ctx.samplingStatus ?? 'normal';
-  const weights = resolveSignalWeights(defaultSignalWeights(), ctx.weightOverlay ?? null);
   const by_component = {};
   for (const id of COMPONENT_IDS) {
-    const { items, articleSet, sourceSet } = collectComponentSignals(id, signals, weights);
-    by_component[id] = buildOneComponent(items, articleSet, sourceSet, id, samplingStatus);
+    const { items } = collectComponentSignals(id, signals);
+    by_component[id] = buildOneComponent(items, id, samplingStatus);
   }
   return { by_component };
 }

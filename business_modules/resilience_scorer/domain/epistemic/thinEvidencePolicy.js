@@ -1,20 +1,12 @@
 /**
- * Thin-evidence instrument policy — count-based.
+ * Thin-evidence instrument policy — count-based report presentation labels.
  *
- * Pipeline position: after per-component evidence is built. Chooses which
- * qualitative *instrument* a component presents on the report surface
- * (insufficient_data, limited_evidence_neutral, critical_*, adequate, …) and
- * whether the operator surface treats the component as showable.
+ * Pipeline position: assess/report — after buildComponentEvidence; chooses per-component instruments.
  *
- * Owns: THIN_EVIDENCE_INSTRUMENT labels, deriveThinEvidencePolicy,
- * deriveAssessmentEpistemicPolicy (assessment-wide defaults from data void /
- * sampling status).
+ * Owns: THIN_EVIDENCE_INSTRUMENT labels, deriveThinEvidencePolicy, deriveAssessmentEpistemicPolicy.
+ * Does NOT: compute evidence bands or numeric resilience scores (componentEvidence.js owns counts).
  *
- * Does NOT: invent numeric scores. Decisions come from evidence_basis
- * sufficiency/balance plus critical/salience flags (see componentEvidence.js).
- *
- * Key collaborators: componentEvidence.js, groundingPolicy.js (unverified
- * critical reason), softVoidReasons.js, operator display tiers.
+ * Key collaborators: componentEvidence.js, groundingPolicy.js, softVoidReasons.js, epistemicProfileBuilder.js.
  */
 
 import { UNVERIFIED_CRITICAL_GROUNDING_REASON } from '../services/signals/groundingPolicy.js';
@@ -33,6 +25,8 @@ export const THIN_EVIDENCE_INSTRUMENT = Object.freeze({
   adequate: 'adequate',
   sampling_blind: 'sampling_blind',
 });
+
+// --- Assessment-wide policy ---
 
 /**
  * Assessment-level epistemic policy from data void / epistemic_status.
@@ -65,9 +59,14 @@ export function deriveAssessmentEpistemicPolicy(dataVoid, epistemicStatus) {
   return { globalOperatorShowsScore: true, instrumentDefault: null };
 }
 
+// --- Per-component instrument resolution ---
+
 /**
  * Resolve sufficiency from evidence_basis, with legacy-report fallbacks when
  * stored components lack the new contract fields.
+ *
+ * @param {object} comp
+ * @returns {string}
  */
 function sufficiencyOf(comp) {
   const s = comp?.evidence_basis?.sufficiency;
@@ -144,9 +143,12 @@ export function deriveThinEvidencePolicy(comp, ctx = {}) {
   return { instrument: THIN_EVIDENCE_INSTRUMENT.adequate, operatorShowsScore: true, contested_thin: false };
 }
 
+// --- Feature flag ---
+
 /**
  * Kill-switch: RESILIENCE_THIN_EVIDENCE_POLICY=0 disables thin-evidence policy
  * at call sites that consult this flag.
+ *
  * @returns {boolean}
  */
 export function isThinEvidencePolicyEnabled() {

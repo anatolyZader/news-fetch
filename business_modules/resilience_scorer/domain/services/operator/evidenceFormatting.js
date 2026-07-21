@@ -1,16 +1,17 @@
 /**
- * Shared signal-resolution and evidence-bullet formatting utilities for the
- * operator surfaces, plus routing rationale labels for rendered evidence
- * bullets.
+ * Shared signal-resolution and evidence-bullet formatting for operator surfaces.
  *
- * Evidence attaches to a component purely via the signal_type → component
- * routing table (signalRouting.js); the label makes that rationale visible so
- * an item never looks arbitrary under its component. Shared by the rich
- * investigation pool and the claims-derived fallback (import from both
- * operatorInvestigationSurface.js and operatorNarrativeSurface.js would
- * otherwise create a cycle) — this module must never import from either
- * surface file.
+ * Pipeline position: finalize narrative/investigation surfaces — shared to avoid
+ * import cycles between operatorInvestigationSurface and operatorNarrativeSurface.
+ *
+ * Owns: signal ref resolution, evidence bullet markdown, routing label suffixes,
+ * pool sort order for rich surface mode.
+ * Does NOT: build investigation pools, run LLM narrative, or route signals to components.
+ *
+ * Key collaborators: `narrativeGrounding/signalRefRegistry.js`, `contracts/operatorSurfaceMode.js`,
+ * `signals/routing/signalRouter.js`, both operator surface finalize modules.
  */
+
 import {
   operatorSurfaceMode,
   operatorEvidenceChars,
@@ -20,20 +21,36 @@ import { buildRefKey } from '../narrativeGrounding/signalRefRegistry.js';
 const MAX_EVIDENCE_LINE_CHARS = 480;
 const SIGNAL_REF_TRAILING = /\s*(?:\[S\d+\])+\s*$/;
 
+// ── Surface mode helpers ──────────────────────────────────────────────────────
+
+/**
+ * Whether operator surface is in rich mode (full pool + extended evidence chars).
+ *
+ * @returns {boolean}
+ */
 export function isRichSurfaceMode() {
   return operatorSurfaceMode() === 'rich';
 }
 
+/**
+ * Max characters per evidence line for current surface mode.
+ *
+ * @returns {number}
+ */
 export function maxEvidenceLineChars() {
   return isRichSurfaceMode() ? operatorEvidenceChars() : MAX_EVIDENCE_LINE_CHARS;
 }
 
+// ── Signal ref resolution ─────────────────────────────────────────────────────
+
+const URL_FROM_REF_KEY = /@url:(.+)$/;
+
 /**
+ * Extract article URL embedded in a signal ref key.
+ *
  * @param {string} refKey
  * @returns {string|null}
  */
-const URL_FROM_REF_KEY = /@url:(.+)$/;
-
 export function urlFromRefKey(refKey) {
   const s = String(refKey ?? '');
   const match = URL_FROM_REF_KEY.exec(s);
@@ -65,8 +82,10 @@ function signalPoolsFromComponent(comp) {
 }
 
 /**
+ * Resolve a signal object from a ref key against component pools.
+ *
  * @param {string} ref
- * @param {object} comp
+ * @param {object} comp Component with operator_investigation_pool / signals.
  * @returns {object|null}
  */
 export function resolveSignalForRef(ref, comp) {
@@ -92,6 +111,8 @@ export function resolveSignalForRef(ref, comp) {
   return null;
 }
 
+// ── Metadata extraction ───────────────────────────────────────────────────────
+
 /**
  * @param {object|null|undefined} signal
  * @returns {string|null}
@@ -103,6 +124,8 @@ export function urlFromSignal(signal) {
 }
 
 /**
+ * Strip trailing [S#] labels from claim text before prose assembly.
+ *
  * @param {string} text
  * @returns {string}
  */
@@ -111,6 +134,8 @@ export function stripTrailingSignalRefs(text) {
 }
 
 /**
+ * Extract source metadata from a resolved signal.
+ *
  * @param {object|null|undefined} signal
  * @returns {{ source_type: string|null, article_source: string|null, url: string|null }}
  */
@@ -124,6 +149,8 @@ export function metaFromSignal(signal) {
 }
 
 /**
+ * Resolve first URL from claim signal refs.
+ *
  * @param {object} claim
  * @param {object} [comp]
  * @returns {string|null}
@@ -142,6 +169,8 @@ export function urlFromClaim(claim, comp) {
 }
 
 /**
+ * Normalize source_type aliases (news→press, visits→field).
+ *
  * @param {string|null|undefined} sourceType
  * @returns {string|null}
  */
@@ -149,11 +178,13 @@ export function normalizeSourceType(sourceType) {
   const st = String(sourceType ?? '').trim().toLowerCase();
   if (!st) return null;
   if (st === 'news' || st === 'press') return 'press';
-  if (st === 'field' || st === 'visits') return 'field';
+  if (st === 'visits' || st === 'field') return 'visits';
   return st;
 }
 
 /**
+ * Derive source metadata for a claim via its signal refs.
+ *
  * @param {object} claim
  * @param {object} comp
  * @returns {{ source_type: string|null, article_source: string|null }}
@@ -187,7 +218,11 @@ export function sourceMetaFromClaim(claim, comp) {
   return { source_type: null, article_source: null };
 }
 
+// ── Evidence bullet formatting ────────────────────────────────────────────────
+
 /**
+ * Format a single markdown evidence bullet with optional source link.
+ *
  * @param {string} text
  * @param {string|null} url
  * @returns {string}
@@ -204,26 +239,19 @@ export function formatEvidenceBullet(text, url) {
  * Placed after the [source] link as a directionally neutral ASCII run — safe
  * to append to RTL (Hebrew) evidence text.
  *
- * @param {{ signal_type?: string|null, routing_role?: string|null, routing_weight?: number|null }} item
+ * @param {{ signal_type?: string|null, routing_role?: string|null }} item
  * @returns {string}
  */
 export function routingLabelSuffix(item) {
   if (!item?.signal_type) return '';
   const role = item.routing_role ?? 'primary';
-  const w = item.routing_weight;
-  let weightPart = '';
-  if (Number.isFinite(w)) {
-    const sign = w > 0 ? '+' : '';
-    weightPart = ` ${sign}${w}`;
-  }
-  return ` \`${item.signal_type} · ${role}${weightPart}\``;
+  return ` \`${item.signal_type} · ${role}\``;
 }
 
+// ── Pool rendering ────────────────────────────────────────────────────────────
+
 /**
- * How inferred-edge items render in the evidence list, from the
- * RESILIENCE_POOL_INFERRED_RENDER env var: 'label' (default — keep, labeled,
- * sorted after primary) or 'hide' (drop from the rendered list; the item
- * still exists in the pool JSON).
+ * How inferred-edge items render in the evidence list (label vs hide).
  *
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {'label'|'hide'}
@@ -233,7 +261,7 @@ export function inferredPoolRenderMode(env = process.env) {
 }
 
 /**
- * Primary-edge items first, then by descending scoring contribution.
+ * Sort pool items: primary edges first, then by contribution rank.
  *
  * @param {{ routing_role?: string, contribution?: number }} a
  * @param {{ routing_role?: string, contribution?: number }} b

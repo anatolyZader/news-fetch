@@ -1,10 +1,21 @@
 /**
- * Action compass — kind taxonomy. Classifies a raw candidate (attention item,
- * recommendation, brief item, gap task, or synthesized void/geo action) into one
- * of a small set of operator-facing action KINDS so the compass can rank by value
- * and enforce kind-diversity instead of echoing diagnostics.
+ * Action compass — kind taxonomy for operator-facing action classification.
+ *
+ * Pipeline position: STAGE-2 assess finalize — classifies raw candidates (attention,
+ * recommendations, brief items, gaps, void/geo actions) into action KINDS before
+ * ranking and phrasing.
+ *
+ * Owns: `ACTION_KINDS`, code→kind mapping, brief keyword classifier, info-noise filter.
+ * Does NOT: rank or phrase actions (see sibling modules) or build the compass panel.
+ *
+ * Key collaborators: `actionCompass/actionCompass.js`, `services/operator/attentionItems.js`.
  */
 
+// ---------------------------------------------------------------------------
+// Kind taxonomy
+// ---------------------------------------------------------------------------
+
+/** Operator-facing action kind constants (corroborate, investigate, etc.). */
 export const ACTION_KINDS = Object.freeze({
   corroborate: 'corroborate',
   repair_sampling: 'repair_sampling',
@@ -33,6 +44,10 @@ export const INFO_NOISE_CODES = Object.freeze(new Set([
   'calibration_deficit',
   'oov_capture',
 ]));
+
+// ---------------------------------------------------------------------------
+// Code and keyword mapping (internal)
+// ---------------------------------------------------------------------------
 
 const CODE_TO_KIND = Object.freeze({
   // corroborate — digital is blind/dark; confirm via field + trusted channels
@@ -83,9 +98,14 @@ const BRIEF_KEYWORD_KINDS = [
   [/escalat|authorit|notify|convene/i, ACTION_KINDS.escalate],
 ];
 
+// ---------------------------------------------------------------------------
+// Classification API
+// ---------------------------------------------------------------------------
+
 /**
+ * Classify a free-text brief item into an action kind via keyword heuristics.
  * @param {string} text
- * @returns {string}
+ * @returns {string} one of `ACTION_KINDS`
  */
 export function classifyBriefKind(text) {
   const str = String(text ?? '');
@@ -96,8 +116,9 @@ export function classifyBriefKind(text) {
 }
 
 /**
- * @param {{ source?: string, code?: string|null, level?: string, component_id?: string|null, text?: string }} candidate
- * @returns {string} one of ACTION_KINDS
+ * Classify a raw compass candidate into one of `ACTION_KINDS`.
+ * @param {{ source?: string, code?: string|null, level?: string, component_id?: string|null, text?: string, suggested_action_key?: string }} candidate
+ * @returns {string} one of `ACTION_KINDS`
  */
 export function classifyKind(candidate = {}) {
   const code = candidate.code ?? null;
@@ -120,6 +141,7 @@ export function classifyKind(candidate = {}) {
 }
 
 /**
+ * Whether an attention/recommendation code is info-only noise (excluded from compass).
  * @param {string} code
  * @returns {boolean}
  */

@@ -1,11 +1,28 @@
 /**
  * Catalog-driven prompt fragments for closed-vocabulary extraction.
- * Source of truth for labels/disambiguation: SIGNAL_CATALOG in signalCatalog.js.
+ *
+ * Pipeline position: closed-catalogue extraction (Haiku / multipass). Renders
+ * SIGNAL_CATALOG into prompt text: domain lists, disambiguation boundaries, and
+ * mirror self-check hints used after a type is proposed.
+ *
+ * Owns: formatSignalCatalog*, formatDisambiguationBlock, mirror self-check helpers,
+ * DISAMBIGUATION_PRIORITY_TYPES ordering for the stable prefix budget.
+ * Does NOT: invent signal types or labels (source of truth is signalCatalog.js);
+ * does not route types to components (signalRouting.js).
+ *
+ * Key collaborators: signalCatalog.js (via signalRouter), extractionPasses /
+ * closedCatalogueExtractService (consumers), signalRouter.js.
  */
 
 import { SIGNAL_CATALOG, getSignalCatalogEntry } from './signalRouter.js';
 
-/** Types with rich disambiguation metadata — emitted first in the boundaries block. */
+// --- Priority types for disambiguation block ---------------------------------
+
+/**
+ * Types with rich disambiguation metadata — emitted first in the boundaries block
+ * so the hard-budgeted stable prefix spends chars on the highest-confusion pairs.
+ * @type {string[]}
+ */
 export const DISAMBIGUATION_PRIORITY_TYPES = [
   'solidarity_help_others',
   'harm_to_population',
@@ -34,9 +51,12 @@ export const DISAMBIGUATION_PRIORITY_TYPES = [
   'social_isolation',
 ];
 
+// --- Catalog list formatting -------------------------------------------------
+
 /**
- * Format catalog entries grouped by domain (optionally filtered).
- * @param {Array<object>} [entries]
+ * Format catalog entries grouped by domain for the extraction system prompt.
+ * @param {Array<object>} [entries] defaults to full SIGNAL_CATALOG
+ * @returns {string} markdown-ish domain sections with `type` [class]: label lines
  */
 export function formatSignalCatalog(entries = SIGNAL_CATALOG) {
   const byDomain = {};
@@ -54,17 +74,22 @@ export function formatSignalCatalog(entries = SIGNAL_CATALOG) {
 }
 
 /**
- * Domain-restricted catalog view for multipass extraction.
- * @param {string[]} domains
+ * Domain-restricted catalog view for multipass extraction (one pass per domain set).
+ * @param {string[]} domains SIGNAL_DOMAINS keys to include
+ * @returns {string}
  */
 export function formatSignalCatalogSubset(domains) {
   const allowed = new Set(domains);
   return formatSignalCatalog(SIGNAL_CATALOG.filter((s) => allowed.has(s.domain)));
 }
 
+// --- Disambiguation / boundaries ---------------------------------------------
+
 /**
- * One catalog entry's disambiguation block.
- * @param {object} entry
+ * One catalog entry's disambiguation block (NOT / ACCEPT / REJECT / EXAMPLE lines).
+ * Omits mirror/related to save stable-prefix budget — mirrors go to E5 self-check.
+ * @param {object} entry SignalCatalogEntry
+ * @returns {string} empty when the entry has no usable disambiguation fields
  */
 function formatEntryDisambiguation(entry) {
   const d = entry.disambiguation;
@@ -97,7 +122,9 @@ function formatEntryDisambiguation(entry) {
 
 /**
  * Catalog-driven classification boundaries for extraction prompts.
+ * Walks priority types (or opts.types), caps at maxEntries, skips empty blocks.
  * @param {{ types?: string[], maxEntries?: number }} [opts]
+ * @returns {string} fallback prose when no entry yields a block
  */
 export function formatDisambiguationBlock(opts = {}) {
   const priority = opts.types ?? DISAMBIGUATION_PRIORITY_TYPES;
@@ -126,9 +153,12 @@ export function formatDisambiguationBlock(opts = {}) {
   );
 }
 
+// --- Mirror self-check (E5) --------------------------------------------------
+
 /**
- * Mirror lookup for E5 self-check: type -> mirror type label.
+ * Mirror lookup for E5 self-check: declared type → paired opposite/mirror type id.
  * @param {string} signalType
+ * @returns {string|null}
  */
 export function getMirrorTypeForSelfCheck(signalType) {
   const entry = getSignalCatalogEntry(signalType);
@@ -136,8 +166,9 @@ export function getMirrorTypeForSelfCheck(signalType) {
 }
 
 /**
- * Extra self-check instruction when signal has a mirror pair.
+ * Extra self-check instruction when the declared type has a catalog mirror pair.
  * @param {string} signalType
+ * @returns {string} empty when no mirror; otherwise a "vote no if mirror fits better" clause
  */
 export function formatMirrorSelfCheckHint(signalType) {
   const mirror = getMirrorTypeForSelfCheck(signalType);

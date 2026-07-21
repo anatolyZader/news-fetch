@@ -126,10 +126,6 @@ export { createAnthropicResilienceLlmAdapter } from './infrastructure/adapters/a
 // --- Evidence grouping (count-based) ---
 export { collectComponentSignals } from './domain/services/signals/componentSignalGroups.js';
 export { buildComponentEvidence } from './domain/contracts/componentEvidence.js';
-export {
-  defaultSignalWeights,
-  resolveSignalWeights,
-} from './domain/services/signals/routing/signalWeights.js';
 export { applyInvestigationSignalFlags } from './domain/services/signals/investigationSignalFlags.js';
 export { buildNorthClusterNarrativesFromSignals } from './domain/services/narrative/northClusterNarrative.js';
 

@@ -18,7 +18,7 @@
 | **Open analysis / open observation** | Free-form behavioral extraction with no fixed vocabulary and no scoring; the primary input to the assessment agent. Artifact: `observations-pipeline-{source}-{date}.json`. |
 | **Closed vocabulary / signal** | Extraction typed against the fixed `SIGNAL_CATALOG`; the supporting, structured, scorable path. Artifact: `signals-{source}-{date}.json`. |
 | **8-component model** | The Home Front Command resilience decomposition: `narrative`, `information_communication`, `lifesaving_behavior`, `functional_continuity`, `community_capital`, `leadership`, `belonging_solidarity`, `wellbeing_at_risk`. |
-| **`SIGNAL_TO_COMPONENTS`** | Many-to-many signed weights mapping a closed signal type to one or more components. |
+| **`SIGNAL_TO_COMPONENTS`** | Many-to-many discrete polarity/role edges mapping a closed signal type to one or more components. |
 | **`RESILIENCE_OPEN_EXTRACT_PARALLEL`** | Env flag; empty/unset means the open path is ON (default). |
 | **Assessment agent** | The planner -> specialists -> critic -> synthesizer pipeline that produces claim-backed component assessments (`runAssessmentAgent`). |
 | **Planner** | Builds the investigation plan, including `abstention_components`. |

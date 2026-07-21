@@ -1,16 +1,22 @@
 /**
- * Operator epistemic overlay flag.
+ * Operator epistemic overlay feature flag.
  *
- * Report responses never ship guidance badges (attention items, compass,
- * recommendations) to operators — that is unconditional in reportRoutes. This
- * flag governs what still varies: chat guidance-tool exposure and pipeline-time
- * generation of the decision brief and operator recommendations.
- * Default ON; RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY=0 disables them.
+ * Pipeline position: report and chat paths — gates decision-brief and guidance
+ * overlay generation/exposure. Client-safe isomorphic (env-driven).
+ *
+ * Owns: operatorEpistemicOverlayEnabled env gate.
+ * Does NOT: unconditional report badge suppression (handled in reportRoutes) or
+ * narrativeGrounding QA.
+ *
+ * Key collaborators: narrativeEpistemicMode.js, reportRoutes.js, chat guidance tools.
  */
 
 /**
+ * Return true when epistemic overlay layers (decision brief, recommendations,
+ * chat guidance tools) should be generated and exposed to operators.
+ * Default ON; RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY=0 disables.
  * @param {NodeJS.ProcessEnv} [env]
- * @returns {boolean} true when overlay layers should be shown to operators
+ * @returns {boolean}
  */
 export function operatorEpistemicOverlayEnabled(env = process.env) {
   if (env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY === '0') return false;

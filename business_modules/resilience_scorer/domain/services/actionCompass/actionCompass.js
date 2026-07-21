@@ -1,10 +1,19 @@
 /**
  * Action compass — ranked operator actions during abstention/uncertainty (no numeric scores).
  *
- * Pipeline: collect candidates (attention items, pending recommendations, decision
- * brief priority items, gap-closure tasks, synthesized void/geo/escalate actions)
- * -> drop info-noise -> classify into KINDS -> cluster semantic duplicates ->
- * value-rank -> kind-diversity select top 5 -> operator-language phrasing.
+ * Pipeline position: STAGE-2 assess finalize — collects candidates from attention,
+ * recommendations, brief, gaps, and void/geo signals; ranks and phrases top actions.
+ *
+ * Owns: candidate collection, semantic dedupe clustering, uncertainty band derivation,
+ * final compass payload on the assessment.
+ * Does NOT: detect patterns (see `patternDetection/`) or compute component scores
+ * (min-math — count-based evidence only).
+ *
+ * Key collaborators: `actionCompass/actionCompassKinds.js`, `actionCompass/actionCompassRanking.js`,
+ * `actionCompass/actionCompassPhrasing.js`, `services/operator/attentionItems.js`.
+ *
+ * Pipeline: collect candidates → drop info-noise → classify KINDS → cluster duplicates →
+ * value-rank → kind-diversity select top 5 → operator-language phrasing.
  */
 
 import { THIN_EVIDENCE_INSTRUMENT } from '../../epistemic/thinEvidencePolicy.js';
@@ -16,6 +25,10 @@ import { phraseAction } from './actionCompassPhrasing.js';
 
 export { ATTENTION_LEVELS } from '../operator/attentionItems.js';
 export { ACTION_KINDS } from './actionCompassKinds.js';
+
+// ---------------------------------------------------------------------------
+// Configuration
+// ---------------------------------------------------------------------------
 
 const LEVEL_PRIORITY = { critical: 0, warning: 1, watch: 2, info: 3 };
 const MAX_ACTIONS = 5;
@@ -31,11 +44,21 @@ const CODE_NOVELTY = {
   oov_burst: 'new',
 };
 
+/**
+ * Whether the action compass panel is enabled (`RESILIENCE_ACTION_COMPASS` defaults on).
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {boolean}
+ */
 export function actionCompassEnabled(env = process.env) {
   return env.RESILIENCE_ACTION_COMPASS !== '0';
 }
 
+// ---------------------------------------------------------------------------
+// Uncertainty band
+// ---------------------------------------------------------------------------
+
 /**
+ * Derive uncertainty band from data void and epistemic status (no numeric score).
  * @param {object|null|undefined} dataVoid
  * @param {object|null|undefined} epistemicStatus
  * @returns {'unknown'|'watch'|'elevated'|'critical'}
@@ -52,6 +75,10 @@ export function deriveUncertaintyBand(dataVoid, epistemicStatus) {
   if (voidLevel === 'warning' || sampling === 'degraded') return 'watch';
   return 'unknown';
 }
+
+// ---------------------------------------------------------------------------
+// Candidate collection (internal)
+// ---------------------------------------------------------------------------
 
 /**
  * Gather raw candidates from all sources into a uniform shape.
@@ -167,10 +194,7 @@ function collectCandidates(assessment, attentionItems, band, geoUnknownCount) {
 }
 
 /**
- * A systemic source-mix dominance gap (e.g. "diversify sources: source_type
- * \"pbo\" over-represented") is the same report-wide problem regardless of which
- * component raised it. Detect it so it clusters into a single action instead of
- * one near-identical "investigate" item per component.
+ * A systemic source-mix dominance gap is report-wide regardless of component.
  * @param {object} c
  * @returns {boolean}
  */
@@ -208,9 +232,7 @@ function mergeIntoExisting(existing, c) {
 }
 
 /**
- * Merge semantic duplicates by kind + component so the same situation is not
- * surfaced multiple times. Keeps highest severity, accumulates evidence codes,
- * and carries any verb-bearing text (brief next step / gap action).
+ * Merge semantic duplicates by kind + component.
  * @param {Array<object>} candidates each already has `kind`
  * @returns {Array<object>}
  */
@@ -238,7 +260,12 @@ function clusterCandidates(candidates) {
   return [...byKey.values()];
 }
 
+// ---------------------------------------------------------------------------
+// Compass builder
+// ---------------------------------------------------------------------------
+
 /**
+ * Build the action compass panel for an assessment (or null when disabled/empty).
  * @param {object|null|undefined} assessment
  * @param {Array<object>} [attentionItems]
  * @param {{ geoUnknownCount?: number }} [opts]

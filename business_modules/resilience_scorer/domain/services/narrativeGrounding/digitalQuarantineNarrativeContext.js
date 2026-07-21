@@ -1,15 +1,25 @@
 /**
  * Epistemic prompt block when digital signals are quarantined from scoring only.
- * Narrative/investigation pools remain full — prose must still cite digital evidence.
+ *
+ * Pipeline position: injected into narrative LLM system prompt when scoring partition
+ * quarantines digital; narrative pool still includes quarantined signals.
+ *
+ * Owns: formatDigitalQuarantineNarrativeBlock text, active-context predicate.
+ * Does NOT: perform scoring partition or void index computation.
+ *
+ * Key collaborators: `dataVoid/scoringPartition.js`, narrative LLM orchestrator,
+ * `narrativeGrounding/index.js` re-export.
  */
 
 /**
+ * Build EPISTEMIC_PARTITION prompt block when digital signals are scoring-quarantined.
+ *
  * @param {object} [params]
  * @param {object|null|undefined} [params.quarantinedDigital]
  * @param {object|null|undefined} [params.scoringPartition]
  * @param {number} [params.narrativeScopeSignalCount]
  * @param {number} [params.signalsScoringUsed]
- * @returns {string}
+ * @returns {string} Prompt block or empty string when partition not active.
  */
 export function formatDigitalQuarantineNarrativeBlock(params = {}) {
   const {
@@ -45,7 +55,9 @@ export function formatDigitalQuarantineNarrativeBlock(params = {}) {
 }
 
 /**
- * @param {object} params
+ * Whether digital quarantine narrative context should be injected into prompts.
+ *
+ * @param {object} params Same shape as formatDigitalQuarantineNarrativeBlock.
  * @returns {boolean}
  */
 export function narrativeQuarantineContextActive(params = {}) {

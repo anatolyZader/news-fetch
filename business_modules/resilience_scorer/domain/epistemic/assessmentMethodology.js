@@ -1,19 +1,12 @@
 /**
  * Assessment methodology metadata for auditors and operator-facing copy.
  *
- * Pipeline position: attached to assess reports (buildAssessmentMethodology).
- * Documents instrument limits, scope rules, and model version — not the
- * evidence math itself (that lives in componentEvidence / epistemic).
+ * Pipeline position: assess/report — embedded in artifacts via buildAssessmentMethodology.
  *
- * Owns: SCORING_MODEL_VERSION + changelog, methodology JSON builders, and
- * stderr summary formatters for assess-signals.
+ * Owns: SCORING_MODEL_VERSION/changelog, methodology JSON builders, stderr log formatters.
+ * Does NOT: compute count-based evidence bands or epistemic profiles (componentEvidence.js, epistemicProfileBuilder.js).
  *
- * Does NOT: compute component evidence or narratives. Historical name still
- * says "scoring" but min-math reports are narrative-first with count bands
- * (no 1–10 headline scores in the operator path).
- *
- * When SIGNAL_TO_COMPONENTS changes materially: bump SCORING_MODEL_VERSION and
- * add a SCORING_MODEL_CHANGELOG entry.
+ * Key collaborators: assessSignalsCli.js, signalRouter.js, pipelineStageTelemetry.js, geo/signalGeoSummary.js.
  */
 
 import { createHash } from 'node:crypto';
@@ -28,16 +21,23 @@ import { isRegionalReportScope, normalizeReportScopeId } from '../../../../cross
 import { DEFAULT_NORTH_SOURCE_TYPES } from '../services/signals/signalDistrictId.js';
 
 /**
- * Version string stamped into methodology / report artifacts.
- * Bump when SIGNAL_TO_COMPONENTS or catalog/routing contracts change materially.
+ * Version string stamped into methodology and report artifacts.
+ * Bump when SIGNAL_TO_COMPONENTS or catalog/routing contracts change materially;
+ * add a matching SCORING_MODEL_CHANGELOG entry.
  */
-export const SCORING_MODEL_VERSION = 'v8';
+export const SCORING_MODEL_VERSION = 'v9';
 
 /**
  * Human-maintained changelog paired with SCORING_MODEL_VERSION.
  * Newest first. Required when bumping the version.
  */
 export const SCORING_MODEL_CHANGELOG = [
+  {
+    version: 'v9',
+    date: '2026-07-21',
+    summary:
+      'Routing edges made discrete: SIGNAL_TO_COMPONENTS numeric weights replaced by { polarity, role } edges (mechanical conversion: polarity = weight sign, role = primary when |w| >= 0.5 else inferred; novel_behavior_observed keeps wellbeing primary). Evidence bands (sufficiency/balance/concentration) now count primary-role edges only; inferred edges reported as inferred_context and labeled in signal lists. Weight-overlay plumbing removed (was never used). Pre/post reports not comparable.',
+  },
   {
     version: 'v8',
     date: '2026-07-20',
@@ -70,15 +70,28 @@ export const SCORING_MODEL_CHANGELOG = [
   },
 ];
 
-/** @deprecated use DEFAULT_NORTH_SOURCE_TYPES from signalDistrictId.js */
+/**
+ * @deprecated Use DEFAULT_NORTH_SOURCE_TYPES from signalDistrictId.js instead.
+ * Preserved for legacy report readers that still reference phase-1 north defaults.
+ */
 export const PHASE1_ALWAYS_NORTH_SOURCE_TYPES = [...DEFAULT_NORTH_SOURCE_TYPES];
 
+/** Operator-facing note on how signal.district_id and source_type interact with report scope. */
 const SIGNAL_DISTRICT_SCOPE_NOTE =
   'Structured feeds stamp signal.district_id at extract (or inherit from bundle at assess). North-domain feeds (field, pbo, whatsapp, etc.) without district_id default to north — these sources are exclusively north-domain. Regional scope uses signal district plus resolved geo tags — not source_type alone.';
 
+// --- Scope & equity summaries ---
+
 /**
  * Report-quality metric: how often equity-relevant signals name an affected_subgroup.
+ *
  * @param {Array<object>} signals
+ * @returns {{
+ *   equity_signal_count: number,
+ *   subgroup_named_count: number,
+ *   pct_subgroup_named: number|null,
+ *   by_subgroup: Record<string, number>,
+ * }}
  */
 export function summarizeSubgroupCoverage(signals) {
   const list = Array.isArray(signals) ? signals : [];
@@ -104,8 +117,12 @@ export function summarizeSubgroupCoverage(signals) {
 }
 
 /**
+ * Count how each signal resolved report-scope relevance (by scopeDecision.source).
+ * Adds scope_relevant_signals / north_relevant_signals when a regional scope is active.
+ *
  * @param {Array<object>} signals
  * @param {{ reportScopeId?: string }} [opts]
+ * @returns {{ total_signals: number, by_source: Record<string, number>, scope_relevant_signals?: number, north_relevant_signals?: number }}
  */
 export function summarizeScopeDecisionSources(signals, opts = {}) {
   const list = Array.isArray(signals) ? signals : [];
@@ -138,9 +155,11 @@ export function summarizeScopeDecisionSources(signals, opts = {}) {
   return summary;
 }
 
+// --- Model manifest & report methodology ---
+
 /**
  * Full on-disk scoring-model manifest (analyst audit): includes the full
- * SIGNAL_TO_COMPONENTS matrix and a sha256 of the weights JSON.
+ * SIGNAL_TO_COMPONENTS edge table and a sha256 of its JSON.
  * Not exposed on the operator API tier (strip via methodologyForOperatorView).
  * @returns {object}
  */
@@ -150,7 +169,7 @@ export function buildScoringModelManifest() {
     scoring_model_version: SCORING_MODEL_VERSION,
     generated_at: new Date().toISOString(),
     weights: 'author_set',
-    weights_note: 'SIGNAL_TO_COMPONENTS is author-set; not fitted on crisis ground truth.',
+    weights_note: 'SIGNAL_TO_COMPONENTS is an author-set table of discrete polarity/role edges; not fitted on crisis ground truth.',
     changelog: [...SCORING_MODEL_CHANGELOG],
     signal_to_components_sha256: createHash('sha256').update(weightsJson).digest('hex'),
     signal_type_count: SIGNAL_TYPES.length,
@@ -159,9 +178,9 @@ export function buildScoringModelManifest() {
 }
 
 /**
- * Assemble the methodology block embedded in assessment reports: scoring
- * model metadata, active scope, governance notes, limitations, and epistemic
- * policy summaries (thin/contested evidence).
+ * Assemble the methodology block embedded in assessment reports: model metadata,
+ * active scope, governance notes, limitations, and count-based epistemic policy
+ * summaries (thin/contested evidence — no numeric resilience scores).
  *
  * @param {{
  *   signals: Array<object>,
@@ -209,7 +228,7 @@ export function buildAssessmentMethodology({
         'Public-facing layer: behavioral narratives and cited evidence. Numeric scores are internal/analyst tooling unless explicitly enabled.',
     },
     limitations: {
-      signal_weights: 'author_set_not_ml_fitted',
+      signal_weights: 'author_set_discrete_edges_not_ml_fitted',
       component_tuning: 'none (count-based evidence bands)',
       regional_geo_news:
         'All pipeline sources receive resolved geo envelopes via geoService. Text-inferred locality on news/radio/social is scope hint only (usableForMetrics=false); structured locality and signal.district_id drive regional metrics.',
@@ -236,6 +255,8 @@ export function buildAssessmentMethodology({
     tuning_proposal: tuningProposal ?? null,
   };
 }
+
+// --- Operator view & CLI logging ---
 
 /**
  * Operator-safe methodology: drops full weight matrix; redacts tuning and
@@ -267,8 +288,10 @@ export function methodologyForOperatorView(methodology) {
 }
 
 /**
- * One-line stderr summary for assess-signals.
+ * One-line stderr summary for assess-signals scope-decision telemetry.
+ *
  * @param {object} methodology
+ * @returns {string}
  */
 export function formatScopeDecisionLogLine(methodology) {
   const s = methodology?.scope?.scope_decision_summary;
@@ -282,7 +305,9 @@ export function formatScopeDecisionLogLine(methodology) {
 
 /**
  * One-line stderr summary for equity subgroup tagging coverage.
+ *
  * @param {object} methodology
+ * @returns {string}
  */
 export function formatSubgroupCoverageLogLine(methodology) {
   const sc = methodology?.limitations?.subgroup_coverage;

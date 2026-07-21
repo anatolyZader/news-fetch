@@ -1,14 +1,19 @@
 /**
- * Critical-signal salience — the curated signal types where a lone verified
- * report must surface as an operator-visible critical flag (see
- * componentEvidence.js `critical_flags.salient_single_signal` and the
- * unverified-critical grounding tier in groundingPolicy.js).
+ * Critical-signal salience — curated types that must surface when lone and verified.
  *
- * The former mass-based bypass evaluator (dominant-share / floor-skip logic)
- * was removed with the scoring engine.
+ * Pipeline position: assess — referenced by componentEvidence critical_flags and presenceGates auto-rules.
+ *
+ * Owns: CRITICAL_BYPASS_SIGNAL_TYPES set, salienceContextFromDataVoid helper.
+ * Does NOT: evaluate presence gates or evidence bands (presenceGates.js, componentEvidence.js).
+ *
+ * Key collaborators: presenceGates.js, componentEvidence.js, groundingPolicy.js, thinEvidencePolicy.js.
  */
 
-/** Curated types where a lone verified report must not be suppressed. */
+/**
+ * Curated signal types where a lone verified report must not be suppressed.
+ * Former mass-based bypass evaluator removed with the scoring engine (min-math).
+ * @type {ReadonlySet<string>}
+ */
 export const CRITICAL_BYPASS_SIGNAL_TYPES = new Set([
   'harm_to_population',
   'early_warning_system_failure',
@@ -23,6 +28,8 @@ export const CRITICAL_BYPASS_SIGNAL_TYPES = new Set([
 ]);
 
 /**
+ * Extract salience-relevant fields from a data-void object for critical-flag context.
+ *
  * @param {object|null|undefined} dataVoid
  * @returns {{ dataVoidLevel?: string, digitalDarkness?: boolean }}
  */

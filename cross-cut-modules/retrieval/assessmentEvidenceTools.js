@@ -8,7 +8,7 @@ const COMPONENT_ENUM = [
   'community_capital', 'leadership', 'belonging_solidarity', 'wellbeing_at_risk',
 ];
 
-const SIGNAL_SOURCE_ENUM = ['news', 'radio', 'visits', 'field', 'pbo', 'pbo_regional', 'naftali', 'whatsapp', 'social'];
+const SIGNAL_SOURCE_ENUM = ['news', 'radio', 'visits', 'pbo', 'pbo_regional', 'naftali', 'whatsapp', 'social'];
 
 export function assessmentChatToolsEnabled() {
   const v = process.env.RESILIENCE_ASSESS_CHAT_TOOLS;

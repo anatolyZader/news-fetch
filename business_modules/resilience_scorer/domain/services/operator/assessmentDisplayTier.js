@@ -1,10 +1,18 @@
 /**
- * Instrument state and report-payload shaping (single evidence-based view).
+ * Per-component instrument state and report-payload shaping for the single report surface.
  *
- * There is no numeric score anywhere in the assessment, so the former
- * operator/analyst redaction collapsed into a passthrough that attaches the
- * qualitative `instrument` object the UI and chat layers render from. The
- * `view` parameters are kept for call-site compatibility.
+ * Pipeline position: late finalize / HTTP redact path — after specialist agent and
+ * narrative grounding; before client render and chat tool payloads.
+ *
+ * Owns: qualitative `instrument` object (sufficiency, balance, contested flags,
+ * count-based evidence fields); passthrough redact helpers that attach instrument
+ * to every component. No numeric resilience scores.
+ * Does NOT: compute evidence partitions, build attention items, or run LLM narrative.
+ * Historical `view` params are kept for call-site compatibility only — there is no
+ * separate analyst/redacted view.
+ *
+ * Key collaborators: `epistemic/thinEvidencePolicy.js`, `narrativeGrounding/groundingConfig.js`,
+ * `contracts/displayViews.js`, `operator/attentionItems.js`, report HTTP routes.
  */
 
 import { DISPLAY_VIEWS } from '../../contracts/displayViews.js';
@@ -19,6 +27,8 @@ const SUFFICIENCY_CERTAINTY_BAND = {
   adequate: 'high',
 };
 
+// ── Instrument derivation ─────────────────────────────────────────────────────
+
 const BALANCE_POLARIZATION_BAND = {
   one_sided_pos: 'one_sided',
   one_sided_neg: 'one_sided',
@@ -27,9 +37,13 @@ const BALANCE_POLARIZATION_BAND = {
 };
 
 /**
- * @param {object} comp evidence component (or legacy stored component)
- * @param {object} [assessmentContext]
- * @returns {object}
+ * Build the qualitative instrument object a component exposes to the report UI.
+ *
+ * @param {object} comp Evidence component (or legacy stored component).
+ * @param {object} [assessmentContext] Assessment-level void/epistemic context.
+ * @param {object} [assessmentContext.dataVoid]
+ * @param {object} [assessmentContext.epistemicStatus]
+ * @returns {object} Count-based instrument fields (no numeric score).
  */
 export function deriveInstrumentState(comp, assessmentContext = {}) {
   const basis = comp?.evidence_basis ?? null;
@@ -86,9 +100,13 @@ export function deriveInstrumentState(comp, assessmentContext = {}) {
   return instrument;
 }
 
+// ── Assessment summary ────────────────────────────────────────────────────────
+
 /**
- * One-line assessment summary (qualitative, no numeric scores).
+ * One-line qualitative assessment summary for chat/tools (count-based, no scores).
+ *
  * @param {object | null | undefined} assessment
+ * @returns {string}
  */
 export function operatorAssessmentSummary(assessment) {
   const comps = assessment?.components ?? [];
@@ -115,10 +133,13 @@ export function operatorAssessmentSummary(assessment) {
   return summary;
 }
 
+// ── Report payload passthrough (historical "redact" naming) ───────────────────
+
 /**
- * Attach instrument state to every component. No redaction — single view.
+ * Attach instrument state to every component; single evidence-based view (no redaction).
+ *
  * @param {object} assessment
- * @param {'operator' | 'analyst'} [_view] kept for call-site compatibility
+ * @param {'operator' | 'analyst'} [_view] Kept for call-site compatibility.
  * @returns {object}
  */
 export function redactAssessmentForView(assessment, _view) {
@@ -148,16 +169,22 @@ export function redactAssessmentForView(assessment, _view) {
 }
 
 /**
+ * Passthrough for score-by-source buckets (min-math: no numeric scores to hide).
+ *
  * @param {Record<string, Record<string, object>> | null | undefined} scoreBySource
  * @param {'operator' | 'analyst'} [_view]
+ * @returns {Record<string, Record<string, object>> | null}
  */
 export function redactScoreBySource(scoreBySource, _view) {
   return scoreBySource ?? null;
 }
 
 /**
- * @param {object} payload  Cached report payload (assessment, markdown, …)
- * @param {'operator' | 'analyst'} [view] kept for call-site compatibility
+ * Shape cached report payload for the single operator report surface.
+ *
+ * @param {object} payload Cached report payload (assessment, markdown, …).
+ * @param {'operator' | 'analyst'} [view] Kept for call-site compatibility.
+ * @returns {object}
  */
 export function redactReportPayload(payload, view) {
   if (!payload || typeof payload !== 'object') return payload;

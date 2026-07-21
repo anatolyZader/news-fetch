@@ -21,9 +21,9 @@ describe('replayReuseConfig', () => {
   });
 
   it('enables reuse for truthy env values', () => {
-    assert.equal(isReplayReuseEnabled('field', { RESILIENCE_REPLAY_REUSE_FIELD: '1' }), true);
-    assert.equal(isReplayReuseEnabled('field', { RESILIENCE_REPLAY_REUSE_FIELD: 'true' }), true);
-    assert.equal(isReplayReuseEnabled('field', { RESILIENCE_REPLAY_REUSE_FIELD: 'on' }), true);
+    assert.equal(isReplayReuseEnabled('visits', { RESILIENCE_REPLAY_REUSE_VISITS: '1' }), true);
+    assert.equal(isReplayReuseEnabled('visits', { RESILIENCE_REPLAY_REUSE_VISITS: 'true' }), true);
+    assert.equal(isReplayReuseEnabled('visits', { RESILIENCE_REPLAY_REUSE_VISITS: 'on' }), true);
   });
 
   it('shouldReuseInReplay only applies in replay without force', () => {

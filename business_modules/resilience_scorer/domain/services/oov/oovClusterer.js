@@ -1,5 +1,15 @@
 /**
  * Cluster learning-capture records for OOV gap review and operator alerts.
+ *
+ * Pipeline position: STAGE-2 assess oov path — prefix and embedding clustering
+ * used by `dynamicOovCluster.js` and analyst gap review tooling.
+ *
+ * Owns: cosine similarity, prefix/embedding clustering, cluster summarization, ranking.
+ * Does NOT: load JSONL captures (see `oovCapture.js`) or emit burst alert levels
+ * (see `dynamicOovCluster.js`).
+ *
+ * Key collaborators: `contracts/learningCaptureRecordHelpers.js`,
+ * `contracts/learningCaptureKinds.js`, `oov/dynamicOovCluster.js`.
  */
 
 import {
@@ -8,9 +18,15 @@ import {
 } from '../../contracts/learningCaptureRecordHelpers.js';
 import { LEARNING_CAPTURE_KINDS } from '../../contracts/learningCaptureKinds.js';
 
+// ---------------------------------------------------------------------------
+// Similarity
+// ---------------------------------------------------------------------------
+
 /**
+ * Cosine similarity between two equal-length vectors.
  * @param {Float32Array|number[]} a
  * @param {Float32Array|number[]} b
+ * @returns {number}
  */
 export function cosineSimilarity(a, b) {
   let dot = 0;
@@ -26,9 +42,14 @@ export function cosineSimilarity(a, b) {
   return dot / (Math.sqrt(na) * Math.sqrt(nb));
 }
 
+// ---------------------------------------------------------------------------
+// Clustering strategies
+// ---------------------------------------------------------------------------
+
 /**
  * Prefix-based fallback clustering when embeddings are unavailable.
  * @param {Array<object>} records
+ * @returns {Array<object>}
  */
 export function clusterByPrefix(records) {
   /** @type {Map<string, { key: string, records: object[], kinds: Map<string, number> }>} */
@@ -52,7 +73,8 @@ export function clusterByPrefix(records) {
  * Greedy embedding clustering — merges records above similarity threshold.
  * @param {Array<object>} records
  * @param {Array<{ vector: Float32Array }>} embeddings
- * @param {number} threshold
+ * @param {number} [threshold=0.82]
+ * @returns {Array<object>}
  */
 export function clusterByEmbedding(records, embeddings, threshold = 0.82) {
   /** @type {Array<{ centroid: Float32Array, records: object[] }>} */
@@ -85,6 +107,10 @@ export function clusterByEmbedding(records, embeddings, threshold = 0.82) {
     })
     .sort((a, b) => b.count - a.count);
 }
+
+// ---------------------------------------------------------------------------
+// Summarization and ranking
+// ---------------------------------------------------------------------------
 
 /**
  * @param {string} key
@@ -124,9 +150,11 @@ function summarizeCluster(key, records, kinds) {
 }
 
 /**
- * Rank clusters for analyst attention.
+ * Rank clusters for analyst attention by count, breadth, and novelty.
  * @param {Array<object>} clusters
  * @param {object} [opts]
+ * @param {number} [opts.minCount]
+ * @returns {Array<object>}
  */
 export function rankClusters(clusters, opts = {}) {
   const minCount = opts.minCount ?? 2;

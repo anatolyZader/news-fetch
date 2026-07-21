@@ -1,5 +1,14 @@
 /**
- * Epistemic gate — abstention and field-anchor-only scoring modes.
+ * Epistemic gate — abstention and field-anchor-only assessment modes after void detection.
+ *
+ * Pipeline position: post-score in evidencePipelinePrep — consumes data_void and
+ * scoring partition; sets assessment_mode and epistemic_status.
+ *
+ * Owns: applyEpistemicGate mode selection, score abstention passthrough, assessment attachment.
+ * Does NOT: compute void index or partition signals (upstream steps).
+ *
+ * Key collaborators: `dataVoid/epistemicStatus.js`, `dataVoid/scoringPartition.js`,
+ * `app/assessment/evidencePipelinePrep.js`.
  */
 
 import { filterAnchorSignals } from './sourceChannels.js';
@@ -7,8 +16,11 @@ import { buildEpistemicStatus } from './epistemicStatus.js';
 
 const ELEVATED_OR_ABOVE = new Set(['elevated', 'critical']);
 
+// ── Score abstention ──────────────────────────────────────────────────────────
+
 /**
- * Null out headline scores while preserving analyst raw fields.
+ * Legacy compat: null headline score fields while preserving analyst raw fields.
+ *
  * @param {Record<string, object>} scored
  * @returns {Record<string, object>}
  */
@@ -35,9 +47,10 @@ export function applyScoreAbstention(scored) {
   return out;
 }
 
+// ── Gate application ──────────────────────────────────────────────────────────
+
 /**
- * Apply epistemic gate to scoring results based on data void outcome.
- *
+ * Apply epistemic gate to scoring results based on data void and partition outcome.
  * @param {object} params
  * @param {Record<string, object>} params.scoredFull
  * @param {Array<object>} params.signalsForScoring
@@ -156,10 +169,19 @@ export function applyEpistemicGate({
   };
 }
 
+// ── Assessment attachment ─────────────────────────────────────────────────────
+
 /**
- * Attach epistemic fields to assessment object.
+ * Attach epistemic and void fields to the assessment object.
+ *
  * @param {object} assessment
  * @param {object} params
+ * @param {object} params.dataVoid
+ * @param {object} params.epistemicStatus
+ * @param {string} params.assessmentMode
+ * @param {object|null} [params.quarantinedDigital]
+ * @param {object|null} [params.digitalQuarantineState]
+ * @returns {object}
  */
 export function attachEpistemicToAssessment(assessment, {
   dataVoid,

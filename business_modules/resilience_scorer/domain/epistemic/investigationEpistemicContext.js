@@ -1,11 +1,20 @@
 /**
- * Investigation epistemic context — derived from data void only, not score gates.
- * Agent receives full metrics pool; digital darkness is informational for operators.
+ * Investigation epistemic context — data-void driven hints for specialist agents.
+ *
+ * Pipeline position: assess — before agent investigation; derived from data void, not score gates.
+ *
+ * Owns: deriveInvestigationEpistemicContext (data void → epistemicStatus / investigationMode).
+ * Does NOT: build per-component profiles or thin-evidence instruments (epistemicProfileBuilder.js, thinEvidencePolicy.js).
+ *
+ * Key collaborators: epistemicStatus.js, assessmentOrchestrator.js, evidencePipelinePrep.js.
  */
 
 import { buildEpistemicStatus } from '../services/dataVoid/epistemicStatus.js';
 
 /**
+ * Derive assessment/investigation epistemic context from data void only.
+ * Agents receive the full metrics pool; digital darkness is informational, not a hard gate.
+ *
  * @param {object|null|undefined} dataVoid
  * @returns {{ assessmentMode: string, epistemicStatus: object, investigationMode: string|null }}
  */

@@ -13,7 +13,7 @@ import {
 describe('evidenceSourceMeta', () => {
   it('normalizeEvidenceSourceType maps news and field variants', () => {
     assert.equal(normalizeEvidenceSourceType('news'), 'press');
-    assert.equal(normalizeEvidenceSourceType('field_report'), 'field');
+    assert.equal(normalizeEvidenceSourceType('field_report'), 'visits');
     assert.equal(normalizeEvidenceSourceType('pbo'), 'pbo');
   });
 

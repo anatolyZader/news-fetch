@@ -1,7 +1,17 @@
 /**
  * Track B — rich operator investigation surface (full pool + hybrid narrative prose).
- * Product rule: scoring may abstain; operator surface must not starve.
+ *
+ * Pipeline position: assessment finalize when RESILIENCE_OPERATOR_SURFACE=rich;
+ * runs before operatorNarrativeSurface; scoring may abstain but surface must not starve.
+ *
+ * Owns: per-component investigation pool, epistemic role labels, highlighted evidence
+ * from pool, deterministic claim-section narrative fallback.
+ * Does NOT: overwrite hybrid LLM narrative_operator, run LLM calls, or score components.
+ *
+ * Key collaborators: `operator/evidenceFormatting.js`, `operator/topContributors.js`,
+ * `signals/componentSignalGroups.js`, `contracts/operatorSurfaceMode.js`.
  */
+
 import {
   groupPoolItemsBySource,
   normalizePoolSourceType,
@@ -13,12 +23,10 @@ import {
 } from '../../contracts/operatorSurfaceMode.js';
 import { collectComponentSignals } from '../signals/componentSignalGroups.js';
 import { contributorRankKey } from './topContributors.js';
-import { defaultSignalWeights } from '../signals/routing/signalWeights.js';
 import {
   canonicalizeSignalType,
-  getComponentWeight,
   getRoutingRole,
-  hasStrongComponentLink,
+  isPrimaryEdge,
 } from '../signals/routing/signalRouter.js';
 import { SIGNAL_PROVENANCE } from '../signals/evidenceEligibility.js';
 import { buildRefKey } from '../narrativeGrounding/signalRefRegistry.js';
@@ -47,7 +55,11 @@ function stripContributionField(item) {
   return rest;
 }
 
+// ── Epistemic role assignment ─────────────────────────────────────────────────
+
 /**
+ * Assign operator epistemic role for a signal relative to scoring/quarantine sets.
+ *
  * @param {object} signal
  * @param {Set<object>} scoringSet
  * @param {Set<object>} quarantineSet
@@ -74,11 +86,12 @@ function clipEvidence(signal, maxChars) {
 }
 
 /**
+ * Build one investigation-pool entry from a signal with clipped evidence.
+ *
  * @param {object} signal
  * @param {'scored' | 'context_only' | 'quarantined' | 'investigation_only'} role
  * @param {number} maxChars
- * @param {string} [componentId] When given, stamps the routing rationale
- *   (routing_role/routing_weight) for the edge that put this signal here.
+ * @param {string} [componentId] Stamps routing_role for the edge that routed here.
  * @returns {object|null}
  */
 export function poolItemFromSignal(signal, role, maxChars, componentId) {
@@ -98,16 +111,17 @@ export function poolItemFromSignal(signal, role, maxChars, componentId) {
     signal_provenance: signal?.signalProvenance ?? null,
     signal_type: signalType,
     routing_role: componentId && signalType ? getRoutingRole(signalType, componentId) : null,
-    routing_weight: componentId && signalType
-      ? getComponentWeight(signalType, componentId) ?? null
-      : null,
   };
 }
 
+// ── Pool construction ─────────────────────────────────────────────────────────
+
 /**
+ * Build ranked investigation pool for one component from narrative-scope signals.
+ *
  * @param {string} componentId
  * @param {object[]} narrativeScopeSignals
- * @param {object} ctx
+ * @param {object} ctx scoringSet, quarantineSet, maxChars.
  * @returns {object[]}
  */
 export function buildComponentInvestigationPool(componentId, narrativeScopeSignals, ctx) {
@@ -117,14 +131,13 @@ export function buildComponentInvestigationPool(componentId, narrativeScopeSigna
     maxChars = operatorEvidenceChars(),
   } = ctx;
 
-  const signalWeights = defaultSignalWeights();
-  const { items } = collectComponentSignals(componentId, narrativeScopeSignals, signalWeights);
+  const { items } = collectComponentSignals(componentId, narrativeScopeSignals);
 
   const seenRefs = new Set();
   const pool = [];
   for (const item of items) {
     const signalType = item.signal?.signal_type ?? item.signal?.type;
-    if (!hasStrongComponentLink(signalType, componentId)) continue;
+    if (!isPrimaryEdge(signalType, componentId)) continue;
     const role = assignOperatorEpistemicRole(item.signal, scoringSet, quarantineSet);
     const entry = poolItemFromSignal(item.signal, role, maxChars, componentId);
     if (!entry || seenRefs.has(entry.ref)) continue;
@@ -135,7 +148,11 @@ export function buildComponentInvestigationPool(componentId, narrativeScopeSigna
   return pool;
 }
 
+// ── Deterministic narrative fallback ──────────────────────────────────────────
+
 /**
+ * Build sectioned prose from claims grouped by operator_epistemic_role.
+ *
  * @param {object[]} claims
  * @returns {string}
  */
@@ -161,7 +178,11 @@ export function buildDeterministicNarrativeFromClaims(claims) {
   return sections.join('\n\n');
 }
 
+// ── Highlighted evidence ──────────────────────────────────────────────────────
+
 /**
+ * Pick per-source highlight bullets from investigation pool for operator evidence list.
+ *
  * @param {object[]} pool
  * @returns {object[]}
  */
@@ -199,8 +220,10 @@ function isThinPool(pool) {
   return sources.size < 2;
 }
 
+// ── Component / assessment attachment ─────────────────────────────────────────
+
 /**
- * Attach investigation pool + highlights only (never overwrites hybrid narrative_operator / claims).
+ * Attach investigation pool + highlights (never overwrites hybrid narrative_operator).
  *
  * @param {object} comp
  * @param {object[]} pool
@@ -221,8 +244,10 @@ export function attachRichInvestigationPool(comp, pool) {
 }
 
 /**
+ * Attach rich investigation pools to all components when surface mode is rich.
+ *
  * @param {object} assessment
- * @param {object} ctx
+ * @param {object} ctx narrativeScopeSignals, signalsForScoring, quarantinedSignals.
  * @returns {object}
  */
 export function attachRichOperatorSurface(assessment, ctx) {

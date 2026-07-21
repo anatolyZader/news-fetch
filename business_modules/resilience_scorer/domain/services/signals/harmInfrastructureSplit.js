@@ -1,5 +1,12 @@
 /**
- * Bundled harm/infrastructure clause splitting: peel building-damage facts out of casualty signals.
+ * Bundled harm/infrastructure clause splitting — peel building-damage facts out of casualty signals.
+ *
+ * Pipeline position: extract/assess — hygiene pass before verification and component routing.
+ *
+ * Owns: Hebrew/English clause splitting and reclassification of harm vs infrastructure_damage_acute.
+ * Does NOT: catalogue routing, field-report blob stripping (fieldReportHygiene.js), or grounding.
+ *
+ * Key collaborators: ../../contracts/signalCatalog.js, fieldReportHygiene.js, routing/signalTypeHygiene.js, componentSignalGroups.js.
  */
 import { canonicalizeSignalType } from '../../contracts/signalCatalog.js';
 
@@ -7,6 +14,7 @@ import { canonicalizeSignalType } from '../../contracts/signalCatalog.js';
  * True if any of the given patterns matches. Splitting a wide alternation into
  * several smaller regexes keeps each one's regex-complexity within lint limits
  * while preserving the original "matches any alternative" semantics.
+ *
  * @param {RegExp[]} patterns
  * @param {string} text
  * @returns {boolean}
@@ -55,8 +63,10 @@ const CLAUSE_BOUNDARY_SOURCES = [
 const CLAUSE_SPLIT_RE = new RegExp(CLAUSE_BOUNDARY_SOURCES.join('|'), 'u');
 
 /**
+ * Split evidence text into clause segments for harm/infrastructure classification.
+ *
  * @param {string} evidence
- * @returns {string[]}
+ * @returns {string[]} non-empty clause strings
  */
 export function splitEvidenceClauses(evidence) {
   const text = String(evidence ?? '').trim();
@@ -69,8 +79,10 @@ export function splitEvidenceClauses(evidence) {
 }
 
 /**
+ * Classify one clause as harm_to_population, infrastructure_damage_acute, or unclassified.
+ *
  * @param {string} clause
- * @returns {'harm_to_population' | 'infrastructure_damage_acute' | null}
+ * @returns {'harm_to_population'|'infrastructure_damage_acute'|null}
  */
 export function classifyHarmInfrastructureClause(clause) {
   const text = String(clause ?? '').trim();
@@ -83,9 +95,10 @@ export function classifyHarmInfrastructureClause(clause) {
 }
 
 /**
- * Split bundled harm + infrastructure facts into separate signals.
- * @param {object} signal
- * @returns {object[]}
+ * Split bundled harm + infrastructure facts into separate signal instances.
+ *
+ * @param {object} signal input signal (harm_to_population or infrastructure_damage_acute)
+ * @returns {object[]} one or two signals after clause split
  */
 export function splitBundledHarmInfrastructure(signal) {
   if (!signal || typeof signal !== 'object') return [];

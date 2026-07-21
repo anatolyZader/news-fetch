@@ -55,7 +55,7 @@ describe('evidencePoolGrouping', () => {
       { source_type: 'news', evidence: 'c' },
     ]);
     assert.equal(groups.length, 3);
-    assert.equal(groups[0].key, 'field');
+    assert.equal(groups[0].key, 'visits');
     assert.equal(poolItemSourceBucket({ source_type: 'news' }), 'press');
   });
 });
@@ -253,48 +253,49 @@ describe('routing rationale on evidence items', () => {
     metricsEligible: true,
   };
 
-  it('pool items carry routing_role and routing_weight for their component edge', () => {
+  it('pool items carry routing_role and exclude inferred-edge spillover', () => {
     const wellbeing = poolFor('wellbeing_at_risk', [helpSignal]);
     assert.equal(wellbeing.length, 1);
-    assert.equal(wellbeing[0].routing_role, 'inferred');
-    assert.equal(wellbeing[0].routing_weight, 0.7);
+    assert.equal(wellbeing[0].routing_role, 'primary');
+    assert.equal('routing_weight' in wellbeing[0], false);
 
     const belonging = poolFor('belonging_solidarity', [helpSignal]);
     assert.equal(belonging[0].routing_role, 'primary');
-    assert.equal(belonging[0].routing_weight, 1);
-  });
 
-  it('pool orders primary-edge items before inferred', () => {
-    const pool = poolFor('wellbeing_at_risk', [helpSignal, distressSignal]);
-    assert.equal(pool.length, 2);
-    assert.equal(pool[0].routing_role, 'primary');
-    assert.equal(pool[0].signal_type, 'psychological_distress');
-    assert.equal(pool[1].routing_role, 'inferred');
+    // Weak spillover edge (compliance_enter_shelter → leadership, inferred) is
+    // excluded from the investigation pool entirely.
+    const leadership = poolFor('leadership', [{
+      signal_type: 'compliance_enter_shelter',
+      source_type: 'news',
+      article_url: 'https://example.com/shelter',
+      evidence: 'תושבים נכנסו למקלטים מיד עם האזעקה.',
+      metricsEligible: true,
+    }]);
+    assert.equal(leadership.length, 0);
   });
 
   it('highlighted markdown appends the rationale label after the source link (RTL-safe)', () => {
     const pool = poolFor('wellbeing_at_risk', [helpSignal, distressSignal]);
     const items = buildHighlightedEvidenceFromPool(pool);
-    const inferred = items.find((i) => i.signal_type === 'solidarity_help_others');
-    const primary = items.find((i) => i.signal_type === 'psychological_distress');
-    assert.ok(inferred.markdown.endsWith('`solidarity_help_others · inferred +0.7`'));
-    assert.ok(primary.markdown.includes('`psychological_distress · primary -1`'));
-    assert.ok(inferred.markdown.includes('[source](https://example.com/help)'));
-    assert.ok(inferred.markdown.indexOf('[source]') < inferred.markdown.indexOf('`solidarity'));
+    const help = items.find((i) => i.signal_type === 'solidarity_help_others');
+    const distress = items.find((i) => i.signal_type === 'psychological_distress');
+    assert.ok(help.markdown.endsWith('`solidarity_help_others · primary`'));
+    assert.ok(distress.markdown.includes('`psychological_distress · primary`'));
+    assert.ok(help.markdown.includes('[source](https://example.com/help)'));
+    assert.ok(help.markdown.indexOf('[source]') < help.markdown.indexOf('`solidarity'));
   });
 
-  it('RESILIENCE_POOL_INFERRED_RENDER=hide drops inferred items from highlights only', () => {
+  it('RESILIENCE_POOL_INFERRED_RENDER=hide is a no-op on the all-primary pool', () => {
     const pool = poolFor('wellbeing_at_risk', [helpSignal, distressSignal]);
     process.env.RESILIENCE_POOL_INFERRED_RENDER = 'hide';
     try {
       assert.equal(inferredPoolRenderMode(), 'hide');
       const items = buildHighlightedEvidenceFromPool(pool);
-      assert.equal(items.length, 1);
-      assert.equal(items[0].signal_type, 'psychological_distress');
+      assert.equal(items.length, 2, 'primary items are never hidden');
     } finally {
       delete process.env.RESILIENCE_POOL_INFERRED_RENDER;
     }
-    assert.equal(pool.length, 2, 'pool itself keeps inferred items');
+    assert.equal(pool.length, 2);
   });
 
   it('alias-typed signals (stored legacy bundles) reach the pool canonicalized', () => {

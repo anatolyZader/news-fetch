@@ -181,7 +181,6 @@ const STAGE_OPEN_EXTRACT_META = {
   radio: { sourceType: 'radio', contentKind: 'audio' },
   whatsapp: { sourceType: 'whatsapp', contentKind: 'whatsapp' },
   visits: { sourceType: 'visits', contentKind: 'field_report' },
-  field: { sourceType: 'visits', contentKind: 'field_report' },
 };
 
 function applyForceDeletes(_windowDates, _rootDir) {

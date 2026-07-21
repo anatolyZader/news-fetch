@@ -68,10 +68,10 @@ function getComponentIcon(componentId) {
   return COMPONENT_ICONS[componentId] ?? HelpOutlineOutlinedIcon;
 }
 
-const SOURCE_KINDS = new Set(['field', 'radio', 'naftali', 'press', 'pbo', 'social']);
+const SOURCE_KINDS = new Set(['visits', 'radio', 'naftali', 'press', 'pbo', 'social']);
 
 function SourceBadge({ kind, children }) {
-  const safeKind = SOURCE_KINDS.has(kind) ? kind : 'field';
+  const safeKind = SOURCE_KINDS.has(kind) ? kind : 'visits';
   return (
     <Box
       component="span"
@@ -331,8 +331,8 @@ function EvidenceSourceHeader({ item, sourceSignals, t }) {
       })}
     >
       <Box component="span" sx={{ flex: 1, minWidth: 0 }}>
-      {(sourceType === 'field' || sourceType === 'visits') && (
-        <SourceBadge kind="field">{t('report.badge.visits')}</SourceBadge>
+      {(sourceType === 'visits' || sourceType === 'field') && (
+        <SourceBadge kind="visits">{t('report.badge.visits')}</SourceBadge>
       )}
       {sourceType === 'radio' && <SourceBadge kind="radio">{t('report.badge.radio')}</SourceBadge>}
       {sourceType === 'naftali' && <SourceBadge kind="naftali">{t('report.badge.naftali')}</SourceBadge>}

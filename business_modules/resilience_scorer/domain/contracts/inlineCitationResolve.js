@@ -1,6 +1,14 @@
 /**
- * Resolve [S#], bracketed internal refs, and markdown links to APA parentheticals.
- * Shared by server pipeline and client report display.
+ * Inline citation resolution — [S#], internal refs, and markdown links to APA.
+ *
+ * Pipeline position: report display (server + client) — post-processes narrative
+ * prose into linked APA parentheticals. Client-safe isomorphic.
+ *
+ * Owns: resolveInlineSignalCitations, linkPlainApaParentheticals.
+ * Does NOT: build citation registries (citationDisplay.js) or APA date formatting alone.
+ *
+ * Key collaborators: apaCitationFormat.js, citationDisplay.js, evidenceAnchor.js,
+ * client report narrative components.
  */
 import {
   apaAuthorLabel,

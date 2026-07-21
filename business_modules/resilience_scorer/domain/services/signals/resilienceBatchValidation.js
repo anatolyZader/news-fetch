@@ -1,10 +1,21 @@
 /**
- * Pure validation for ResilienceContentBatch (spec: docs/specs/resilience-business-module.md).
+ * Pure validation for ResilienceContentBatch ingest payloads.
+ *
+ * Pipeline position: extract/ingest — validates news/audio content batches before signal extraction.
+ *
+ * Owns: ResilienceContentBatch shape assertions (reportDate, contentKind, items).
+ * Does NOT: signal extraction, catalogue validation, or resilience assessment output.
+ *
+ * Key collaborators: composition/registerIngestion.js, app/extraction/, resilienceBatchValidation consumers in input/.
+ *
+ * @see docs/specs/resilience-business-module.md
  */
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
+ * Assert that a value conforms to ResilienceContentBatch; throws on invalid shape.
+ *
  * @param {unknown} batch
  * @throws {Error} with message containing field hint
  */

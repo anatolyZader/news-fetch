@@ -1,11 +1,24 @@
 /**
- * Derive unified attention items from a (possibly redacted) assessment for operator/analyst UI.
+ * Derive unified attention items for the operator report panel.
+ *
+ * Pipeline position: post-finalize — consumes redacted assessment; feeds UI panel,
+ * decision brief payload, and novelty annotation across prior reports.
+ *
+ * Owns: attention item taxonomy (level, kind, code), sort/collapse rules, epistemic
+ * and data-void situational items, decision-brief priority merge.
+ * Does NOT: mutate assessment, run LLM, or compute void index.
+ *
+ * Key collaborators: `operator/assessmentDisplayTier.js`, `operator/decisionBriefPrompt.js`,
+ * assessment.data_void, pattern alerts, operator_recommendations.
  */
 
 import { deriveInstrumentState, DISPLAY_VIEWS } from './assessmentDisplayTier.js';
 import { THIN_EVIDENCE_INSTRUMENT } from '../../epistemic/thinEvidencePolicy.js';
 import { isSoftVoidWarning } from '../../contracts/softVoidReasons.js';
 
+// ── Taxonomy constants ────────────────────────────────────────────────────────
+
+/** Urgency sort order: lower number = higher urgency. */
 export const ATTENTION_LEVELS = Object.freeze({
   critical: 0,
   warning: 1,
@@ -14,9 +27,9 @@ export const ATTENTION_LEVELS = Object.freeze({
 });
 
 /**
- * Orthogonal to severity: the *kind* of attention an item demands, so the panel
- * can group by intent (a substantive situation vs a trust caveat vs an action vs
- * analyst housekeeping) and the operator view can hide pipeline noise.
+ * Orthogonal attention intent for panel grouping (situational vs epistemic vs tasking).
+ *
+ * @readonly
  */
 export const ATTENTION_KINDS = Object.freeze({
   situational: 'situational',
@@ -80,6 +93,8 @@ const COMPONENT_INSTRUMENT_CODES = new Set([
   'thin_evidence',
   'contested_evidence',
 ]);
+
+// ── Item builders (internal) ──────────────────────────────────────────────────
 
 /**
  * @param {'critical'|'warning'|'watch'|'info'} level
@@ -156,9 +171,11 @@ function compareAttentionItems(a, b) {
   return String(a.code).localeCompare(String(b.code));
 }
 
+// ── Sorting and collapse ──────────────────────────────────────────────────────
+
 /**
- * Stable sort honoring the full attention comparator. Exported so callers that
- * mutate items after {@link buildAttentionItems} (novelty, decision brief) can re-sort.
+ * Stable sort honoring the full attention comparator.
+ *
  * @param {Array<object>} items
  * @returns {Array<object>}
  */
@@ -207,10 +224,13 @@ function collapseComponentItems(items) {
   return result;
 }
 
+// ── Public API ────────────────────────────────────────────────────────────────
+
 /**
+ * Build sorted attention items from a finalized assessment.
+ *
  * @param {object | null | undefined} assessment
  * @param {{ view?: 'operator' | 'analyst', reportScopeId?: string, priorReports?: Array<object> }} [opts]
- *   `priorReports` — array of prior assessment objects (newest first) used for abstention fatigue detection.
  * @returns {Array<object>}
  */
 export function buildAttentionItems(assessment, opts = {}) {

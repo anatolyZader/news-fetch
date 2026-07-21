@@ -1,14 +1,25 @@
 /**
- * Action compass — deterministic grounding context.
- * Extracts named places, channel health, quarantine timing, and social-channel
- * facts from an assessment so both the compass phrasing (no LLM) and the
- * decision-brief payload (LLM) can produce specific, operator-actionable text.
+ * Action compass — deterministic grounding context from assessment payload.
+ *
+ * Pipeline position: STAGE-2 assess finalize — extracts named places, channel health,
+ * quarantine timing, and social-channel facts for compass phrasing and decision brief.
+ *
+ * Owns: `buildGroundingContext` shape and `daysSince` helper.
+ * Does NOT: invoke LLMs, rank actions, or mutate the assessment.
+ *
+ * Key collaborators: `actionCompass/actionCompassPhrasing.js`, `actionCompass/actionCompass.js`,
+ * decision brief prompt builder.
  */
 
+// ---------------------------------------------------------------------------
+// Date helpers
+// ---------------------------------------------------------------------------
+
 /**
+ * Whole days elapsed since `sinceIso` relative to `dateRef`.
  * @param {string|null|undefined} sinceIso
  * @param {string|null|undefined} dateRef assessment date (YYYY-MM-DD) or ISO
- * @returns {number|null} whole days elapsed since `sinceIso`
+ * @returns {number|null}
  */
 export function daysSince(sinceIso, dateRef) {
   if (!sinceIso) return null;
@@ -20,8 +31,12 @@ export function daysSince(sinceIso, dateRef) {
   return Math.max(0, diff);
 }
 
+// ---------------------------------------------------------------------------
+// Internal label helper
+// ---------------------------------------------------------------------------
+
 /**
- * Human-readable cluster label from an affected_clusters entry.
+ * Human-readable cluster label from an `affected_clusters` entry.
  * @param {object} entry
  * @returns {string}
  */
@@ -31,8 +46,14 @@ function clusterLabel(entry) {
   return String(key).replaceAll('_', ' ').trim();
 }
 
+// ---------------------------------------------------------------------------
+// Grounding context builder
+// ---------------------------------------------------------------------------
+
 /**
+ * Extract deterministic grounding facts from an assessment for compass phrasing.
  * @param {object|null|undefined} assessment
+ * @param {{ geoUnknownCount?: number }} [opts]
  * @returns {{
  *   date: string|null,
  *   digital_darkness: boolean,

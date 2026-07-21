@@ -1,8 +1,17 @@
 /**
- * Visits module signals (legacy `field` source_type on disk).
+ * Visits module source-type normalization and read-compat for legacy `field` keys.
+ *
+ * Pipeline position: extract/assess — source key normalization before pipeline routing and field policies.
+ *
+ * Owns: visits/field/field_whatsapp source type checks and canonical pipeline keys.
+ * Does NOT: field provenance enrichment (fieldSignalPolicy.js) or district defaults (signalDistrictId.js).
+ *
+ * Key collaborators: fieldSignalPolicy.js, signalDistrictId.js, fieldReportHygiene.js, composition ingest config.
  */
 
 /**
+ * Whether the source type belongs to the visits/field family.
+ *
  * @param {string} [sourceType]
  * @returns {boolean}
  */
@@ -12,9 +21,10 @@ export function isVisitsSourceType(sourceType) {
 }
 
 /**
- * Canonical pipeline/assess source key (legacy bundles may still say `field`).
+ * Canonical pipeline/assess source key (legacy bundles/configs may still say `field`).
+ *
  * @param {string} [sourceType]
- * @returns {string}
+ * @returns {string} normalized source type (`field` → `visits`)
  */
 export function normalizeVisitsSourceType(sourceType) {
   const t = String(sourceType ?? '');
@@ -23,6 +33,8 @@ export function normalizeVisitsSourceType(sourceType) {
 }
 
 /**
+ * Normalize a pipeline config source key to its canonical form.
+ *
  * @param {string} [configKey]
  * @returns {string}
  */
