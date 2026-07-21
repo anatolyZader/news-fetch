@@ -346,7 +346,7 @@ The sections below are **auto-synced** from code. Do not edit between markers; r
 
 <!-- docs-sync:BEGIN components-at-a-glance -->
 
-> **Auto-synced** from `business_modules/resilience_scorer/domain/resilienceComponents.js` on 2026-07-19. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience_scorer/domain/resilienceComponents.js` on 2026-07-21. Do not edit between sync markers.
 
 | # | ID | English | Hebrew | What it measures (in one line) |
 |---|---|---|---|---|
@@ -365,18 +365,12 @@ The sections below are **auto-synced** from code. Do not edit between markers; r
 
 <!-- docs-sync:BEGIN component-facets -->
 
-> **Auto-synced** from `business_modules/resilience_scorer/domain/services/signals/componentFacets.js` on 2026-07-19. Do not edit between sync markers.
+> **Auto-synced** from `min-math (componentFacets.js removed)` on 2026-07-21. Do not edit between sync markers.
 
-| Component | Facets |
-|---|---|
-| `narrative` | `mood`, `coping_story`, `competing_narratives`, `framing` |
-| `information_communication` | `clarity`, `trust`, `accessibility`, `actionability`, `influence`, `overload_vacuum`, `early_warning` |
-| `lifesaving_behavior` | `compliance`, `knowledge`, `enforcement`, `preparedness` |
-| `functional_continuity` | `essential_services`, `system_load`, `economic`, `recovery`, `displacement`, `education`, `adaptation`, `supply_food`, `displacement_extended` |
-| `community_capital` | `mobilization`, `local_capacity`, `external_dependency`, `collective_action`, `allocation` |
-| `leadership` | `visibility`, `credibility`, `competence`, `coordination`, `civic`, `trust` |
-| `belonging_solidarity` | `mutual_aid`, `cohesion`, `inclusion`, `exclusion`, `bridging` |
-| `wellbeing_at_risk` | `physical_harm`, `psychological_distress`, `affect_balance`, `care_access`, `equity`, `household_strain`, `population_evidence`, `sensitive_harm`, `hostage` |
+**Sub-facets retired.** Per-component assessment is count-based `evidence_basis`
+(sufficiency / balance / concentration) plus critical flags and narrative — not
+facet-level tanh scores. Signal → component edges live in
+`domain/services/signals/routing/signalRouting.js` (`SIGNAL_TO_COMPONENTS`).
 
 <!-- docs-sync:END component-facets -->
 
@@ -384,10 +378,12 @@ The sections below are **auto-synced** from code. Do not edit between markers; r
 
 <!-- docs-sync:BEGIN components-detail -->
 
-> **Auto-synced** from `resilienceComponents.js + componentFacets.js` on 2026-07-19. Do not edit between sync markers.
+> **Auto-synced** from `resilienceComponents.js` on 2026-07-21. Do not edit between sync markers.
 
 
 Per-component reference below is regenerated from code. Extended narrative, signal-routing notes, and boundary rules in earlier manual sections may appear in pipeline stages §3+.
+
+Signal types that route into each component are defined in `SIGNAL_TO_COMPONENTS` (see `signalRouting.js`); this sync block does not duplicate that map.
 
 ### 2.2 `narrative` — Narrative (נרטיב)
 
@@ -403,17 +399,6 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 - The coping story reflects the entire population, not just a subset
 - Residents express that the authority's narrative is credible and reflects their lived reality
 - Competing or contradictory narratives are explicitly voiced by residents or groups
-
-**Facets and signal types (from `componentFacets.js`):**
-
-| Facet | Signal types |
-|---|---|
-| `mood` | `fear_expression`, `calm_confidence` |
-| `coping_story` | `resilience_narrative_positive`, `resilience_narrative_negative`, `post_event_recovery_indicator`, `future_orientation_hope`, `future_orientation_despair` |
-| `competing_narratives` | `rumor_spread`, `rumor_correction`, `cultural_continuity`, `hostile_influence_operation`, `deepfake_misinformation` |
-| `framing` | `blame_narrative`, `heroism_overframing`, `historical_analogy_frame`, `moral_injury_narrative`, `institutional_abandonment_perception` |
-
-**All facet signal types for this component:** `blame_narrative`, `calm_confidence`, `cultural_continuity`, `deepfake_misinformation`, `fear_expression`, `future_orientation_despair`, `future_orientation_hope`, `heroism_overframing`, `historical_analogy_frame`, `hostile_influence_operation`, `institutional_abandonment_perception`, `moral_injury_narrative`, `post_event_recovery_indicator`, `resilience_narrative_negative`, `resilience_narrative_positive`, `rumor_correction`, `rumor_spread`
 
 ---
 
@@ -436,20 +421,6 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 - Residents report information gaps, confusion, or spread of rumors/misinformation
 - Guidance is reported as situation-matched and actionable — residents could follow it given real-world constraints
 - Guidance is reported as mismatched, impractical, or failing to cover critical scenarios (workers with no legal protection to stop, no shelter access, mass-casualty situations)
-
-**Facets and signal types (from `componentFacets.js`):**
-
-| Facet | Signal types |
-|---|---|
-| `clarity` | `information_clarity`, `information_confusion`, `rumor_spread`, `rumor_correction` |
-| `trust` | `trusted_information_source`, `mistrusted_information_source`, `feedback_channel_open`, `feedback_channel_blocked`, `media_trust` |
-| `accessibility` | `information_inclusivity_present`, `information_inclusivity_gap`, `active_information_seeking`, `language_register_mismatch` |
-| `actionability` | `information_actionable_effective`, `information_effectiveness_gap` |
-| `influence` | `hostile_influence_operation`, `rumor_spread`, `news_avoidance_behavior`, `media_literacy_demonstrated`, `deepfake_misinformation` |
-| `overload_vacuum` | `information_overload`, `information_vacuum_post_event`, `meta_information_present`, `meta_information_gap` |
-| `early_warning` | `early_warning_system_effective`, `early_warning_system_failure` |
-
-**All facet signal types for this component:** `active_information_seeking`, `deepfake_misinformation`, `early_warning_system_effective`, `early_warning_system_failure`, `feedback_channel_blocked`, `feedback_channel_open`, `hostile_influence_operation`, `information_actionable_effective`, `information_clarity`, `information_confusion`, `information_effectiveness_gap`, `information_inclusivity_gap`, `information_inclusivity_present`, `information_overload`, `information_vacuum_post_event`, `language_register_mismatch`, `media_literacy_demonstrated`, `media_trust`, `meta_information_gap`, `meta_information_present`, `misinformation_acted_upon`, `mistrusted_information_source`, `news_avoidance_behavior`, `rumor_correction`, `rumor_spread`, `trusted_information_source`
 
 ---
 
@@ -478,17 +449,6 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 - Residents or officials report non-compliance with protective guidelines
 - Residents express or demonstrate perception of the situation as genuinely life-threatening
 
-**Facets and signal types (from `componentFacets.js`):**
-
-| Facet | Signal types |
-|---|---|
-| `compliance` | `compliance_enter_shelter`, `compliance_follow_instructions`, `compliance_partial` (negative default since scoring model v8 — deficiency reading, `polarity_override: positive` for glass-half-full evidence), `non_compliance_exit_early`, `non_compliance_ignore_guidelines`, `non_compliance_due_to_distrust`, `compliance_norm_enforcement`, `complacency_or_normalization` |
-| `knowledge` | `information_actionable_effective`, `information_effectiveness_gap`, `information_clarity`, `leadership_clear_guidance`, `protection_effective`, `near_miss_reported` |
-| `enforcement` | `risk_exposure_behavior`, `risk_trade_off_behavior`, `unsafe_gathering`, `panic_behavior` |
-| `preparedness` | `preparedness_drill_conducted`, `preparedness_gap_identified`, `protective_infrastructure_present`, `protective_infrastructure_absent`, `household_readiness_demonstrated`, `household_readiness_gap`, `plan_tested_during_event`, `plan_failed_during_event`, `responder_workforce_strain`, `early_warning_system_effective`, `early_warning_system_failure` |
-
-**All facet signal types for this component:** `complacency_or_normalization`, `compliance_enter_shelter`, `compliance_follow_instructions`, `compliance_norm_enforcement`, `compliance_partial`, `early_warning_system_effective`, `early_warning_system_failure`, `household_readiness_demonstrated`, `household_readiness_gap`, `information_actionable_effective`, `information_clarity`, `information_effectiveness_gap`, `leadership_clear_guidance`, `misinformation_acted_upon`, `near_miss_reported`, `non_compliance_due_to_distrust`, `non_compliance_exit_early`, `non_compliance_ignore_guidelines`, `panic_behavior`, `plan_failed_during_event`, `plan_tested_during_event`, `preparedness_drill_conducted`, `preparedness_gap_identified`, `protection_effective`, `protective_infrastructure_absent`, `protective_infrastructure_present`, `responder_workforce_strain`, `risk_exposure_behavior`, `risk_trade_off_behavior`, `unsafe_gathering`
-
 ---
 
 ### 2.5 `functional_continuity` — Functional Continuity (רציפות תפקודית)
@@ -510,22 +470,6 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 - Essential services (healthcare, supply chains, municipal services) continue to operate
 - Specific disruptions to daily life are reported (closures, evacuations, inability to work)
 
-**Facets and signal types (from `componentFacets.js`):**
-
-| Facet | Signal types |
-|---|---|
-| `essential_services` | `service_continuity`, `service_disruption`, `routine_maintenance`, `routine_disruption` |
-| `system_load` | `system_overload`, `system_resilience_under_load` |
-| `economic` | `economic_continuity`, `economic_disruption`, `workplace_flexibility_response` |
-| `recovery` | `post_event_recovery_indicator`, `cultural_continuity`, `recovery_setback`, `compensation_received`, `compensation_blocked`, `displacement_resolved` |
-| `displacement` | `evacuation_displacement`, `displacement_resolved` |
-| `education` | `educational_continuity`, `educational_disruption`, `learning_loss_documented`, `educational_equity_gap` |
-| `adaptation` | `adaptive_practice`, `lessons_learned_uptake`, `innovation_under_constraint`, `failure_to_adapt`, `cross_event_learning` |
-| `supply_food` | `supply_chain_disruption`, `food_security_stress`, `food_security_maintained`, `infrastructure_damage_acute`, `connectivity_outage` |
-| `displacement_extended` | `evacuation_displacement`, `displacement_resolved`, `self_evacuation_unauthorized` |
-
-**All facet signal types for this component:** `adaptive_practice`, `compensation_blocked`, `compensation_received`, `connectivity_outage`, `cross_event_learning`, `cultural_continuity`, `displacement_resolved`, `economic_continuity`, `economic_disruption`, `educational_continuity`, `educational_disruption`, `educational_equity_gap`, `evacuation_displacement`, `failure_to_adapt`, `food_security_maintained`, `food_security_stress`, `infrastructure_damage_acute`, `innovation_under_constraint`, `learning_loss_documented`, `lessons_learned_uptake`, `panic_buying_hoarding`, `post_event_recovery_indicator`, `recovery_setback`, `relocation_intention_expressed`, `return_intention_expressed`, `routine_disruption`, `routine_maintenance`, `self_evacuation_unauthorized`, `service_continuity`, `service_disruption`, `supply_chain_disruption`, `system_overload`, `system_resilience_under_load`, `workplace_flexibility_response`
-
 ---
 
 ### 2.6 `community_capital` — Community Capital and Resources (הון ומשאבי קהילה)
@@ -544,18 +488,6 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 - Mechanisms exist and operate to coordinate volunteers and community organizations
 - Cross-sector cooperation (e.g., municipality + NGOs + businesses) is reported or observed
 
-**Facets and signal types (from `componentFacets.js`):**
-
-| Facet | Signal types |
-|---|---|
-| `mobilization` | `resource_mobilization`, `community_volunteering`, `self_organization`, `civil_society_mobilization`, `digital_mutual_aid`, `wellbeing_support_accessed` |
-| `local_capacity` | `local_capacity_demonstrated`, `resource_shortage`, `volunteer_donor_fatigue` |
-| `external_dependency` | `dependency_on_external_aid`, `international_aid_arrival`, `international_aid_withdrawal` |
-| `collective_action` | `rapid_mobilization`, `delayed_mobilization`, `conflict_resolution`, `feedback_channel_open`, `coordination_success`, `coordination_failure` |
-| `allocation` | `resource_allocation_transparency`, `resource_allocation_opacity` |
-
-**All facet signal types for this component:** `civil_society_mobilization`, `community_volunteering`, `conflict_resolution`, `coordination_failure`, `coordination_success`, `delayed_mobilization`, `dependency_on_external_aid`, `digital_mutual_aid`, `feedback_channel_open`, `international_aid_arrival`, `international_aid_withdrawal`, `local_capacity_demonstrated`, `panic_buying_hoarding`, `rapid_mobilization`, `resource_allocation_opacity`, `resource_allocation_transparency`, `resource_mobilization`, `resource_shortage`, `self_organization`, `volunteer_donor_fatigue`, `wellbeing_support_accessed`
-
 ---
 
 ### 2.7 `leadership` — Leadership (מנהיגות)
@@ -573,19 +505,6 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 - Leadership actively encourages residents to follow HFC guidelines (statements, actions, public presence)
 - Leadership is reported to function professionally and manage the situation competently
 - Residents express distrust, criticism, or frustration with leadership
-
-**Facets and signal types (from `componentFacets.js`):**
-
-| Facet | Signal types |
-|---|---|
-| `visibility` | `leadership_visible_presence`, `leadership_absence`, `symbolic_vs_substantive_action` |
-| `credibility` | `leadership_clear_guidance`, `information_confusion`, `feedback_loop_closure`, `leadership_credibility_loss`, `political_distrust`, `civic_engagement_constructive`, `accountability_demand_constructive`, `blame_shifting`, `responsibility_avowal` |
-| `competence` | `consensus_on_priorities`, `dissensus_blocks_action`, `conflict_resolution`, `delegation_empowerment`, `informal_leadership_emergence` |
-| `coordination` | `coordination_failure`, `coordination_success` |
-| `civic` | `civic_engagement_constructive`, `civil_society_mobilization`, `accountability_demand_constructive` |
-| `trust` | `interpersonal_trust`, `institutional_trust`, `media_trust`, `inter_group_trust`, `leadership_credibility_loss`, `political_distrust` |
-
-**All facet signal types for this component:** `accountability_demand_constructive`, `blame_shifting`, `civic_engagement_constructive`, `civil_society_mobilization`, `conflict_resolution`, `consensus_on_priorities`, `coordination_failure`, `coordination_success`, `delegation_empowerment`, `dissensus_blocks_action`, `feedback_loop_closure`, `informal_leadership_emergence`, `information_confusion`, `institutional_trust`, `inter_group_trust`, `interpersonal_trust`, `leadership_absence`, `leadership_clear_guidance`, `leadership_credibility_loss`, `leadership_visible_presence`, `media_trust`, `political_distrust`, `responsibility_avowal`, `symbolic_vs_substantive_action`
 
 ---
 
@@ -607,18 +526,6 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 - Population groups are reported as scapegoated, blamed, or excluded due to the emergency (negative signal)
 - Programs or events strengthening belonging are activated and attended
 
-**Facets and signal types (from `componentFacets.js`):**
-
-| Facet | Signal types |
-|---|---|
-| `mutual_aid` | `solidarity_help_others`, `community_volunteering`, `interfaith_solidarity`, `digital_mutual_aid` |
-| `cohesion` | `social_isolation`, `conflict_or_tension`, `cultural_continuity`, `interfaith_tension`, `commemoration_event_observed`, `memorialization_conflict` |
-| `inclusion` | `self_organization`, `bridging_capital_demonstrated` |
-| `exclusion` | `inequitable_resource_access`, `information_inclusivity_gap`, `social_isolation`, `bridging_capital_failure`, `prosocial_norm_violation` |
-| `bridging` | `bridging_capital_demonstrated`, `bridging_capital_failure`, `help_seeking_behavior`, `inter_group_trust` |
-
-**All facet signal types for this component:** `bridging_capital_demonstrated`, `bridging_capital_failure`, `commemoration_event_observed`, `community_volunteering`, `conflict_or_tension`, `cultural_continuity`, `digital_mutual_aid`, `help_seeking_behavior`, `inequitable_resource_access`, `information_inclusivity_gap`, `inter_group_trust`, `interfaith_solidarity`, `interfaith_tension`, `memorialization_conflict`, `prosocial_norm_violation`, `relocation_intention_expressed`, `return_intention_expressed`, `self_organization`, `social_isolation`, `solidarity_help_others`
-
 ---
 
 ### 2.9 `wellbeing_at_risk` — Physical and Mental Wellbeing (At-Risk Populations) (דאגה לרווחה הפיזית והנפשית בדגש על אוכלוסיות סיכון)
@@ -638,22 +545,6 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 - Residents in the second or third circle of vulnerability (indirectly affected) receive responses to their needs
 - Reports of unmet mental health or physical wellbeing needs among residents
 
-**Facets and signal types (from `componentFacets.js`):**
-
-| Facet | Signal types |
-|---|---|
-| `physical_harm` | `harm_to_population`, `near_miss_reported` |
-| `psychological_distress` | `psychological_distress`, `fear_expression`, `child_distress` |
-| `affect_balance` | `calm_confidence`, `fear_expression`, `positive_wellbeing_marker` |
-| `care_access` | `information_inclusivity_present`, `information_inclusivity_gap`, `school_psychosocial_support_active`, `school_psychosocial_support_gap` |
-| `equity` | `inequitable_resource_access`, `equitable_resource_distribution`, `educational_equity_gap` |
-| `household_strain` | `reservist_family_strain`, `household_strain_economic`, `parental_burden`, `sleep_disruption_population`, `substance_use_uptick` |
-| `population_evidence` | `population_survey_finding`, `sleep_disruption_population` |
-| `sensitive_harm` | `domestic_violence_indicator`, `suicide_self_harm_indicator` |
-| `hostage` | `hostage_uncertainty_distress`, `hostage_return_event` |
-
-**All facet signal types for this component:** `calm_confidence`, `child_distress`, `domestic_violence_indicator`, `educational_equity_gap`, `equitable_resource_distribution`, `fear_expression`, `harm_to_population`, `hostage_return_event`, `hostage_uncertainty_distress`, `household_strain_economic`, `inequitable_resource_access`, `information_inclusivity_gap`, `information_inclusivity_present`, `near_miss_reported`, `parental_burden`, `population_survey_finding`, `positive_wellbeing_marker`, `psychological_distress`, `reservist_family_strain`, `school_psychosocial_support_active`, `school_psychosocial_support_gap`, `sleep_disruption_population`, `substance_use_uptick`, `suicide_self_harm_indicator`
-
 ---
 
 <!-- docs-sync:END components-detail -->
@@ -662,7 +553,7 @@ Per-component reference below is regenerated from code. Extended narrative, sign
 
 <!-- docs-sync:BEGIN appendix-ui-labels -->
 
-> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-07-19. Do not edit between sync markers.
+> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-07-21. Do not edit between sync markers.
 
 | ID | English UI label | Hebrew UI label |
 |---|---|---|

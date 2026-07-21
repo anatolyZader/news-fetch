@@ -1,6 +1,10 @@
 /**
  * Regenerate auto-synced sections in docs/main_docu_files/RESILIENCE-ENGINE-REFERENCE.md and OpenAPI-derived product docs.
  * Run: npm run docs:sync
+ *
+ * Note (min-math): componentFacets.js / numeric sub-facets were removed. The
+ * `component-facets` sync region now documents that retirement; detail sections
+ * no longer list facet→signal tables.
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -8,7 +12,6 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 import { RESILIENCE_COMPONENTS } from '../../business_modules/resilience_scorer/domain/resilienceComponents.js';
-import { COMPONENT_FACETS } from '../../business_modules/resilience_scorer/domain/services/signals/componentFacets.js';
 
 const __dirname = resolve(fileURLToPath(import.meta.url), '..');
 const REPO_ROOT = resolve(__dirname, '../..');
@@ -43,20 +46,6 @@ function oneLineSummary(description) {
   return end === -1 ? text.slice(0, 160) : text.slice(0, end + 1);
 }
 
-function formatFacetCell(facets) {
-  return Object.keys(facets)
-    .map((f) => `\`${f}\``)
-    .join(', ');
-}
-
-function formatSignalTypes(facets) {
-  const types = new Set();
-  for (const list of Object.values(facets)) {
-    for (const t of list) types.add(t);
-  }
-  return [...types].sort((a, b) => a.localeCompare(b)).map((t) => `\`${t}\``).join(', ');
-}
-
 function parseTranslationBlock(block, out) {
   if (!block) return;
   for (const m of block[1].matchAll(/'comp\.([^']+)':\s*'([^']*)'/g)) {
@@ -89,25 +78,27 @@ function generateAtAGlanceTable() {
   return lines.join('\n');
 }
 
+/**
+ * Facet tables were retired with min-math (no numeric sub-facet scores).
+ * Keep the sync region so docs:sync still fills the marker block.
+ */
 function generateFacetTable() {
-  const lines = [
-    SYNC_NOTE('business_modules/resilience_scorer/domain/services/signals/componentFacets.js'),
-    '| Component | Facets |',
-    '|---|---|',
-  ];
-  for (const c of RESILIENCE_COMPONENTS) {
-    const facets = COMPONENT_FACETS[c.id];
-    const cell = facets ? formatFacetCell(facets) : '—';
-    lines.push(`| \`${c.id}\` | ${cell} |`);
-  }
-  return lines.join('\n');
+  return [
+    SYNC_NOTE('min-math (componentFacets.js removed)'),
+    '**Sub-facets retired.** Per-component assessment is count-based `evidence_basis`',
+    '(sufficiency / balance / concentration) plus critical flags and narrative — not',
+    'facet-level tanh scores. Signal → component edges live in',
+    '`domain/services/signals/routing/signalRouting.js` (`SIGNAL_TO_COMPONENTS`).',
+  ].join('\n');
 }
 
 function generateComponentDetailSections() {
   const parts = [
-    SYNC_NOTE('resilienceComponents.js + componentFacets.js'),
+    SYNC_NOTE('resilienceComponents.js'),
     '',
     'Per-component reference below is regenerated from code. Extended narrative, signal-routing notes, and boundary rules in earlier manual sections may appear in pipeline stages §3+.',
+    '',
+    'Signal types that route into each component are defined in `SIGNAL_TO_COMPONENTS` (see `signalRouting.js`); this sync block does not duplicate that map.',
   ];
 
   RESILIENCE_COMPONENTS.forEach((c, i) => {
@@ -132,15 +123,6 @@ function generateComponentDetailSections() {
     if (c.behavioral_manifestations?.length) {
       parts.push('', '**Behavioral manifestations (from code):**');
       for (const m of c.behavioral_manifestations) parts.push(`- ${m}`);
-    }
-    const facets = COMPONENT_FACETS[c.id];
-    if (facets) {
-      parts.push('', '**Facets and signal types (from `componentFacets.js`):**', '', '| Facet | Signal types |', '|---|---|');
-      for (const [facetId, signals] of Object.entries(facets)) {
-        const sigCell = signals.map((s) => `\`${s}\``).join(', ');
-        parts.push(`| \`${facetId}\` | ${sigCell} |`);
-      }
-      parts.push('', `**All facet signal types for this component:** ${formatSignalTypes(facets)}`);
     }
     parts.push('', '---');
   });
