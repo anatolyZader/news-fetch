@@ -579,7 +579,7 @@ Fork contributors need:
 
 ```bash
 npm ci
-npm ci --prefix tools/docs-site
+npm ci --prefix docs-site
 npm run docs:sync
 git add docs/main_docu_files cross-cut-modules/docs/content/pages/api/generated
 git commit -m "docs: sync main_docu_files from code"
@@ -691,14 +691,14 @@ After configuration, confirm:
 npm run check:engines    # matches package.json engines.node (use .nvmrc)
 npm ci
 npm run openapi:lint     # Redocly — same as CI Validate job
-npm ci --prefix tools/docs-site
+npm ci --prefix docs-site
 npm run docs:sync      # same as CI doc regeneration
 npm run docs:check     # cross-cut-modules/docs/content/pages validation
 npm run lint           # Sonar-aligned ESLint (same rules as CI Lint job)
 npm test               # fast local run (no coverage)
 npm run test:coverage  # CI Test job — writes coverage/lcov.info
 npm run client:build
-cd tools/docs-site && npm run gen:api && npm run build
+cd docs-site && npm run gen:api && npm run build
 node scripts/ci-audit.mjs
 ```
 
@@ -710,7 +710,7 @@ node scripts/ci-audit.mjs
 |---------|----------------|-----|
 | Doc sync push rejected on `dev` | Protected default branch requires PRs | Run `npm run docs:sync` locally and commit before merge; auto-push runs only on **same-repo PRs**. |
 | Doc sync push `403` | Workflow read-only | **Read and write** workflow permissions (Settings → Actions). |
-| `gen:api` / Docusaurus fails in CI | Missing `tools/docs-site` install | CI already runs `npm ci --prefix tools/docs-site`; locally run the same before `docs:sync`. |
+| `gen:api` / Docusaurus fails in CI | Missing `docs-site` install | CI already runs `npm ci --prefix docs-site`; locally run the same before `docs:sync`. |
 | `ERR_UNKNOWN_BUILTIN_MODULE: node:sqlite` | Node &lt; 22.13 in CI or locally | Use Node **22.13+** (`nvm use` with root [`.nvmrc`](../.nvmrc)). |
 | OpenAPI lint fails | Invalid or breaking `openapi/openapi.yaml` | Run `npm run openapi:lint`; see [`redocly.yaml`](../redocly.yaml). |
 | Dependency review fails on PR | PR adds high-severity dependency | Update or remove the dependency; complements full-lockfile `ci-audit`. |

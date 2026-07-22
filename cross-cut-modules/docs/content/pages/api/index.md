@@ -90,7 +90,7 @@ The ID token comes from Firebase Auth after sign-in (or from your own provider i
 The Docusaurus build reads `openapi/openapi.yaml` and emits pages under `cross-cut-modules/docs/content/pages/api/generated/**`. Rebuild the docs site to pick up changes:
 
 ```bash
-cd tools/docs-site && npm run build
+cd docs-site && npm run build
 ```
 
 Don't hand-edit the generated pages — your changes will be overwritten.

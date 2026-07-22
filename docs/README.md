@@ -8,7 +8,7 @@ Runtime content the app **does** depend on lives elsewhere:
 |---------|----------|
 | In-app Docs panel + public product pages | [`cross-cut-modules/docs/content/pages/`](../cross-cut-modules/docs/content/pages/) |
 | HFC field-report RAG corpus | [`business_modules/report_build/data/hfc-field-guidelines.md`](../business_modules/report_build/data/hfc-field-guidelines.md) |
-| Public docs site (Docusaurus) | [`tools/docs-site/`](../tools/docs-site/) |
+| Public docs site (Docusaurus) | [`docs-site/`](../docs-site/) |
 
 ## What's in `/docs`
 
@@ -29,7 +29,7 @@ These operate on **runtime product pages**, not on `/docs` itself:
 - `npm run rag:reindex-docs` — index product pages for Docs-panel search
 - `npm run rag:reindex-hfc` — index HFC guidelines for report-build RAG
 
-Build the public site: `npm ci --prefix tools/docs-site && npm run gen:api --prefix tools/docs-site && npm run build --prefix tools/docs-site`
+Build the public site: `npm ci --prefix docs-site && npm run gen:api --prefix docs-site && npm run build --prefix docs-site`
 
 ## CI / GitHub Actions
 

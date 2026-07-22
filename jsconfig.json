@@ -20,7 +20,7 @@
   "exclude": [
     "node_modules",
     "client",
-    "tools/docs-site",
+    "docs-site",
     "coverage",
     "business_modules/resilience_scorer/data",
     "signals",

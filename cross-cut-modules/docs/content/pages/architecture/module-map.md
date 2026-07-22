@@ -50,7 +50,7 @@ For role and scope terminology, see the repo glossary at `docs/architecture/ubiq
 ├── package.json               # Scripts + deps
 ├── openapi/openapi.yaml       # API contract (source of truth)
 ├── cross-cut-modules/docs/content/pages/  # Product pages (in-app + public site)
-├── tools/docs-site/             # Docusaurus (reads content/pages)
+├── docs-site/             # Docusaurus (reads content/pages)
 ├── docs/                        # Engineering reference (optional; not app runtime)
 │   ├── main_docu_files/       # Decision-support engineering reference (auto-sync appendix)
 │   ├── architecture/decisions/  # ADRs

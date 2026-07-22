@@ -135,7 +135,7 @@ Expected: `{"authRequired":true}` if you've enabled auth, otherwise `{"authRequi
   - **Check**: the build step ran with new `VITE_*` values.
   - **Fix**: clear any build cache, rebuild, redeploy. Vite embeds the values into JS at build time.
 - **Docs site (Docusaurus) build fails on Cloudflare Pages**
-  - **Check**: `NODE_VERSION=20` is set in the Pages environment; the build command matches `tools/docs-site/README.md` (usually `npm ci && npm run build` inside `tools/docs-site/`).
+  - **Check**: `NODE_VERSION=20` is set in the Pages environment; the build command matches `docs-site/README.md` (usually `npm ci && npm run build` inside `docs-site/`).
   - **Fix**: align Node version, redeploy from the latest commit. See [Common failures](../operations/common-failures.md).
 - **High memory on the server**
   - **Check**: whether you're running analysis in-process on very large inputs.

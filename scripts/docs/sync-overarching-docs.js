@@ -189,13 +189,13 @@ function relativePath(abs) {
 }
 
 function runGenApi() {
-  const result = spawnSync('npm', ['run', 'gen:api', '--prefix', 'tools/docs-site'], {
+  const result = spawnSync('npm', ['run', 'gen:api', '--prefix', 'docs-site'], {
     cwd: REPO_ROOT,
     stdio: 'inherit',
   });
   if (result.status !== 0) {
     throw new Error(
-      'tools/docs-site gen:api failed (run: npm ci --prefix tools/docs-site)',
+      'docs-site gen:api failed (run: npm ci --prefix docs-site)',
     );
   }
   console.log(

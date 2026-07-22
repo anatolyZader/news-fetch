@@ -5,7 +5,7 @@ secrets/
 
 # Separate apps / doc sites (unrelated to most tasks)
 analyst-site/
-tools/docs-site/
+docs-site/
 cross-cut-modules/docs/content/pages/**
 
 # Engineering docs (load via AGENTS.md links only)
@@ -17,12 +17,12 @@ package-lock.json
 node_modules/
 client/node_modules/
 analyst-site/node_modules/
-tools/docs-site/node_modules/
+docs-site/node_modules/
 dist/
 client/dist/
 analyst-site/dist/
-tools/docs-site/build/
-tools/docs-site/.docusaurus/
+docs-site/build/
+docs-site/.docusaurus/
 coverage/
 
 daily_reports/
@@ -43,7 +43,7 @@ business_modules/search_trends/data/cache/
 business_modules/social_media/data/topic-fetches/
 business_modules/news-sites/data/resilience-outlet-reputation.json
 
-tools/docs-site/.cache/
+docs-site/.cache/
 
 # Cursor local state (debug logs, scratchpad churn)
 .cursor/debug-*.log

@@ -72,5 +72,5 @@ if (unused.length > 0) {
   console.log('\nAll direct production dependencies appear referenced in scanned paths.');
 }
 
-console.log('\nAlso review: client/package.json, tools/docs-site/package.json (separate lockfiles).');
+console.log('\nAlso review: client/package.json, docs-site/package.json (separate lockfiles).');
 console.log('See docs/DEPENDENCIES.md for the full inventory.');

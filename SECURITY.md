@@ -58,7 +58,7 @@ Bounded CI scripts in `scripts/` and [`cross-cut-modules/security/`](cross-cut-m
 ## Dependency and lockfile policy
 
 - All installs in CI use `npm ci` (never `npm install`).
-- Lockfiles are required: root, `client/`, and `tools/docs-site/`.
+- Lockfiles are required: root, `client/`, and `docs-site/`.
 - Dependency changes go through PR review; see [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
 - Dependabot opens grouped weekly PRs; merge after CI passes.
 - CI **maintainer-change warnings** (`security:supply-chain`) complement Dependabot review when lockfile versions change.

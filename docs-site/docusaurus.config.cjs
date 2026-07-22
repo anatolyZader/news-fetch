@@ -27,7 +27,7 @@ const config = {
       ({
         docs: {
           id: 'classic',
-          path: '../../cross-cut-modules/docs/content/pages',
+          path: '../cross-cut-modules/docs/content/pages',
           routeBasePath: '/',
           sidebarPath: './sidebars.js',
           exclude: [
@@ -67,8 +67,8 @@ const config = {
         docsPluginId: 'classic',
         config: {
           vibeswitch: {
-            specPath: '../../openapi/openapi.yaml',
-            outputDir: '../../cross-cut-modules/docs/content/pages/api/generated',
+            specPath: '../openapi/openapi.yaml',
+            outputDir: '../cross-cut-modules/docs/content/pages/api/generated',
             sidebarOptions: {
               groupPathsBy: 'tag',
               categoryLinkSource: 'tag',

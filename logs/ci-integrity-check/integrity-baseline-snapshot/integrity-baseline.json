@@ -6,7 +6,7 @@
     "package-lock.json": "8dedd6e55829816430eb930a5323d61c1eba6c2d08dffd722a091676b7cbd12c",
     "client/package-lock.json": "fba3155da65847688e11fb9fc074f6a17eb46e4a7f34fedbdc9a7254caaefb48",
     "analyst-site/package-lock.json": "67c3aedbedbdb5f8135c5b35c1bdd1777c30ba14e93f0f656b15e56afe51a09b",
-    "tools/docs-site/package-lock.json": "b3f47c18b0bac88a259d11f2f0191964548c3e59ae8bb11036dbb28692111110",
+    "docs-site/package-lock.json": "b3f47c18b0bac88a259d11f2f0191964548c3e59ae8bb11036dbb28692111110",
     ".nvmrc": "88029f8a967e9b0a57e49328ab94fa6d74e07946e2b5d33626c82d0dc6e93d81",
     "openapi/openapi.yaml": "52778d8c40d4e7d3351e48046808da58a1e587e0c19359f6f4a360caa854f056",
     ".github/dependabot.yml": "c7f5684ea2eee4302c76f258721c3f7e2cc466189ed4e111068674d28766db24",

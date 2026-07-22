@@ -10,7 +10,7 @@
     "**/node_modules/**": true,
     "**/client/dist/**": true,
     "**/client/node_modules/**": true,
-    "**/tools/docs-site/**": true,
+    "**/docs-site/**": true,
     "**/coverage/**": true,
     "**/business_modules/resilience_scorer/data/**": true,
     "**/business_modules/specialist_agents/data/**": true,
@@ -23,7 +23,7 @@
 
   "sonarlint.pathToNodeExecutable": "/home/eventstorm1/.nvm/versions/node/v22.13.0/bin/node",
   "sonarlint.automaticAnalysis": false,
-  "sonarlint.analysisExcludesStandalone": "**/node_modules/**,**/client/dist/**,**/tools/docs-site/**,**/coverage/**,**/articles_extracted/**,**/business_modules/resilience_scorer/data/**,**/business_modules/specialist_agents/data/**,**/business_modules/resilience_scorer/analyst/data/**,**/signals/**,**/cross-cut-modules/docs/content/pages/api/generated/**,**/*.md,**/business_modules/**/data/**,**/tests/fixtures/**",
+  "sonarlint.analysisExcludesStandalone": "**/node_modules/**,**/client/dist/**,**/docs-site/**,**/coverage/**,**/articles_extracted/**,**/business_modules/resilience_scorer/data/**,**/business_modules/specialist_agents/data/**,**/business_modules/resilience_scorer/analyst/data/**,**/signals/**,**/cross-cut-modules/docs/content/pages/api/generated/**,**/*.md,**/business_modules/**/data/**,**/tests/fixtures/**",
   "sonarlint.analyzerProperties": {
     "sonar.javascript.node.maxspace": "1024"
   },

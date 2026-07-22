@@ -85,7 +85,7 @@ jobs:
 
       - uses: ./.github/actions/setup-npm-ci
         with:
-          working-directory: tools/docs-site
+          working-directory: docs-site
           min-release-age-days: ${{ steps.release_age.outputs.days }}
 
       - name: Regenerate main_docu_files and API docs
@@ -121,8 +121,8 @@ jobs:
 
       - name: Build docs site
         run: |
-          npm run gen:api --prefix tools/docs-site
-          npm run build --prefix tools/docs-site
+          npm run gen:api --prefix docs-site
+          npm run build --prefix docs-site
 
   lint:
     name: Lint

@@ -2,7 +2,7 @@
 
 This directory is **runtime product content**, not optional repo documentation under `/docs`.
 
-Pages here are served by the app (`/api/docs/*`), indexed for Docs-panel RAG (`npm run rag:reindex-docs`), and published via [tools/docs-site](../../../tools/docs-site/).
+Pages here are served by the app (`/api/docs/*`), indexed for Docs-panel RAG (`npm run rag:reindex-docs`), and published via [docs-site](../../../../docs-site/).
 
 Deleting `/docs` does not remove this tree — the server and public docs site depend on it.
 
@@ -25,5 +25,5 @@ All pages should follow the section structure in `_template.page.md` to stay:
 
 ### Commands
 - Validate: `npm run docs:check`
-- Regenerate API pages: `npm run docs:sync` (via `tools/docs-site` `gen:api`)
+- Regenerate API pages: `npm run docs:sync` (via `docs-site` `gen:api`)
 - Reindex RAG: `npm run rag:reindex-docs`

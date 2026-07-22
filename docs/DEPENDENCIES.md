@@ -1,6 +1,6 @@
 # Dependencies
 
-Inventory and review process for npm dependencies in this monorepo (root app, `client/`, `tools/docs-site/`).
+Inventory and review process for npm dependencies in this monorepo (root app, `client/`, `docs-site/`).
 
 ## Lockfiles and install policy
 
@@ -8,7 +8,7 @@ Inventory and review process for npm dependencies in this monorepo (root app, `c
 |------|----------|------------|
 | Repository root | `package-lock.json` | `npm ci` with min-release-age (7 days) |
 | `client/` | `client/package-lock.json` | `npm ci --prefix client` |
-| `tools/docs-site/` | `tools/docs-site/package-lock.json` | `npm ci --prefix tools/docs-site` |
+| `docs-site/` | `docs-site/package-lock.json` | `npm ci --prefix docs-site` |
 
 Local development may use `npm install` when adding deps; commit the updated lockfile. Prefer `npm ci` after switching branches.
 
@@ -47,7 +47,7 @@ Security policy: [SECURITY.md](../SECURITY.md).
 
 Standard React 18 + Vite 6 + MUI 9 + Firebase client SDK stack. No periodic purge planned unless features are removed.
 
-## Docs site (`tools/docs-site/package.json`)
+## Docs site (`docs-site/package.json`)
 
 Docusaurus 3 + OpenAPI docs plugins. Separate lockfile; update via Dependabot or intentional PR.
 
@@ -56,7 +56,7 @@ Docusaurus 3 + OpenAPI docs plugins. Separate lockfile; update via Dependabot or
 Run at least once per quarter (or after major feature removals):
 
 1. `npm run deps:audit` — flags direct root dependencies with no import under application paths.
-2. `npm ls --prod` at root, `client/`, and `tools/docs-site/`.
+2. `npm ls --prod` at root, `client/`, and `docs-site/`.
 3. Review open Dependabot PRs; merge or close stale ones.
 4. Re-read this table; remove packages whose features were deleted.
 5. Re-check [scripts/ci-audit.mjs](../scripts/ci-audit.mjs) exceptions (e.g. `xlsx`).
