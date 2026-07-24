@@ -63,4 +63,20 @@ describe('synthesizerAgent prompts', () => {
     const system = buildSynthesizerSystem(assessments, epistemicProfile);
     assert.ok(system.dynamic.includes('evidence_tree'));
   });
+
+  it('renders exposure context block when present, omits when empty', () => {
+    delete process.env.RESILIENCE_ASSESS_SLIM_SYNTH;
+    const withExposure = {
+      ...epistemicProfile,
+      assessment_epistemic: {
+        exposure_context: { event_counts: { harm_to_population: 3 }, max_intensity: 'severe', total_exposure_signals: 3 },
+      },
+    };
+    const system = buildSynthesizerSystem(assessments, withExposure);
+    assert.ok(system.dynamic.includes('EXPOSURE CONTEXT'));
+    assert.ok(system.dynamic.includes('harm_to_population'));
+
+    const without = buildSynthesizerSystem(assessments, epistemicProfile);
+    assert.ok(!without.dynamic.includes('EXPOSURE CONTEXT'));
+  });
 });

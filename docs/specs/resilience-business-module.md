@@ -2,7 +2,7 @@
 
 ## Summary
 
-Define a **`business_modules/resilience_scorer/`** module that **owns population-resilience analysis**: behavioral signal extraction, deterministic scoring, and narrative synthesis across the **eight Home Front Command (Fran Norris–based) components**. The module **does not fetch or filter** news or audio; it accepts **already prepared, clean content** from the **news-articles** and **audio** bounded contexts (or their adapters), runs the LLM + scoring pipeline, and persists or returns structured assessments.
+Define a **`business_modules/resilience_scorer/`** module that **owns population-resilience analysis**: behavioral signal extraction, deterministic scoring, and narrative synthesis across the **eight Home Front Command operational components** (theoretically informed by Norris et al. 2008; a distinct operational decomposition, not Norris's four capacity families). The module **does not fetch or filter** news or audio; it accepts **already prepared, clean content** from the **news-articles** and **audio** bounded contexts (or their adapters), runs the LLM + scoring pipeline, and persists or returns structured assessments.
 
 ---
 

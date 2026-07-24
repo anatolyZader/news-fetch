@@ -10,7 +10,7 @@
 
 ## The eight components
 
-Based on the Home Front Command community-resilience framework (Fran Norris 2008 lineage). Community resilience = a community's ability, during and after crisis, to leverage resources, adapt, keep functioning, and provide essential services — to preserve the physical and mental health of its members.
+Based on the eight-component Home Front Command community-resilience framework — an operational model theoretically informed by Norris et al. (2008), not a one-to-one implementation of Norris's four adaptive-capacity families. Community resilience = a community's ability, during and after crisis, to leverage resources, adapt, keep functioning, and provide essential services — to preserve the physical and mental health of its members.
 
 | # | Component (EN) | Hebrew | What it measures (one line) |
 |---|----------------|--------|------------------------------|

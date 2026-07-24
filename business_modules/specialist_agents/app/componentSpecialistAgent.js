@@ -100,9 +100,15 @@ function buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, ass
     permissiveHint +
     adversarialSystemHint(compEp);
 
+  const exposure = epistemicProfile?.assessment_epistemic?.exposure_context;
+  const exposureBlock = exposure?.total_exposure_signals
+    ? `\n\nEXPOSURE CONTEXT (current-day stressor counts — interpret component evidence relative to this pressure):\n${JSON.stringify(exposure)}`
+    : '';
+
   const dynamic =
     `\nEPISTEMIC HINTS:\n${epBlock}\n\n` +
     `EVIDENCE GRAPH:\n${graphBlock}` +
+    exposureBlock +
     taskBlock;
 
   return { stable, dynamic };

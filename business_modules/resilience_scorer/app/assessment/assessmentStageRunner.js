@@ -50,6 +50,10 @@ import { closedCoreNarrate } from './closedCoreNarrate.js';
 import { buildAndWriteOmissionAudit } from './omissionAuditService.js';
 import { reportScopeMetadata } from '../../domain/services/signals/regionSignalFilter.js';
 import { countOovCapturesForDate } from '../../domain/services/oov/oovCapture.js';
+import { buildComponentEvidence } from '../../domain/contracts/componentEvidence.js';
+import { buildExposureContext } from '../../domain/epistemic/exposureContext.js';
+import { deriveComponentTrajectories, bandsFromComponentEvidence } from '../../domain/epistemic/trajectoryContext.js';
+import { loadPriorReports } from '../../infrastructure/reportHistoryReader.js';
 
 /**
  * @param {object} assessment
@@ -126,6 +130,12 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
     investigationPlan: assessment.investigation_plan,
   });
 
+  if (ctx.exposureContext) {
+    assessment.exposure_context = ctx.exposureContext;
+  }
+  if (ctx.trajectoryContext) {
+    assessment.trajectory_context = ctx.trajectoryContext;
+  }
   if (ctx.scopeAttribution) {
     assessment.scope_attribution = ctx.scopeAttribution;
   }
@@ -223,6 +233,8 @@ async function produceAssessmentForMode(ctx) {
     reportsDir,
     llmPort,
     dailyBudgetExceeded,
+    exposureContext,
+    trajectoryContext,
   } = ctx;
 
   if (shouldUseRichDeterministicPath() || isClosedCoreAssessEnabled()) {
@@ -278,6 +290,8 @@ async function produceAssessmentForMode(ctx) {
     reportsDir,
     llmPort,
     dailyBudgetExceeded,
+    exposureContext,
+    trajectoryContext,
   });
 
   await applyOperatorNarrativePipeline({
@@ -406,6 +420,18 @@ export async function runPostExtractionAssessmentCore(params) {
     reportsDir,
   });
 
+  // v10: daily exposure summary + day-over-day band trajectory. Computed here
+  // (not finalizeReport) so both the CLI and service paths carry them, and the
+  // epistemic profile can stamp per-component delta_significance.
+  const priorAssessments = reportScopeId === ISRAEL_NATIONAL_DISTRICT_ID
+    ? loadPriorReports(reportDate, 2, reportsDir)
+    : [];
+  const exposureContext = buildExposureContext(investigationSignals);
+  const trajectoryContext = deriveComponentTrajectories(
+    bandsFromComponentEvidence(buildComponentEvidence(investigationSignals).by_component),
+    priorAssessments,
+  );
+
   const scopedArticleKeys = new Set(
     investigationSignals
       .map((s) => s.article_url || (s.article_index ?? null))
@@ -460,6 +486,8 @@ export async function runPostExtractionAssessmentCore(params) {
     reportsDir,
     llmPort,
     dailyBudgetExceeded,
+    exposureContext,
+    trajectoryContext,
   });
 
   const omissionAuditSummary = runOmissionAuditIfEnabled(
@@ -499,6 +527,8 @@ export async function runPostExtractionAssessmentCore(params) {
     oovScoringApplied: prepared.oovScoringApplied,
     openObservationsSummary,
     omissionAuditSummary,
+    exposureContext,
+    trajectoryContext,
   });
 
   if (shouldAttachBrief) {

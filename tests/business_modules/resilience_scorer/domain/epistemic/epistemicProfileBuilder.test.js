@@ -31,6 +31,26 @@ describe('epistemicProfileBuilder', () => {
     assert.equal(comp.evidence_mass, comp.signal_count);
   });
 
+  it('v10: stamps trajectory labels, exposure context, and construct_role_mix', () => {
+    const profile = computeEpistemicProfile([
+      {
+        signal_type: 'information_clarity',
+        source_type: 'news',
+        article_url: 'https://ynet.co.il/a1',
+        evidence: 'test',
+      },
+    ], {
+      reportDate: '2026-06-01',
+      trajectories: { information_communication: { label: 'improving' } },
+      exposureContext: { event_counts: { harm_to_population: 2 }, total_exposure_signals: 2 },
+    });
+    const comp = profile.by_component.information_communication;
+    assert.equal(comp.delta_significance, 'improving');
+    assert.equal(profile.by_component.leadership.delta_significance, null);
+    assert.deepEqual(comp.construct_role_mix, { institutional_state: 1 });
+    assert.equal(profile.assessment_epistemic.exposure_context.total_exposure_signals, 2);
+  });
+
   it('requires corroboration for thin components via retrieval policies', () => {
     const profile = computeEpistemicProfile([], { reportDate: '2026-06-01' });
     assert.ok(profile.retrieval_policies.require_corroboration.some(

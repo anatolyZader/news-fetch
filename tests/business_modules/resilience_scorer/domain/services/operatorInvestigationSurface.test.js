@@ -254,13 +254,17 @@ describe('routing rationale on evidence items', () => {
   };
 
   it('pool items carry routing_role and exclude inferred-edge spillover', () => {
-    const wellbeing = poolFor('wellbeing_at_risk', [helpSignal]);
-    assert.equal(wellbeing.length, 1);
-    assert.equal(wellbeing[0].routing_role, 'primary');
-    assert.equal('routing_weight' in wellbeing[0], false);
-
     const belonging = poolFor('belonging_solidarity', [helpSignal]);
+    assert.equal(belonging.length, 1);
     assert.equal(belonging[0].routing_role, 'primary');
+    assert.equal('routing_weight' in belonging[0], false);
+
+    const capital = poolFor('community_capital', [helpSignal]);
+    assert.equal(capital[0].routing_role, 'primary');
+
+    // v10: helping behavior (construct_role 'response') no longer routes into
+    // wellbeing_at_risk at all.
+    assert.equal(poolFor('wellbeing_at_risk', [helpSignal]).length, 0);
 
     // Weak spillover edge (compliance_enter_shelter → leadership, inferred) is
     // excluded from the investigation pool entirely.
@@ -275,10 +279,12 @@ describe('routing rationale on evidence items', () => {
   });
 
   it('highlighted markdown appends the rationale label after the source link (RTL-safe)', () => {
-    const pool = poolFor('wellbeing_at_risk', [helpSignal, distressSignal]);
+    const pool = poolFor('belonging_solidarity', [helpSignal]);
+    const distressPool = poolFor('wellbeing_at_risk', [distressSignal]);
     const items = buildHighlightedEvidenceFromPool(pool);
+    const distressItems = buildHighlightedEvidenceFromPool(distressPool);
     const help = items.find((i) => i.signal_type === 'solidarity_help_others');
-    const distress = items.find((i) => i.signal_type === 'psychological_distress');
+    const distress = distressItems.find((i) => i.signal_type === 'psychological_distress');
     assert.ok(help.markdown.endsWith('`solidarity_help_others · primary`'));
     assert.ok(distress.markdown.includes('`psychological_distress · primary`'));
     assert.ok(help.markdown.includes('[source](https://example.com/help)'));
@@ -286,7 +292,13 @@ describe('routing rationale on evidence items', () => {
   });
 
   it('RESILIENCE_POOL_INFERRED_RENDER=hide is a no-op on the all-primary pool', () => {
-    const pool = poolFor('wellbeing_at_risk', [helpSignal, distressSignal]);
+    const pool = poolFor('community_capital', [helpSignal, {
+      signal_type: 'resource_mobilization',
+      source_type: 'news',
+      article_url: 'https://example.com/mobilize',
+      evidence: 'הרשות המקומית גייסה מתנדבים וציוד בתוך שעות.',
+      metricsEligible: true,
+    }]);
     process.env.RESILIENCE_POOL_INFERRED_RENDER = 'hide';
     try {
       assert.equal(inferredPoolRenderMode(), 'hide');
@@ -314,7 +326,10 @@ describe('routing rationale on evidence items', () => {
 
   it('routingLabelSuffix and comparePoolItems behave on edge cases', () => {
     assert.equal(routingLabelSuffix({}), '');
-    assert.equal(routingLabelSuffix({ signal_type: 'x' }), ' `x · primary`');
+    // Fail-closed: missing routing_role renders the type without a role claim.
+    assert.equal(routingLabelSuffix({ signal_type: 'x' }), ' `x`');
+    assert.equal(routingLabelSuffix({ signal_type: 'x', routing_role: 'primary' }), ' `x · primary`');
+    assert.equal(routingLabelSuffix({ signal_type: 'x', routing_role: 'inferred' }), ' `x · inferred`');
     assert.ok(comparePoolItems(
       { routing_role: 'primary', contribution: 0.1 },
       { routing_role: 'inferred', contribution: 9 },

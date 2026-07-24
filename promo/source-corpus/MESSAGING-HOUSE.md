@@ -47,7 +47,7 @@ Structure the signal across eight components, show the evidence behind it, let h
 
 1. **Daily, multi-source.** Every day, eight resilience components assessed from news, WhatsApp, radio, Google Trends, and field submissions — fused, not siloed.
 
-2. **Eight components, one framework.** Built on the Home Front Command (Pikud HaOref) community-resilience model (Fran Norris 2008 lineage): Narrative · Information & Communication · Life-Saving Behavior · Functional Continuity · Community Capital · Leadership · Belonging & Solidarity · Wellbeing of At-Risk Populations.
+2. **Eight components, one framework.** Built on the Home Front Command (Pikud HaOref) community-resilience model, theoretically grounded in Norris et al. (2008): Narrative · Information & Communication · Life-Saving Behavior · Functional Continuity · Community Capital · Leadership · Belonging & Solidarity · Wellbeing of At-Risk Populations.
 
 3. **Evidence you can open.** Every component narrative links to the raw excerpts behind it. Chat lets you interrogate the reports — today's and past — instead of reading everything.
 

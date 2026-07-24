@@ -5,11 +5,8 @@
  */
 
 import { resolve, dirname } from 'node:path';
-import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { resilienceReportsDir } from '../../domain/services/paths/outputDirs.js';
-import { listReportJsonFilenamesForDate } from '../../domain/services/paths/reportNames.js';
 import {
   crossSourceDedupClustered,
   loadPipelineConfig,
@@ -46,26 +43,9 @@ function contentKindFromSourceTypes(sourceTypesSeen) {
   return 'news';
 }
 
-export function loadPriorReports(targetDate, n = 2) {
-  const dir = resilienceReportsDir();
-  if (!existsSync(dir)) return [];
-  const prior = [];
-  const d = new Date(targetDate);
-  for (let i = 1; i <= n; i++) {
-    const p = new Date(d);
-    p.setDate(d.getDate() - i);
-    const pd = p.toISOString().slice(0, 10);
-    const matches = listReportJsonFilenamesForDate(dir, pd, 'national');
-    const match = [...matches].sort((a, b) => a.localeCompare(b)).at(-1);
-    if (match) {
-      try {
-        const json = JSON.parse(readFileSync(resolve(dir, match), 'utf8'));
-        prior.unshift(json.assessment);
-      } catch { /* ignore */ }
-    }
-  }
-  return prior;
-}
+// Moved to infrastructure/reportHistoryReader.js (v10, injectable reportsDir);
+// re-exported here so existing callers keep working.
+export { loadPriorReports } from '../../infrastructure/reportHistoryReader.js';
 
 function assertSignalBundles(bundlePort, discovery, useObservations) {
   if (bundlePort.hasAnySource(discovery)) return;

@@ -244,8 +244,10 @@ export function formatEvidenceBullet(text, url) {
  */
 export function routingLabelSuffix(item) {
   if (!item?.signal_type) return '';
-  const role = item.routing_role ?? 'primary';
-  return ` \`${item.signal_type} · ${role}\``;
+  // Fail-closed: a null routing_role (unrouted type/component pair) shows the
+  // type alone rather than masquerading as primary.
+  if (item.routing_role == null) return ` \`${item.signal_type}\``;
+  return ` \`${item.signal_type} · ${item.routing_role}\``;
 }
 
 // ── Pool rendering ────────────────────────────────────────────────────────────

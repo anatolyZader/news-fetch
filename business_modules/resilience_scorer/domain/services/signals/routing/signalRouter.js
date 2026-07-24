@@ -19,6 +19,7 @@
 
 export {
   CATALOG_VERSION,
+  CONSTRUCT_ROLES,
   SIGNAL_CATALOG,
   SIGNAL_DOMAINS,
   SIGNAL_TYPES,
@@ -33,6 +34,8 @@ export {
 
 export {
   SIGNAL_TO_COMPONENTS,
+  NON_SCORING_FALLBACK_TYPES,
+  MIRROR_ROUTING_ASYMMETRY,
   getRoutingRole,
   validateSignalRouting,
   assertValidSignalRouting,

@@ -60,11 +60,18 @@
  *   Maintainer breadcrumbs: confusable/adjacent types with NO polarity
  *   implication. Deliberately NOT emitted into prompts and unused at runtime;
  *   validated so targets can't rot (validateSignalCatalog).
- * @property {'state'|'response'|'capacity'} [indicator_kind]
- *   'state' (condition of the population), 'response' (action taken to address
- *   a condition), 'capacity' (ability to respond). Response/capacity types
- *   must not positively route into wellbeing_at_risk — treatment uptake is not
- *   evidence of wellbeing (enforced by the routing validator).
+ * @property {ConstructRole} construct_role
+ *   MANDATORY epistemic role of the signal in the resilience process:
+ *   'pressure' (stressor/adverse event imposing demand), 'capacity' (available
+ *   resource/readiness that could be activated), 'response' (action taken under
+ *   stress), 'population_state' (condition/attitude of the population),
+ *   'institutional_state' (condition of institutions/services/systems),
+ *   'outcome' (observed consequence of adaptation or protection),
+ *   'narrative_frame' (collective framing/meaning-making). Response/capacity
+ *   types must not positively route into wellbeing_at_risk — treatment uptake
+ *   is not evidence of wellbeing (enforced by the routing validator).
+ *   NOT emitted into extraction prompts; changing it does not bump
+ *   CATALOG_VERSION (no effect on the extraction cache key).
  * @property {object} [disambiguation]
  *   Boundary guidance (vs-other-types) emitted into the extraction prompt's
  *   boundaries block (signalCatalogPrompt.js buildDisambiguationBlock).
@@ -135,17 +142,35 @@ export const SIGNAL_DOMAINS = {
 
 /** @typedef {'behavior'|'attitude'|'structural_state'|'narrative'|'event'|'capacity'} SignalClass */
 
+/** @typedef {'pressure'|'capacity'|'response'|'population_state'|'institutional_state'|'outcome'|'narrative_frame'} ConstructRole */
+
+/**
+ * Closed enum for the mandatory construct_role field (see typedef above).
+ * Downstream: componentSignalGroups stamps it onto collected items;
+ * componentEvidence groups primary evidence into construct_role_mix.
+ */
+export const CONSTRUCT_ROLES = Object.freeze([
+  'pressure',
+  'capacity',
+  'response',
+  'population_state',
+  'institutional_state',
+  'outcome',
+  'narrative_frame',
+]);
+
 // --- Catalog entries ---
 /**
  * Authoritative closed vocabulary: one object per extractable signal type.
  * Do not add per-row essays here — labels, mirrors, and disambiguation on each
  * entry are the documentation the extraction LLM and validators need.
- * @type {Array<{ type: string, domain: string, label: string, defaultPolarity: 'positive'|'negative', signal_class: SignalClass, indicator_kind?: 'state'|'response'|'capacity', mirror?: string, related?: string[], disambiguation?: { not_confused_with?: string[], accept_patterns?: string[], reject_patterns?: string[] }, example_evidence?: string[] }>}
+ * @type {Array<{ type: string, construct_role: ConstructRole, domain: string, label: string, defaultPolarity: 'positive'|'negative', signal_class: SignalClass, mirror?: string, related?: string[], disambiguation?: { not_confused_with?: string[], accept_patterns?: string[], reject_patterns?: string[] }, example_evidence?: string[] }>}
  */
 export const SIGNAL_CATALOG = [
   // Compliance & Discipline
   {
     type: 'compliance_enter_shelter',
+    construct_role: 'response',
     domain: 'compliance',
     signal_class: 'behavior',
     label: 'Residents enter shelter when alerted',
@@ -154,6 +179,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'compliance_follow_instructions',
+    construct_role: 'response',
     domain: 'compliance',
     signal_class: 'behavior',
     label: 'Residents follow official protective instructions',
@@ -162,6 +188,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'non_compliance_exit_early',
+    construct_role: 'response',
     domain: 'compliance',
     signal_class: 'behavior',
     label: 'Residents leave shelter before all-clear',
@@ -170,6 +197,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'non_compliance_ignore_guidelines',
+    construct_role: 'response',
     domain: 'compliance',
     signal_class: 'behavior',
     label: 'Residents ignore or dismiss safety guidelines',
@@ -178,6 +206,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'compliance_partial',
+    construct_role: 'response',
     domain: 'compliance',
     signal_class: 'behavior',
     label: 'Residents comply only partially or late (late shelter entry, incomplete adherence) — deficiency reading; set polarity_override: positive when the evidence emphasizes that compliance mostly succeeded',
@@ -186,6 +215,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'non_compliance_due_to_distrust',
+    construct_role: 'response',
     domain: 'compliance',
     signal_class: 'behavior',
     label: 'Residents refuse protective guidance because they distrust the source or alert system',
@@ -201,6 +231,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'compliance_norm_enforcement',
+    construct_role: 'response',
     domain: 'compliance',
     signal_class: 'behavior',
     label: 'Community members informally pressure others to follow safety protocols',
@@ -209,6 +240,7 @@ export const SIGNAL_CATALOG = [
   // Risk & Safety
   {
     type: 'risk_exposure_behavior',
+    construct_role: 'response',
     domain: 'risk',
     signal_class: 'behavior',
     label: 'Residents expose themselves to risk (filming, staying outside)',
@@ -216,6 +248,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'panic_behavior',
+    construct_role: 'population_state',
     domain: 'risk',
     signal_class: 'behavior',
     label: 'Chaotic or unsafe reactions during alerts',
@@ -234,6 +267,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'unsafe_gathering',
+    construct_role: 'response',
     domain: 'risk',
     signal_class: 'behavior',
     label: 'Gatherings that violate safety guidelines',
@@ -241,6 +275,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'protection_effective',
+    construct_role: 'outcome',
     domain: 'risk',
     signal_class: 'structural_state',
     label: 'A defensive measure demonstrably averted harm (Iron Dome interception, mamad/shelter doctrine, drill saved lives in documented hit)',
@@ -258,6 +293,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'near_miss_reported',
+    construct_role: 'pressure',
     domain: 'risk',
     signal_class: 'event',
     label: 'Documented close call where protective measures barely prevented harm',
@@ -285,6 +321,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'risk_trade_off_behavior',
+    construct_role: 'response',
     domain: 'risk',
     signal_class: 'behavior',
     label: 'Residents take calculated risk to reduce another harm (e.g. driving during alert to relieve childcare burden)',
@@ -293,6 +330,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'public_order_breakdown',
+    construct_role: 'outcome',
     domain: 'risk',
     signal_class: 'event',
     label: 'Looting, crime wave, or breakdown of public order during the emergency (distinct from inter-group tension and shared-resource free-riding)',
@@ -301,6 +339,7 @@ export const SIGNAL_CATALOG = [
   // Social Cohesion
   {
     type: 'solidarity_help_others',
+    construct_role: 'response',
     domain: 'social',
     signal_class: 'behavior',
     label: 'Residents help neighbors, strangers, or community members',
@@ -321,6 +360,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'community_volunteering',
+    construct_role: 'response',
     domain: 'social',
     signal_class: 'behavior',
     label: 'Organized or spontaneous volunteering',
@@ -328,6 +368,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'social_isolation',
+    construct_role: 'population_state',
     domain: 'social',
     signal_class: 'behavior',
     label: 'Residents withdraw, are isolated, or excluded — including observed weakening of community ties, cohesion, or mutual involvement',
@@ -346,6 +387,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'conflict_or_tension',
+    construct_role: 'population_state',
     domain: 'social',
     signal_class: 'behavior',
     label: 'Reported conflicts, scapegoating, or inter-group tension',
@@ -354,23 +396,24 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'conflict_resolution',
+    construct_role: 'response',
     domain: 'social',
     signal_class: 'behavior',
-    indicator_kind: 'response',
     label: 'Community actors resolve conflicts constructively, enabling cooperation (mediation, compromise, de-escalation)',
     defaultPolarity: 'positive',
     mirror: 'conflict_or_tension',
   },
   {
     type: 'religious_coping_practice',
+    construct_role: 'response',
     domain: 'social',
     signal_class: 'behavior',
-    indicator_kind: 'response',
     label: 'Faith-based communal coping (prayer assemblies, tehillim groups, ritualized mourning)',
     defaultPolarity: 'positive',
   },
   {
     type: 'interfaith_solidarity',
+    construct_role: 'response',
     domain: 'social',
     signal_class: 'behavior',
     label: 'Constructive cooperation across religious lines during the emergency',
@@ -379,6 +422,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'interfaith_tension',
+    construct_role: 'population_state',
     domain: 'social',
     signal_class: 'behavior',
     label: 'Conflict or tension specifically along religious lines',
@@ -387,14 +431,15 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'help_seeking_behavior',
+    construct_role: 'response',
     domain: 'social',
     signal_class: 'behavior',
-    indicator_kind: 'response',
     label: 'Residents actively ask neighbors or institutions for help (distinct from offering help)',
     defaultPolarity: 'positive',
   },
   {
     type: 'bridging_capital_demonstrated',
+    construct_role: 'response',
     domain: 'social',
     signal_class: 'behavior',
     label: 'Constructive cooperation across class, ethnic, or geographic lines (not only religious)',
@@ -404,6 +449,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'bridging_capital_failure',
+    construct_role: 'response',
     domain: 'social',
     signal_class: 'behavior',
     label: 'Cooperation across community lines breaks down or is blocked',
@@ -413,6 +459,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'prosocial_norm_violation',
+    construct_role: 'response',
     domain: 'social',
     signal_class: 'behavior',
     label: 'Free-riding or norm-breaking in shared emergency resources (shelter hogging, aid queue jumping)',
@@ -422,6 +469,7 @@ export const SIGNAL_CATALOG = [
   // Leadership & Governance
   {
     type: 'leadership_visible_presence',
+    construct_role: 'response',
     domain: 'leadership',
     signal_class: 'structural_state',
     label: 'Leadership is publicly visible and active',
@@ -430,6 +478,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'leadership_clear_guidance',
+    construct_role: 'response',
     domain: 'leadership',
     signal_class: 'structural_state',
     label: 'Leadership provides clear, specific directions',
@@ -452,6 +501,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'leadership_absence',
+    construct_role: 'response',
     domain: 'leadership',
     signal_class: 'structural_state',
     label: 'Leadership is absent, unavailable, or unresponsive',
@@ -460,6 +510,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'leadership_credibility_loss',
+    construct_role: 'population_state',
     domain: 'leadership',
     signal_class: 'attitude',
     label: 'Residents or affected groups voice concrete loss of trust in named leadership (broken promises, false reassurances, perceived dishonesty about emergency conditions)',
@@ -467,6 +518,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'political_distrust',
+    construct_role: 'population_state',
     domain: 'leadership',
     signal_class: 'attitude',
     label: 'Residents or named civic figures publicly demand accountability or express distrust of the political/governmental handling of the emergency (specific policy demands, not general partisan opinion)',
@@ -482,6 +534,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'consensus_on_priorities',
+    construct_role: 'institutional_state',
     domain: 'leadership',
     signal_class: 'structural_state',
     label: 'Community actors reach working consensus on goals/priorities and a plan for action (collaboration, agreement on what to do next)',
@@ -490,6 +543,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'dissensus_blocks_action',
+    construct_role: 'institutional_state',
     domain: 'leadership',
     signal_class: 'structural_state',
     label: 'Mistrust/conflict prevents working consensus or blocks collective action (dissensus, infighting, inability to agree on priorities)',
@@ -498,6 +552,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'coordination_failure',
+    construct_role: 'institutional_state',
     domain: 'leadership',
     signal_class: 'structural_state',
     label: 'Inter-agency or inter-organization coordination breaks down',
@@ -506,6 +561,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'coordination_success',
+    construct_role: 'institutional_state',
     domain: 'leadership',
     signal_class: 'structural_state',
     label: 'Multiple agencies, services, or organizations coordinate effectively in response',
@@ -514,6 +570,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'feedback_loop_closure',
+    construct_role: 'institutional_state',
     domain: 'leadership',
     signal_class: 'structural_state',
     label: 'Authorities visibly act on community input, complaints, or requests',
@@ -521,6 +578,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'civic_engagement_constructive',
+    construct_role: 'response',
     domain: 'leadership',
     signal_class: 'behavior',
     label: 'Constructive civic participation (public hearings, lawful protest with concrete demands, organized petitioning)',
@@ -528,14 +586,15 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'civil_society_mobilization',
+    construct_role: 'response',
     domain: 'leadership',
     signal_class: 'structural_state',
-    indicator_kind: 'response',
     label: 'NGOs or civil-society organizations step up with organized non-state response',
     defaultPolarity: 'positive',
   },
   {
     type: 'accountability_demand_constructive',
+    construct_role: 'response',
     domain: 'leadership',
     signal_class: 'behavior',
     label: 'Public requests for explanations that are answered or visibly addressed (distinct from unanswered political_distrust)',
@@ -543,6 +602,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'informal_leadership_emergence',
+    construct_role: 'response',
     domain: 'leadership',
     signal_class: 'structural_state',
     label: 'Non-official community figures step up with visible coordination or guidance',
@@ -550,6 +610,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'blame_shifting',
+    construct_role: 'response',
     domain: 'leadership',
     signal_class: 'attitude',
     label: 'Named leaders deflect responsibility rather than address the emergency',
@@ -558,6 +619,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'responsibility_avowal',
+    construct_role: 'response',
     domain: 'leadership',
     signal_class: 'attitude',
     label: 'Named leaders publicly accept responsibility and commit to corrective action',
@@ -566,6 +628,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'symbolic_vs_substantive_action',
+    construct_role: 'response',
     domain: 'leadership',
     signal_class: 'structural_state',
     label: 'Leadership visibility without substantive delivery (photo-ops, empty gestures)',
@@ -574,6 +637,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'delegation_empowerment',
+    construct_role: 'response',
     domain: 'leadership',
     signal_class: 'structural_state',
     label: 'Central authority devolves decision-making to local actors effectively',
@@ -582,6 +646,7 @@ export const SIGNAL_CATALOG = [
   // Information & Communication
   {
     type: 'information_clarity',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'Residents report receiving clear, useful information',
@@ -590,6 +655,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'information_confusion',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'Residents report confusion, contradictory, or missing information',
@@ -605,6 +671,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'rumor_spread',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'Rumors or misinformation are circulating',
@@ -614,6 +681,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'misinformation_acted_upon',
+    construct_role: 'response',
     domain: 'information',
     signal_class: 'behavior',
     label: 'Residents act on rumors or misinformation (fleeing on a false alarm, refusing protection based on false claims) — behavioral adherence, distinct from circulation',
@@ -632,15 +700,16 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'rumor_correction',
+    construct_role: 'response',
     domain: 'information',
     signal_class: 'structural_state',
-    indicator_kind: 'response',
     label: 'Authorities, experts, or community members visibly correct circulating rumors or misinformation',
     defaultPolarity: 'positive',
     mirror: 'rumor_spread',
   },
   {
     type: 'trusted_information_source',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'Residents rely on or explicitly trust a specific local/official source for emergency information (trusted hotline, known local authority, trusted broadcaster)',
@@ -649,6 +718,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'mistrusted_information_source',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'Residents explicitly distrust or disregard an emergency information source (source seen as unreliable/lying/ignored), reducing adherence',
@@ -657,6 +727,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'feedback_channel_open',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'A working channel exists for the public to ask questions / articulate needs and receive responses (hotline, municipal desk, two-way messaging)',
@@ -665,6 +736,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'feedback_channel_blocked',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'Public feedback/inquiry channels are absent, unreachable, or ignored (hotline down, no response, no way to ask/clarify)',
@@ -676,6 +748,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'active_information_seeking',
+    construct_role: 'response',
     domain: 'information',
     signal_class: 'behavior',
     label: 'Residents actively seek out emergency or protective guidance — shelter locations, HFC instructions, evacuation routes, operational alerts. NOT: legal, financial, religious, or personal planning information.',
@@ -683,6 +756,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'information_actionable_effective',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'Guidance is specific, situation-matched, and demonstrably leads to correct protective behavior',
@@ -702,6 +776,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'information_effectiveness_gap',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'Guidance exists but fails to help — does not match real constraints, too vague to act on, or leaves critical scenarios uncovered',
@@ -710,6 +785,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'information_inclusivity_present',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'Emergency information adapted for at-risk groups (Arabic translations, accessible formats, elder outreach, special-needs channels)',
@@ -718,6 +794,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'information_inclusivity_gap',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'Emergency information not reaching at-risk groups (no Arabic, inaccessible formats, elders/disabled left uninformed)',
@@ -736,6 +813,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'hostile_influence_operation',
+    construct_role: 'pressure',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'Identified foreign or coordinated disinformation push (state actors, bot networks) — distinct from organic rumor_spread',
@@ -743,6 +821,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'news_avoidance_behavior',
+    construct_role: 'response',
     domain: 'information',
     signal_class: 'behavior',
     label: 'Residents intentionally tune out emergency news coverage as coping (media dosing). NOT ignoring alerts or sirens — that is complacency_or_normalization or non-compliance. Set polarity_override: positive when described as deliberate, adaptive dosing',
@@ -751,14 +830,15 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'media_literacy_demonstrated',
+    construct_role: 'response',
     domain: 'information',
     signal_class: 'behavior',
-    indicator_kind: 'response',
     label: 'Ordinary residents (not authorities) visibly correct misinformation or verify claims',
     defaultPolarity: 'positive',
   },
   {
     type: 'information_overload',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'Residents overwhelmed by volume of alerts or conflicting streams (distinct from confusion about content)',
@@ -767,6 +847,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'information_vacuum_post_event',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'Communication drops off after acute phase leaving residents uninformed',
@@ -774,6 +855,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'language_register_mismatch',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'Emergency guidance uses register or language residents cannot understand or act on',
@@ -782,6 +864,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'meta_information_present',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'Authorities tell residents when the next update will come or what is still unknown',
@@ -790,6 +873,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'meta_information_gap',
+    construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
     label: 'No timeline or commitment for next information — residents left in uncertainty about future updates',
@@ -799,6 +883,7 @@ export const SIGNAL_CATALOG = [
   // Functional Continuity
   {
     type: 'service_continuity',
+    construct_role: 'outcome',
     domain: 'continuity',
     signal_class: 'structural_state',
     label: 'Essential services or institutions are operating',
@@ -807,6 +892,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'service_disruption',
+    construct_role: 'outcome',
     domain: 'continuity',
     signal_class: 'structural_state',
     label: 'Essential services, schools, or businesses are closed/disrupted',
@@ -824,6 +910,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'routine_maintenance',
+    construct_role: 'outcome',
     domain: 'continuity',
     signal_class: 'behavior',
     label: 'Residents maintain normal daily routines',
@@ -832,6 +919,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'routine_disruption',
+    construct_role: 'outcome',
     domain: 'continuity',
     signal_class: 'structural_state',
     label: 'Civilian daily routines (commuting, shopping, leisure, social rhythms) are visibly disrupted by the emergency — distinct from named-institution closures, which are service_disruption',
@@ -848,6 +936,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'evacuation_displacement',
+    construct_role: 'pressure',
     domain: 'continuity',
     signal_class: 'event',
     label: 'Residents are evacuated, displaced, or unable to return home because of the emergency (named community, hotel/relative housing, prolonged absence)',
@@ -863,6 +952,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'self_evacuation_unauthorized',
+    construct_role: 'response',
     domain: 'continuity',
     signal_class: 'behavior',
     label: 'Residents leave home or community without official evacuation order (self-evacuation, unauthorized departure). Negative as a guidance-system signal (official guidance lagging or mistrusted); set polarity_override: positive when the departure was clearly protective and timely',
@@ -880,6 +970,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'displacement_resolved',
+    construct_role: 'outcome',
     domain: 'continuity',
     signal_class: 'event',
     label: 'Evacuees return home or displacement is visibly resolved (mirror of evacuation_displacement)',
@@ -888,6 +979,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'return_intention_expressed',
+    construct_role: 'population_state',
     domain: 'continuity',
     signal_class: 'attitude',
     label: 'Evacuees or displaced residents state the intention to return home (commitment to place and community) — stated intention only, not the actual return',
@@ -901,6 +993,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'relocation_intention_expressed',
+    construct_role: 'population_state',
     domain: 'continuity',
     signal_class: 'attitude',
     label: 'Evacuees or residents state the intention to leave permanently or not return (relocation, emigration from the area) — stated intention only, not the departure itself',
@@ -915,6 +1008,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'system_overload',
+    construct_role: 'institutional_state',
     domain: 'continuity',
     signal_class: 'structural_state',
     label: 'Systems (healthcare, emergency, infrastructure) are overwhelmed',
@@ -930,6 +1024,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'system_resilience_under_load',
+    construct_role: 'outcome',
     domain: 'continuity',
     signal_class: 'structural_state',
     label: 'A named system continues operating effectively despite documented elevated demand or disruption',
@@ -938,6 +1033,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'economic_continuity',
+    construct_role: 'outcome',
     domain: 'continuity',
     signal_class: 'structural_state',
     label: 'Local economic activity (employment, business, commerce) sustains during the emergency',
@@ -946,6 +1042,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'economic_disruption',
+    construct_role: 'outcome',
     domain: 'continuity',
     signal_class: 'structural_state',
     label: 'Local economic activity is disrupted: business closures, lost income, employment freeze due to the emergency',
@@ -961,6 +1058,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'post_event_recovery_indicator',
+    construct_role: 'outcome',
     domain: 'continuity',
     signal_class: 'event',
     label: 'Communities visibly recover after a hit: re-opening, return of evacuees, resumed routines',
@@ -968,6 +1066,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'recovery_setback',
+    construct_role: 'outcome',
     domain: 'continuity',
     signal_class: 'event',
     label: 'Recovery reverses: reopened services close again, repairs fail, evacuees cannot stay home',
@@ -975,6 +1074,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'compensation_received',
+    construct_role: 'outcome',
     domain: 'continuity',
     signal_class: 'structural_state',
     label: 'Affected residents or businesses receive promised compensation (Property Tax Fund, pitsuim, grants)',
@@ -983,6 +1083,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'compensation_blocked',
+    construct_role: 'outcome',
     domain: 'continuity',
     signal_class: 'structural_state',
     label: 'Promised compensation or aid payments are delayed, denied, or not reaching claimants',
@@ -991,6 +1092,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'cultural_continuity',
+    construct_role: 'outcome',
     domain: 'continuity',
     signal_class: 'narrative',
     label: 'Identity-bearing rituals, ceremonies, holidays, or cultural events take place during the emergency',
@@ -1014,15 +1116,16 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'rapid_mobilization',
+    construct_role: 'response',
     domain: 'continuity',
     signal_class: 'structural_state',
-    indicator_kind: 'response',
     label: 'Resources/services are mobilized quickly to meet needs (rapid access, timely restoration, fast deployment)',
     defaultPolarity: 'positive',
     mirror: 'delayed_mobilization',
   },
   {
     type: 'delayed_mobilization',
+    construct_role: 'response',
     domain: 'continuity',
     signal_class: 'structural_state',
     label: 'Resources/services are mobilized too slowly, increasing disruption (slow response, delays in opening/repairing/deploying)',
@@ -1031,6 +1134,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'supply_chain_disruption',
+    construct_role: 'pressure',
     domain: 'continuity',
     signal_class: 'structural_state',
     label: 'Inputs to essential services fail (logistics, procurement, distribution)',
@@ -1039,6 +1143,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'food_security_stress',
+    construct_role: 'outcome',
     domain: 'continuity',
     signal_class: 'structural_state',
     label: 'Community faces food access stress due to the emergency',
@@ -1047,6 +1152,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'food_security_maintained',
+    construct_role: 'outcome',
     domain: 'continuity',
     signal_class: 'structural_state',
     label: 'Food supply and access remain adequate despite the emergency',
@@ -1055,6 +1161,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'infrastructure_damage_acute',
+    construct_role: 'pressure',
     domain: 'continuity',
     signal_class: 'event',
     label: 'Physical damage to power, roads, water, or buildings from the emergency',
@@ -1062,6 +1169,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'connectivity_outage',
+    construct_role: 'pressure',
     domain: 'continuity',
     signal_class: 'structural_state',
     label: 'Telecom, internet, or mobile connectivity failure affecting emergency communication or daily function',
@@ -1077,6 +1185,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'workplace_flexibility_response',
+    construct_role: 'response',
     domain: 'continuity',
     signal_class: 'structural_state',
     label: 'Employers adjust work (WFH, paid leave) to reduce household strain during emergency',
@@ -1085,6 +1194,7 @@ export const SIGNAL_CATALOG = [
   // Emotional / Narrative
   {
     type: 'fear_expression',
+    construct_role: 'population_state',
     domain: 'narrative',
     signal_class: 'attitude',
     label: 'Residents express fear, anxiety, or trauma',
@@ -1102,6 +1212,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'calm_confidence',
+    construct_role: 'population_state',
     domain: 'narrative',
     signal_class: 'attitude',
     label: 'Residents express calm, confidence, or sense of control',
@@ -1110,6 +1221,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'resilience_narrative_positive',
+    construct_role: 'narrative_frame',
     domain: 'narrative',
     signal_class: 'narrative',
     label: 'Residents explicitly characterize the community\'s collective coping ("we are managing/strong") — collective self-assessment statements ONLY, never the concrete facts behind them',
@@ -1130,6 +1242,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'resilience_narrative_negative',
+    construct_role: 'narrative_frame',
     domain: 'narrative',
     signal_class: 'narrative',
     label: 'Residents reject the coping story or describe the collective spirit as broken — collective self-assessment statements ONLY, never the concrete conditions behind them',
@@ -1154,6 +1267,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'institutional_abandonment_perception',
+    construct_role: 'narrative_frame',
     domain: 'narrative',
     signal_class: 'narrative',
     label: 'Residents describe feeling abandoned or forgotten by state institutions during the emergency',
@@ -1171,6 +1285,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'blame_narrative',
+    construct_role: 'narrative_frame',
     domain: 'narrative',
     signal_class: 'narrative',
     label: 'Population-level attribution of fault for the emergency or response failure',
@@ -1178,6 +1293,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'heroism_overframing',
+    construct_role: 'narrative_frame',
     domain: 'narrative',
     signal_class: 'narrative',
     label: 'Heroism stories obscure systemic failures or unmet needs — requires an explicit obscured-need or failure claim in the text, never infer the obscuring',
@@ -1194,6 +1310,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'historical_analogy_frame',
+    construct_role: 'narrative_frame',
     domain: 'narrative',
     signal_class: 'narrative',
     label: "Explicit invocation of past wars or traumas to frame the present emergency. Trauma re-activation ('this is X again') is negative; set polarity_override: positive for mastery framing ('we survived X, we will survive this')",
@@ -1201,6 +1318,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'future_orientation_hope',
+    construct_role: 'population_state',
     domain: 'narrative',
     signal_class: 'attitude',
     label: 'Residents express hope or constructive forward-looking orientation',
@@ -1209,6 +1327,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'future_orientation_despair',
+    construct_role: 'population_state',
     domain: 'narrative',
     signal_class: 'attitude',
     label: 'Residents express hopelessness about the future or prolonged emergency',
@@ -1217,6 +1336,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'moral_injury_narrative',
+    construct_role: 'narrative_frame',
     domain: 'narrative',
     signal_class: 'attitude',
     label: 'Residents describe ethical violation of their own moral code (distinct from political_distrust)',
@@ -1225,6 +1345,7 @@ export const SIGNAL_CATALOG = [
   // Community Resources
   {
     type: 'resource_mobilization',
+    construct_role: 'response',
     domain: 'resources',
     signal_class: 'structural_state',
     label: 'Community or authority mobilizes material/human resources',
@@ -1233,6 +1354,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'resource_shortage',
+    construct_role: 'pressure',
     domain: 'resources',
     signal_class: 'structural_state',
     label: 'Community reports shortage of resources, services, or support',
@@ -1250,14 +1372,15 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'self_organization',
+    construct_role: 'response',
     domain: 'resources',
     signal_class: 'behavior',
-    indicator_kind: 'response',
     label: 'Community organizes itself without external direction',
     defaultPolarity: 'positive',
   },
   {
     type: 'dependency_on_external_aid',
+    construct_role: 'capacity',
     domain: 'resources',
     signal_class: 'structural_state',
     label: 'Community depends heavily on external aid due to local capacity gaps',
@@ -1275,15 +1398,16 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'local_capacity_demonstrated',
+    construct_role: 'capacity',
     domain: 'resources',
     signal_class: 'capacity',
-    indicator_kind: 'capacity',
     label: 'Community demonstrates self-reliant capacity (own funds, own labour, own infrastructure) without leaning on outside aid',
     defaultPolarity: 'positive',
     mirror: 'dependency_on_external_aid',
   },
   {
     type: 'volunteer_donor_fatigue',
+    construct_role: 'capacity',
     domain: 'resources',
     signal_class: 'structural_state',
     label: 'Volunteer or donor capacity visibly exhausted in protracted emergency',
@@ -1291,15 +1415,16 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'digital_mutual_aid',
+    construct_role: 'response',
     domain: 'resources',
     signal_class: 'behavior',
-    indicator_kind: 'response',
     label: 'Crowdfunding, WhatsApp/Telegram mutual-aid channels mobilize resources',
     defaultPolarity: 'positive',
     related: ['self_organization'],
   },
   {
     type: 'panic_buying_hoarding',
+    construct_role: 'response',
     domain: 'resources',
     signal_class: 'behavior',
     label: 'Rush buying or private stockpiling well beyond official guidance (emptied shelves, fuel queues, hoarding). Set polarity_override: positive when described as orderly stocking that stayed within guidance',
@@ -1322,6 +1447,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'resource_allocation_transparency',
+    construct_role: 'institutional_state',
     domain: 'resources',
     signal_class: 'structural_state',
     label: 'Aid distribution rules and outcomes are visible and accepted',
@@ -1330,6 +1456,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'resource_allocation_opacity',
+    construct_role: 'institutional_state',
     domain: 'resources',
     signal_class: 'structural_state',
     label: 'Aid distribution opaque or perceived as unfair without explanation',
@@ -1339,6 +1466,7 @@ export const SIGNAL_CATALOG = [
   // Population Wellbeing
   {
     type: 'harm_to_population',
+    construct_role: 'pressure',
     domain: 'wellbeing',
     signal_class: 'event',
     label: 'Physical harm occurred in the community: casualties, injuries, civilians wounded or killed',
@@ -1357,6 +1485,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'psychological_distress',
+    construct_role: 'population_state',
     domain: 'wellbeing',
     signal_class: 'attitude',
     label: 'Named individual or survey reports accumulated trauma, PTSD, grief, or chronic sleep disruption — distinct from situational fear',
@@ -1364,15 +1493,16 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'wellbeing_support_accessed',
+    construct_role: 'response',
     domain: 'wellbeing',
     signal_class: 'structural_state',
-    indicator_kind: 'response',
     label: 'Individuals or groups access psychological support, trauma care, or community wellbeing programs',
     defaultPolarity: 'positive',
     mirror: 'wellbeing_support_gap',
   },
   {
     type: 'wellbeing_support_gap',
+    construct_role: 'capacity',
     domain: 'wellbeing',
     signal_class: 'structural_state',
     label: 'At-risk individuals or groups cannot access needed psychological, welfare, or care support (unstaffed welfare services, elderly without care, trauma care unavailable)',
@@ -1395,6 +1525,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'inequitable_resource_access',
+    construct_role: 'outcome',
     domain: 'wellbeing',
     signal_class: 'structural_state',
     label: 'Unequal access to safety/resources/services across subgroups (disparities, exclusion of vulnerable populations)',
@@ -1403,6 +1534,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'equitable_resource_distribution',
+    construct_role: 'outcome',
     domain: 'wellbeing',
     signal_class: 'structural_state',
     label: 'Resources/support are distributed fairly based on needs (equity-aware allocation, non-disparate access)',
@@ -1411,6 +1543,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'child_distress',
+    construct_role: 'population_state',
     domain: 'wellbeing',
     signal_class: 'attitude',
     label: 'Children-specific psychological distress (regression, separation anxiety, school refusal) — distinct from general psychological_distress',
@@ -1418,6 +1551,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'parental_burden',
+    construct_role: 'population_state',
     domain: 'wellbeing',
     signal_class: 'structural_state',
     label: 'Parents bear childcare burden during sheltering or school closure',
@@ -1425,6 +1559,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'reservist_family_strain',
+    construct_role: 'population_state',
     domain: 'wellbeing',
     signal_class: 'structural_state',
     label: 'Household strain from long reserve deployment (single parent, lost wages, absence)',
@@ -1432,6 +1567,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'household_strain_economic',
+    construct_role: 'population_state',
     domain: 'wellbeing',
     signal_class: 'structural_state',
     label: 'Household cannot pay rent or faces wage loss — distinct from macro economic_disruption',
@@ -1439,6 +1575,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'sleep_disruption_population',
+    construct_role: 'population_state',
     domain: 'wellbeing',
     signal_class: 'attitude',
     label: 'Population-level sleep disruption reported (surveys, clinics, named patterns)',
@@ -1446,6 +1583,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'substance_use_uptick',
+    construct_role: 'population_state',
     domain: 'wellbeing',
     signal_class: 'behavior',
     label: 'Documented increase in alcohol, cannabis, or anxiolytic use as coping',
@@ -1453,6 +1591,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'domestic_violence_indicator',
+    construct_role: 'outcome',
     domain: 'wellbeing',
     signal_class: 'event',
     label: 'Reported fact of domestic violence increase — requires explicit evidence, never infer',
@@ -1460,6 +1599,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'suicide_self_harm_indicator',
+    construct_role: 'outcome',
     domain: 'wellbeing',
     signal_class: 'event',
     label: 'Reported fact of suicide or self-harm — requires explicit evidence, never infer',
@@ -1467,6 +1607,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'population_survey_finding',
+    construct_role: 'population_state',
     domain: 'wellbeing',
     signal_class: 'structural_state',
     label: 'FALLBACK ONLY: named survey/institutional finding that fits no substantive type. Prefer the substantive type (e.g. sleep_disruption_population) with evidence_type named_survey_statistic. Set polarity_override: positive for favorable findings (high compliance, high confidence).',
@@ -1488,6 +1629,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'positive_wellbeing_marker',
+    construct_role: 'population_state',
     domain: 'wellbeing',
     signal_class: 'attitude',
     label: 'Population-level gratitude, efficacy, or meaning-making (distinct from calm_confidence)',
@@ -1497,6 +1639,7 @@ export const SIGNAL_CATALOG = [
   // Preparedness & Protective Capacity
   {
     type: 'preparedness_drill_conducted',
+    construct_role: 'capacity',
     domain: 'preparedness',
     signal_class: 'event',
     label: 'Municipality or community conducted shelter/emergency drill or exercise',
@@ -1504,6 +1647,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'preparedness_gap_identified',
+    construct_role: 'capacity',
     domain: 'preparedness',
     signal_class: 'structural_state',
     label: 'Documented gap in preparedness (missing shelters, untrained teams, no plan)',
@@ -1511,6 +1655,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'early_warning_system_failure',
+    construct_role: 'institutional_state',
     domain: 'preparedness',
     signal_class: 'structural_state',
     label: 'Siren, alert app, or HFC early-warning system failed or arrived too late for protective action',
@@ -1527,6 +1672,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'early_warning_system_effective',
+    construct_role: 'institutional_state',
     domain: 'preparedness',
     signal_class: 'structural_state',
     label: 'Early-warning system delivered timely alerts enabling protective action before harm',
@@ -1536,42 +1682,43 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'protective_infrastructure_present',
+    construct_role: 'capacity',
     domain: 'preparedness',
     signal_class: 'capacity',
-    indicator_kind: 'capacity',
     label: 'Protective infrastructure exists and is functional (mamad, shelters, safe rooms)',
     defaultPolarity: 'positive',
     mirror: 'protective_infrastructure_absent',
   },
   {
     type: 'protective_infrastructure_absent',
+    construct_role: 'capacity',
     domain: 'preparedness',
     signal_class: 'capacity',
-    indicator_kind: 'capacity',
     label: 'Protective infrastructure missing or non-functional for households/institutions',
     defaultPolarity: 'negative',
     mirror: 'protective_infrastructure_present',
   },
   {
     type: 'household_readiness_demonstrated',
+    construct_role: 'capacity',
     domain: 'preparedness',
     signal_class: 'capacity',
-    indicator_kind: 'capacity',
     label: 'Households demonstrate emergency readiness (stocked kits, practiced plans)',
     defaultPolarity: 'positive',
     mirror: 'household_readiness_gap',
   },
   {
     type: 'household_readiness_gap',
+    construct_role: 'capacity',
     domain: 'preparedness',
     signal_class: 'capacity',
-    indicator_kind: 'capacity',
     label: 'Households lack basic emergency readiness (no mamad, no supplies, no plan)',
     defaultPolarity: 'negative',
     mirror: 'household_readiness_demonstrated',
   },
   {
     type: 'plan_tested_during_event',
+    construct_role: 'outcome',
     domain: 'preparedness',
     signal_class: 'event',
     label: 'Emergency plan visibly tested and worked during the event',
@@ -1580,6 +1727,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'plan_failed_during_event',
+    construct_role: 'outcome',
     domain: 'preparedness',
     signal_class: 'event',
     label: 'Emergency plan failed when tested during the event',
@@ -1588,6 +1736,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'responder_workforce_strain',
+    construct_role: 'capacity',
     domain: 'preparedness',
     signal_class: 'structural_state',
     label: 'First-responder or municipal emergency workforce exhaustion documented',
@@ -1596,15 +1745,16 @@ export const SIGNAL_CATALOG = [
   // Adaptation & Learning
   {
     type: 'adaptive_practice',
+    construct_role: 'response',
     domain: 'adaptation',
     signal_class: 'behavior',
-    indicator_kind: 'response',
     label: 'Community visibly changes routines to cope (rooftop schools, distributed offices, reordered work week)',
     defaultPolarity: 'positive',
     mirror: 'failure_to_adapt',
   },
   {
     type: 'lessons_learned_uptake',
+    construct_role: 'response',
     domain: 'adaptation',
     signal_class: 'structural_state',
     label: 'Authorities or communities act on lessons from prior events (revised protocols, faster sirens)',
@@ -1612,6 +1762,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'complacency_or_normalization',
+    construct_role: 'population_state',
     domain: 'adaptation',
     signal_class: 'attitude',
     label: 'Alert fatigue or risk habituation — sirens/risks treated as background (distinct from defiant non_compliance)',
@@ -1619,15 +1770,16 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'innovation_under_constraint',
+    construct_role: 'response',
     domain: 'adaptation',
     signal_class: 'behavior',
-    indicator_kind: 'response',
     label: 'Community invents new method on the fly beyond routine adaptation',
     defaultPolarity: 'positive',
     related: ['adaptive_practice'],
   },
   {
     type: 'failure_to_adapt',
+    construct_role: 'outcome',
     domain: 'adaptation',
     signal_class: 'structural_state',
     label: 'Community or authority sticks with failing approach despite visible evidence',
@@ -1636,6 +1788,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'cross_event_learning',
+    construct_role: 'response',
     domain: 'adaptation',
     signal_class: 'structural_state',
     label: 'Explicit application of lessons from a prior emergency round',
@@ -1644,6 +1797,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'novel_behavior_observed',
+    construct_role: 'population_state',
     domain: 'adaptation',
     signal_class: 'behavior',
     label: 'Repeated novel behavior pattern detected outside catalog (OOV cluster). Set polarity_override: positive when the novel pattern is clearly adaptive',
@@ -1652,6 +1806,7 @@ export const SIGNAL_CATALOG = [
   // Children & Education
   {
     type: 'educational_continuity',
+    construct_role: 'outcome',
     domain: 'education',
     signal_class: 'structural_state',
     label: 'Schools or childcare operate (in-person or protected remote) during emergency',
@@ -1660,6 +1815,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'educational_disruption',
+    construct_role: 'outcome',
     domain: 'education',
     signal_class: 'structural_state',
     label: 'Schools, kindergartens, or youth programs closed or severely disrupted',
@@ -1668,6 +1824,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'learning_loss_documented',
+    construct_role: 'outcome',
     domain: 'education',
     signal_class: 'structural_state',
     label: 'Documented learning loss from school disruption',
@@ -1676,6 +1833,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'school_psychosocial_support_active',
+    construct_role: 'response',
     domain: 'education',
     signal_class: 'structural_state',
     label: 'Schools provide active psychosocial support during emergency',
@@ -1684,6 +1842,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'school_psychosocial_support_gap',
+    construct_role: 'capacity',
     domain: 'education',
     signal_class: 'structural_state',
     label: 'Schools lack psychosocial support for students during emergency',
@@ -1692,6 +1851,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'educational_equity_gap',
+    construct_role: 'outcome',
     domain: 'education',
     signal_class: 'structural_state',
     label: 'School disruption disproportionately affects peripheral or minority student populations',
@@ -1700,6 +1860,7 @@ export const SIGNAL_CATALOG = [
   // Trust & Legitimacy
   {
     type: 'interpersonal_trust',
+    construct_role: 'population_state',
     domain: 'trust',
     signal_class: 'attitude',
     label: 'Residents trust each other in the emergency (use polarity_override when evidence shows erosion)',
@@ -1707,6 +1868,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'institutional_trust',
+    construct_role: 'population_state',
     domain: 'trust',
     signal_class: 'attitude',
     label: 'Residents trust named institutions in the emergency (use polarity_override when evidence shows erosion)',
@@ -1714,6 +1876,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'media_trust',
+    construct_role: 'population_state',
     domain: 'trust',
     signal_class: 'attitude',
     label: 'Residents trust media sources for emergency information (use polarity_override when evidence shows erosion)',
@@ -1721,6 +1884,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'inter_group_trust',
+    construct_role: 'population_state',
     domain: 'trust',
     signal_class: 'attitude',
     label: 'Trust across community groups in the emergency (use polarity_override when evidence shows erosion)',
@@ -1729,6 +1893,7 @@ export const SIGNAL_CATALOG = [
   // Memory & Commemoration
   {
     type: 'commemoration_event_observed',
+    construct_role: 'response',
     domain: 'memory',
     signal_class: 'event',
     label: 'Memorial, commemoration, or remembrance event takes place during emergency',
@@ -1736,6 +1901,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'memorialization_conflict',
+    construct_role: 'narrative_frame',
     domain: 'memory',
     signal_class: 'structural_state',
     label: 'Conflict over how or whether to commemorate during the emergency',
@@ -1743,6 +1909,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'anniversary_distress_uptick',
+    construct_role: 'population_state',
     domain: 'memory',
     signal_class: 'attitude',
     label: 'Distress increases around anniversary or memorial date',
@@ -1751,6 +1918,7 @@ export const SIGNAL_CATALOG = [
   // Diaspora & Outside-In Support
   {
     type: 'diaspora_solidarity',
+    construct_role: 'capacity',
     domain: 'diaspora',
     signal_class: 'structural_state',
     label: 'Diaspora communities mobilize support for affected area',
@@ -1758,6 +1926,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'international_aid_arrival',
+    construct_role: 'capacity',
     domain: 'diaspora',
     signal_class: 'structural_state',
     label: 'International aid or volunteers arrive to support the community',
@@ -1769,6 +1938,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'international_aid_withdrawal',
+    construct_role: 'capacity',
     domain: 'diaspora',
     signal_class: 'structural_state',
     label: 'International aid withdraws or fails to materialize when needed',
@@ -1778,6 +1948,7 @@ export const SIGNAL_CATALOG = [
   // Environmental & Agricultural Impact
   {
     type: 'environmental_damage_acute',
+    construct_role: 'pressure',
     domain: 'environmental',
     signal_class: 'event',
     label: 'Acute environmental damage from rockets, fires, or military activity',
@@ -1785,6 +1956,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'agricultural_damage',
+    construct_role: 'pressure',
     domain: 'environmental',
     signal_class: 'structural_state',
     label: 'Agricultural land, crops, or livestock damaged by the emergency',
@@ -1792,6 +1964,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'ecosystem_stress',
+    construct_role: 'pressure',
     domain: 'environmental',
     signal_class: 'structural_state',
     label: 'Broader ecosystem stress documented (pollution, habitat, long-term land damage)',
@@ -1800,14 +1973,15 @@ export const SIGNAL_CATALOG = [
   // Hostage & Captivity
   {
     type: 'hostage_family_advocacy',
+    construct_role: 'response',
     domain: 'hostage',
     signal_class: 'behavior',
-    indicator_kind: 'response',
     label: 'Hostage families organize advocacy or public pressure (documented activity)',
     defaultPolarity: 'positive',
   },
   {
     type: 'hostage_return_event',
+    construct_role: 'outcome',
     domain: 'hostage',
     signal_class: 'event',
     label: 'Hostage or captive returns home alive (documented event)',
@@ -1820,6 +1994,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'hostage_uncertainty_distress',
+    construct_role: 'population_state',
     domain: 'hostage',
     signal_class: 'attitude',
     label: 'Distress from ongoing hostage uncertainty in the community',
@@ -1828,6 +2003,7 @@ export const SIGNAL_CATALOG = [
   // Cyber & Digital Infrastructure
   {
     type: 'cyber_attack_on_infrastructure',
+    construct_role: 'pressure',
     domain: 'cyber',
     signal_class: 'event',
     label: 'Cyber attack disrupts emergency infrastructure (hotlines, municipal systems)',
@@ -1835,6 +2011,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'scam_wave_during_emergency',
+    construct_role: 'pressure',
     domain: 'cyber',
     signal_class: 'structural_state',
     label: 'Fraud or scam wave targets residents during the emergency',
@@ -1842,6 +2019,7 @@ export const SIGNAL_CATALOG = [
   },
   {
     type: 'deepfake_misinformation',
+    construct_role: 'pressure',
     domain: 'cyber',
     signal_class: 'structural_state',
     label: 'AI-generated or deepfake content spreads as emergency misinformation',
@@ -1882,6 +2060,13 @@ function checkCatalogEntryMirror(entry, errors) {
   }
 }
 
+/** construct_role is mandatory and must be a known enum value. */
+function checkCatalogEntryConstructRole(entry, errors) {
+  if (!CONSTRUCT_ROLES.includes(entry.construct_role)) {
+    errors.push(`${entry.type}: missing or invalid construct_role: ${entry.construct_role}`);
+  }
+}
+
 /** `related` targets must still exist in the catalog (maintainer breadcrumbs). */
 function checkCatalogEntryRelated(entry, errors) {
   for (const rel of entry.related ?? []) {
@@ -1918,6 +2103,7 @@ export function validateSignalCatalog() {
   checkDuplicatesAndAliases(errors);
   for (const entry of SIGNAL_CATALOG) {
     checkCatalogEntryMirror(entry, errors);
+    checkCatalogEntryConstructRole(entry, errors);
     checkCatalogEntryRelated(entry, errors);
   }
   return { errors, warnings };

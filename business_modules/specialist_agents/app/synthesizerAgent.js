@@ -55,6 +55,11 @@ function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClust
     `\n\nCOMPONENT ASSESSMENTS:\n${JSON.stringify(assessments, null, 2)}\n\n` +
     `EPISTEMIC PROFILE:\n${JSON.stringify(epistemic, null, 2)}`;
 
+  const exposure = epistemicProfile?.assessment_epistemic?.exposure_context;
+  if (exposure?.total_exposure_signals) {
+    dynamic += `\n\nEXPOSURE CONTEXT (current-day stressor counts — frame the synthesis relative to this pressure):\n${JSON.stringify(exposure)}`;
+  }
+
   if (oovClusters.length) {
     dynamic += `\n\nOOV CLUSTERS (must mention in synthesis if material):\n${JSON.stringify(oovClusters.slice(0, 5), null, 2)}`;
   }

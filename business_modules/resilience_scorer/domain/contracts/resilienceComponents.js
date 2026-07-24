@@ -11,9 +11,14 @@
  * Key collaborators: componentIds.js, signalRouting.js, componentEvidence.js,
  * client component display, extraction/specialist prompts.
  *
- * Based on Pikud HaOref / פיקוד העורף methodology (Fran Norris 2008). Each entry
- * may include description, key_elements, principle, guiding_questions, and
- * behavioral_manifestations for extraction and narrative grounding.
+ * Eight-component Home Front Command (Pikud HaOref / פיקוד העורף) operational
+ * resilience framework, theoretically informed by Norris et al. (2008) — a
+ * distinct operational decomposition, NOT a one-to-one implementation of
+ * Norris's four adaptive-capacity families (Norris constructs such as Community
+ * Competence are distributed across Leadership, Community Capital, Life-Saving
+ * Behavior, and other components). Each entry may include description,
+ * key_elements, principle, guiding_questions, and behavioral_manifestations for
+ * extraction and narrative grounding.
  */
 
 /** Authoritative list of eight community resilience components with framework metadata. */

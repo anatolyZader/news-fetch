@@ -156,6 +156,7 @@ function slimSignal(it, index) {
     signal_type: it.signalType,
     polarity: it.polarity,
     routing_role: it.role ?? 'primary',
+    construct_role: it.construct_role ?? null,
     intensity: s.intensity ?? 'moderate',
     source_type: s.source_type ?? null,
     article_source: s.article_source ?? null,
@@ -193,6 +194,7 @@ function buildOneComponent(items, componentId, samplingStatus) {
     positive_count: pos,
     negative_count: neg,
     source_mix: sourceMix,
+    construct_role_mix: countBy(primary, (it) => it.construct_role),
     sufficiency: deriveSufficiency({
       signal_count: primary.length,
       distinct_articles: articleSet.size,

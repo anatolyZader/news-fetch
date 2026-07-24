@@ -99,6 +99,7 @@ function profileFromEvidence(ev) {
     negative_count: basis.negative_count,
     sufficiency: basis.sufficiency,
     balance: basis.balance,
+    construct_role_mix: basis.construct_role_mix ?? {},
     thin_evidence: basis.sufficiency === SUFFICIENCY.none || basis.sufficiency === SUFFICIENCY.thin,
     contested: basis.balance === BALANCE.contested,
     certainty_band: CERTAINTY_BAND_BY_SUFFICIENCY[basis.sufficiency] ?? 'low',
@@ -129,6 +130,9 @@ export function computeEpistemicProfile(signals, ctx = {}) {
   const byComponent = {};
   for (const id of COMPONENT_IDS) {
     byComponent[id] = profileFromEvidence(evidence[id]);
+    // v10 trajectory label (improving/stable/deteriorating/insufficient_history)
+    // fills the previously always-null delta slot.
+    byComponent[id].delta_significance = ctx.trajectories?.[id]?.label ?? null;
   }
 
   return {
@@ -136,6 +140,9 @@ export function computeEpistemicProfile(signals, ctx = {}) {
     report_date: ctx.reportDate ?? null,
     by_component: byComponent,
     retrieval_policies: buildRetrievalPolicies(byComponent),
-    assessment_epistemic: ctx.assessmentEpistemic ?? {},
+    assessment_epistemic: {
+      ...ctx.assessmentEpistemic,
+      ...(ctx.exposureContext ? { exposure_context: ctx.exposureContext } : {}),
+    },
   };
 }

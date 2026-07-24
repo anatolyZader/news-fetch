@@ -1,6 +1,6 @@
 # The Eight Components — plain language
 
-> Plain-language summary of the Home Front Command (Pikud HaOref) community-resilience framework as implemented in `cross-cut-modules/resilience-contracts/resilienceComponents.js`. Names, Hebrew labels, and descriptions are faithful to the code; phrasing is simplified for promo and onboarding. Lineage: Fran Norris (2008).
+> Plain-language summary of the Home Front Command (Pikud HaOref) community-resilience framework as implemented in `business_modules/resilience_scorer/domain/contracts/resilienceComponents.js`. Names, Hebrew labels, and descriptions are faithful to the code; phrasing is simplified for promo and onboarding. Theoretical foundation: Norris et al. (2008) — the eight components are the Home Front Command's own operational decomposition, informed by Norris rather than copied from it.
 
 **What "community resilience" means here:** a community's ability, during and after a crisis, to leverage its resources, adapt to a changed environment, keep functioning, and provide essential services — in order to preserve or strengthen the physical and mental health of its members.
 

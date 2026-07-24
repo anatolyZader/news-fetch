@@ -3,9 +3,12 @@ import assert from 'node:assert';
 
 import {
   CATALOG_VERSION,
+  CONSTRUCT_ROLES,
   SIGNAL_CATALOG,
   SIGNAL_TYPES,
   SIGNAL_TO_COMPONENTS,
+  NON_SCORING_FALLBACK_TYPES,
+  MIRROR_ROUTING_ASYMMETRY,
   SIGNAL_ALIASES,
   canonicalizeSignalType,
   validateSignalCatalog,
@@ -163,15 +166,42 @@ describe('signalCatalog v6', () => {
     }
   });
 
-  it('every edge is a discrete polarity/role pair and every type has a primary edge', () => {
+  it('every edge is a discrete polarity/role pair and every scoring type has a primary edge', () => {
     for (const [type, mapping] of Object.entries(SIGNAL_TO_COMPONENTS)) {
       const roles = Object.values(mapping).map((edge) => {
         assert.ok(edge.polarity === '+' || edge.polarity === '-', `${type}: bad polarity`);
         assert.ok(edge.role === 'primary' || edge.role === 'inferred', `${type}: bad role`);
         return edge.role;
       });
-      assert.ok(roles.includes('primary'), `${type}: no primary edge`);
+      if (NON_SCORING_FALLBACK_TYPES.has(type)) {
+        assert.ok(!roles.includes('primary'), `${type}: non-scoring fallback must not have a primary edge`);
+      } else {
+        assert.ok(roles.includes('primary'), `${type}: no primary edge`);
+      }
     }
+  });
+
+  it('v10: mirror asymmetries are documented with non-empty reasons; accidental ones fixed', () => {
+    for (const [key, reason] of Object.entries(MIRROR_ROUTING_ASYMMETRY)) {
+      assert.ok(String(reason).trim().length > 10, `${key}: reason too short`);
+    }
+    // Symmetrized in v10: failed bridging is direct capital-deficit evidence.
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.bridging_capital_failure.community_capital, { polarity: '-', role: 'primary' });
+    // Multi-primary review: continuity edges demoted to inferred.
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.coordination_failure.functional_continuity, { polarity: '-', role: 'inferred' });
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.resource_shortage.functional_continuity, { polarity: '-', role: 'inferred' });
+  });
+
+  it('non-scoring fallback types stay visible as inferred-only context', () => {
+    assert.ok(NON_SCORING_FALLBACK_TYPES.has('novel_behavior_observed'));
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.novel_behavior_observed.wellbeing_at_risk, { polarity: '-', role: 'inferred' });
+  });
+
+  it('getRoutingRole is fail-closed: unknown type or unrouted component returns null', () => {
+    assert.equal(getRoutingRole('nonexistent_signal_type_x', 'wellbeing_at_risk'), null);
+    assert.equal(getRoutingRole('novel_behavior_observed', 'leadership'), null);
+    assert.equal(getRoutingRole('novel_behavior_observed', 'wellbeing_at_risk'), 'inferred');
+    assert.equal(getRoutingRole('harm_to_population', 'wellbeing_at_risk'), 'primary');
   });
 
   it('aliases are resolvable and never catalog entries or mappings', () => {
@@ -209,6 +239,30 @@ describe('signalCatalog v6', () => {
     assert.equal(SIGNAL_TO_COMPONENTS.hostage_family_advocacy.wellbeing_at_risk, undefined);
     assert.equal(SIGNAL_TO_COMPONENTS.wellbeing_support_accessed.wellbeing_at_risk, undefined);
     assert.deepEqual(SIGNAL_TO_COMPONENTS.wellbeing_support_accessed.community_capital, { polarity: '+', role: 'primary' });
+    // v10: same rule enforced catalog-wide via construct_role — remaining
+    // response types lost their '+' wellbeing edges.
+    assert.equal(SIGNAL_TO_COMPONENTS.community_volunteering.wellbeing_at_risk, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.solidarity_help_others.wellbeing_at_risk, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.resource_mobilization.wellbeing_at_risk, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.workplace_flexibility_response.wellbeing_at_risk, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.school_psychosocial_support_active.wellbeing_at_risk, undefined);
+    assert.deepEqual(SIGNAL_TO_COMPONENTS.school_psychosocial_support_active.community_capital, { polarity: '+', role: 'primary' });
+  });
+
+  it('v10: every entry carries a valid mandatory construct_role; indicator_kind is gone', () => {
+    for (const entry of SIGNAL_CATALOG) {
+      assert.ok(CONSTRUCT_ROLES.includes(entry.construct_role), `${entry.type}: bad construct_role ${entry.construct_role}`);
+      assert.ok(!('indicator_kind' in entry), `${entry.type}: indicator_kind should be migrated to construct_role`);
+    }
+    // Spot-check the indicator_kind migration and key assignments.
+    const byType = Object.fromEntries(SIGNAL_CATALOG.map((e) => [e.type, e]));
+    assert.equal(byType.wellbeing_support_accessed.construct_role, 'response');
+    assert.equal(byType.protective_infrastructure_present.construct_role, 'capacity');
+    assert.equal(byType.harm_to_population.construct_role, 'pressure');
+    assert.equal(byType.psychological_distress.construct_role, 'population_state');
+    assert.equal(byType.service_disruption.construct_role, 'outcome');
+    assert.equal(byType.blame_narrative.construct_role, 'narrative_frame');
+    assert.equal(byType.coordination_failure.construct_role, 'institutional_state');
   });
 });
 

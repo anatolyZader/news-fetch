@@ -307,7 +307,7 @@ The analyst-facing extraction-quality validation workflow (`business_modules/res
 
 ## 8. Eight components (conceptual)
 
-The framework follows Pikud HaOref / community resilience (Norris 2008). Component **definitions** and UI labels are code-derived — see Appendix below.
+The framework is the eight-component Home Front Command (Pikud HaOref) operational resilience model, theoretically informed by Norris et al. (2008) — a distinct operational decomposition, not a one-to-one implementation of Norris's four adaptive-capacity families (Norris constructs such as Community Competence are distributed across Leadership, Community Capital, Life-Saving Behavior, and other components). Component **definitions** and UI labels are code-derived — see Appendix below.
 
 Component ids used in scoring: `narrative`, `information_communication`, `lifesaving_behavior`, `functional_continuity`, `community_capital`, `leadership`, `belonging_solidarity`, `wellbeing_at_risk`.
 

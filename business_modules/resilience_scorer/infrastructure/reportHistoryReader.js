@@ -4,7 +4,7 @@ import {
   normalizeReportScopeId,
   isRegionalReportScope,
 } from '../../../cross-cut-modules/geo/reportScopeIds.js';
-import { parseReportFilename, reportScopeSlug, reportFilenameMatchesDate } from '../domain/services/paths/reportNames.js';
+import { parseReportFilename, reportScopeSlug, reportFilenameMatchesDate, listReportJsonFilenamesForDate } from '../domain/services/paths/reportNames.js';
 import { resilienceReportsDir } from '../domain/services/paths/outputDirs.js';
 
 /**
@@ -89,6 +89,36 @@ function daysAgoIso(days) {
  * @param {string} [opts.endDate] YYYY-MM-DD; defaults to today (UTC)
  * @returns {Array} chronologically-sorted history records (oldest first), one per date
  */
+/**
+ * Load the prior n days' assessment objects (newest last) for trajectory
+ * comparison. National-scope only (v1 limitation) — regional callers should
+ * pass an empty prior list. Injectable reportsDir keeps tests hermetic.
+ *
+ * @param {string} targetDate YYYY-MM-DD report date
+ * @param {number} [n=2] how many days back to look
+ * @param {string} [reportsDir] absolute reports dir
+ * @returns {Array<object>} prior report `assessment` objects, oldest first
+ */
+export function loadPriorReports(targetDate, n = 2, reportsDir = resilienceReportsDir()) {
+  if (!existsSync(reportsDir)) return [];
+  const prior = [];
+  const d = new Date(targetDate);
+  for (let i = 1; i <= n; i++) {
+    const p = new Date(d);
+    p.setDate(d.getDate() - i);
+    const pd = p.toISOString().slice(0, 10);
+    const matches = listReportJsonFilenamesForDate(reportsDir, pd, 'national');
+    const match = [...matches].sort((a, b) => a.localeCompare(b)).at(-1);
+    if (match) {
+      try {
+        const json = JSON.parse(readFileSync(resolve(reportsDir, match), 'utf8'));
+        prior.unshift(json.assessment);
+      } catch { /* ignore */ }
+    }
+  }
+  return prior;
+}
+
 export function readResilienceHistory(opts = {}) {
   const reportsDir = opts.reportsDir ?? resilienceReportsDir();
   const scope = normalizeReportScopeId(opts.scope);

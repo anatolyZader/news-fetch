@@ -53,6 +53,31 @@ describe('buildComponentEvidence (primary-only bands)', () => {
     assert.equal(lifesavingSignals[0].routing_role, 'primary');
   });
 
+  it('stamps construct_role on signals and groups primary evidence in construct_role_mix', () => {
+    const { by_component } = buildComponentEvidence([shelterSignal(0)]);
+    const lifesaving = by_component.lifesaving_behavior;
+    assert.equal(lifesaving.signals[0].construct_role, 'response');
+    assert.deepEqual(lifesaving.evidence_basis.construct_role_mix, { response: 1 });
+    // Inferred spillover does not enter the mix.
+    assert.deepEqual(by_component.leadership.evidence_basis.construct_role_mix, {});
+  });
+
+  it('non-scoring fallback (novel_behavior_observed) never moves bands', () => {
+    const oovOnly = [0, 1, 2].map((i) => ({
+      signal_type: 'novel_behavior_observed',
+      source_type: 'news',
+      article_url: `https://example.com/oov-${i}`,
+      evidence: `Unfamiliar behavior pattern (${i}).`,
+    }));
+    const { by_component } = buildComponentEvidence(oovOnly);
+    const wellbeing = by_component.wellbeing_at_risk.evidence_basis;
+    assert.equal(wellbeing.signal_count, 0);
+    assert.equal(wellbeing.sufficiency, 'none');
+    assert.equal(wellbeing.balance, null);
+    assert.equal(wellbeing.inferred_context.count, 3);
+    assert.equal(by_component.wellbeing_at_risk.signals[0].routing_role, 'inferred');
+  });
+
   it('primary article/source diversity drives sufficiency', () => {
     // Same article and source repeated: thin despite 3 signals... then diverse.
     const sameArticle = [0, 1, 2].map(() => ({

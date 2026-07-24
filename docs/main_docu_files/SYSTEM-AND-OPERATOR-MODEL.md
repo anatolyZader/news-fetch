@@ -99,7 +99,7 @@ Assessment-level epistemic overrides (data void, digital darkness): `deriveAsses
 `assessmentDisplayTier.js` strips from operator payloads (non-exhaustive):
 
 - Per-component numeric score keys (`score`, `score_smoothed`, `certainty`, `evidence_mass`, calibration fields, …)
-- `overall_resilience_score`, facet/Norris numeric scores
+- `overall_resilience_score`, facet/component numeric scores (legacy fields; min-math emits no numeric scores)
 - Narrative debug: `narrative_claims`, `grounding_issues`, `narrative_grounding_score`
 - Macro signals summarized to counts/types for operators
 

@@ -10,7 +10,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { SIGNAL_TO_COMPONENTS, SIGNAL_TYPES } from '../services/signals/routing/signalRouter.js';
+import { CATALOG_VERSION, SIGNAL_TO_COMPONENTS, SIGNAL_TYPES } from '../services/signals/routing/signalRouter.js';
 import { EQUITY_RELEVANT_TYPES } from '../services/signals/signalInstanceSchema.js';
 import { extractionTelemetryForOperator } from '../services/pipeline/pipelineStageTelemetry.js';
 import { summarizeGeoQuality } from '../../../../cross-cut-modules/geo/signalGeoSummary.js';
@@ -25,13 +25,19 @@ import { DEFAULT_NORTH_SOURCE_TYPES } from '../services/signals/signalDistrictId
  * Bump when SIGNAL_TO_COMPONENTS or catalog/routing contracts change materially;
  * add a matching SCORING_MODEL_CHANGELOG entry.
  */
-export const SCORING_MODEL_VERSION = 'v9';
+export const SCORING_MODEL_VERSION = 'v10';
 
 /**
  * Human-maintained changelog paired with SCORING_MODEL_VERSION.
  * Newest first. Required when bumping the version.
  */
 export const SCORING_MODEL_CHANGELOG = [
+  {
+    version: 'v10',
+    date: '2026-07-24',
+    summary:
+      'Construct-role epoch. Every catalog entry carries a mandatory construct_role (pressure/capacity/response/population_state/institutional_state/outcome/narrative_frame), replacing the sparse indicator_kind; the response/capacity no-positive-wellbeing rule is now enforced catalog-wide — five remaining "+ wellbeing" edges removed (community_volunteering, solidarity_help_others, resource_mobilization, workplace_flexibility_response; school_psychosocial_support_active re-anchored to community_capital). novel_behavior_observed became a non-scoring fallback (all edges inferred; OOV synthetics no longer move wellbeing bands). Multi-primary review: functional_continuity demoted to inferred on coordination_failure and resource_shortage; bridging_capital_failure symmetrized to primary community_capital. Mirror routing asymmetries must now carry a documented reason (MIRROR_ROUTING_ASYMMETRY, 25 entries). getRoutingRole is fail-closed (missing edge → null, no silent primary). Evidence bands add construct_role_mix; reports gain exposure_context and trajectory_context. Wellbeing/community-capital band comparability breaks pre/post; catalog vocabulary (CATALOG_VERSION v8) and extraction prompts unchanged — extraction cache remains valid.',
+  },
   {
     version: 'v9',
     date: '2026-07-21',
@@ -207,6 +213,7 @@ export function buildAssessmentMethodology({
       model: 'count_based_evidence_bands',
       llm_extracts_code_derives_evidence: true,
       scoring_model_version: SCORING_MODEL_VERSION,
+      catalog_version: CATALOG_VERSION,
     },
     scope: {
       regional_slices: [...ISRAEL_REGIONAL_DISTRICT_ORDER],

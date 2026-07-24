@@ -71,9 +71,11 @@ export const SIGNAL_TO_COMPONENTS = {
     belonging_solidarity: { polarity: '+', role: 'primary' },
     community_capital: { polarity: '+', role: 'primary' },
   },
+  // v10: symmetrized with bridging_capital_demonstrated — failed cross-group
+  // links when needed are direct capital-deficit evidence, not mere influence.
   bridging_capital_failure: {
     belonging_solidarity: { polarity: '-', role: 'primary' },
-    community_capital: { polarity: '-', role: 'inferred' },
+    community_capital: { polarity: '-', role: 'primary' },
   },
   calm_confidence: {
     narrative: { polarity: '+', role: 'primary' },
@@ -94,10 +96,11 @@ export const SIGNAL_TO_COMPONENTS = {
     narrative: { polarity: '+', role: 'primary' },
     belonging_solidarity: { polarity: '+', role: 'primary' },
   },
+  // v10: '+' wellbeing edge removed (construct_role 'response' — volunteering
+  // demonstrates capital/solidarity; it does not establish population wellbeing).
   community_volunteering: {
     community_capital: { polarity: '+', role: 'primary' },
     belonging_solidarity: { polarity: '+', role: 'primary' },
-    wellbeing_at_risk: { polarity: '+', role: 'primary' },
   },
   compensation_blocked: {
     functional_continuity: { polarity: '-', role: 'primary' },
@@ -145,10 +148,13 @@ export const SIGNAL_TO_COMPONENTS = {
     community_capital: { polarity: '+', role: 'primary' },
     narrative: { polarity: '+', role: 'inferred' },
   },
+  // v10 multi-primary review: coordination failure directly DESCRIBES governance
+  // (leadership) and organizational capital; its continuity impact is downstream
+  // influence → demoted to inferred.
   coordination_failure: {
     leadership: { polarity: '-', role: 'primary' },
     community_capital: { polarity: '-', role: 'primary' },
-    functional_continuity: { polarity: '-', role: 'primary' },
+    functional_continuity: { polarity: '-', role: 'inferred' },
   },
   coordination_success: {
     leadership: { polarity: '+', role: 'primary' },
@@ -517,10 +523,11 @@ export const SIGNAL_TO_COMPONENTS = {
     lifesaving_behavior: { polarity: '-', role: 'primary' },
     wellbeing_at_risk: { polarity: '-', role: 'primary' },
   },
-  // Weak catch-all by design; wellbeing kept primary (historical max edge)
-  // so the type still reaches one evidence pool.
+  // Non-scoring fallback (NON_SCORING_FALLBACK_TYPES): novelty is an epistemic
+  // state, not a resilience direction. All edges inferred — visible as labeled
+  // context but never feeds sufficiency/balance bands.
   novel_behavior_observed: {
-    wellbeing_at_risk: { polarity: '-', role: 'primary' },
+    wellbeing_at_risk: { polarity: '-', role: 'inferred' },
     community_capital: { polarity: '-', role: 'inferred' },
     information_communication: { polarity: '-', role: 'inferred' },
   },
@@ -644,18 +651,22 @@ export const SIGNAL_TO_COMPONENTS = {
     leadership: { polarity: '+', role: 'inferred' },
     wellbeing_at_risk: { polarity: '+', role: 'inferred' },
   },
+  // v10: '+' wellbeing edge removed (response — mobilized resources are capital
+  // evidence; their wellbeing effect needs outcome evidence).
   resource_mobilization: {
     community_capital: { polarity: '+', role: 'primary' },
-    wellbeing_at_risk: { polarity: '+', role: 'primary' },
   },
   public_order_breakdown: {
     community_capital: { polarity: '-', role: 'primary' },
     wellbeing_at_risk: { polarity: '-', role: 'inferred' },
   },
+  // v10 multi-primary review: shortage directly DESCRIBES a capital deficit and
+  // unmet material needs (wellbeing = capacity to address needs); its service-
+  // continuity impact is downstream influence → demoted to inferred.
   resource_shortage: {
     community_capital: { polarity: '-', role: 'primary' },
     wellbeing_at_risk: { polarity: '-', role: 'primary' },
-    functional_continuity: { polarity: '-', role: 'primary' },
+    functional_continuity: { polarity: '-', role: 'inferred' },
   },
   responder_workforce_strain: {
     lifesaving_behavior: { polarity: '-', role: 'primary' },
@@ -696,8 +707,12 @@ export const SIGNAL_TO_COMPONENTS = {
     information_communication: { polarity: '-', role: 'primary' },
     wellbeing_at_risk: { polarity: '-', role: 'primary' },
   },
+  // v10: primary re-anchored to community_capital (support activity is service
+  // mobilization, not proof of child wellbeing) — same convention as
+  // wellbeing_support_accessed in v7. The gap mirror keeps wellbeing primary:
+  // missing support is direct wellbeing-at-risk evidence.
   school_psychosocial_support_active: {
-    wellbeing_at_risk: { polarity: '+', role: 'primary' },
+    community_capital: { polarity: '+', role: 'primary' },
     functional_continuity: { polarity: '+', role: 'inferred' },
   },
   school_psychosocial_support_gap: {
@@ -724,9 +739,10 @@ export const SIGNAL_TO_COMPONENTS = {
   },
   // Epoch 2026-07-15b: dropped narrative edge — helping acts are not
   // narrative-story evidence and only inflated narrative signal counts.
+  // v10: '+' wellbeing edge removed (response — helping behavior is solidarity
+  // evidence; recipients' improved wellbeing needs outcome evidence).
   solidarity_help_others: {
     belonging_solidarity: { polarity: '+', role: 'primary' },
-    wellbeing_at_risk: { polarity: '+', role: 'primary' },
     community_capital: { polarity: '+', role: 'primary' },
   },
   substance_use_uptick: {
@@ -770,23 +786,102 @@ export const SIGNAL_TO_COMPONENTS = {
     wellbeing_at_risk: { polarity: '-', role: 'primary' },
     community_capital: { polarity: '-', role: 'inferred' },
   },
+  // v10: '+' wellbeing edge removed (response — flexibility supports continuity;
+  // preserved household wellbeing needs outcome evidence).
   workplace_flexibility_response: {
     functional_continuity: { polarity: '+', role: 'primary' },
-    wellbeing_at_risk: { polarity: '+', role: 'primary' },
   },
+};
+
+/**
+ * Catch-all/fallback types: visible as labeled inferred context, never allowed
+ * a primary edge (enforced bidirectionally by checkMappingEdges), so they can
+ * never move a component's sufficiency/balance bands.
+ */
+export const NON_SCORING_FALLBACK_TYPES = new Set(['novel_behavior_observed']);
+
+/**
+ * Documented mirror-routing asymmetries (v10). A mirror pair is symmetric when
+ * both types route to the same components with the same roles and inverted
+ * polarity. Every deviation must be listed here with a real reason, or the
+ * routing validator errors — hidden negativity/positivity bias is not allowed
+ * to pass silently. Keys are the two type ids sorted and joined with '|'.
+ *
+ * Recurring rationales:
+ * - disruption/gap/stress is DIRECT wellbeing-at-risk evidence, while routine
+ *   operation or availability alone does not establish population wellbeing
+ *   (construct_role response/capacity rule);
+ * - failure carries stronger evidentiary meaning about institutions than the
+ *   absence of failure;
+ * - a response demonstrates activated capital; the mirrored adverse state is a
+ *   population condition, not a capital observation.
+ * @type {Record<string, string>}
+ */
+export const MIRROR_ROUTING_ASYMMETRY = {
+  'compliance_enter_shelter|non_compliance_exit_early':
+    'Compliance implies trust in guidance (inferred leadership/belonging spillover); early exit signals impatience or pressure, not necessarily distrust.',
+  'social_isolation|solidarity_help_others':
+    'Helping is activated capital (+ community_capital); isolation is a population state that directly harms wellbeing but observes no capital.',
+  'conflict_or_tension|conflict_resolution':
+    'Resolution is a response demonstrating capital and leadership skill; tension is a population state directly risking wellbeing.',
+  'interfaith_solidarity|interfaith_tension':
+    'Inter-group tension carries an inferred wellbeing risk; solidarity alone does not establish wellbeing (response rule).',
+  'leadership_absence|leadership_visible_presence':
+    'Absence removes the guidance channel (inferred lifesaving risk); visible presence alone does not establish protective-behavior uptake.',
+  'information_clarity|information_confusion':
+    'Confusion reflects on authorities (inferred leadership); clarity is the expected baseline and carries no leadership credit.',
+  'rumor_correction|rumor_spread':
+    'Rumors directly shape the collective narrative; correction is an information practice whose narrative effect is inferred.',
+  'information_inclusivity_gap|information_inclusivity_present':
+    'An inclusivity gap excludes specific groups (inferred belonging harm); inclusive information alone does not demonstrate belonging.',
+  'service_continuity|service_disruption':
+    'Disruption has direct wellbeing consequences (inferred here, primary via continuity); routine operation is insufficient to establish wellbeing.',
+  'routine_disruption|routine_maintenance':
+    'Broken daily routines carry an inferred wellbeing risk; maintained routines alone do not establish wellbeing.',
+  'system_overload|system_resilience_under_load':
+    'Overload directly evidences unmet population need; a system holding under load is not direct wellbeing evidence.',
+  'compensation_blocked|compensation_received':
+    'Blocked compensation is direct unmet material need and reflects on institutions; received compensation supports wellbeing only indirectly.',
+  'food_security_maintained|food_security_stress':
+    'Food stress is direct wellbeing-at-risk evidence; maintained food security is the expected baseline (inferred support).',
+  'calm_confidence|fear_expression':
+    'Calm confidence is a collective-tone claim (primary narrative); fear is population distress first, narrative influence second.',
+  'future_orientation_despair|future_orientation_hope':
+    'Despair is direct wellbeing-risk evidence; expressed hope alone does not establish wellbeing.',
+  'resource_mobilization|resource_shortage':
+    'Shortage directly evidences unmet needs and strained continuity; mobilization is a response whose wellbeing effect needs outcome evidence (v10 rule).',
+  'wellbeing_support_accessed|wellbeing_support_gap':
+    'A support gap is direct wellbeing-at-risk evidence; support uptake is a response anchored on community_capital (v7 rule).',
+  'equitable_resource_distribution|inequitable_resource_access':
+    'Inequity directly evidences a distribution failure of capital; equitable distribution is weaker positive evidence of the same.',
+  'protective_infrastructure_absent|protective_infrastructure_present':
+    'Missing protection is direct exposure risk (wellbeing); present protection directly enables functioning (continuity) — different direct consequences.',
+  'household_readiness_demonstrated|household_readiness_gap':
+    'Readiness spillover differs by direction: preparedness reflects capital; a readiness gap implies exposure risk.',
+  'plan_failed_during_event|plan_tested_during_event':
+    'Plan failure reflects directly on leadership; a plan working credits leadership only indirectly.',
+  'adaptive_practice|failure_to_adapt':
+    'Successful adaptation demonstrates capital; failure to adapt reflects on leadership (inferred) rather than demonstrating capital absence.',
+  'educational_continuity|educational_disruption':
+    'School disruption directly harms child wellbeing; school continuity supports wellbeing only indirectly.',
+  'school_psychosocial_support_active|school_psychosocial_support_gap':
+    'Active support is service mobilization (community_capital, v10); a support gap is direct wellbeing-at-risk evidence.',
+  'international_aid_arrival|international_aid_withdrawal':
+    'Arriving aid directly enables continuity; withdrawal harms capital directly while its continuity impact is inferred.',
 };
 
 // --- Role lookup -------------------------------------------------------------
 
 /**
  * Look up whether an edge is a direct observation or a secondary association.
- * Canonicalizes the signal type; missing edges default to 'primary'.
+ * Canonicalizes the signal type; fail-closed: a missing edge or unknown type
+ * returns null (never a silent 'primary') — callers decide how to render it.
  * @param {string} signalType
  * @param {string} componentId
- * @returns {'primary'|'inferred'}
+ * @returns {'primary'|'inferred'|null}
  */
 export function getRoutingRole(signalType, componentId) {
-  return SIGNAL_TO_COMPONENTS[canonicalizeSignalType(signalType)]?.[componentId]?.role ?? 'primary';
+  return SIGNAL_TO_COMPONENTS[canonicalizeSignalType(signalType)]?.[componentId]?.role ?? null;
 }
 
 const CATALOG_BY_TYPE = Object.fromEntries(SIGNAL_CATALOG.map((s) => [s.type, s]));
@@ -805,7 +900,11 @@ function checkCatalogEntryPolarity(entry, mapping, warnings) {
   }
 }
 
-/** Error on unknown component ids, malformed edges, or a type with no primary edge. */
+/**
+ * Error on unknown component ids, malformed edges, or a type whose primary-edge
+ * presence contradicts its scoring class: non-scoring fallback types must have
+ * zero primary edges; every other type needs at least one.
+ */
 function checkMappingEdges(type, mapping, componentIds, errors) {
   let hasPrimary = false;
   for (const [componentId, edge] of Object.entries(mapping)) {
@@ -821,16 +920,72 @@ function checkMappingEdges(type, mapping, componentIds, errors) {
       hasPrimary = true;
     }
   }
-  if (!hasPrimary) errors.push(`${type}: no primary edge`);
+  if (NON_SCORING_FALLBACK_TYPES.has(type)) {
+    if (hasPrimary) errors.push(`${type}: non-scoring fallback type must not have a primary edge`);
+  } else if (!hasPrimary) {
+    errors.push(`${type}: no primary edge`);
+  }
 }
 
-/** Response/capacity indicators must not positively route into wellbeing_at_risk. */
-function checkIndicatorKind(entry, mapping, errors) {
-  const kind = entry.indicator_kind;
-  if (kind !== 'response' && kind !== 'capacity') return;
+/** Response/capacity construct roles must not positively route into wellbeing_at_risk. */
+function checkConstructRole(entry, mapping, errors) {
+  const role = entry.construct_role;
+  if (role !== 'response' && role !== 'capacity') return;
   const edge = mapping?.wellbeing_at_risk;
   if (edge != null && edge.polarity === '+') {
-    errors.push(`${entry.type}: indicator_kind '${kind}' must not route positively into wellbeing_at_risk (treatment uptake is not evidence of wellbeing)`);
+    errors.push(`${entry.type}: construct_role '${role}' must not route positively into wellbeing_at_risk (treatment uptake is not evidence of wellbeing)`);
+  }
+}
+
+/**
+ * Mirror pairs must route symmetrically (same components, same roles, inverted
+ * polarity) unless a documented exception exists in MIRROR_ROUTING_ASYMMETRY.
+ * Stale exceptions (pair became symmetric) and empty reasons are also errors.
+ */
+/** True when both mirror twins route to the same components/roles with inverted polarity. */
+function mirrorPairIsSymmetric(a, b) {
+  const componentIds = new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const id of componentIds) {
+    const ea = a[id];
+    const eb = b[id];
+    if (!ea || !eb || ea.role !== eb.role || ea.polarity === eb.polarity) return false;
+  }
+  return true;
+}
+
+/** Error message for one mirror pair's symmetry/exception state, or null when consistent. */
+function mirrorPairError(key, symmetric, reason) {
+  if (!symmetric && reason == null) {
+    return `mirror pair ${key}: asymmetric routing without a documented MIRROR_ROUTING_ASYMMETRY reason`;
+  }
+  if (!symmetric && !String(reason).trim()) {
+    return `mirror pair ${key}: asymmetry exception has an empty reason`;
+  }
+  if (symmetric && reason != null) {
+    return `mirror pair ${key}: stale MIRROR_ROUTING_ASYMMETRY entry (routing is symmetric)`;
+  }
+  return null;
+}
+
+function checkMirrorRoutingSymmetry(errors) {
+  const seenPairs = new Set();
+  for (const entry of SIGNAL_CATALOG) {
+    if (!entry.mirror || !CATALOG_BY_TYPE[entry.mirror]) continue;
+    const key = [entry.type, entry.mirror].sort().join('|');
+    if (seenPairs.has(key)) continue;
+    seenPairs.add(key);
+    const symmetric = mirrorPairIsSymmetric(
+      SIGNAL_TO_COMPONENTS[entry.type] ?? {},
+      SIGNAL_TO_COMPONENTS[entry.mirror] ?? {},
+    );
+    const err = mirrorPairError(key, symmetric, MIRROR_ROUTING_ASYMMETRY[key]);
+    if (err) errors.push(err);
+  }
+  for (const key of Object.keys(MIRROR_ROUTING_ASYMMETRY)) {
+    const [t1, t2] = key.split('|');
+    if (!CATALOG_BY_TYPE[t1] || !CATALOG_BY_TYPE[t2] || CATALOG_BY_TYPE[t1].mirror !== t2) {
+      errors.push(`MIRROR_ROUTING_ASYMMETRY key is not a catalog mirror pair: ${key}`);
+    }
   }
 }
 
@@ -839,7 +994,7 @@ function checkIndicatorKind(entry, mapping, errors) {
  * Errors are contract violations (CI must fail); warnings are advisory.
  * Ensures every catalog type is mapped, no orphan mappings, no alias keys,
  * well-formed polarity/role edges, ≥1 primary edge per type, and
- * indicator_kind rules.
+ * construct_role rules.
  * @returns {{ errors: string[], warnings: string[] }}
  */
 export function validateSignalRouting() {
@@ -849,6 +1004,9 @@ export function validateSignalRouting() {
   for (const alias of Object.keys(SIGNAL_ALIASES)) {
     if (SIGNAL_TO_COMPONENTS[alias]) errors.push(`alias must not have a component mapping: ${alias}`);
   }
+  for (const type of NON_SCORING_FALLBACK_TYPES) {
+    if (!CATALOG_BY_TYPE[type]) errors.push(`non-scoring fallback type not in catalog: ${type}`);
+  }
   for (const entry of SIGNAL_CATALOG) {
     const mapping = SIGNAL_TO_COMPONENTS[entry.type];
     if (!mapping) {
@@ -857,11 +1015,12 @@ export function validateSignalRouting() {
     }
     checkCatalogEntryPolarity(entry, mapping, warnings);
     checkMappingEdges(entry.type, mapping, componentIds, errors);
-    checkIndicatorKind(entry, mapping, errors);
+    checkConstructRole(entry, mapping, errors);
   }
   for (const type of Object.keys(SIGNAL_TO_COMPONENTS)) {
     if (!CATALOG_BY_TYPE[type]) errors.push(`orphan mapping for ${type}`);
   }
+  checkMirrorRoutingSymmetry(errors);
   return { errors, warnings };
 }
 

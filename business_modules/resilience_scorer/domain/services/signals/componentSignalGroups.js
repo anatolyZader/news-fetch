@@ -51,7 +51,7 @@ export function articleKeyForSignal(signal) {
  * @param {Array<object>} signals verified or raw signal instances
  * @param {object} [signalWeights] SIGNAL_TO_COMPONENTS-shaped edge map override
  * @returns {{
- *   items: Array<{ signal: object, signalType: string, polarity: '+'|'-', role: 'primary'|'inferred' }>,
+ *   items: Array<{ signal: object, signalType: string, polarity: '+'|'-', role: 'primary'|'inferred', construct_role: string|null }>,
  *   articleSet: Set<string|number>,
  *   sourceSet: Set<string>,
  * }}
@@ -72,6 +72,7 @@ export function collectComponentSignals(componentId, signals, signalWeights = nu
       signalType,
       polarity: signalPolarity(signal, signalType, edge),
       role: edge.role ?? 'primary',
+      construct_role: getSignalCatalogEntry(signalType)?.construct_role ?? null,
     });
 
     const articleKey = articleKeyForSignal(signal);

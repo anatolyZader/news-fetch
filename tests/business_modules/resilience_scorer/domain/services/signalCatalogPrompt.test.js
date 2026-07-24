@@ -19,6 +19,11 @@ describe('signalCatalogPrompt', () => {
     assert.match(out, /connectivity_outage/);
   });
 
+  it('construct_role never leaks into extraction prompts (cache-key safety)', () => {
+    assert.doesNotMatch(formatSignalCatalog(), /construct_role/);
+    assert.doesNotMatch(formatDisambiguationBlock({ maxEntries: 50 }), /construct_role/);
+  });
+
   it('formatDisambiguationBlock emits catalog metadata for priority types', () => {
     const out = formatDisambiguationBlock({ maxEntries: 5 });
     assert.match(out, /solidarity_help_others/);
