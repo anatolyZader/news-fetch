@@ -211,4 +211,41 @@ describe('resolveReportJsonPathForDate', () => {
       undefined,
     );
   });
+
+  it('loads markdown-only reports when JSON is missing, without overriding JSON when present', () => {
+    const mdOnlyDate = '2026-07-06';
+    const mdOnly = join(dir, `national-1-060726-1040.md`);
+    writeFileSync(
+      mdOnly,
+      '# Population Resilience Assessment\n\n| Field | Value |\n|-------|-------|\n| **Date** | 2026-07-06 |\n| **Articles analyzed** | 42 |\n\n## Executive Summary\n\nHello from markdown-only.\n',
+    );
+
+    const mdLoaded = getCachedReport(null, {
+      reportsDir: dir,
+      scope: 'national',
+      date: mdOnlyDate,
+      runId: '1040',
+    });
+    assert.ok(mdLoaded);
+    assert.strictEqual(mdLoaded.assessment?.markdown_only, true);
+    assert.match(mdLoaded.markdown ?? '', /Hello from markdown-only/);
+    assert.strictEqual(mdLoaded.assessment?.total_articles_analyzed, 42);
+    assert.strictEqual(mdLoaded.generated_at, '2026-07-06T10:40:00.000Z');
+
+    // North-like: JSON present → structured payload, never markdown_only.
+    const northDate = '2026-07-07';
+    const northJson = join(dir, 'north-1-070726-1215.json');
+    const northMd = join(dir, 'north-1-070726-1215.md');
+    writeFileSync(northJson, miniReport(13, { generatedAt: '2026-07-07T12:15:00.000Z' }));
+    writeFileSync(northMd, '# North markdown sidecar\n');
+    const northLoaded = getCachedReport(null, {
+      reportsDir: dir,
+      scope: 'north',
+      date: northDate,
+      runId: '1215',
+    });
+    assert.ok(northLoaded);
+    assert.notEqual(northLoaded.assessment?.markdown_only, true);
+    assert.strictEqual(northLoaded.generated_at, '2026-07-07T12:15:00.000Z');
+  });
 });

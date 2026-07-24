@@ -466,13 +466,16 @@ export async function runPipelineOrchestrator(opts, deps = {}) {
     { rootDir },
   );
 
-  if (process.env.PRETRANSLATE_LOCALES) {
+  const pretranslateDisabled = ['0', 'false'].includes(process.env.PRETRANSLATE_ENABLED ?? '');
+  if (process.env.PRETRANSLATE_LOCALES && !pretranslateDisabled) {
     console.error('── Pre-translate locale caches ──');
     await runNodeScript(
       'business_modules/translation/input/pretranslate-daily.js',
       ['--date', opts.targetDate, '--scope', opts.scope],
       { rootDir, allowFail: true },
     );
+  } else if (pretranslateDisabled) {
+    console.error('── Pre-translate skipped (PRETRANSLATE_ENABLED=0) ──');
   }
 
   tryWriteTokenReport(startedAt, opts, rootDir, pipelineRunId);

@@ -38,6 +38,7 @@ export const PRESENCE_GATE_RULES = [
     signalTypes: ['harm_to_population'],
     componentIds: ['wellbeing_at_risk'],
     minIntensity: 'moderate',
+    requireConflictLinkage: true,
   },
   {
     id: 'ew_failure_lifesaving',
@@ -96,6 +97,20 @@ export function isPresenceGatesEnabled(env = process.env) {
 }
 
 /**
+ * Conflict/war framing in evidence text (Hebrew + English). Rules with
+ * requireConflictLinkage only gate on harm tied to the security situation —
+ * a domestic apartment fire is tragic but is not a war-resilience critical
+ * failure, and must not drive the report's loudest flag.
+ */
+const CONFLICT_LINKAGE_RE = new RegExp(
+  [
+    'טיל', 'רקט', 'כטב', 'פצמ', 'יירוט', 'אזעק', 'שיגור', 'מלחמ', 'מתקפ', 'פיגוע', 'ירי', 'צבע אדום', 'רסיס',
+    'missile', 'rocket', 'drone', 'UAV', 'shrapnel', 'intercept', 'strike', 'attack', 'siren', '\\bwar\\b', 'hostilit',
+  ].join('|'),
+  'i',
+);
+
+/**
  * Whether signal intensity meets a rule's minimum threshold.
  * @param {string | undefined | null} intensity
  * @param {string | undefined} minIntensity
@@ -130,6 +145,7 @@ function matchPresenceGateRule(signal, rulesForComponent) {
   for (const rule of rulesForComponent) {
     if (!rule.signalTypes.includes(type)) continue;
     if (!meetsMinIntensity(signal.intensity, rule.minIntensity)) continue;
+    if (rule.requireConflictLinkage && !CONFLICT_LINKAGE_RE.test(String(signal.evidence ?? ''))) continue;
     return {
       triggered: true,
       rule_id: rule.id,

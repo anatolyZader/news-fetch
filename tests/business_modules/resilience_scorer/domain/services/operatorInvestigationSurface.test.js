@@ -312,6 +312,22 @@ describe('routing rationale on evidence items', () => {
     assert.equal(pool.length, 2);
   });
 
+  it('context-only pool items are visibly labeled in highlight markdown', () => {
+    const contextSignal = {
+      signal_type: 'psychological_distress',
+      source_type: 'news',
+      article_url: 'https://example.com/national',
+      evidence: 'דיווח ארצי על מצוקה נפשית בעורף.',
+      signalProvenance: SIGNAL_PROVENANCE.narrative_national_context,
+      narrativeContextOnly: true,
+      metricsEligible: false,
+    };
+    const pool = poolFor('wellbeing_at_risk', [contextSignal]);
+    assert.equal(pool[0].operator_epistemic_role, 'context_only');
+    const items = buildHighlightedEvidenceFromPool(pool);
+    assert.ok(items[0].markdown.endsWith('· national context`'), items[0].markdown);
+  });
+
   it('pool items carry construct_role from the catalog', () => {
     const pool = poolFor('wellbeing_at_risk', [distressSignal]);
     assert.equal(pool[0].construct_role, 'population_state');
@@ -384,6 +400,29 @@ describe('routing rationale on evidence items', () => {
       ' `x · primary · population_state`',
     );
     assert.equal(routingLabelSuffix({ signal_type: 'x', construct_role: 'pressure' }), ' `x · pressure`');
+    // Non-scored evidence is visibly marked: context/quarantine labels.
+    assert.equal(
+      routingLabelSuffix({
+        signal_type: 'x', routing_role: 'primary', construct_role: 'pressure',
+        operator_epistemic_role: 'context_only', signal_provenance: 'narrative_national_context',
+      }),
+      ' `x · primary · pressure · national context`',
+    );
+    assert.equal(
+      routingLabelSuffix({
+        signal_type: 'x', routing_role: 'primary',
+        operator_epistemic_role: 'context_only', signal_provenance: 'regional_press_context',
+      }),
+      ' `x · primary · regional press context`',
+    );
+    assert.equal(
+      routingLabelSuffix({ signal_type: 'x', routing_role: 'primary', operator_epistemic_role: 'quarantined' }),
+      ' `x · primary · quarantined`',
+    );
+    assert.equal(
+      routingLabelSuffix({ signal_type: 'x', routing_role: 'primary', operator_epistemic_role: 'scored' }),
+      ' `x · primary`',
+    );
     assert.ok(comparePoolItems(
       { routing_role: 'primary', contribution: 0.1 },
       { routing_role: 'inferred', contribution: 9 },

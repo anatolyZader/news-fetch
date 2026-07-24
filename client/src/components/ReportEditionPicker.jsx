@@ -19,6 +19,7 @@ import {
   formatEditionPickerTriggerParts,
   formatWindowRangeLabel,
   resolveActiveEdition,
+  resolveEditionProducedAt,
   shouldLabelEditionRunTime,
 } from '../lib/reportEditionFormat.js';
 
@@ -40,10 +41,11 @@ const editionSelectionShape = PropTypes.shape({
 
 function EditionMenuRow({ t, edition, isNewest, sameDateCount }) {
   const signalsLine = formatWindowRangeLabel(t, edition);
+  const producedAt = resolveEditionProducedAt(edition);
   const showRunLabel = shouldLabelEditionRunTime(edition, sameDateCount);
-  const runLine = edition.generated_at
+  const runLine = producedAt
     ? formatTemplate(t('report.edition.analyzedAt'), {
-      time: formatPublishedDateTime(edition.generated_at),
+      time: formatPublishedDateTime(producedAt),
     })
     : null;
   const title = formatTemplate(t('report.freshness.reportDate'), {

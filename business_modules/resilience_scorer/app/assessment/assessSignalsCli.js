@@ -178,6 +178,7 @@ export async function runAssessSignalsCli() {
     contentKind: prepared.contentKind,
     sourceFiles: prepared.sourceFiles,
     totalArticles: prepared.totalArticles,
+    hygieneDrops: prepared.hygieneDrops ?? null,
     scoring,
     retrievalService: prepared.retrievalService,
     sourceArchive,

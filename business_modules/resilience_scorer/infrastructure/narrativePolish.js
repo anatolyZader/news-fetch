@@ -55,7 +55,11 @@ function buildPolishSystemPrompt({ includeSynthesis = true, synthesisOnly = fals
       '{ "cross_component_synthesis": "<2–4 sentences of executive prose>" }\n' +
       'No bullet lists. Include inline [source_label](url) citations when URLs are known from input.\n' +
       'Never use [S#] signal labels — always [article_source or hostname](url).\n' +
-      'Never bracket internal signal_ref keys (type@idx:N) — use (Field visit, date) or [hostname](url).\n'
+      'Never bracket internal signal_ref keys (type@idx:N) — use (Field visit, date) or [hostname](url).\n' +
+      '- Component-narrative sentences prefixed "National press (not north-local evidence):" or ' +
+      '"Regional press (not north-local scored evidence):" are NOT scope-local evidence. Never restate ' +
+      'their facts as local conditions in the synthesis. Either omit them, or confine them to one final ' +
+      'sentence that keeps the same "National press (not north-local evidence):" prefix.\n'
     );
   }
 
@@ -102,7 +106,8 @@ function buildPolishSystemPrompt({ includeSynthesis = true, synthesisOnly = fals
     '- Never put internal signal_ref keys (signal_type@idx:N, type@url:…) in narrative prose brackets. For URL-less field evidence cite as (Field visit, date); for press cite as [hostname](url).\n' +
     '- Every narrative_claim with press/news/radio signal_refs must include a matching in-text citation in narrative prose.\n' +
     academicRules +
-    '- When signal refs carry narrativeContextOnly or narrative_national_context / macro_national / regional_press_context provenance, include 1–2 sentences per component where such evidence exists: "At national level…; for northern communities this implies…" with inline [source_label](url) citations; prefix with "National press (not north-local evidence):" when the source is not scope-local; prefix regional_press_context with "Regional press (not north-local scored evidence):".\n' +
+    '- When an ALREADY WRITTEN block is present: those observations are covered by other components. Do NOT restate them as this component\'s findings — if one is genuinely load-bearing here, reference it in a single clause ("as the leadership evidence records, …") and spend this component\'s narrative on evidence distinctive to it.\n' +
+    '- Evidence whose signal refs carry narrativeContextOnly or narrative_national_context / macro_national / regional_press_context provenance is NOT scope-local evidence. NEVER blend it into sentences describing local conditions, and never open a component narrative with it. Segregate it into at most 1–2 dedicated sentences at the END of the component narrative, each starting EXACTLY with "National press (not north-local evidence):" (or "Regional press (not north-local scored evidence):" for regional_press_context), framed as "At national level…; for northern communities this implies…" with inline [source_label](url) citations. Sentences describing local conditions must cite only scope-local evidence.\n' +
     '- evidence[] items should echo claim text with markdown source links when URLs exist (full supporting list for drill-down).\n' +
     '- When a CONCENTRATED EVIDENCE block is present, include data_quality_caveat naming the dominant outlet/source type.\n' +
     synthesisRules
@@ -142,6 +147,25 @@ function formatClaimsBlock(mergedNarratives, registry, narrativeScored, componen
   return blocks.join('\n\n---\n\n');
 }
 
+/** Max chars of each already-written narrative echoed into later shards (anti-duplication context). */
+const PRIOR_NARRATIVE_ECHO_CHARS = 700;
+
+/**
+ * Anti-duplication context for sharded polish: narratives already written by
+ * earlier shards. Shards are separate LLM calls that cannot see each other —
+ * without this, the same press story gets restated near-verbatim in every
+ * component it routes to.
+ * @param {Array<{component_id: string, narrative: string}>} priorComponents
+ * @returns {string}
+ */
+function formatPriorNarrativesBlock(priorComponents) {
+  const rows = (priorComponents ?? [])
+    .filter((c) => String(c.narrative ?? '').trim())
+    .map((c) => `**${c.component_id}**: ${String(c.narrative).slice(0, PRIOR_NARRATIVE_ECHO_CHARS)}`);
+  if (rows.length === 0) return '';
+  return `ALREADY WRITTEN (other components — do not restate these observations as this component's findings):\n${rows.join('\n\n')}`;
+}
+
 function formatPolishUserMessage(
   mergedNarratives,
   registry,
@@ -152,9 +176,10 @@ function formatPolishUserMessage(
     epistemicBlock = '',
     componentIds = null,
     synthesisOnly = false,
+    priorNarrativesBlock = '',
   } = {},
 ) {
-  const prefixParts = [retrievedSpansBlock, epistemicBlock].filter(Boolean);
+  const prefixParts = [retrievedSpansBlock, epistemicBlock, priorNarrativesBlock].filter(Boolean);
   const prefix = prefixParts.length > 0 ? `${prefixParts.join('\n\n')}\n\n` : '';
   const feedbackBlock = feedback ? `\n\nREVISION FEEDBACK:\n${feedback}\n` : '';
 
@@ -223,6 +248,7 @@ async function invokePolishStream(params) {
     componentIds,
     synthesisOnly,
     progressLabel,
+    priorNarrativesBlock = '',
   } = params;
 
   const userContent = formatPolishUserMessage(
@@ -235,6 +261,7 @@ async function invokePolishStream(params) {
       epistemicBlock: opts.epistemicBlock ?? '',
       componentIds,
       synthesisOnly,
+      priorNarrativesBlock,
     },
   );
 
@@ -290,6 +317,7 @@ async function polishSharded(mergedNarratives, registry, narrativeScored, opts) 
       includeSynthesis: false,
       componentIds: chunkIds,
       progressLabel: `[Step 3 — Polish ${i + 1}/${idChunks.length}]`,
+      priorNarrativesBlock: formatPriorNarrativesBlock(mergedComponents),
     });
     mergedComponents.push(...partial.components);
     lastStopReason = partial.stopReason;

@@ -75,12 +75,44 @@ export function buildMarkdown(assessment, sourceFiles) {
 
   appendReportHeader(lines, mdAssessment, sourceFiles);
   appendMethodologyBlock(lines, mdAssessment);
+  // Evidence-quality caveats (e.g. "narrative validation incomplete") must be
+  // read BEFORE the polished narratives they qualify, not buried at the bottom.
+  appendMacroAndCaveats(lines, mdAssessment);
   lines.push(`## Executive Summary`, ``, mdAssessment.cross_component_synthesis, ``, `---`, ``);
   appendComponentsTable(lines, mdAssessment);
   appendComponentDetails(lines, mdAssessment, formatters);
-  appendMacroAndCaveats(lines, mdAssessment);
 
   return lines.join('\n');
+}
+
+/**
+ * In-page `#evidence-…` anchor links have no targets in the exported .md (the
+ * web client resolves them from JSON) — keep the label, drop the dead link.
+ * @param {string} md
+ * @returns {string}
+ */
+function stripDeadEvidenceAnchors(md) {
+  return md.replaceAll(/\[([^\]]+)\]\(#evidence-[^)]+\)/g, '$1');
+}
+
+const STALE_FIELD_VISIT_DAYS = 7;
+
+/**
+ * Stamp an age label on field-visit citations older than a week, so pre-report
+ * field evidence is not read as same-day observation.
+ * @param {string} md
+ * @param {string | undefined} reportDate YYYY-MM-DD
+ * @returns {string}
+ */
+function labelStaleFieldVisits(md, reportDate) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(reportDate ?? ''))) return md;
+  const reportMs = Date.parse(reportDate);
+  return md.replaceAll(/\(Field visit, (\d{4}-\d{2}-\d{2})\)/g, (match, visitDate) => {
+    const days = Math.round((reportMs - Date.parse(visitDate)) / 86_400_000);
+    return days >= STALE_FIELD_VISIT_DAYS
+      ? `(Field visit, ${visitDate} — ${days} days old)`
+      : match;
+  });
 }
 
 /**
@@ -186,7 +218,10 @@ export function writeReport(assessment, signals, sourceFiles, outputBase, { scor
   const jsonPath = `${outputBase}.json`;
 
   const appendix = buildSignalAppendix(signals);
-  const md = buildMarkdown(assessment, sourceFiles) + appendix;
+  const md = labelStaleFieldVisits(
+    stripDeadEvidenceAnchors(buildMarkdown(assessment, sourceFiles) + appendix),
+    assessment?.date,
+  );
   writeFileSync(mdPath, md, 'utf-8');
 
   const jsonPayload = {

@@ -47,7 +47,11 @@ export async function localizeReportTodayPayload(payload, lang) {
 
     out = await localizePayload(out, 'report.attention', lang, { fingerprintExtra: dateExtra, costDate: dateExtra });
     out = await localizePayload(out, 'report.actionCompass', lang, { fingerprintExtra: dateExtra, costDate: dateExtra });
-    out = await localizePayload(out, 'report.wrapper', lang, { fingerprintExtra: dateExtra, costDate: dateExtra });
+    // The full markdown wrapper is only rendered for markdown-only archive
+    // reports; structured reports show translated component fields instead.
+    if (out.assessment?.markdown_only === true) {
+      out = await localizePayload(out, 'report.wrapper', lang, { fingerprintExtra: dateExtra, costDate: dateExtra });
+    }
   } catch (err) {
     console.error(`[localize] translation failed for lang=${lang}, falling back to source:`, err?.message ?? err);
     return payload;

@@ -86,7 +86,7 @@ function attachRegionalNationalComparison(assessment, {
   };
 }
 
-function buildReportMethodology(assessment, { scopedSignals, reportScopeId, targetDate, getTotal }) {
+function buildReportMethodology(assessment, { scopedSignals, reportScopeId, targetDate, getTotal, hygieneDrops }) {
   const { stageEvents } = getTotal();
   const assessStages = summarizeStageEvents(stageEvents);
   const costLogStages = readCostLogStagesForDate(targetDate, {
@@ -96,6 +96,7 @@ function buildReportMethodology(assessment, { scopedSignals, reportScopeId, targ
     signals: scopedSignals,
     reportScopeId,
     scoringModelManifest: buildScoringModelManifest(),
+    loadHygiene: hygieneDrops,
     extractionTelemetry: {
       assess: assessStages,
       extract: costLogStages['extract-signals'] ?? null,
@@ -140,6 +141,7 @@ export async function finalizeAndWriteReport({
   sourceFiles,
   totalArticles,
   scoring,
+  hygieneDrops = null,
   retrievalService = null,
   sourceArchive = null,
   dailyBudgetExceeded: _dailyBudgetExceeded = false,
@@ -202,6 +204,7 @@ export async function finalizeAndWriteReport({
     reportScopeId,
     targetDate,
     getTotal,
+    hygieneDrops,
   });
   const subgroupLogLine = formatSubgroupCoverageLogLine(assessment.methodology);
   if (subgroupLogLine) console.error(subgroupLogLine);

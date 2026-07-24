@@ -37,6 +37,34 @@ const SUFFICIENCY_CONFIDENCE = {
   adequate: 'high',
 };
 
+/** One-step confidence downgrade (floor at 'low'; insufficient stays as is). */
+const CONFIDENCE_DOWNGRADE = {
+  high: 'medium',
+  medium: 'low',
+  low: 'low',
+  insufficient_data: 'insufficient_data',
+};
+
+/**
+ * A component where a single outlet/source-type holds ≥90% of the signals is
+ * effectively single-sourced regardless of raw volume — volume-driven
+ * "adequate → high" must not survive that (e.g. wellbeing at 96% field visits).
+ */
+const EXTREME_CONCENTRATION_SHARE = 0.9;
+
+/** Sufficiency-derived confidence, downgraded one step under extreme concentration. */
+function deriveConfidence(basis) {
+  const base = SUFFICIENCY_CONFIDENCE[basis.sufficiency] ?? 'insufficient_data';
+  const cw = basis.concentration_warning;
+  if (cw && cw.share >= EXTREME_CONCENTRATION_SHARE) {
+    return {
+      confidence: CONFIDENCE_DOWNGRADE[base],
+      confidence_caveat: `downgraded: ${cw.layer.replaceAll('_', ' ')} "${cw.key}" holds ${Math.round(cw.share * 100)}% of signals`,
+    };
+  }
+  return { confidence: base, confidence_caveat: null };
+}
+
 /**
  * Map one `buildComponentEvidence` entry to legacy-shaped component object for downstream readers.
  *
@@ -47,11 +75,13 @@ export function evidenceComponentAdapter(ev) {
   const basis = ev.evidence_basis;
   const presence = ev.critical_flags.presence_gate;
   const salient = ev.critical_flags.salient_single_signal;
+  const { confidence, confidence_caveat } = deriveConfidence(basis);
   return {
     score: null,
     score_raw: null,
     score_headline: null,
-    confidence: SUFFICIENCY_CONFIDENCE[basis.sufficiency] ?? 'insufficient_data',
+    confidence,
+    confidence_caveat,
     signal_count: basis.signal_count,
     distinct_article_count: basis.distinct_articles,
     source_diversity: basis.distinct_sources,

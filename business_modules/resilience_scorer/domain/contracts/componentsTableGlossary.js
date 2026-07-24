@@ -18,8 +18,8 @@ export const COMPONENTS_TABLE_HELP_MARKDOWN = [
   '- **Assessment reliability** — How much to trust this component’s assessment (low / medium / high), derived from how much evidence was found and how broadly it appears across articles and source types.',
   '- **Evidence base** — Number of verified behavioral signals tagged to this component.',
   '- **Sufficiency** — Evidence-volume band (none / thin / moderate / adequate) from signal count, distinct articles, and source-type diversity. **It is not “how good resilience is”** — it says how much ground the narrative stands on.',
-  '- **Balance** — Whether supporting and opposing observations point one way (supporting only / opposing only), lean one way (mixed), or are split (**contested** — the narrative must describe the disagreement, not resolve it).',
-  '- **Article coverage** — How many *distinct* articles in today’s sample contributed at least one signal, as a fraction of all articles analyzed.',
+  '- **Balance** — Whether supporting and opposing observations point one way (supporting only / opposing only), lean one way (mixed), or are split (**contested** — the narrative must describe the disagreement, not resolve it). A one-sided balance can reflect catalog routing (the mirrored evidence type is anchored on another component) — a "mirror evidence anchored elsewhere" note marks those cases.',
+  '- **Unit coverage** — How many *distinct* evidence units (news articles, municipal dashboard rows, field-visit reports — each counts as one unit) contributed at least one signal, as a fraction of all units analyzed.',
   '',
   '**Direction and degree live in the narrative** — each component’s prose cites its evidence; critical flags (presence gate, critical single signal) surface verified failure modes regardless of overall balance.',
 ].join('\n');

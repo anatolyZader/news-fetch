@@ -150,7 +150,7 @@ export async function loadPreparedSignals(targetDate, days, bundleOpts = {}) {
 
   assertLoadedSignalFiles(loadedFiles, useObservations, targetDate, days);
 
-  let { allSignals, totalArticles, sourceFiles, sourceTypesSeen } = mergeLoadedSignalFiles(loadedFiles, { targetDate });
+  let { allSignals, totalArticles, sourceFiles, sourceTypesSeen, hygieneDrops } = mergeLoadedSignalFiles(loadedFiles, { targetDate });
   allSignals = mergeConnectivityProbeSignals(allSignals, sourceTypesSeen, targetDate);
   archiveProbeRecordsForDate(targetDate);
   allSignals = enrichProbeSignalsInList(allSignals);
@@ -173,6 +173,7 @@ export async function loadPreparedSignals(targetDate, days, bundleOpts = {}) {
     totalArticles,
     sourceFiles,
     sourceTypesSeen,
+    hygieneDrops,
     retrievalService,
     pipelineConfig,
     contentKind: contentKindFromSourceTypes(sourceTypesSeen),

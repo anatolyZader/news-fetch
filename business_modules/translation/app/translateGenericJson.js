@@ -41,6 +41,7 @@ export async function translateGenericJson(payload, lang, opts = {}) {
   const message = await getDefaultLlmPort().createMessage({
     model: MODEL,
     max_tokens: 8000,
+    callContext: { feature: 'translation', purpose: opts.costLabel ?? 'translation-generic' },
     system,
     messages: [{
       role: 'user',

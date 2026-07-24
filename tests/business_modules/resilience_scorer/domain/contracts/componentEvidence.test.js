@@ -136,6 +136,32 @@ describe('buildComponentEvidence (primary-only bands)', () => {
     assert.deepEqual(by_component.wellbeing_at_risk.evidence_basis.shared_primary_articles, { count: 15, share: 1 });
   });
 
+  it('mirror_context surfaces mirror twins anchored on another component', () => {
+    // wellbeing_support_gap routes to wellbeing_at_risk (-, primary); its mirror
+    // wellbeing_support_accessed has NO wellbeing edge (v10 construct-role rule)
+    // and anchors on community_capital. The wellbeing balance must disclose that.
+    const signals = [
+      { signal_type: 'wellbeing_support_gap', source_type: 'visits', article_index: 1, evidence: 'Elderly cannot reach support.' },
+      { signal_type: 'wellbeing_support_accessed', source_type: 'pbo', article_index: 2, evidence: 'Welfare dept in daily contact.' },
+      { signal_type: 'wellbeing_support_accessed', source_type: 'pbo', article_index: 3, evidence: 'Support hotline active.' },
+    ];
+    const { by_component } = buildComponentEvidence(signals);
+
+    const wellbeing = by_component.wellbeing_at_risk.evidence_basis;
+    assert.equal(wellbeing.balance, 'one_sided_neg');
+    assert.ok(wellbeing.mirror_context, 'wellbeing must carry mirror_context');
+    assert.equal(wellbeing.mirror_context.total, 2);
+    assert.deepEqual(wellbeing.mirror_context.types[0], {
+      signal_type: 'wellbeing_support_accessed',
+      count: 2,
+      anchor_components: ['community_capital'],
+    });
+
+    // community_capital sees the accessed signals directly and its gap mirror
+    // DOES route there (inferred), so no asymmetric mirror note for it.
+    assert.equal(by_component.community_capital.evidence_basis.mirror_context, null);
+  });
+
   it('deriveSufficiency / deriveBalance still behave on raw counts', () => {
     assert.equal(deriveSufficiency({ signal_count: 0, distinct_articles: 0, source_type_count: 0 }), 'none');
     assert.equal(deriveSufficiency({ signal_count: 7, distinct_articles: 4, source_type_count: 3 }), 'adequate');

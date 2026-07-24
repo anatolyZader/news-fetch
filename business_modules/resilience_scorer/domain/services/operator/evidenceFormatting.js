@@ -243,13 +243,25 @@ export function formatEvidenceBullet(text, url) {
  * @param {{ signal_type?: string|null, routing_role?: string|null }} item
  * @returns {string}
  */
+/** Visible epistemic marker for non-scored evidence (context/quarantine). */
+function epistemicSuffixLabel(item) {
+  if (item?.operator_epistemic_role === 'context_only') {
+    return item.signal_provenance === 'regional_press_context'
+      ? ' · regional press context'
+      : ' · national context';
+  }
+  if (item?.operator_epistemic_role === 'quarantined') return ' · quarantined';
+  return '';
+}
+
 export function routingLabelSuffix(item) {
   if (!item?.signal_type) return '';
   const construct = item.construct_role ? ` · ${item.construct_role}` : '';
+  const epistemic = epistemicSuffixLabel(item);
   // Fail-closed: a null routing_role (unrouted type/component pair) shows the
   // type alone rather than masquerading as primary.
-  if (item.routing_role == null) return ` \`${item.signal_type}${construct}\``;
-  return ` \`${item.signal_type} · ${item.routing_role}${construct}\``;
+  if (item.routing_role == null) return ` \`${item.signal_type}${construct}${epistemic}\``;
+  return ` \`${item.signal_type} · ${item.routing_role}${construct}${epistemic}\``;
 }
 
 // ── Pool rendering ────────────────────────────────────────────────────────────

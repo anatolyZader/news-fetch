@@ -210,13 +210,46 @@ describe('mergeLoadedSignalFiles', () => {
         fileDistrictId: 'south',
         data: {
           district_id: 'south',
-          signals: [{ evidence: 'a' }, { evidence: 'b', district_id: 'south' }],
+          signals: [
+            { evidence: 'Volunteers distributed supplies' },
+            { evidence: 'Shelters were opened on alert', district_id: 'south' },
+          ],
         },
       },
     ]);
     assert.equal(allSignals.length, 2);
     assert.equal(allSignals[0].district_id, 'south');
     assert.equal(allSignals[1].district_id, 'south');
+  });
+
+  it('re-applies field hygiene at load: strips avg blobs, drops contentless PBO rows, reports drops', () => {
+    const { allSignals, hygieneDrops } = mergeLoadedSignalFiles([
+      {
+        weight: 1,
+        sourceType: 'pbo',
+        fileDate: '2026-04-01',
+        fileDistrictId: 'north',
+        data: {
+          signals: [
+            { signal_type: 'resilience_narrative_positive', evidence: '[אעבלין] נרטיב: avg=81% (100%, 75%) — מתמודדים ברובם' },
+            { signal_type: 'community_volunteering', evidence: '[מגדל תפן] הון ומשאבי קהילה: avg=100% (100%, 100%) — לא רלוונטי' },
+            { signal_type: 'community_volunteering', evidence: '[כרמיאל] הון ומשאבי קהילה: avg=100% (100%, 100%) — ללש' },
+          ],
+        },
+      },
+      {
+        weight: 1,
+        sourceType: 'news',
+        fileDate: '2026-04-01',
+        fileDistrictId: null,
+        data: { signals: [{ signal_type: 'fear_expression', evidence: 'ok' }] },
+      },
+    ]);
+    assert.equal(allSignals.length, 2);
+    assert.equal(allSignals[0].evidence, '[אעבלין] מתמודדים ברובם');
+    // News bundles are untouched by field hygiene (short evidence survives).
+    assert.equal(allSignals[1].evidence, 'ok');
+    assert.deepEqual(hygieneDrops, { total: 2, by_source: { pbo: 2 } });
   });
 });
 
