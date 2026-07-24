@@ -17,7 +17,7 @@ import {
   narrativeSynthesisMaxUrls,
 } from './groundingConfig.js';
 import { validateClaimRelation } from './coOccurrenceGraph.js';
-import { resolveRef } from './signalRefRegistry.js';
+import { resolveRef } from '../narrative/signalRefRegistry.js';
 import {
   bestEvidenceOverlap,
   findForbiddenConnectives,
@@ -89,8 +89,8 @@ function validateNarrativeConnectives(comp, def, ctx) {
     }
   }
 
+  const refsInClaims = (comp.narrative_claims ?? []).flatMap((c) => c.signal_refs ?? []);
   for (const sentence of splitSentences(narrative)) {
-    const refsInClaims = (comp.narrative_claims ?? []).flatMap((c) => c.signal_refs ?? []);
     if (refsInClaims.length >= 2 && findForbiddenConnectives(sentence).length > 0) {
       const entries = refsInClaims.map((r) => resolveRef(r, registry)).filter(Boolean);
       const urls = new Set(entries.map((e) => e.signal?.article_url).filter(Boolean));
@@ -103,11 +103,9 @@ function validateNarrativeConnectives(comp, def, ctx) {
 }
 
 function validateComponentEvidenceOverlap(comp, def, scored, signalCount, warnings) {
+  const evidenceTexts = (scored.signals ?? []).map((s) => s.evidence ?? '');
   for (const evItem of comp.evidence ?? []) {
-    const stripped = stripMarkdownLinks(evItem);
-    const overlaps = (scored.signals ?? []).map((s) =>
-      bestEvidenceOverlap(stripped, s.evidence ?? ''));
-    const maxOverlap = overlaps.length ? Math.max(...overlaps) : 0;
+    const maxOverlap = bestEvidenceOverlap(stripMarkdownLinks(evItem), evidenceTexts);
     if (signalCount > 0 && maxOverlap < EVIDENCE_OVERLAP_MIN * 0.5) {
       warnings.push(`${def.id}: evidence item low overlap (${maxOverlap.toFixed(2)})`);
     }

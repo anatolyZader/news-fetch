@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildSignalRefRegistry } from '../../../../../../business_modules/resilience_scorer/domain/services/narrativeGrounding/signalRefRegistry.js';
+import { buildSignalRefRegistry } from '../../../../../../business_modules/resilience_scorer/domain/services/narrative/signalRefRegistry.js';
 import { resolveInlineSignalCitations } from '../../../../../../business_modules/resilience_scorer/domain/contracts/inlineCitationResolve.js';
 
 describe('inlineCitationResolver', () => {

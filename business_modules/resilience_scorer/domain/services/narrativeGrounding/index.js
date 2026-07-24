@@ -33,24 +33,18 @@ export {
   resolveLabel,
   formatSignalWithRef,
   signalArticleKey,
-  citationLabelForSignal,
-  evidenceAttributionLabel,
-  epistemicFramingHint,
-} from './signalRefRegistry.js';
+} from '../narrative/signalRefRegistry.js';
 
 export { resolveInlineSignalCitations } from '../../contracts/inlineCitationResolve.js';
 
 export {
-  buildCoOccurrenceGroups,
   formatCoOccurrenceForPrompt,
   validateClaimRelation,
-  signalsMayCoOccur,
 } from './coOccurrenceGraph.js';
 
 export {
   splitSentences,
   findForbiddenConnectives,
-  textOverlapScore,
   bestEvidenceOverlap,
   stripMarkdownLinks,
   FORBIDDEN_CONNECTIVES,

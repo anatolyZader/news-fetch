@@ -81,7 +81,7 @@ export function applyNarrativeOverflowDegrade(shell, plan) {
       degrade_level: plan.degradeLevel,
       section_estimates: plan.section_estimates,
       registry_count: plan.registry?.refCount ?? 0,
-      digest_cap: plan.digest_cap,
+      digest_cap: plan.digestCap,
     },
   };
   shell.narrative_prompt_budget = shell.assessment_degraded.prompt_budget;

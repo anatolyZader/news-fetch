@@ -29,7 +29,7 @@ import {
   isPrimaryEdge,
 } from '../signals/routing/signalRouter.js';
 import { SIGNAL_PROVENANCE } from '../signals/evidenceEligibility.js';
-import { buildRefKey } from '../narrativeGrounding/signalRefRegistry.js';
+import { buildRefKey } from '../narrative/signalRefRegistry.js';
 import { comparePoolItems, inferredPoolRenderMode, routingLabelSuffix } from './evidenceFormatting.js';
 
 const CONTEXT_PROVENANCES = new Set([

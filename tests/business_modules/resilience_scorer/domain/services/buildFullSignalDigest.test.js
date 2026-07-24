@@ -7,7 +7,7 @@ import {
   narrativeDigestEvidenceChars,
 } from '../../../../../business_modules/resilience_scorer/domain/services/narrative/buildFullSignalDigest.js';
 import { buildDigestStubClaims } from '../../../../../business_modules/resilience_scorer/domain/services/narrative/narrativeClaims.js';
-import { buildSignalRefRegistry } from '../../../../../business_modules/resilience_scorer/domain/services/narrativeGrounding/signalRefRegistry.js';
+import { buildSignalRefRegistry } from '../../../../../business_modules/resilience_scorer/domain/services/narrative/signalRefRegistry.js';
 
 const envBackup = {};
 
@@ -134,7 +134,7 @@ describe('buildDigestStubClaims', () => {
       },
     };
     const registry = buildSignalRefRegistry(narrativeScored);
-    const claims = buildDigestStubClaims(narrativeScored, registry);
+    const claims = buildDigestStubClaims(registry);
     assert.ok(claims.narrative?.length >= 1);
     assert.ok(claims.narrative[0].signal_refs.length >= 1);
   });

@@ -1,13 +1,13 @@
 /**
- * Signal reference registry for narrative grounding and operator citation display.
+ * Signal reference registry shared by narrative context building and grounding QA.
  *
  * Pipeline position: built from narrative digest/scored components before LLM
- * facts/polish; used for ref resolution, prompt formatting, and citation labels.
+ * facts/polish; used for ref resolution and prompt formatting.
  *
  * Owns: buildRefKey, S-label registry, formatSignalWithRef prompt lines.
- * Does NOT: perform overlap grounding QA (see sentenceGroundingChecker.js).
+ * Does NOT: perform overlap grounding QA (see narrativeGrounding/sentenceGroundingChecker.js).
  *
- * Key collaborators: `narrative/buildFullSignalDigest.js`, `contracts/citationDisplay.js`,
+ * Key collaborators: `narrative/buildFullSignalDigest.js`, `narrativeGrounding/index.js`,
  * `operator/evidenceFormatting.js`.
  */
 
@@ -71,43 +71,6 @@ export function buildSignalRefRegistry(scoredComponents) {
   }
 
   return { byRef, byLabel, byComponent, refCount: counter };
-}
-
-// ── Citation labels ───────────────────────────────────────────────────────────
-
-/**
- * Human-readable citation label for APA-style parentheticals.
- *
- * @param {object|null|undefined} signal
- * @returns {string}
- */
-export function citationLabelForSignal(signal) {
-  const articleSource = String(signal?.article_source ?? '').trim();
-  if (articleSource) return articleSource;
-
-  const url = cleanArticleUrl(signal?.article_url);
-  if (url) {
-    try {
-      return new URL(url).hostname.replace(/^www\./i, '');
-    } catch {
-      // fall through
-    }
-  }
-
-  const sourceType = String(signal?.source_type ?? '').trim();
-  if (sourceType) return sourceType;
-
-  return 'source';
-}
-
-/**
- * @param {string|null|undefined} url
- * @returns {string|null}
- */
-function cleanArticleUrl(url) {
-  const u = String(url ?? '').trim();
-  if (!u || u === '(no url)' || u === 'null') return null;
-  return u;
 }
 
 // ── Registry lookup ───────────────────────────────────────────────────────────
@@ -184,24 +147,5 @@ export function evidenceAttributionLabel(evidenceType) {
       return 'Observed in reporting';
     default:
       return 'Reported observation';
-  }
-}
-
-/**
- * LLM framing hint for evidence_type when writing claims.
- *
- * @param {string|null|undefined} evidenceType
- * @returns {string}
- */
-export function epistemicFramingHint(evidenceType) {
-  switch (evidenceType) {
-    case 'direct_quote_named_person':
-      return 'Frame as attributed quote ("A named person said…").';
-    case 'named_institutional_fact':
-      return 'Frame as institutional ("According to [source type]…").';
-    case 'named_survey_statistic':
-      return 'Frame as reported statistic with source.';
-    default:
-      return 'Frame as observed reporting ("Reporting describes…").';
   }
 }

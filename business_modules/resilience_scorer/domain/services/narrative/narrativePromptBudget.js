@@ -7,7 +7,7 @@
  * Owns: DEGRADE_LEVELS ladder, token estimates, resolveNarrativeContextPlan.
  * Does NOT: invoke LLM or validate narrative JSON output.
  *
- * Key collaborators: `narrative/buildFullSignalDigest.js`, `narrativeGrounding/signalRefRegistry.js`,
+ * Key collaborators: `narrative/buildFullSignalDigest.js`, `narrative/signalRefRegistry.js`,
  * cross-cut-modules/retrieval RAG config.
  */
 
@@ -17,7 +17,7 @@ import { buildFullSignalDigest, narrativeDigestEvidenceChars, narrativeDigestSig
 import {
   buildSignalRefRegistry,
   formatSignalWithRef,
-} from '../narrativeGrounding/signalRefRegistry.js';
+} from './signalRefRegistry.js';
 import { resilienceNarrativeRagEnabled, resilienceNarrativeRagTopK } from '../../../../../cross-cut-modules/retrieval/ragConfig.js';
 
 /** Conservative static overhead (facts/polish system prompts + rules blocks). */
@@ -56,9 +56,16 @@ export function narrativeFactsShardSize() {
  * @returns {number}
  */
 export function estimateTextTokens(text) {
-  const len = String(text ?? '').length;
-  if (!len) return 0;
-  return Math.ceil(len / narrativeCharsPerToken());
+  return estimateCharsTokens(String(text ?? '').length);
+}
+
+/**
+ * @param {number} charCount
+ * @returns {number}
+ */
+function estimateCharsTokens(charCount) {
+  if (!charCount) return 0;
+  return Math.ceil(charCount / narrativeCharsPerToken());
 }
 
 /**
@@ -195,9 +202,8 @@ function formatMacroBlockForEstimate(macroSignals) {
  */
 function estimateRagTokens(ragEnabled) {
   if (!ragEnabled || !resilienceNarrativeRagEnabled()) return 0;
-  const topK = resilienceNarrativeRagTopK();
-  const perComponent = topK * 500;
-  return estimateTextTokens(`retrieved spans\n${'x'.repeat(perComponent * RESILIENCE_COMPONENTS.length)}`);
+  const perComponentChars = resilienceNarrativeRagTopK() * 500;
+  return estimateCharsTokens(perComponentChars * RESILIENCE_COMPONENTS.length);
 }
 
 /**
@@ -215,7 +221,7 @@ export function estimateNarrativePromptSections(params) {
 
   const signalsText = formatSignalsBlockForEstimate(registry, componentIds);
   const signals_block = estimateTextTokens(signalsText);
-  const rules_block = estimateTextTokens('x'.repeat(STATIC_RULES_CHARS));
+  const rules_block = estimateCharsTokens(STATIC_RULES_CHARS);
   const macro_block = estimateTextTokens(formatMacroBlockForEstimate(macroSignals));
   const rag_block = estimateRagTokens(settings?.ragEnabled !== false);
   const registry_count = registry?.refCount ?? 0;
@@ -242,7 +248,6 @@ export function estimateNarrativePromptSections(params) {
     worst_polish_shard = Math.max(worst_polish_shard, rules_block + shardSignals + macro_block + rag_block);
   }
 
-  const total_estimated = Math.max(worst_facts_shard, worst_polish_shard);
   return {
     rules_block,
     signals_block,
@@ -251,8 +256,7 @@ export function estimateNarrativePromptSections(params) {
     registry_count,
     worst_facts_shard,
     worst_polish_shard,
-    total_estimated,
-    worst_call_estimated: total_estimated,
+    worst_call_estimated: Math.max(worst_facts_shard, worst_polish_shard),
   };
 }
 
@@ -281,7 +285,8 @@ export function resolveNarrativeContextPlan(params) {
   const maxTokens = narrativeContextMaxTokens();
   const context = scoringContext ?? scoredFull;
 
-  for (let level = startLevel; level < DEGRADE_LEVELS.length; level += 1) {
+  const lastLevel = DEGRADE_LEVELS.length - 1;
+  for (let level = Math.min(startLevel, lastLevel); level <= lastLevel; level += 1) {
     const settings = settingsForDegradeLevel(level);
     const narrativeScored = buildFullSignalDigest(narrativeScopeSignals, context, {
       digestCap: settings.digestCap,
@@ -300,11 +305,9 @@ export function resolveNarrativeContextPlan(params) {
       narrativeScored,
       registry,
       section_estimates,
-      digest_cap: settings.digestCap,
-      evidence_chars: settings.evidenceChars,
     };
 
-    if (settings.skipLlm) {
+    if (settings.skipLlm || level === lastLevel) {
       console.error(
         `  → Narrative preflight: level ${level} skip LLM (budget ladder exhausted)`,
       );
@@ -325,26 +328,6 @@ export function resolveNarrativeContextPlan(params) {
       + `(~${section_estimates.worst_call_estimated} > ${maxTokens}); escalating`,
     );
   }
-
-  const fallbackSettings = settingsForDegradeLevel(DEGRADE_LEVELS.length - 1);
-  const narrativeScored = buildFullSignalDigest(narrativeScopeSignals, context, {
-    digestCap: fallbackSettings.digestCap,
-    evidenceChars: fallbackSettings.evidenceChars,
-  });
-  const registry = buildSignalRefRegistry(narrativeScored);
-  return {
-    ...fallbackSettings,
-    narrativeScored,
-    registry,
-    section_estimates: estimateNarrativePromptSections({
-      narrativeScored,
-      registry,
-      settings: fallbackSettings,
-      macroSignals,
-    }),
-    digest_cap: fallbackSettings.digestCap,
-    evidence_chars: fallbackSettings.evidenceChars,
-  };
 }
 
 /**

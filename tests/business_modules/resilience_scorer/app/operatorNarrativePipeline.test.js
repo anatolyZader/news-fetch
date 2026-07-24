@@ -9,7 +9,7 @@ import {
   applyOperatorNarrativePipeline,
 } from '../../../../business_modules/resilience_scorer/app/assessment/operatorNarrativePipeline.js';
 import { buildFullSignalDigest } from '../../../../business_modules/resilience_scorer/domain/services/narrative/buildFullSignalDigest.js';
-import { buildSignalRefRegistry } from '../../../../business_modules/resilience_scorer/domain/services/narrativeGrounding/signalRefRegistry.js';
+import { buildSignalRefRegistry } from '../../../../business_modules/resilience_scorer/domain/services/narrative/signalRefRegistry.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixtures = JSON.parse(

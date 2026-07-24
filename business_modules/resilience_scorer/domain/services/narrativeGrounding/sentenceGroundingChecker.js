@@ -16,7 +16,7 @@ import {
   EVIDENCE_OVERLAP_MIN,
   narrativeGroundingMinScore,
 } from './groundingConfig.js';
-import { resolveRef } from './signalRefRegistry.js';
+import { resolveRef } from '../narrative/signalRefRegistry.js';
 import {
   bestEvidenceOverlap,
   splitSentences,

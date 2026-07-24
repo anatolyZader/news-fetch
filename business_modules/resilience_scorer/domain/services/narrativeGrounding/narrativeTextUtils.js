@@ -72,7 +72,7 @@ export function findForbiddenConnectives(text) {
  * @param {string} evidenceText
  * @returns {number}
  */
-export function textOverlapScore(text, evidenceText) {
+function textOverlapScore(text, evidenceText) {
   const a = tokenize(text);
   const b = tokenize(evidenceText);
   if (a.length === 0 || b.length === 0) return 0;
@@ -86,10 +86,9 @@ export function textOverlapScore(text, evidenceText) {
  *
  * @param {string} text
  * @param {string[]} evidenceTexts
- * @param {number} [_minOverlap]
  * @returns {number}
  */
-export function bestEvidenceOverlap(text, evidenceTexts, _minOverlap = 0) {
+export function bestEvidenceOverlap(text, evidenceTexts) {
   let best = 0;
   for (const ev of evidenceTexts ?? []) {
     if (!ev) continue;

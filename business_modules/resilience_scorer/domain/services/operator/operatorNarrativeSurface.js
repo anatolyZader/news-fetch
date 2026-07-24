@@ -8,7 +8,7 @@
  * epistemic fallback prose when claims absent.
  * Does NOT: call LLMs, re-run narrative grounding QA, or mutate scoring.
  *
- * Key collaborators: `narrative/narrativeClaims.js`, `narrativeGrounding/signalRefRegistry.js`,
+ * Key collaborators: `narrative/narrativeClaims.js`, `narrative/signalRefRegistry.js`,
  * `contracts/citationDisplay.js`, `operator/operatorInvestigationSurface.js`.
  */
 
@@ -17,7 +17,7 @@ import { resolveNarrativePipelineMode } from '../narrativeGrounding/groundingCon
 import {
   buildRefKey,
   buildSignalRefRegistry,
-} from '../narrativeGrounding/signalRefRegistry.js';
+} from '../narrative/signalRefRegistry.js';
 import { operatorMaxClaims } from '../../contracts/operatorSurfaceMode.js';
 import {
   buildCitationRegistryFromStored,

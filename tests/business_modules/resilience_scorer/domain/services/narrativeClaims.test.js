@@ -8,7 +8,7 @@ import {
   buildDigestStubClaims,
   supplementFactsWithDigestStubs,
 } from '../../../../../business_modules/resilience_scorer/domain/services/narrative/narrativeClaims.js';
-import { buildSignalRefRegistry } from '../../../../../business_modules/resilience_scorer/domain/services/narrativeGrounding/signalRefRegistry.js';
+import { buildSignalRefRegistry } from '../../../../../business_modules/resilience_scorer/domain/services/narrative/signalRefRegistry.js';
 
 const fearSignal = {
   signal_type: 'fear_expression',
@@ -81,7 +81,7 @@ describe('mergeAgentClaimsWithFacts', () => {
       lifesaving_behavior: { signals: [complianceSignal] },
     };
     const registry = buildSignalRefRegistry(scored);
-    const stubs = buildDigestStubClaims(scored, registry);
+    const stubs = buildDigestStubClaims(registry);
 
     const supplemented = supplementFactsWithDigestStubs(
       { lifesaving_behavior: stubs.lifesaving_behavior ?? [] },

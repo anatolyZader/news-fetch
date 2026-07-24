@@ -11,7 +11,7 @@
  * narrative facts-pass LLM prompts.
  */
 
-import { signalArticleKey } from './signalRefRegistry.js';
+import { signalArticleKey } from '../narrative/signalRefRegistry.js';
 
 const FIELD_FAMILY = new Set(['field', 'visits', 'pbo', 'pbo_regional', 'naftali', 'whatsapp']);
 
@@ -23,7 +23,7 @@ const FIELD_FAMILY = new Set(['field', 'visits', 'pbo', 'pbo_regional', 'naftali
  * @param {{ byRef: Map<string, object> }} registry
  * @returns {{ urlGroups: Map<string, string[]>, sourceGroups: Map<string, string[]>, fieldGroups: Map<string, string[]> }}
  */
-export function buildCoOccurrenceGroups(registry) {
+function buildCoOccurrenceGroups(registry) {
   const urlGroups = new Map();
   const sourceGroups = new Map();
   const fieldGroups = new Map();
@@ -62,7 +62,7 @@ export function buildCoOccurrenceGroups(registry) {
  * @returns {string}
  */
 export function formatCoOccurrenceForPrompt(registry) {
-  const { urlGroups, fieldGroups } = buildCoOccurrenceGroups(registry);
+  const { urlGroups, sourceGroups, fieldGroups } = buildCoOccurrenceGroups(registry);
   const lines = [
     '━━━ CO-OCCURRENCE (same sentence allowed only within a group) ━━━',
     'Signals may appear in one sentence ONLY if they share the same article_url, same article_source, or same field-family source_type.',
@@ -76,6 +76,14 @@ export function formatCoOccurrenceForPrompt(registry) {
     }
   }
 
+  const sourceEntries = [...sourceGroups.entries()].filter(([, refs]) => refs.length > 1).slice(0, 12);
+  if (sourceEntries.length) {
+    lines.push('Same-source groups (excerpt):');
+    for (const [src, refs] of sourceEntries) {
+      lines.push(`  ${src}: ${refs.join(', ')}`);
+    }
+  }
+
   const fieldEntries = [...fieldGroups.entries()].filter(([, refs]) => refs.length > 1);
   if (fieldEntries.length) {
     lines.push('Field-family groups:');
@@ -84,7 +92,7 @@ export function formatCoOccurrenceForPrompt(registry) {
     }
   }
 
-  if (urlEntries.length === 0 && fieldEntries.length === 0) {
+  if (urlEntries.length === 0 && sourceEntries.length === 0 && fieldEntries.length === 0) {
     lines.push('No multi-signal same-source groups today — treat each signal as independent unless explicitly same URL.');
   }
 
@@ -114,7 +122,7 @@ export function validateClaimRelation(refs, relation, registry) {
   }
 
   const urls = new Set(entries.map((e) => e.signal?.article_url).filter(Boolean));
-  const sameUrl = urls.size === 1 && urls.size > 0;
+  const sameUrl = urls.size === 1;
 
   if (relation === 'same_article_only') {
     if (!sameUrl) return { ok: false, reason: 'same_article_only_requires_shared_url' };
@@ -146,7 +154,7 @@ function resolveEntry(ref, registry) {
  * @param {object} b
  * @returns {boolean}
  */
-export function signalsMayCoOccur(a, b) {
+function signalsMayCoOccur(a, b) {
   if (!a || !b) return false;
   if (a.article_url && b.article_url && a.article_url === b.article_url) return true;
   if (a.article_source && b.article_source && a.article_source === b.article_source) return true;

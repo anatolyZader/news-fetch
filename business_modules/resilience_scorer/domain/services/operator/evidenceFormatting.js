@@ -8,7 +8,7 @@
  * pool sort order for rich surface mode.
  * Does NOT: build investigation pools, run LLM narrative, or route signals to components.
  *
- * Key collaborators: `narrativeGrounding/signalRefRegistry.js`, `contracts/operatorSurfaceMode.js`,
+ * Key collaborators: `narrative/signalRefRegistry.js`, `contracts/operatorSurfaceMode.js`,
  * `signals/routing/signalRouter.js`, both operator surface finalize modules.
  */
 
@@ -16,7 +16,7 @@ import {
   operatorSurfaceMode,
   operatorEvidenceChars,
 } from '../../contracts/operatorSurfaceMode.js';
-import { buildRefKey } from '../narrativeGrounding/signalRefRegistry.js';
+import { buildRefKey } from '../narrative/signalRefRegistry.js';
 
 const MAX_EVIDENCE_LINE_CHARS = 480;
 const SIGNAL_REF_TRAILING = /\s*(?:\[S\d+\])+\s*$/;

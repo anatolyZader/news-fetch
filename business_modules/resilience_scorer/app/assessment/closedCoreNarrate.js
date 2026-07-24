@@ -107,7 +107,7 @@ export async function closedCoreNarrate(scoredFull, _allSignals, date, totalArti
     degrade_level: plan.degradeLevel,
     section_estimates: plan.section_estimates,
     registry_count: plan.registry?.refCount ?? 0,
-    digest_cap: plan.digest_cap,
+    digest_cap: plan.digestCap,
   };
 
   return shell;

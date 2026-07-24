@@ -7,14 +7,14 @@
  * Owns: per-component digest caps, evidence char limits, ranked signal picks.
  * Does NOT: run LLM calls or perform narrative grounding QA.
  *
- * Key collaborators: `operator/topContributors.js`, `narrativeGrounding/signalRefRegistry.js`,
+ * Key collaborators: `operator/topContributors.js`, `narrative/signalRefRegistry.js`,
  * `narrative/narrativePromptBudget.js`.
  */
 
 import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { collectComponentSignals } from '../signals/componentSignalGroups.js';
 import { contributorRankKey } from '../operator/topContributors.js';
-import { signalArticleKey } from '../narrativeGrounding/signalRefRegistry.js';
+import { signalArticleKey } from './signalRefRegistry.js';
 
 // ── Env caps ──────────────────────────────────────────────────────────────────
 

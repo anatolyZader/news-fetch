@@ -101,7 +101,7 @@ async function loadRagContext(narrativeScored, plan, retrievalService, reportDat
 
 async function resolveFactsByComponent(activePlan, narrativeScored, registry, llmOpts, rag, epistemicBlock) {
   if (activePlan.useStubClaims || !isNarrativeFactsPassEnabled()) {
-    return buildDigestStubClaims(narrativeScored, registry);
+    return buildDigestStubClaims(registry);
   }
   if (activePlan.factsEnabled === false) {
     return {};
@@ -531,7 +531,7 @@ function applyNarrativePipelineMetadata(assessment, pipelineResult, mode) {
       degrade_level: narrativeContextPlan.degradeLevel,
       section_estimates: narrativeContextPlan.section_estimates,
       registry_count: narrativeContextPlan.registry?.refCount ?? 0,
-      digest_cap: narrativeContextPlan.digest_cap,
+      digest_cap: narrativeContextPlan.digestCap,
       max_context_tokens: narrativeContextMaxTokens(),
     };
   }

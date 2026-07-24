@@ -8,12 +8,28 @@
  * digest stub claims for degrade levels.
  * Does NOT: run LLM or compute narrative_grounding_score (post-hoc QA elsewhere).
  *
- * Key collaborators: `narrativeGrounding/signalRefRegistry.js`, `operator/operatorNarrativeSurface.js`,
+ * Key collaborators: `narrative/signalRefRegistry.js`, `operator/operatorNarrativeSurface.js`,
  * narrative LLM orchestrator in app layer.
  */
 
 import { COMPONENT_IDS } from '../../contracts/componentIds.js';
-import { buildRefKey } from '../narrativeGrounding/signalRefRegistry.js';
+import { buildRefKey } from './signalRefRegistry.js';
+
+/**
+ * @param {object[]} claims
+ * @param {'signal_refs'|'evidence_refs'} primaryRefKey Preferred refs field; the other is fallback.
+ * @returns {object[]}
+ */
+function normalizeClaims(claims, primaryRefKey) {
+  const fallbackRefKey = primaryRefKey === 'signal_refs' ? 'evidence_refs' : 'signal_refs';
+  return claims
+    .filter((c) => c?.text && (c[primaryRefKey] ?? c[fallbackRefKey] ?? []).length > 0)
+    .map((c) => ({
+      text: String(c.text),
+      signal_refs: [...(c[primaryRefKey] ?? c[fallbackRefKey] ?? [])],
+      relation: c.relation ?? 'parallel',
+    }));
+}
 
 /**
  * Normalize agent assessment claims to narrative_claims shape.
@@ -23,25 +39,12 @@ import { buildRefKey } from '../narrativeGrounding/signalRefRegistry.js';
 export function agentClaimsForComponent(comp) {
   const fromNarrativeClaims = comp?.narrative_claims;
   if (Array.isArray(fromNarrativeClaims) && fromNarrativeClaims.length > 0) {
-    return fromNarrativeClaims
-      .filter((c) => c?.text && (c.signal_refs ?? c.evidence_refs ?? []).length > 0)
-      .map((c) => ({
-        text: String(c.text),
-        signal_refs: [...(c.signal_refs ?? c.evidence_refs ?? [])],
-        relation: c.relation ?? 'parallel',
-      }));
+    return normalizeClaims(fromNarrativeClaims, 'signal_refs');
   }
 
   const fromClaims = comp?.claims;
   if (!Array.isArray(fromClaims)) return [];
-
-  return fromClaims
-    .filter((c) => c?.text && (c.evidence_refs ?? c.signal_refs ?? []).length > 0)
-    .map((c) => ({
-      text: String(c.text),
-      signal_refs: [...(c.evidence_refs ?? c.signal_refs ?? [])],
-      relation: c.relation ?? 'parallel',
-    }));
+  return normalizeClaims(fromClaims, 'evidence_refs');
 }
 
 function claimDedupeKey(claim) {
@@ -97,11 +100,10 @@ export function mergeAgentClaimsWithFacts(assessment, factsByComponent) {
 
 /**
  * Deterministic one-line claims from digest signals (degrade level 3+).
- * @param {Record<string, object>} narrativeScored
  * @param {{ byComponent: Record<string, Array<{ ref: string, signal: object }>> }} registry
  * @returns {Record<string, object[]>}
  */
-export function buildDigestStubClaims(narrativeScored, registry) {
+export function buildDigestStubClaims(registry) {
   const byComponent = {};
   for (const componentId of COMPONENT_IDS) {
     const entries = registry?.byComponent?.[componentId] ?? [];
@@ -132,7 +134,7 @@ export function buildDigestStubClaims(narrativeScored, registry) {
  */
 export function supplementFactsWithDigestStubs(factsByComponent, registry, opts = {}) {
   const maxClaims = opts.maxClaimsPerComponent ?? 8;
-  const stubs = buildDigestStubClaims(null, registry);
+  const stubs = buildDigestStubClaims(registry);
   const out = factsByComponent ? { ...factsByComponent } : {};
 
   for (const componentId of COMPONENT_IDS) {

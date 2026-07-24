@@ -224,15 +224,21 @@ function applyNationalContextCap(sorted, totalCap, perDayCap) {
 // ── National / regional context selection ─────────────────────────────────────
 
 /**
- * Select scope-excluded national press/macro context for regional reports.
+ * Shared select for capped, deduped scope-excluded context signals.
  *
- * @param {object[]} allSignals
- * @param {string} reportScopeId
- * @param {Set<string>} scopedKeys
- * @param {{ cap?: number, perDayCap?: number|null }} [opts]
+ * @param {object} params
+ * @param {object[]} params.allSignals
+ * @param {string} params.reportScopeId
+ * @param {Set<string>} params.scopedKeys
+ * @param {{ cap?: number, perDayCap?: number|null }} params.opts
+ * @param {(signal: object) => boolean} params.isCandidate
+ * @param {(candidates: object[]) => object[]} params.sortCandidates
+ * @param {string} params.provenance
  * @returns {object[]}
  */
-export function selectNarrativeNationalContext(allSignals, reportScopeId, scopedKeys, opts = {}) {
+function selectContextSignals({
+  allSignals, reportScopeId, scopedKeys, opts, isCandidate, sortCandidates, provenance,
+}) {
   if (!isRegionalReportScope(reportScopeId)) return [];
 
   const perDayCap = opts.perDayCap ?? narrativeNationalCapPerDay();
@@ -246,21 +252,42 @@ export function selectNarrativeNationalContext(allSignals, reportScopeId, scoped
     if (!s || typeof s !== 'object') continue;
     const key = signalDedupeKey(s);
     if (seen.has(key)) continue;
-    if (nationalContextTier(s, reportScopeId) < 0) continue;
-    if (isExcludedNationalContextSignalType(s)) continue;
+    if (!isCandidate(s)) continue;
     seen.add(key);
     candidates.push(s);
   }
 
-  const sorted = sortNationalContextCandidates(candidates, reportScopeId);
+  const sorted = sortCandidates(candidates);
   const picked = applyNationalContextCap(sorted, effectiveTotalCap, perDayCap);
 
   return picked.map((s) => ({
     ...s,
-    signalProvenance: SIGNAL_PROVENANCE.narrative_national_context,
+    signalProvenance: provenance,
     metricsEligible: false,
     narrativeContextOnly: true,
   }));
+}
+
+/**
+ * Select scope-excluded national press/macro context for regional reports.
+ *
+ * @param {object[]} allSignals
+ * @param {string} reportScopeId
+ * @param {Set<string>} scopedKeys
+ * @param {{ cap?: number, perDayCap?: number|null }} [opts]
+ * @returns {object[]}
+ */
+export function selectNarrativeNationalContext(allSignals, reportScopeId, scopedKeys, opts = {}) {
+  return selectContextSignals({
+    allSignals,
+    reportScopeId,
+    scopedKeys,
+    opts,
+    isCandidate: (s) => nationalContextTier(s, reportScopeId) >= 0
+      && !isExcludedNationalContextSignalType(s),
+    sortCandidates: (candidates) => sortNationalContextCandidates(candidates, reportScopeId),
+    provenance: SIGNAL_PROVENANCE.narrative_national_context,
+  });
 }
 
 /**
@@ -272,33 +299,15 @@ export function selectNarrativeNationalContext(allSignals, reportScopeId, scoped
  * @returns {object[]}
  */
 export function selectRegionalPressContext(allSignals, reportScopeId, scopedKeys, opts = {}) {
-  if (!isRegionalReportScope(reportScopeId)) return [];
-
-  const perDayCap = opts.perDayCap ?? narrativeNationalCapPerDay();
-  const totalCap = opts.cap ?? narrativeNationalCap();
-  const effectiveTotalCap = perDayCap ? Math.min(200, perDayCap * 7) : totalCap;
-
-  const candidates = [];
-  const seen = new Set(scopedKeys);
-
-  for (const s of allSignals ?? []) {
-    if (!s || typeof s !== 'object') continue;
-    const key = signalDedupeKey(s);
-    if (seen.has(key)) continue;
-    if (!isRegionalPressContextCandidate(s, reportScopeId)) continue;
-    seen.add(key);
-    candidates.push(s);
-  }
-
-  const sorted = sortRegionalPressCandidates(candidates);
-  const picked = applyNationalContextCap(sorted, effectiveTotalCap, perDayCap);
-
-  return picked.map((s) => ({
-    ...s,
-    signalProvenance: SIGNAL_PROVENANCE.regional_press_context,
-    metricsEligible: false,
-    narrativeContextOnly: true,
-  }));
+  return selectContextSignals({
+    allSignals,
+    reportScopeId,
+    scopedKeys,
+    opts,
+    isCandidate: (s) => isRegionalPressContextCandidate(s, reportScopeId),
+    sortCandidates: sortRegionalPressCandidates,
+    provenance: SIGNAL_PROVENANCE.regional_press_context,
+  });
 }
 
 // ── Scope merge and persistence helpers ───────────────────────────────────────

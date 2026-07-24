@@ -70,6 +70,7 @@ export {
   resilienceCapturesDir,
   resilienceAuditsDir,
   epistemicProfilesDir,
+  divergenceArtifactPath,
 } from './domain/services/paths/outputDirs.js';
 export { resolveRepoRoot as resolveResilienceRepoRoot } from './domain/services/paths/repoRoot.js';
 export {
@@ -163,7 +164,7 @@ export {
   scoreTextGrounding,
   computeGroundingScores,
 } from './domain/services/narrativeGrounding/sentenceGroundingChecker.js';
-export { buildSignalRefRegistry } from './domain/services/narrativeGrounding/signalRefRegistry.js';
+export { buildSignalRefRegistry } from './domain/services/narrative/signalRefRegistry.js';
 export {
   resolveNarrativePipelineMode,
   hybridNarrativeEnabled,
