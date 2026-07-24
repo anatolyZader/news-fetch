@@ -221,6 +221,64 @@ function buildOneComponent(items, componentId, samplingStatus) {
   };
 }
 
+// --- Cross-component overlap ---
+/** Presentation cap for the shared-articles list (annotation uses the uncapped sets). */
+const MAX_SHARED_ARTICLES = 12;
+
+/**
+ * Articles whose PRIMARY evidence feeds 2+ components. One article routed to
+ * three components must read as shared coverage, not three independent
+ * corroborations — this makes that visible.
+ *
+ * @param {Record<string, Array<{signal: object}>>} primaryItemsByComponent
+ * @returns {{
+ *   summary: { shared_articles: Array<{article_key: string|number, components: string[], signal_count: number}>, shared_article_total: number, components_involved: string[] },
+ *   sharedKeysByComponent: Map<string, Set<string|number>>,
+ * }}
+ */
+function deriveCrossComponentOverlap(primaryItemsByComponent) {
+  const byArticle = new Map();
+  for (const [componentId, items] of Object.entries(primaryItemsByComponent)) {
+    for (const it of items) {
+      const key = articleKeyForSignal(it.signal);
+      if (key == null) continue;
+      const entry = byArticle.get(key) ?? { components: new Set(), signal_count: 0 };
+      entry.components.add(componentId);
+      entry.signal_count += 1;
+      byArticle.set(key, entry);
+    }
+  }
+
+  const shared = [...byArticle.entries()]
+    .filter(([, e]) => e.components.size >= 2)
+    .sort(([ka, a], [kb, b]) => (b.components.size - a.components.size)
+      || (b.signal_count - a.signal_count)
+      || String(ka).localeCompare(String(kb)));
+
+  const sharedKeysByComponent = new Map();
+  const componentsInvolved = new Set();
+  for (const [key, entry] of shared) {
+    for (const id of entry.components) {
+      componentsInvolved.add(id);
+      if (!sharedKeysByComponent.has(id)) sharedKeysByComponent.set(id, new Set());
+      sharedKeysByComponent.get(id).add(key);
+    }
+  }
+
+  return {
+    summary: {
+      shared_articles: shared.slice(0, MAX_SHARED_ARTICLES).map(([article_key, e]) => ({
+        article_key,
+        components: [...e.components].sort(),
+        signal_count: e.signal_count,
+      })),
+      shared_article_total: shared.length,
+      components_involved: [...componentsInvolved].sort(),
+    },
+    sharedKeysByComponent,
+  };
+}
+
 /**
  * Build the per-component evidence map for a batch of signals.
  * Iterates all COMPONENT_IDS so every component appears even with zero signals.
@@ -228,14 +286,29 @@ function buildOneComponent(items, componentId, samplingStatus) {
  * @param {Array<object>} signals metrics-eligible, scope-partitioned signals
  * @param {object} [ctx]
  * @param {string} [ctx.samplingStatus] 'normal'|'degraded'|'field_anchor_only'|'blind'
- * @returns {{ by_component: Record<string, object> }}
+ * @returns {{ by_component: Record<string, object>, cross_component_overlap: object }}
  */
 export function buildComponentEvidence(signals, ctx = {}) {
   const samplingStatus = ctx.samplingStatus ?? 'normal';
   const by_component = {};
+  const primaryItemsByComponent = {};
   for (const id of COMPONENT_IDS) {
     const { items } = collectComponentSignals(id, signals);
     by_component[id] = buildOneComponent(items, id, samplingStatus);
+    primaryItemsByComponent[id] = items.filter((it) => it.role !== 'inferred');
   }
-  return { by_component };
+
+  const { summary, sharedKeysByComponent } = deriveCrossComponentOverlap(primaryItemsByComponent);
+  for (const id of COMPONENT_IDS) {
+    const basis = by_component[id].evidence_basis;
+    const sharedCount = sharedKeysByComponent.get(id)?.size ?? 0;
+    basis.shared_primary_articles = {
+      count: sharedCount,
+      share: basis.distinct_articles > 0
+        ? Math.round((sharedCount / basis.distinct_articles) * 100) / 100
+        : null,
+    };
+  }
+
+  return { by_component, cross_component_overlap: summary };
 }

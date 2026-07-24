@@ -51,5 +51,6 @@ export function compactEpistemicSlice(compEp) {
     delta: compEp?.delta_significance ?? null,
     media_mention_mass: compEp?.media_mention_mass ?? 0,
     dominance: warnings[0]?.message ?? null,
+    constructs: compEp?.construct_role_mix ?? null,
   };
 }

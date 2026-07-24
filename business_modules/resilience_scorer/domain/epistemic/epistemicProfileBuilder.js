@@ -37,20 +37,40 @@ const POLARIZATION_BAND_BY_BALANCE = {
 
 // --- Per-component profile assembly ---
 
+/** Shared-article share above which cross-component agreement warrants a warning. */
+const SHARED_ARTICLE_WARNING_SHARE = 0.75;
+/** Minimum article base for the shared-article warning (thin components already carry their own caveat). */
+const SHARED_ARTICLE_WARNING_MIN_ARTICLES = 3;
+
 /**
- * Turn evidence_basis.concentration_warning into human-readable dominance warnings.
+ * Turn evidence_basis.concentration_warning and shared-article overlap into
+ * human-readable dominance warnings.
  * @param {object} basis — component evidence_basis object
  * @returns {Array<{ layer: string, key: string, share: number, message: string }>}
  */
 function dominanceWarnings(basis) {
+  const out = [];
   const w = basis.concentration_warning;
-  if (!w) return [];
-  return [{
-    layer: w.layer,
-    key: w.key,
-    share: w.share,
-    message: `${w.layer} "${w.key}" holds ${Math.round(w.share * 100)}% of this component's signals`,
-  }];
+  if (w) {
+    out.push({
+      layer: w.layer,
+      key: w.key,
+      share: w.share,
+      message: `${w.layer} "${w.key}" holds ${Math.round(w.share * 100)}% of this component's signals`,
+    });
+  }
+  const sp = basis.shared_primary_articles;
+  if (sp?.share != null
+    && sp.share >= SHARED_ARTICLE_WARNING_SHARE
+    && (basis.distinct_articles ?? 0) >= SHARED_ARTICLE_WARNING_MIN_ARTICLES) {
+    out.push({
+      layer: 'cross_component_articles',
+      key: 'shared',
+      share: sp.share,
+      message: `${Math.round(sp.share * 100)}% of this component's articles also feed other components — cross-component agreement may be the same coverage repeated, not independent corroboration`,
+    });
+  }
+  return out;
 }
 
 /**
@@ -125,7 +145,10 @@ function profileFromEvidence(ev) {
  * }}
  */
 export function computeEpistemicProfile(signals, ctx = {}) {
-  const { by_component: evidence } = buildComponentEvidence(signals ?? []);
+  // Reuse the stage runner's precomputed evidence when provided (avoids a
+  // second buildComponentEvidence pass); standalone callers compute inline.
+  const { by_component: evidence, cross_component_overlap } =
+    ctx.componentEvidence ?? buildComponentEvidence(signals ?? []);
 
   const byComponent = {};
   for (const id of COMPONENT_IDS) {
@@ -139,6 +162,7 @@ export function computeEpistemicProfile(signals, ctx = {}) {
     schema_version: '2.0',
     report_date: ctx.reportDate ?? null,
     by_component: byComponent,
+    cross_component_overlap: cross_component_overlap ?? null,
     retrieval_policies: buildRetrievalPolicies(byComponent),
     assessment_epistemic: {
       ...ctx.assessmentEpistemic,

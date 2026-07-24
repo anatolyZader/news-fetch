@@ -79,4 +79,25 @@ describe('synthesizerAgent prompts', () => {
     const without = buildSynthesizerSystem(assessments, epistemicProfile);
     assert.ok(!without.dynamic.includes('EXPOSURE CONTEXT'));
   });
+
+  it('renders cross-component overlap block when present, omits when empty', () => {
+    delete process.env.RESILIENCE_ASSESS_SLIM_SYNTH;
+    const withOverlap = {
+      ...epistemicProfile,
+      cross_component_overlap: {
+        shared_articles: [{ article_key: 'https://x/1', components: ['leadership', 'community_capital'], signal_count: 3 }],
+        shared_article_total: 1,
+        components_involved: ['leadership', 'community_capital'],
+      },
+    };
+    const system = buildSynthesizerSystem(assessments, withOverlap);
+    assert.ok(system.dynamic.includes('CROSS-COMPONENT ARTICLE OVERLAP'));
+    assert.ok(system.dynamic.includes('shared coverage, not independent corroboration'));
+
+    const empty = buildSynthesizerSystem(assessments, {
+      ...epistemicProfile,
+      cross_component_overlap: { shared_articles: [], shared_article_total: 0, components_involved: [] },
+    });
+    assert.ok(!empty.dynamic.includes('CROSS-COMPONENT ARTICLE OVERLAP'));
+  });
 });

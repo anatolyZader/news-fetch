@@ -6,6 +6,7 @@
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { summarizeConfidence } from '../domain/services/signals/confidenceLabels.js';
 import { COMPONENTS_TABLE_HELP_MARKDOWN } from '../domain/contracts/componentsTableGlossary.js';
+import { CONSTRUCT_ROLES } from '../domain/contracts/signalCatalog.js';
 
 const COMPONENT_MAP = Object.fromEntries(RESILIENCE_COMPONENTS.map((c) => [c.id, c]));
 
@@ -28,6 +29,15 @@ function balanceLabel(basis) {
 function sourceMixLabel(basis) {
   const mix = basis?.source_mix ?? {};
   const parts = Object.entries(mix).map(([k, n]) => `${k}: ${n}`);
+  return parts.length ? parts.join(', ') : '—';
+}
+
+/** Construct-role histogram in canonical story-arc order; unknown keys dropped. */
+function constructMixLabel(basis) {
+  const mix = basis?.construct_role_mix ?? {};
+  const parts = CONSTRUCT_ROLES
+    .filter((role) => mix[role] > 0)
+    .map((role) => `${role.replaceAll('_', ' ')}: ${mix[role]}`);
   return parts.length ? parts.join(', ') : '—';
 }
 
@@ -72,7 +82,7 @@ function appendComponentMetrics(lines, comp, assessment, evidenceDirection) {
 
   lines.push(
     `**Assessment reliability:** ${summarizeConfidence(comp.confidence)} *(based on how much evidence was found and how broadly it appears across the sample)*`,
-    `**Evidence base:** ${comp.signal_count ?? 0} behavioral signals in ${articleCoverage} articles *(sufficiency: ${sufficiencyLabel(basis)}; source mix — ${sourceMixLabel(basis)})* | **Evidence direction:** ${evidenceDirection(basis.positive_count, basis.negative_count)}`,
+    `**Evidence base:** ${comp.signal_count ?? 0} behavioral signals in ${articleCoverage} articles *(sufficiency: ${sufficiencyLabel(basis)}; source mix — ${sourceMixLabel(basis)}; constructs — ${constructMixLabel(basis)})* | **Evidence direction:** ${evidenceDirection(basis.positive_count, basis.negative_count)}`,
   );
 }
 

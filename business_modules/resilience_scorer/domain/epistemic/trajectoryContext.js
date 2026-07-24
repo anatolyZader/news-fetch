@@ -2,11 +2,11 @@
  * Trajectory context — count-free day-over-day band comparison per component.
  *
  * Pipeline position: assess — computed in the stage runner from current
- * component evidence bands vs the most recent usable prior daily report
- * (infrastructure/reportHistoryReader loadPriorReports). Resilience is a
- * trajectory, not a snapshot: the label says whether a component's evidence
- * picture is improving, stable, or deteriorating relative to yesterday —
- * it never claims a resilience level.
+ * component evidence bands vs the most recent usable prior daily report of the
+ * SAME scope (infrastructure/reportHistoryReader loadPriorReports). Resilience
+ * is a trajectory, not a snapshot: the label says whether a component's
+ * evidence picture is improving, stable, or deteriorating relative to
+ * yesterday — it never claims a resilience level.
  *
  * Owns: TRAJECTORY_LABELS and deriveComponentTrajectories (pure).
  * Does NOT: read the filesystem, score, or smooth (no EWMA — min-math).

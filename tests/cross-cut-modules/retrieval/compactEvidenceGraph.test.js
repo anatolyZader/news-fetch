@@ -52,4 +52,13 @@ describe('compactEvidenceGraph', () => {
     assert.equal(out.contested, true);
     assert.equal(out.dominance, 'news dominates');
   });
+
+  it('compactEpistemicSlice carries construct_role_mix as constructs', () => {
+    const out = compactEpistemicSlice({
+      evidence_mass: 3,
+      construct_role_mix: { pressure: 2, response: 1 },
+    });
+    assert.deepEqual(out.constructs, { pressure: 2, response: 1 });
+    assert.equal(compactEpistemicSlice({}).constructs, null);
+  });
 });

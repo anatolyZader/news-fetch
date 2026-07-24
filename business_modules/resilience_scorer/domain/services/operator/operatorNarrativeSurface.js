@@ -34,7 +34,7 @@ import {
 } from '../../contracts/inlineCitationResolve.js';
 import { formatApaCitationDate } from '../../contracts/apaCitationFormat.js';
 import { buildDeterministicNarrativeFromClaims } from './operatorInvestigationSurface.js';
-import { getRoutingRole } from '../signals/routing/signalRouter.js';
+import { canonicalizeSignalType, getRoutingRole, getSignalCatalogEntry } from '../signals/routing/signalRouter.js';
 import {
   formatEvidenceBullet,
   isRichSurfaceMode,
@@ -360,6 +360,9 @@ function structuredItemFromSignal(signal, fallbackText, refOverride = null, comp
     url: meta.url,
     signal_type: signalType,
     routing_role: componentId && signalType ? getRoutingRole(signalType, componentId) : null,
+    construct_role: signalType
+      ? (getSignalCatalogEntry(canonicalizeSignalType(signalType))?.construct_role ?? null)
+      : null,
   };
   item.markdown = `${formatEvidenceBullet(text, meta.url)}${routingLabelSuffix(item)}`;
   return item;

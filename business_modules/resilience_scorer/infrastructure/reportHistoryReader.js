@@ -91,15 +91,18 @@ function daysAgoIso(days) {
  */
 /**
  * Load the prior n days' assessment objects (newest last) for trajectory
- * comparison. National-scope only (v1 limitation) — regional callers should
- * pass an empty prior list. Injectable reportsDir keeps tests hermetic.
+ * comparison. Scope-isolated: only prior reports of the SAME scope match (the
+ * filename scope slug filters inside listReportJsonFilenamesForDate), so a
+ * north report never compares against a national baseline. Injectable
+ * reportsDir keeps tests hermetic.
  *
  * @param {string} targetDate YYYY-MM-DD report date
  * @param {number} [n=2] how many days back to look
  * @param {string} [reportsDir] absolute reports dir
+ * @param {string} [scopeId='national'] report scope to match
  * @returns {Array<object>} prior report `assessment` objects, oldest first
  */
-export function loadPriorReports(targetDate, n = 2, reportsDir = resilienceReportsDir()) {
+export function loadPriorReports(targetDate, n = 2, reportsDir = resilienceReportsDir(), scopeId = 'national') {
   if (!existsSync(reportsDir)) return [];
   const prior = [];
   const d = new Date(targetDate);
@@ -107,7 +110,7 @@ export function loadPriorReports(targetDate, n = 2, reportsDir = resilienceRepor
     const p = new Date(d);
     p.setDate(d.getDate() - i);
     const pd = p.toISOString().slice(0, 10);
-    const matches = listReportJsonFilenamesForDate(reportsDir, pd, 'national');
+    const matches = listReportJsonFilenamesForDate(reportsDir, pd, scopeId);
     const match = [...matches].sort((a, b) => a.localeCompare(b)).at(-1);
     if (match) {
       try {

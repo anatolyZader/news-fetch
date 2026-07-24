@@ -17,6 +17,7 @@ import {
   operatorEvidenceChars,
 } from '../../contracts/operatorSurfaceMode.js';
 import { buildRefKey } from '../narrative/signalRefRegistry.js';
+import { CONSTRUCT_ROLES } from '../../contracts/signalCatalog.js';
 
 const MAX_EVIDENCE_LINE_CHARS = 480;
 const SIGNAL_REF_TRAILING = /\s*(?:\[S\d+\])+\s*$/;
@@ -244,10 +245,11 @@ export function formatEvidenceBullet(text, url) {
  */
 export function routingLabelSuffix(item) {
   if (!item?.signal_type) return '';
+  const construct = item.construct_role ? ` · ${item.construct_role}` : '';
   // Fail-closed: a null routing_role (unrouted type/component pair) shows the
   // type alone rather than masquerading as primary.
-  if (item.routing_role == null) return ` \`${item.signal_type}\``;
-  return ` \`${item.signal_type} · ${item.routing_role}\``;
+  if (item.routing_role == null) return ` \`${item.signal_type}${construct}\``;
+  return ` \`${item.signal_type} · ${item.routing_role}${construct}\``;
 }
 
 // ── Pool rendering ────────────────────────────────────────────────────────────
@@ -273,5 +275,37 @@ export function comparePoolItems(a, b) {
   const aInferred = a?.routing_role === 'inferred';
   const bInferred = b?.routing_role === 'inferred';
   if (aInferred !== bInferred) return aInferred ? 1 : -1;
+  return (b?.contribution ?? 0) - (a?.contribution ?? 0);
+}
+
+const CONSTRUCT_ORDER_INDEX = new Map(CONSTRUCT_ROLES.map((role, i) => [role, i]));
+
+/**
+ * Analytical story-arc position of a construct role (pressure first, framing
+ * last); null/unknown roles sort after all known ones.
+ *
+ * @param {string|null|undefined} role
+ * @returns {number}
+ */
+export function constructOrderIndex(role) {
+  return CONSTRUCT_ORDER_INDEX.get(role) ?? CONSTRUCT_ROLES.length;
+}
+
+/**
+ * DISPLAY order for already-selected highlight bullets: inferred last, then the
+ * construct-role story arc, then contribution. Selection must keep using
+ * comparePoolItems — ranking by construct there would bias per-source top-N
+ * toward pressure constructs instead of strongest contribution.
+ *
+ * @param {{ routing_role?: string, construct_role?: string|null, contribution?: number }} a
+ * @param {{ routing_role?: string, construct_role?: string|null, contribution?: number }} b
+ * @returns {number}
+ */
+export function comparePoolItemsForDisplay(a, b) {
+  const aInferred = a?.routing_role === 'inferred';
+  const bInferred = b?.routing_role === 'inferred';
+  if (aInferred !== bInferred) return aInferred ? 1 : -1;
+  const byConstruct = constructOrderIndex(a?.construct_role) - constructOrderIndex(b?.construct_role);
+  if (byConstruct !== 0) return byConstruct;
   return (b?.contribution ?? 0) - (a?.contribution ?? 0);
 }

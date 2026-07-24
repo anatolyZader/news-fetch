@@ -26,11 +26,17 @@ import { contributorRankKey } from './topContributors.js';
 import {
   canonicalizeSignalType,
   getRoutingRole,
+  getSignalCatalogEntry,
   isPrimaryEdge,
 } from '../signals/routing/signalRouter.js';
 import { SIGNAL_PROVENANCE } from '../signals/evidenceEligibility.js';
 import { buildRefKey } from '../narrative/signalRefRegistry.js';
-import { comparePoolItems, inferredPoolRenderMode, routingLabelSuffix } from './evidenceFormatting.js';
+import {
+  comparePoolItems,
+  comparePoolItemsForDisplay,
+  inferredPoolRenderMode,
+  routingLabelSuffix,
+} from './evidenceFormatting.js';
 
 const CONTEXT_PROVENANCES = new Set([
   SIGNAL_PROVENANCE.macro_national,
@@ -111,6 +117,7 @@ export function poolItemFromSignal(signal, role, maxChars, componentId) {
     signal_provenance: signal?.signalProvenance ?? null,
     signal_type: signalType,
     routing_role: componentId && signalType ? getRoutingRole(signalType, componentId) : null,
+    construct_role: signalType ? (getSignalCatalogEntry(signalType)?.construct_role ?? null) : null,
   };
 }
 
@@ -196,7 +203,10 @@ export function buildHighlightedEvidenceFromPool(pool) {
       ? items.filter((item) => item.routing_role !== 'inferred')
       : items;
     const sorted = [...eligible].sort(comparePoolItems);
-    for (const item of sorted.slice(0, perSource)) {
+    // Selection stays contribution-ranked (comparePoolItems); only the picked
+    // slice is re-ordered for display along the construct-role story arc.
+    const picked = sorted.slice(0, perSource).sort(comparePoolItemsForDisplay);
+    for (const item of picked) {
       const rest = stripContributionField(item);
       const url = item.url;
       const base = url ? `- ${item.evidence} [source](${url})` : `- ${item.evidence}`;

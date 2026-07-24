@@ -19,6 +19,8 @@ import {
 } from '../../../../../business_modules/resilience_scorer/domain/services/operator/operatorInvestigationSurface.js';
 import {
   comparePoolItems,
+  comparePoolItemsForDisplay,
+  constructOrderIndex,
   inferredPoolRenderMode,
   routingLabelSuffix,
 } from '../../../../../business_modules/resilience_scorer/domain/services/operator/evidenceFormatting.js';
@@ -285,8 +287,8 @@ describe('routing rationale on evidence items', () => {
     const distressItems = buildHighlightedEvidenceFromPool(distressPool);
     const help = items.find((i) => i.signal_type === 'solidarity_help_others');
     const distress = distressItems.find((i) => i.signal_type === 'psychological_distress');
-    assert.ok(help.markdown.endsWith('`solidarity_help_others · primary`'));
-    assert.ok(distress.markdown.includes('`psychological_distress · primary`'));
+    assert.ok(help.markdown.endsWith('`solidarity_help_others · primary · response`'));
+    assert.ok(distress.markdown.includes('`psychological_distress · primary · population_state`'));
     assert.ok(help.markdown.includes('[source](https://example.com/help)'));
     assert.ok(help.markdown.indexOf('[source]') < help.markdown.indexOf('`solidarity'));
   });
@@ -310,6 +312,52 @@ describe('routing rationale on evidence items', () => {
     assert.equal(pool.length, 2);
   });
 
+  it('pool items carry construct_role from the catalog', () => {
+    const pool = poolFor('wellbeing_at_risk', [distressSignal]);
+    assert.equal(pool[0].construct_role, 'population_state');
+    const helpPool = poolFor('belonging_solidarity', [helpSignal]);
+    assert.equal(helpPool[0].construct_role, 'response');
+  });
+
+  it('comparePoolItemsForDisplay orders inferred-last, then construct story arc, then contribution', () => {
+    assert.ok(constructOrderIndex('pressure') < constructOrderIndex('response'));
+    assert.ok(constructOrderIndex('outcome') < constructOrderIndex('narrative_frame'));
+    assert.ok(constructOrderIndex(null) > constructOrderIndex('narrative_frame'));
+
+    // Construct order dominates contribution among same-routing items...
+    assert.ok(comparePoolItemsForDisplay(
+      { routing_role: 'primary', construct_role: 'pressure', contribution: 0.1 },
+      { routing_role: 'primary', construct_role: 'response', contribution: 9 },
+    ) < 0);
+    // ...but inferred still sorts last regardless of construct.
+    assert.ok(comparePoolItemsForDisplay(
+      { routing_role: 'inferred', construct_role: 'pressure', contribution: 9 },
+      { routing_role: 'primary', construct_role: 'narrative_frame', contribution: 0.1 },
+    ) > 0);
+    // Contribution breaks construct ties.
+    assert.ok(comparePoolItemsForDisplay(
+      { routing_role: 'primary', construct_role: 'response', contribution: 5 },
+      { routing_role: 'primary', construct_role: 'response', contribution: 1 },
+    ) < 0);
+  });
+
+  it('highlight bullets within a source bucket follow the construct story arc; selection stays contribution-based', () => {
+    // harm_to_population = pressure, psychological_distress = population_state:
+    // pressure must render first even though distress could outrank on contribution.
+    const harmSignal = {
+      signal_type: 'harm_to_population',
+      source_type: 'news',
+      article_url: 'https://example.com/harm',
+      evidence: 'עשרה תושבים נפצעו בפגיעה ישירה.',
+      metricsEligible: true,
+    };
+    const pool = poolFor('wellbeing_at_risk', [distressSignal, harmSignal]);
+    const items = buildHighlightedEvidenceFromPool(pool);
+    const types = items.map((i) => i.signal_type);
+    assert.deepEqual(types, ['harm_to_population', 'psychological_distress']);
+    assert.ok(items[0].markdown.includes('· pressure`'));
+  });
+
   it('alias-typed signals (stored legacy bundles) reach the pool canonicalized', () => {
     const aliasSignal = {
       signal_type: 'leadership_visible_present', // legacy alias of leadership_visible_presence
@@ -330,6 +378,12 @@ describe('routing rationale on evidence items', () => {
     assert.equal(routingLabelSuffix({ signal_type: 'x' }), ' `x`');
     assert.equal(routingLabelSuffix({ signal_type: 'x', routing_role: 'primary' }), ' `x · primary`');
     assert.equal(routingLabelSuffix({ signal_type: 'x', routing_role: 'inferred' }), ' `x · inferred`');
+    // construct_role appended inside the same directionally-safe code-span.
+    assert.equal(
+      routingLabelSuffix({ signal_type: 'x', routing_role: 'primary', construct_role: 'population_state' }),
+      ' `x · primary · population_state`',
+    );
+    assert.equal(routingLabelSuffix({ signal_type: 'x', construct_role: 'pressure' }), ' `x · pressure`');
     assert.ok(comparePoolItems(
       { routing_role: 'primary', contribution: 0.1 },
       { routing_role: 'inferred', contribution: 9 },

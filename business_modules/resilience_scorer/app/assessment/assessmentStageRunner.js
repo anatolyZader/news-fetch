@@ -136,6 +136,9 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
   if (ctx.trajectoryContext) {
     assessment.trajectory_context = ctx.trajectoryContext;
   }
+  if (ctx.crossComponentOverlap) {
+    assessment.cross_component_overlap = ctx.crossComponentOverlap;
+  }
   if (ctx.scopeAttribution) {
     assessment.scope_attribution = ctx.scopeAttribution;
   }
@@ -235,6 +238,7 @@ async function produceAssessmentForMode(ctx) {
     dailyBudgetExceeded,
     exposureContext,
     trajectoryContext,
+    componentEvidence,
   } = ctx;
 
   if (shouldUseRichDeterministicPath() || isClosedCoreAssessEnabled()) {
@@ -292,6 +296,7 @@ async function produceAssessmentForMode(ctx) {
     dailyBudgetExceeded,
     exposureContext,
     trajectoryContext,
+    componentEvidence,
   });
 
   await applyOperatorNarrativePipeline({
@@ -422,13 +427,13 @@ export async function runPostExtractionAssessmentCore(params) {
 
   // v10: daily exposure summary + day-over-day band trajectory. Computed here
   // (not finalizeReport) so both the CLI and service paths carry them, and the
-  // epistemic profile can stamp per-component delta_significance.
-  const priorAssessments = reportScopeId === ISRAEL_NATIONAL_DISTRICT_ID
-    ? loadPriorReports(reportDate, 2, reportsDir)
-    : [];
+  // epistemic profile can stamp per-component delta_significance. Scope-matched:
+  // prior reports are filtered to the same scope slug (national vs north etc.).
+  const priorAssessments = loadPriorReports(reportDate, 2, reportsDir, reportScopeId);
   const exposureContext = buildExposureContext(investigationSignals);
+  const componentEvidence = buildComponentEvidence(investigationSignals);
   const trajectoryContext = deriveComponentTrajectories(
-    bandsFromComponentEvidence(buildComponentEvidence(investigationSignals).by_component),
+    bandsFromComponentEvidence(componentEvidence.by_component),
     priorAssessments,
   );
 
@@ -488,6 +493,7 @@ export async function runPostExtractionAssessmentCore(params) {
     dailyBudgetExceeded,
     exposureContext,
     trajectoryContext,
+    componentEvidence,
   });
 
   const omissionAuditSummary = runOmissionAuditIfEnabled(
@@ -529,6 +535,7 @@ export async function runPostExtractionAssessmentCore(params) {
     omissionAuditSummary,
     exposureContext,
     trajectoryContext,
+    crossComponentOverlap: componentEvidence.cross_component_overlap,
   });
 
   if (shouldAttachBrief) {

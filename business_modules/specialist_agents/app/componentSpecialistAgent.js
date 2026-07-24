@@ -94,6 +94,7 @@ function buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, ass
     'When citing regional_press_context, prefix with "Regional press (not north-local scored evidence):". ' +
     'When citing national press, explain how national or homefront dynamics (shelter norms, economic spillover, leadership messaging, national mood) may affect northern residents; prefix such sentences with phrasing like "National press (not north-local evidence):" and include inline citations. ' +
     'If thin_evidence, set severity low and confidence low, still synthesize available investigation-pool signals with provisional caveats — abstain only when there are zero claims.\n' +
+    'Layer the narrative along the construct_role labels on signals when evidence allows: what pressure hit, what capacity and response followed, the resulting population and institutional state, observed outcomes, and how sources frame it — never invent a layer with no signals behind it.\n' +
     'For retrieval gaps, add attempted: entries when you tried to close them.\n' +
     compactHint +
     tierBHint +

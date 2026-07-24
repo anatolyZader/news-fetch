@@ -67,6 +67,7 @@ function buildEpistemicProfile(params) {
     totalArticles: params.scopedTotalArticles,
     reportDate: params.targetDate,
     mediaSignals: params.scopedSignals ?? investigationSignals,
+    componentEvidence: params.componentEvidence ?? null,
     exposureContext: params.exposureContext ?? null,
     trajectories: params.trajectoryContext?.by_component ?? null,
     assessmentEpistemic: {

@@ -91,6 +91,51 @@ describe('buildComponentEvidence (primary-only bands)', () => {
     assert.equal(by_component.wellbeing_at_risk.evidence_basis.sufficiency, 'thin');
   });
 
+  it('cross_component_overlap reports primary-shared articles; inferred edges create no sharing', () => {
+    // compliance_enter_shelter: lifesaving primary + leadership/belonging inferred.
+    // Same article also yields a wellbeing-primary distress signal → shared 2 ways.
+    const sharedArticle = 'https://example.com/one-event';
+    const signals = [
+      { signal_type: 'compliance_enter_shelter', source_type: 'news', article_url: sharedArticle, evidence: 'shelter' },
+      { signal_type: 'psychological_distress', source_type: 'news', article_url: sharedArticle, evidence: 'distress' },
+      { signal_type: 'psychological_distress', source_type: 'radio', article_url: 'https://example.com/solo', evidence: 'distress2' },
+    ];
+    const { by_component, cross_component_overlap } = buildComponentEvidence(signals);
+
+    assert.equal(cross_component_overlap.shared_article_total, 1);
+    assert.deepEqual(cross_component_overlap.shared_articles, [{
+      article_key: sharedArticle,
+      components: ['lifesaving_behavior', 'wellbeing_at_risk'],
+      signal_count: 2,
+    }]);
+    assert.deepEqual(cross_component_overlap.components_involved, ['lifesaving_behavior', 'wellbeing_at_risk']);
+
+    // Inferred spillover (leadership) never counts as sharing.
+    assert.ok(!cross_component_overlap.components_involved.includes('leadership'));
+
+    // Per-component annotation: wellbeing has 2 articles, 1 shared.
+    assert.deepEqual(by_component.wellbeing_at_risk.evidence_basis.shared_primary_articles, { count: 1, share: 0.5 });
+    assert.deepEqual(by_component.lifesaving_behavior.evidence_basis.shared_primary_articles, { count: 1, share: 1 });
+    // Zero-article component: null share.
+    assert.deepEqual(by_component.narrative.evidence_basis.shared_primary_articles, { count: 0, share: null });
+  });
+
+  it('shared_articles list is capped but totals and annotation stay uncapped', () => {
+    // 15 articles, each contributing to both lifesaving (shelter) and wellbeing (distress).
+    const signals = [];
+    for (let i = 0; i < 15; i++) {
+      const url = `https://example.com/a${String(i).padStart(2, '0')}`;
+      signals.push(
+        { signal_type: 'compliance_enter_shelter', source_type: 'news', article_url: url, evidence: `s${i}` },
+        { signal_type: 'psychological_distress', source_type: 'news', article_url: url, evidence: `d${i}` },
+      );
+    }
+    const { by_component, cross_component_overlap } = buildComponentEvidence(signals);
+    assert.equal(cross_component_overlap.shared_articles.length, 12);
+    assert.equal(cross_component_overlap.shared_article_total, 15);
+    assert.deepEqual(by_component.wellbeing_at_risk.evidence_basis.shared_primary_articles, { count: 15, share: 1 });
+  });
+
   it('deriveSufficiency / deriveBalance still behave on raw counts', () => {
     assert.equal(deriveSufficiency({ signal_count: 0, distinct_articles: 0, source_type_count: 0 }), 'none');
     assert.equal(deriveSufficiency({ signal_count: 7, distinct_articles: 4, source_type_count: 3 }), 'adequate');

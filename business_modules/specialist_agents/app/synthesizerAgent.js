@@ -60,6 +60,11 @@ function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClust
     dynamic += `\n\nEXPOSURE CONTEXT (current-day stressor counts — frame the synthesis relative to this pressure):\n${JSON.stringify(exposure)}`;
   }
 
+  const overlap = epistemicProfile?.cross_component_overlap;
+  if (overlap?.shared_article_total) {
+    dynamic += `\n\nCROSS-COMPONENT ARTICLE OVERLAP (the same articles feed multiple components — treat cross-component agreement drawn from these as shared coverage, not independent corroboration):\n${JSON.stringify(overlap)}`;
+  }
+
   if (oovClusters.length) {
     dynamic += `\n\nOOV CLUSTERS (must mention in synthesis if material):\n${JSON.stringify(oovClusters.slice(0, 5), null, 2)}`;
   }
