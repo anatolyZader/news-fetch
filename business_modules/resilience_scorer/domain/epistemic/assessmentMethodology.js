@@ -203,6 +203,7 @@ export function buildAssessmentMethodology({
   scoringModelManifest = null,
   tuningProposal = null,
   extractionTelemetry = null,
+  loadHygiene = null,
 } = {}) {
   const scopeId = normalizeReportScopeId(reportScopeId);
 
@@ -221,6 +222,7 @@ export function buildAssessmentMethodology({
       default_north_source_types: [...DEFAULT_NORTH_SOURCE_TYPES],
       signal_district_scope_note: SIGNAL_DISTRICT_SCOPE_NOTE,
       scope_decision_summary: summarizeScopeDecisionSources(signals, { reportScopeId: scopeId }),
+      ...(loadHygiene?.total > 0 ? { load_hygiene: loadHygiene } : {}),
       ...(Array.isArray(signals) && signals.some((s) => s && 'geo' in s)
         ? { geo_quality_summary: summarizeGeoQuality(signals) }
         : {}),

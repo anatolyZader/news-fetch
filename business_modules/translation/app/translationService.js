@@ -195,6 +195,7 @@ async function translateSocialChunk(payload, lang, langName) {
   const message = await getDefaultLlmPort().createMessage({
     model: SONNET_MODEL,
     max_tokens: 8000,
+    callContext: { feature: 'translation', purpose: 'translation-social' },
     system,
     messages: [{
       role: 'user',

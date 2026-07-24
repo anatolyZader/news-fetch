@@ -65,6 +65,24 @@ const RITUAL_CONTINUITY_TYPES = new Set([
   'religious_coping_practice',
 ]);
 
+/** Distress-dominated narrative evidence: mislabeled as a positive resilience narrative. */
+const NARRATIVE_DISTRESS_PATTERNS = [
+  /מצב נפשי (?:גרוע|קשה|רע)/i,
+  /חולים נפשית|mentally ill/i,
+  /ייאוש|despair/i,
+  /פריפריה של הפריפריה|periphery of the periphery/i,
+  /תחושת נטישה|abandon(?:ed|ment)/i,
+  /מפחדים|פחד גדול|חרדה קשה/i,
+];
+
+/** Coping/endurance markers that legitimize a positive narrative despite hardship mentions. */
+const NARRATIVE_COPING_PATTERNS = [
+  /מתמודד|חוסן|ממשיכים|שגרה|נשמעים|הישמעות|מציית/i,
+  /סולידריות|לכידות|אמון|ערבות הדדית/i,
+  /נשארים|לא עוזבים|נלחמים על הבית/i,
+  /coping|resilien|solidarity|staying|not leaving/i,
+];
+
 /**
  * Evidence-driven type rewrite for known extract confusions (backbone gap →
  * coordination_failure; disrupted ritual framed as continuity → service_disruption).
@@ -90,7 +108,58 @@ export function rewriteMisclassifiedSignalType(signalType, evidence) {
     return 'service_disruption';
   }
 
+  // Polarity lint: distress-dominated evidence tagged as a positive narrative
+  // (e.g. "אנשים מדברים על מצב נפשי גרוע ומפחדים") flips a component's balance
+  // the wrong way. Rewrite only when no coping/endurance marker is present —
+  // "afraid but staying/coping" narratives legitimately stay positive.
+  if (
+    type === 'resilience_narrative_positive'
+    && testAny(NARRATIVE_DISTRESS_PATTERNS, text)
+    && !testAny(NARRATIVE_COPING_PATTERNS, text)
+  ) {
+    return 'resilience_narrative_negative';
+  }
+
   return type;
+}
+
+// --- Expected holiday closures ------------------------------------------------
+
+/** Disruption types that a scheduled school holiday can fully explain. */
+const HOLIDAY_NEUTRAL_DISRUPTION_TYPES = new Set([
+  'service_disruption',
+  'educational_disruption',
+  'routine_disruption',
+]);
+
+/** Closure/disruption attributed to a scheduled school holiday, not the emergency. */
+const HOLIDAY_CLOSURE_PATTERNS = [
+  /חופשת\s*ה?(?:אביב|פסח|חג|קיץ)/i,
+  /חופש(?:ה)?\s+גדול/i,
+  /יצאו לחופש/i,
+  /spring break|passover (?:break|holiday|vacation)|school (?:holiday|vacation)/i,
+];
+
+/** Emergency/conflict attribution — the disruption is NOT just the holiday. */
+const EMERGENCY_ATTRIBUTION_PATTERNS = [
+  /אזעק|טיל|רקט|כטב|יירוט|מלחמ|ביטחונ|חירום|מיגון|מקלט|ממ["״']?ד|פיקוד העורף|פקע["״']?ר|בגלל המצב|הסלמה/i,
+  /siren|missile|rocket|war|security situation|emergency|shelter|protected space/i,
+];
+
+/**
+ * True when a disruption signal is explained by a scheduled school holiday with
+ * no emergency attribution. Schools closing for Passover break is the expected
+ * calendar baseline — counting it as opposing continuity evidence manufactures
+ * a war-disruption story out of the season (2026-04-01 report confound).
+ * @param {object} signal
+ * @returns {boolean}
+ */
+export function isExpectedHolidayClosureSignal(signal) {
+  const type = resolveSignalTypeAlias(signal?.signal_type ?? signal?.type);
+  if (!HOLIDAY_NEUTRAL_DISRUPTION_TYPES.has(type)) return false;
+  const text = String(signal?.evidence ?? '');
+  if (!testAny(HOLIDAY_CLOSURE_PATTERNS, text)) return false;
+  return !testAny(EMERGENCY_ATTRIBUTION_PATTERNS, text);
 }
 
 /** Criminal / street violence — not war-emergency civilian resilience behavior. */
@@ -206,6 +275,7 @@ export function applySignalTypeHygiene(signals) {
   for (const signal of signals) {
     if (!signal || typeof signal !== 'object') continue;
     if (shouldDropNonResilienceCasualtySignal(signal)) continue;
+    if (isExpectedHolidayClosureSignal(signal)) continue;
     const prev = signal.signal_type ?? signal.type;
     const signalType = rewriteMisclassifiedSignalType(prev, signal.evidence);
     const rewritten = signalType === prev ? signal : { ...signal, signal_type: signalType, type: signalType };

@@ -45,6 +45,25 @@ describe('presenceGates — harm_wellbeing minIntensity regression', () => {
     assert.equal(result.signal_type, 'harm_to_population');
   });
 
+  it('non-conflict harm (apartment fire) does NOT trigger the harm_wellbeing gate', () => {
+    // The 2026-04-01 north report's critical flag was driven by a domestic
+    // apartment fire — tragic, but not a war-resilience critical failure.
+    const result = evaluatePresenceGates(COMPONENT, [harmItem({
+      intensity: 'severe',
+      evidence: 'A roughly 70-year-old woman was killed this morning in a fire in an apartment in Ma\'alot-Tarshiha.',
+    })]);
+    assert.equal(result.triggered, false);
+    assert.equal(result.rule_id, null);
+  });
+
+  it('Hebrew conflict-linked harm still triggers the harm_wellbeing gate', () => {
+    const result = evaluatePresenceGates(COMPONENT, [harmItem({
+      evidence: 'תושבת נפצעה מרסיס יירוט שנפל בחצר ביתה בעקבות האזעקה',
+    })]);
+    assert.equal(result.triggered, true);
+    assert.equal(result.rule_id, 'harm_wellbeing');
+  });
+
   it('ungrounded harm_to_population (no grounding_tier) does not trigger regardless of intensity', () => {
     const result = evaluatePresenceGates(COMPONENT, [
       harmItem({ intensity: 'severe', grounding_tier: undefined }),

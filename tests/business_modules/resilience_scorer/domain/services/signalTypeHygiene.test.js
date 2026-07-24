@@ -148,9 +148,22 @@ describe('signalTypeHygiene', () => {
     assert.equal(resolveSignalTypeAlias('compliance_enter_shelter'), 'compliance_enter_shelter');
   });
 
-  it('stripFieldReportScoreBlob removes avg score prefix', () => {
+  it('stripFieldReportScoreBlob removes avg score noise but keeps the municipality prefix', () => {
     const raw = '[אעבלין] נרטיב: avg=81% (100%, 75%) — מתמודדים ברובם';
-    assert.equal(stripFieldReportScoreBlob(raw), 'מתמודדים ברובם');
+    assert.equal(stripFieldReportScoreBlob(raw), '[אעבלין] מתמודדים ברובם');
+    assert.equal(
+      stripFieldReportScoreBlob('רציפות תפקודית avg=50% (0%, 100%) מלאה'),
+      'רציפות תפקודית מלאה',
+    );
+  });
+
+  it('isTrivialFieldReportEvidence flags abbreviation and irrelevance stubs', () => {
+    assert.equal(isTrivialFieldReportEvidence('לל"ש'), true);
+    assert.equal(isTrivialFieldReportEvidence('ללש'), true);
+    assert.equal(isTrivialFieldReportEvidence('לא רלוונטי'), true);
+    assert.equal(isTrivialFieldReportEvidence('ללא חריג'), true);
+    assert.equal(isTrivialFieldReportEvidence('[מגדל תפן] לא רלוונטי'), true);
+    assert.equal(isTrivialFieldReportEvidence('אין פערים במיצוי משאבי קהילה'), false);
   });
 
   it('rewriteMisclassifiedSignalType maps backbone gap away from abandonment perception', () => {
@@ -161,6 +174,55 @@ describe('signalTypeHygiene', () => {
     assert.equal(
       rewriteMisclassifiedSignalType('institutional_abandonment_perception', 'Residents say the state forgot us in the north'),
       'institutional_abandonment_perception',
+    );
+  });
+
+  it('drops disruption signals fully explained by a scheduled school holiday', () => {
+    // The ג'וליס case: spring-break school closure counted as opposing
+    // continuity evidence.
+    const holiday = {
+      signal_type: 'service_disruption',
+      evidence: 'הילדים בבית שוחררו לחופשת אביב מהלימודים אין אפשרות לרציפות תפקודית שלמה',
+    };
+    // Emergency-attributed disruption stays even when a holiday is mentioned.
+    const emergency = {
+      signal_type: 'service_disruption',
+      evidence: 'בשל האזעקות והמצב הביטחוני אין קייטנות בחופשת האביב והמסגרות סגורות',
+    };
+    // Positive continuity types are never touched.
+    const continuity = {
+      signal_type: 'service_continuity',
+      evidence: 'נפתחו קייטנות פסח לגילאי 3-6 מה שעוזר לרציפות התפקודית',
+    };
+    const out = applySignalTypeHygiene([holiday, emergency, continuity]);
+    assert.deepEqual(out.map((s) => s.signal_type), ['service_disruption', 'service_continuity']);
+    assert.match(out[0].evidence, /האזעקות/);
+    // Same rule applies on the field-report path.
+    assert.deepEqual(applyFieldReportSignalHygiene([holiday]), []);
+  });
+
+  it('rewrites distress-dominated positive narratives to negative (polarity lint)', () => {
+    // The עילבון case from the 2026-04-01 north report: filed as
+    // resilience_narrative_positive despite describing fear and poor mental state.
+    assert.equal(
+      rewriteMisclassifiedSignalType(
+        'resilience_narrative_positive',
+        'אנשים מדברים על מצב נפשי גרוע ומפחדים',
+      ),
+      'resilience_narrative_negative',
+    );
+    // "Afraid but coping/staying" narratives legitimately stay positive.
+    assert.equal(
+      rewriteMisclassifiedSignalType(
+        'resilience_narrative_positive',
+        'התושבים מפחדים אך מתמודדים וממשיכים בשגרה',
+      ),
+      'resilience_narrative_positive',
+    );
+    // Other types are untouched even with distress vocabulary.
+    assert.equal(
+      rewriteMisclassifiedSignalType('fear_expression', 'מצב נפשי גרוע ומפחדים'),
+      'fear_expression',
     );
   });
 

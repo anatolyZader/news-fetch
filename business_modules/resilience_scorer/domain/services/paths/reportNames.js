@@ -257,19 +257,21 @@ export function reportFilenameMatchesDate(filename, date, scopeId) {
 // ---------------------------------------------------------------------------
 
 /**
- * Resolve absolute path to a specific report JSON by date, scope, and run id.
+ * Resolve absolute path to a specific report artifact by date, scope, run id, and extension.
  * @param {string} reportsDir
  * @param {string} date YYYY-MM-DD
  * @param {string} scopeId
  * @param {string} runId
+ * @param {'json'|'md'} [ext='json']
  * @returns {string | null} absolute path
  */
-export function resolveSpecificReportJsonPath(reportsDir, date, scopeId, runId) {
+export function resolveSpecificReportArtifactPath(reportsDir, date, scopeId, runId, ext = 'json') {
+  const safeExt = ext === 'md' ? 'md' : 'json';
   const ddmmyy = ddMmYyFromIsoDate(date);
   const scope = reportScopeSlug(scopeId);
 
   const store = getStore();
-  const compactExact = join(reportsDir, `${scope}-1-${ddmmyy}-${runId}.json`);
+  const compactExact = join(reportsDir, `${scope}-1-${ddmmyy}-${runId}.${safeExt}`);
   if (store.existsSync(compactExact)) return compactExact;
 
   let names;
@@ -281,24 +283,71 @@ export function resolveSpecificReportJsonPath(reportsDir, date, scopeId, runId) 
 
   const escapedRunId = runId.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const compactRe = new RegExp(
-    String.raw`^${scope}-\d{1,2}-${ddmmyy}-${escapedRunId}\.json$`,
+    String.raw`^${scope}-\d{1,2}-${ddmmyy}-${escapedRunId}\.${safeExt}$`,
   );
   const compactHit = names.find((f) => compactRe.test(f));
   if (compactHit) return join(reportsDir, compactHit);
 
   const legacyPrefix = reportFilePrefix(scope);
-  const legacy = join(reportsDir, `${legacyPrefix}-data-${date}-run-${runId}.json`);
+  const legacy = join(reportsDir, `${legacyPrefix}-data-${date}-run-${runId}.${safeExt}`);
   if (store.existsSync(legacy)) return legacy;
 
-  const legacySimple = join(reportsDir, `${legacyPrefix}-${date}-${runId}.json`);
+  const legacySimple = join(reportsDir, `${legacyPrefix}-${date}-${runId}.${safeExt}`);
   if (store.existsSync(legacySimple)) return legacySimple;
 
   if (scope === 'national') {
-    const nationalExact = join(reportsDir, `resilience-report-${date}.json`);
+    const nationalExact = join(reportsDir, `resilience-report-${date}.${safeExt}`);
     if (store.existsSync(nationalExact)) return nationalExact;
   }
 
   return null;
+}
+
+/**
+ * Resolve absolute path to a specific report JSON by date, scope, and run id.
+ * @param {string} reportsDir
+ * @param {string} date YYYY-MM-DD
+ * @param {string} scopeId
+ * @param {string} runId
+ * @returns {string | null} absolute path
+ */
+export function resolveSpecificReportJsonPath(reportsDir, date, scopeId, runId) {
+  return resolveSpecificReportArtifactPath(reportsDir, date, scopeId, runId, 'json');
+}
+
+/**
+ * Resolve absolute path to a specific report Markdown by date, scope, and run id.
+ * @param {string} reportsDir
+ * @param {string} date YYYY-MM-DD
+ * @param {string} scopeId
+ * @param {string} runId
+ * @returns {string | null} absolute path
+ */
+export function resolveSpecificReportMdPath(reportsDir, date, scopeId, runId) {
+  return resolveSpecificReportArtifactPath(reportsDir, date, scopeId, runId, 'md');
+}
+
+/**
+ * List report artifact filenames for a given date and scope.
+ * @param {string} reportsDir
+ * @param {string} date YYYY-MM-DD
+ * @param {string} scopeId
+ * @param {'json'|'md'} [ext='json']
+ * @returns {string[]}
+ */
+export function listReportArtifactFilenamesForDate(reportsDir, date, scopeId, ext = 'json') {
+  const safeExt = ext === 'md' ? 'md' : 'json';
+  let names;
+  try {
+    names = getStore().readdirSync(reportsDir);
+  } catch {
+    return [];
+  }
+  return names.filter((f) => {
+    if (!f.endsWith(`.${safeExt}`)) return false;
+    if (safeExt === 'md' && f.endsWith('-brief.md')) return false;
+    return reportFilenameMatchesDate(f, date, scopeId);
+  });
 }
 
 /**
@@ -309,13 +358,16 @@ export function resolveSpecificReportJsonPath(reportsDir, date, scopeId, runId) 
  * @returns {string[]}
  */
 export function listReportJsonFilenamesForDate(reportsDir, date, scopeId) {
-  let names;
-  try {
-    names = getStore().readdirSync(reportsDir);
-  } catch {
-    return [];
-  }
-  return names.filter(
-    (f) => f.endsWith('.json') && reportFilenameMatchesDate(f, date, scopeId),
-  );
+  return listReportArtifactFilenamesForDate(reportsDir, date, scopeId, 'json');
+}
+
+/**
+ * List report Markdown filenames for a given date and scope (excludes `-brief.md`).
+ * @param {string} reportsDir
+ * @param {string} date YYYY-MM-DD
+ * @param {string} scopeId
+ * @returns {string[]}
+ */
+export function listReportMdFilenamesForDate(reportsDir, date, scopeId) {
+  return listReportArtifactFilenamesForDate(reportsDir, date, scopeId, 'md');
 }

@@ -100,7 +100,22 @@ function nationalContextTier(signal, reportScopeId) {
   if (decision.isScopeRelevant) return -1;
   if (!isValidExtractedSignal(signal)) return -1;
   if (evidenceMatchesMacroNationalTerms(signal?.evidence)) return -1;
+  // Another region's LOCAL story (named locality, local/micro scope) is not
+  // national homefront context — a West Bank settlement move must not surface
+  // as "national context" inside a north report.
+  if (isOtherRegionLocalStory(signal)) return -1;
   return 1;
+}
+
+/**
+ * Scope-excluded signal that names a specific locality at local/micro scope —
+ * i.e. some other place's local story, not a national-level narrative.
+ * @param {object} signal
+ * @returns {boolean}
+ */
+function isOtherRegionLocalStory(signal) {
+  const level = signal?.scope_level;
+  return (level === 'local' || level === 'micro') && Boolean(signal?.locality);
 }
 
 /**

@@ -8,11 +8,14 @@
  *
  * Key collaborators: signalTypeHygiene.js, ../fieldSignalPolicy.js, ../visitsSourceType.js, harmInfrastructureSplit.js.
  */
-import { rewriteMisclassifiedSignalType } from './signalTypeHygiene.js';
+import { isExpectedHolidayClosureSignal, rewriteMisclassifiedSignalType } from './signalTypeHygiene.js';
 
-const TRIVIAL_FIELD_REPORT_EVIDENCE_RE = /^(אין|ללא שינוי|אותו דבר|אותו הדבר|none|n\/a|—|-|\.)$/i;
+const TRIVIAL_FIELD_REPORT_EVIDENCE_RE = /^(אין|אין שינוי|ללא שינוי|ללא שינויים|ללא חריג|אין חריג|לל["״׳']?ש|אותו דבר|אותו הדבר|לא רלוונטי|none|no change|n\/a|—|-|\.)$/i;
 
 const AVG_SCORE_BLOB_RE = /\[([^\]]+)\]\s*[^:]+:\s*avg=\d+%(?:\s*\([^)]*\))?\s*(?:—\s*)?/gi;
+
+/** Keep the municipality prefix — it is locality information; only the officer score blob is noise. */
+const AVG_SCORE_BLOB_REPLACEMENT = '[$1] ';
 
 /**
  * Whether field-report evidence text is too short or boilerplate to retain as a signal.
@@ -38,7 +41,7 @@ export function isTrivialFieldReportEvidence(text) {
  */
 export function stripFieldReportScoreBlob(evidence) {
   let out = String(evidence ?? '');
-  out = out.replaceAll(AVG_SCORE_BLOB_RE, '');
+  out = out.replaceAll(AVG_SCORE_BLOB_RE, AVG_SCORE_BLOB_REPLACEMENT);
   out = out.replaceAll(/\bavg=\d+%(?:\s*\([^)]*\))?/gi, '');
   return out.replaceAll(/\s+/g, ' ').trim();
 }
@@ -56,6 +59,7 @@ export function sanitizeFieldReportSignal(signal) {
   const signalType = rewriteMisclassifiedSignalType(signal.signal_type ?? signal.type, evidence);
 
   if (isTrivialFieldReportEvidence(evidence)) return null;
+  if (isExpectedHolidayClosureSignal({ signal_type: signalType, evidence })) return null;
 
   return {
     ...signal,

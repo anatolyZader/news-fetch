@@ -36,7 +36,6 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 import { MarkdownArticle } from '../ui/index.js';
 import { ReportEditionContextBar } from './ReportEditionContextBar.jsx';
 import { DecisionBriefPanel } from './DecisionBriefPanel.jsx';
-import { OperatorClaimEvidenceList } from './OperatorClaimEvidenceList.jsx';
 import {
   EvidenceNavigationProvider,
   createEvidenceAnchorNavigator,
@@ -523,7 +522,6 @@ function ComponentCard({
     ? Math.max(highlightedCount, poolCount)
     : (curatedEvidence?.length ?? signals?.length ?? 0);
   const showEvidenceAccordion = evidenceCount > 0;
-  const claims = comp.narrative_claims ?? comp.claims ?? [];
   const { expandedSourceGroups, openSourceGroup, toggleSourceGroup } = useExpandedSourceGroups();
   const [highlightedAnchorId, setHighlightedAnchorId] = useState(null);
   const [fullPoolOpen, setFullPoolOpen] = useState(false);
@@ -690,14 +688,6 @@ function ComponentCard({
             components={evidenceNavigationMarkdownComponents()}
           />
         </EvidenceNavigationProvider>
-        {isRichMode && Array.isArray(claims) && claims.length > 0 && (
-          <OperatorClaimEvidenceList
-            claims={claims}
-            investigationPool={fullPool}
-            formatEvidenceMd={formatEvidenceMd}
-            t={t}
-          />
-        )}
         {showEvidenceAccordion && evidenceCount > 0 && (
           <Accordion
             expanded={evidenceOpen}

@@ -69,6 +69,23 @@ function appendComponentCriticalNotes(lines, comp) {
     );
   }
 
+  // A one-sided balance must not read as "no counter-evidence exists" when the
+  // mirror twin of this component's evidence is deliberately anchored on
+  // another component by catalog routing.
+  const mirror = basis.mirror_context;
+  const oneSided = basis.balance === 'one_sided_pos' || basis.balance === 'one_sided_neg';
+  if (mirror && oneSided) {
+    const parts = mirror.types.map((t) => {
+      const anchors = t.anchor_components
+        .map((cid) => COMPONENT_MAP[cid]?.name_en ?? cid)
+        .join(', ');
+      return `${t.count} \`${t.signal_type}\` signal(s) (anchored on ${anchors || 'no component'})`;
+    });
+    lines.push(
+      `> **Note — mirror evidence anchored elsewhere:** the one-sided balance reflects catalog routing, not an absence of counter-evidence: ${parts.join('; ')} describe the mirrored side of this component's evidence and count toward the anchor component instead.`,
+    );
+  }
+
   if ((basis.sufficiency ?? null) === 'thin') {
     lines.push(
       `> **Note — thin evidence:** this component rests on ${basis.signal_count ?? 0} signal(s) from ${basis.distinct_articles ?? 0} article(s); treat cautiously.`,
@@ -76,13 +93,24 @@ function appendComponentCriticalNotes(lines, comp) {
   }
 }
 
+/** Shared-coverage clause: how much of this component's evidence also feeds other components. */
+function sharedCoverageLabel(basis) {
+  const shared = basis?.shared_primary_articles;
+  if (!shared || !shared.count) return '';
+  const pct = shared.share != null ? ` (${Math.round(shared.share * 100)}%)` : '';
+  return `; shared coverage — ${shared.count}${pct} of its evidence units also feed other components`;
+}
+
 function appendComponentMetrics(lines, comp, assessment, evidenceDirection) {
   const basis = comp.evidence_basis ?? {};
   const articleCoverage = `${comp.distinct_article_count ?? '—'} of ${assessment.total_articles_analyzed}`;
 
+  const reliabilityNote = comp.confidence_caveat
+    ? `*(${comp.confidence_caveat})*`
+    : '*(based on how much evidence was found and how broadly it appears across the sample)*';
   lines.push(
-    `**Assessment reliability:** ${summarizeConfidence(comp.confidence)} *(based on how much evidence was found and how broadly it appears across the sample)*`,
-    `**Evidence base:** ${comp.signal_count ?? 0} behavioral signals in ${articleCoverage} articles *(sufficiency: ${sufficiencyLabel(basis)}; source mix — ${sourceMixLabel(basis)}; constructs — ${constructMixLabel(basis)})* | **Evidence direction:** ${evidenceDirection(basis.positive_count, basis.negative_count)}`,
+    `**Assessment reliability:** ${summarizeConfidence(comp.confidence)} ${reliabilityNote}`,
+    `**Evidence base:** ${comp.signal_count ?? 0} behavioral signals in ${articleCoverage} evidence units *(sufficiency: ${sufficiencyLabel(basis)}; source mix — ${sourceMixLabel(basis)}; constructs — ${constructMixLabel(basis)}${sharedCoverageLabel(basis)})* | **Evidence direction:** ${evidenceDirection(basis.positive_count, basis.negative_count)}`,
   );
 }
 
@@ -128,7 +156,7 @@ export function appendReportHeader(lines, assessment, sourceFiles) {
     `| **Scope** | ${assessment.report_scope?.label ?? 'National'} |`,
     `| **Content kind** | ${kind} |`,
     `| **Sources** | ${sourceFiles.join(', ')} |`,
-    `| **Articles analyzed** | ${assessment.total_articles_analyzed} |`,
+    `| **Evidence units analyzed** | ${assessment.total_articles_analyzed} *(news articles + municipal dashboard rows + field-visit reports)* |`,
     ``,
     `---`,
     ``,
@@ -159,6 +187,15 @@ export function appendMethodologyBlock(lines, assessment) {
     const parts = Object.entries(sds.by_source).map(([k, n]) => `${k}: ${n}`);
     lines.push(`**Scope decisions:** ${parts.join('; ')}.`, ``);
   }
+
+  const lh = m.scope?.load_hygiene;
+  if (lh?.total > 0) {
+    const parts = Object.entries(lh.by_source ?? {}).map(([k, n]) => `${k}: ${n}`);
+    lines.push(
+      `**No-change reports excluded:** ${lh.total} contentless field/municipal rows ("no change", "not relevant") were dropped before counting${parts.length ? ` (${parts.join('; ')})` : ''} — they are status confirmations, not behavioral evidence.`,
+      ``,
+    );
+  }
   lines.push(`---`, ``);
 }
 
@@ -172,8 +209,8 @@ export function appendComponentsTable(lines, assessment) {
     ``,
     COMPONENTS_TABLE_HELP_MARKDOWN,
     ``,
-    `| # | Component | עברית | Assessment reliability | Evidence base | Sufficiency | Balance | Article coverage |`,
-    `|---|-----------|-------|------------------------|---------------|-------------|---------|------------------|`,
+    `| # | Component | עברית | Assessment reliability | Evidence base | Sufficiency | Balance | Unit coverage |`,
+    `|---|-----------|-------|------------------------|---------------|-------------|---------|---------------|`,
   );
 
   (assessment.components ?? []).forEach((comp, i) => {
@@ -211,5 +248,7 @@ export function appendComponentDetails(lines, assessment, formatters) {
  * @param {object} assessment
  */
 export function appendMacroAndCaveats(lines, assessment) {
-  lines.push(`## Evidence Quality`, ``, assessment.evidence_quality_note ?? '', ``);
+  const note = String(assessment.evidence_quality_note ?? '').trim();
+  if (!note) return;
+  lines.push(`## Evidence Quality`, ``, note, ``, `---`, ``);
 }

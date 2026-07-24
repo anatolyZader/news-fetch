@@ -68,6 +68,36 @@ describe('narrativeScopeSignals', () => {
     assert.equal(ctx[0].article_url, 'https://example.com/tel-aviv-shelter');
   });
 
+  it('selectNarrativeNationalContext excludes other-region LOCAL stories (named locality, local scope)', () => {
+    const binyaminStory = annotateScopeDecisions([{
+      source_type: 'news',
+      signal_type: 'evacuation_displacement',
+      evidence: 'עלו המשפחות הראשונות ליישוב החדש מעוז צור שבמערב בנימין',
+      article_url: 'https://example.com/binyamin',
+      scope_level: 'local',
+      locality: 'בנימין',
+      geo: {
+        kind: 'unknown',
+        scopeDecision: { isNorthRelevant: false, isScopeRelevant: false },
+      },
+    }], 'north')[0];
+    const nationalStory = annotateScopeDecisions([{
+      source_type: 'news',
+      signal_type: 'compliance_enter_shelter',
+      evidence: 'Millions entered shelters nationwide after missile alert.',
+      article_url: 'https://example.com/nationwide',
+      scope_level: 'national',
+      geo: {
+        kind: 'resolved',
+        classification: { geoAreaTags: ['dan'] },
+        scopeDecision: { isNorthRelevant: false, isScopeRelevant: false },
+      },
+    }], 'north')[0];
+    const ctx = selectNarrativeNationalContext([binyaminStory, nationalStory], 'north', new Set());
+    assert.equal(ctx.length, 1);
+    assert.equal(ctx[0].article_url, 'https://example.com/nationwide');
+  });
+
   it('selectNarrativeNationalContext does not duplicate north-local news', () => {
     const northNews = {
       source_type: 'news',

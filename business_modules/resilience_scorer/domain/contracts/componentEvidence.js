@@ -29,6 +29,11 @@ import { collectComponentSignals, articleKeyForSignal } from '../services/signal
 import { evaluatePresenceGates } from '../epistemic/presenceGates.js';
 import { CRITICAL_BYPASS_SIGNAL_TYPES } from '../epistemic/highSalienceBypass.js';
 import { GROUNDING_TIER } from '../services/signals/groundingPolicy.js';
+import {
+  SIGNAL_CATALOG,
+  SIGNAL_TO_COMPONENTS,
+  canonicalizeSignalType,
+} from '../services/signals/routing/signalRouter.js';
 
 // --- Band thresholds ---
 /** Sufficiency band labels (how much evidence a component has). */
@@ -147,6 +152,46 @@ function deriveSalientSingleSignal(items) {
   return null;
 }
 
+// --- Mirror-context derivation ---
+/** Catalog type → its mirror twin (only pairs where both sides exist). */
+const MIRROR_BY_TYPE = Object.fromEntries(
+  SIGNAL_CATALOG
+    .filter((s) => s.mirror)
+    .map((s) => [s.type, s.mirror]),
+);
+
+/**
+ * Mirror twins of this component's primary evidence that exist in the signal
+ * pool but have NO routing edge into this component (documented asymmetric
+ * mirrors, e.g. wellbeing_support_gap routes to wellbeing while
+ * wellbeing_support_accessed anchors on community_capital). Without this note a
+ * one-sided balance reads as "no counter-evidence exists" when the counter-side
+ * is deliberately anchored elsewhere. Counts only — nothing is rerouted.
+ *
+ * @param {string} componentId
+ * @param {Array<{signalType: string}>} primaryItems this component's primary items
+ * @param {Map<string, number>} poolTypeCounts canonical type → count in the full pool
+ * @returns {null | { total: number, types: Array<{signal_type: string, count: number, anchor_components: string[]}> }}
+ */
+function deriveMirrorContext(componentId, primaryItems, poolTypeCounts) {
+  const twins = new Map();
+  for (const it of primaryItems) {
+    const mirror = MIRROR_BY_TYPE[it.signalType];
+    if (!mirror || twins.has(mirror)) continue;
+    if (SIGNAL_TO_COMPONENTS[mirror]?.[componentId]) continue;
+    const count = poolTypeCounts.get(mirror) ?? 0;
+    if (count === 0) continue;
+    const anchors = Object.entries(SIGNAL_TO_COMPONENTS[mirror] ?? {})
+      .filter(([, edge]) => edge?.role === 'primary')
+      .map(([cid]) => cid)
+      .sort();
+    twins.set(mirror, { signal_type: mirror, count, anchor_components: anchors });
+  }
+  if (twins.size === 0) return null;
+  const types = [...twins.values()].sort((a, b) => b.count - a.count);
+  return { total: types.reduce((sum, t) => sum + t.count, 0), types };
+}
+
 // --- Component assembly ---
 /** Compact signal row for report/agent payloads (drops bulky fields). */
 function slimSignal(it, index) {
@@ -172,8 +217,9 @@ function slimSignal(it, index) {
  * @param {Array<{signal: object, signalType: string, polarity: '+'|'-', role: string}>} items
  * @param {string} componentId
  * @param {string} samplingStatus
+ * @param {Map<string, number>} [poolTypeCounts] canonical type → count in the full pool
  */
-function buildOneComponent(items, componentId, samplingStatus) {
+function buildOneComponent(items, componentId, samplingStatus, poolTypeCounts = new Map()) {
   const primary = items.filter((it) => it.role !== 'inferred');
   const inferred = items.filter((it) => it.role === 'inferred');
   const articleSet = new Set();
@@ -202,6 +248,7 @@ function buildOneComponent(items, componentId, samplingStatus) {
     }),
     balance: deriveBalance(pos, neg),
     concentration_warning: deriveConcentrationWarning(primary),
+    mirror_context: deriveMirrorContext(componentId, primary, poolTypeCounts),
     inferred_context: {
       count: inferred.length,
       positive_count: inferredPos,
@@ -290,11 +337,17 @@ function deriveCrossComponentOverlap(primaryItemsByComponent) {
  */
 export function buildComponentEvidence(signals, ctx = {}) {
   const samplingStatus = ctx.samplingStatus ?? 'normal';
+  const poolTypeCounts = new Map();
+  for (const s of Array.isArray(signals) ? signals : []) {
+    const type = canonicalizeSignalType(s?.signal_type ?? s?.type);
+    if (!type) continue;
+    poolTypeCounts.set(type, (poolTypeCounts.get(type) ?? 0) + 1);
+  }
   const by_component = {};
   const primaryItemsByComponent = {};
   for (const id of COMPONENT_IDS) {
     const { items } = collectComponentSignals(id, signals);
-    by_component[id] = buildOneComponent(items, id, samplingStatus);
+    by_component[id] = buildOneComponent(items, id, samplingStatus, poolTypeCounts);
     primaryItemsByComponent[id] = items.filter((it) => it.role !== 'inferred');
   }
 

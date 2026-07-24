@@ -25,6 +25,8 @@ import { formatDate } from './lib/date.js';
 import { formatTemplate } from './lib/i18nFormat.js';
 import { editionsMatch } from './lib/reportEditionFormat.js';
 import { ReportView } from './components/ReportView.jsx';
+import { ReportMarkdownView } from './components/ReportMarkdownView.jsx';
+import { ReportEditionContextBar } from './components/ReportEditionContextBar.jsx';
 import { ReportContentsMobileNav } from './components/ReportContentsMobileNav.jsx';
 import { MobileDailyAssessmentCard } from './components/MobileDailyAssessmentCard.jsx';
 import { DailyAssessmentControls } from './components/DailyAssessmentControls.jsx';
@@ -605,6 +607,7 @@ function AppShell() {
   }, [selectedReportEdition, availableReportEditions, editionsLoading]);
   const {
     report,
+    markdown: reportMarkdown,
     scoreBySource,
     reportDate,
     reportGeneratedAt,
@@ -618,6 +621,10 @@ function AppShell() {
     refreshReport,
     reportLocalizing,
   } = useTodayReport(reportScope, effectiveReportEdition, lang);
+  // Only markdown-only archives (no JSON). Structured north/national JSON keeps ReportView.
+  const showMarkdownOnlyReport = report?.markdown_only === true
+    && typeof reportMarkdown === 'string'
+    && reportMarkdown.trim().length > 0;
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
   const [activeTab, setActiveTab] = useState(() => readMainTab());
   const [activePoolTab, setActivePoolTab] = useState(() => readPoolTab());
@@ -1040,12 +1047,15 @@ function AppShell() {
               <Box
                 sx={(theme) => ({
                   display: 'grid',
-                  gridTemplateColumns: 'clamp(240px, 18vw, 280px) minmax(0, 1fr)',
+                  gridTemplateColumns: showMarkdownOnlyReport || reportContents.length === 0
+                    ? 'minmax(0, 1fr)'
+                    : 'clamp(240px, 18vw, 280px) minmax(0, 1fr)',
                   gap: theme.spacing(2),
                   alignItems: 'start',
                   [theme.breakpoints.down('md')]: { gridTemplateColumns: 'minmax(0, 1fr)' },
                 })}
               >
+                {!showMarkdownOnlyReport && reportContents.length > 0 && (
                 <Box
                   component="aside"
                   dir={lang === 'he' ? 'rtl' : 'ltr'}
@@ -1076,6 +1086,7 @@ function AppShell() {
                     ))}
                   </Stack>
                 </Box>
+                )}
 
                 <Box sx={{ minWidth: 0 }}>
                   {isOutdated && !isCompact && (
@@ -1119,21 +1130,37 @@ function AppShell() {
                         onUpdated={() => refreshReport()}
                       />
                     )}
-                    <ReportView
-                      assessment={displayReport}
-                      scoreBySource={displayReport?.score_by_source ?? scoreBySource}
-                      readOnly
-                      translating={translating}
-                      translateError={translateError}
-                      reportDate={reportDate}
-                      reportScope={reportScope}
-                      generatedAt={reportGeneratedAt}
-                      assessmentWindow={assessmentWindow}
-                      openCompId={openReportCompId}
-                      setOpenCompId={setOpenReportCompId}
-                      openEvidenceCompId={openReportEvidenceCompId}
-                      setOpenEvidenceCompId={setOpenReportEvidenceCompId}
-                    />
+                    {showMarkdownOnlyReport ? (
+                      <Stack spacing={2.5}>
+                        <ReportEditionContextBar
+                          reportScope={reportScope}
+                          reportDate={reportDate}
+                          generatedAt={reportGeneratedAt}
+                          assessmentWindow={assessmentWindow}
+                        />
+                        <ReportMarkdownView
+                          markdown={reportMarkdown}
+                          readOnly
+                          reportDate={reportDate}
+                        />
+                      </Stack>
+                    ) : (
+                      <ReportView
+                        assessment={displayReport}
+                        scoreBySource={displayReport?.score_by_source ?? scoreBySource}
+                        readOnly
+                        translating={translating}
+                        translateError={translateError}
+                        reportDate={reportDate}
+                        reportScope={reportScope}
+                        generatedAt={reportGeneratedAt}
+                        assessmentWindow={assessmentWindow}
+                        openCompId={openReportCompId}
+                        setOpenCompId={setOpenReportCompId}
+                        openEvidenceCompId={openReportEvidenceCompId}
+                        setOpenEvidenceCompId={setOpenReportEvidenceCompId}
+                      />
+                    )}
                   </Box>
                 </Box>
               </Box>

@@ -28,6 +28,7 @@ import {
   temporalWeightForOffset,
 } from './assessmentWindow.js';
 import { isVisitsSourceType, normalizePipelineSourceKey, normalizeVisitsSourceType } from '../signals/visitsSourceType.js';
+import { sanitizeFieldReportSignal } from '../signals/hygiene/fieldReportHygiene.js';
 import {
   ISRAEL_REGIONAL_DISTRICT_ORDER,
   normalizeIsraelDistrictId,
@@ -258,17 +259,29 @@ export function loadAssessSignalFiles({
   return loadedFiles;
 }
 
+/** Source types whose bundles get field-report hygiene re-applied at load (see mergeLoadedSignalFiles). */
+function needsFieldHygieneAtLoad(sourceType) {
+  return isVisitsSourceType(sourceType) || String(sourceType ?? '').startsWith('pbo');
+}
+
 /**
  * Merge loaded bundles into a flat signal list with temporal weights.
+ *
+ * PBO/visits signals get field-report hygiene re-applied here (score-blob strip
+ * + trivial-evidence drop): bundles extracted before the hygiene pass existed
+ * are routinely reused (reuse-first replay), so extract-time hygiene alone
+ * leaves stale bundles carrying avg=% blobs and contentless "no change" rows
+ * that would count as supporting evidence.
  * @param {Array<object>} loadedFiles
  * @param {{ targetDate?: string }} [opts]
- * @returns {{ allSignals: Array<object>, totalArticles: number, sourceFiles: string[], sourceTypesSeen: Set<string> }}
+ * @returns {{ allSignals: Array<object>, totalArticles: number, sourceFiles: string[], sourceTypesSeen: Set<string>, hygieneDrops: { total: number, by_source: Record<string, number> } }}
  */
 export function mergeLoadedSignalFiles(loadedFiles, { targetDate } = {}) {
   let allSignals = [];
   let totalArticles = 0;
   const sourceFiles = [];
   const sourceTypesSeen = new Set();
+  const hygieneDrops = { total: 0, by_source: {} };
 
   for (const { weight, data, sourceType, fileDate, fileDistrictId } of loadedFiles) {
     const rawBundleDistrict = data.district_id ?? fileDistrictId;
@@ -280,7 +293,9 @@ export function mergeLoadedSignalFiles(loadedFiles, { targetDate } = {}) {
       ? bundleDistrict
       : null;
     const canonicalType = normalizeVisitsSourceType(sourceType);
-    const weighted = (data.signals ?? []).map((s) => {
+    const applyHygiene = needsFieldHygieneAtLoad(sourceType);
+    const weighted = [];
+    for (const s of data.signals ?? []) {
       let signalWeight = weight;
       if (targetDate && isVisitsSourceType(sourceType)) {
         const visitDate = String(s.article_date ?? fileDate).slice(0, 10);
@@ -288,19 +303,34 @@ export function mergeLoadedSignalFiles(loadedFiles, { targetDate } = {}) {
           signalWeight = temporalWeightForOffset(dateOffset(visitDate, targetDate));
         }
       }
-      return {
+      let enriched = {
         ...s,
         temporal_weight: signalWeight,
         source_type: canonicalType,
         signal_file_date: fileDate,
         ...(s.district_id == null && bundleDistrictId ? { district_id: bundleDistrictId } : {}),
       };
-    });
+      if (applyHygiene) {
+        const cleaned = sanitizeFieldReportSignal(enriched);
+        if (!cleaned) {
+          hygieneDrops.total += 1;
+          hygieneDrops.by_source[canonicalType] = (hygieneDrops.by_source[canonicalType] ?? 0) + 1;
+          continue;
+        }
+        enriched = cleaned;
+      }
+      weighted.push(enriched);
+    }
     allSignals = allSignals.concat(weighted);
     totalArticles += data.total_articles ?? 0;
     sourceFiles.push(...(data.source_files ?? []));
     sourceTypesSeen.add(canonicalType);
   }
 
-  return { allSignals, totalArticles, sourceFiles, sourceTypesSeen };
+  if (hygieneDrops.total > 0) {
+    const parts = Object.entries(hygieneDrops.by_source).map(([k, n]) => `${k}: ${n}`);
+    console.log(`  ℹ Load-time hygiene dropped ${hygieneDrops.total} contentless field/PBO rows (${parts.join(', ')})`);
+  }
+
+  return { allSignals, totalArticles, sourceFiles, sourceTypesSeen, hygieneDrops };
 }

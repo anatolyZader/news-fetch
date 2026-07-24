@@ -11,6 +11,10 @@ import { shouldSkipTranslation } from './detectSourceLang.js';
 
 const DEFAULT_CHUNK_SIZE = 40;
 const CHUNK_CONCURRENCY = 2;
+// Translated output must fit the 8000-token max_tokens of translateGenericJson;
+// entries/chunks beyond these char budgets would truncate deterministically.
+const MAX_TRANSLATE_ENTRY_CHARS = 20000;
+const CHUNK_CHAR_BUDGET = 12000;
 
 function isTranslationEnabled() {
   return process.env.TRANSLATION_ENABLED === 'true';
@@ -22,9 +26,19 @@ function isTranslationEnabled() {
  */
 function chunkEntries(entries, chunkSize) {
   const chunks = [];
-  for (let i = 0; i < entries.length; i += chunkSize) {
-    chunks.push(entries.slice(i, i + chunkSize));
+  let current = [];
+  let currentChars = 0;
+  for (const entry of entries) {
+    const len = entry.text?.length ?? 0;
+    if (current.length && (current.length >= chunkSize || currentChars + len > CHUNK_CHAR_BUDGET)) {
+      chunks.push(current);
+      current = [];
+      currentChars = 0;
+    }
+    current.push(entry);
+    currentChars += len;
   }
+  if (current.length) chunks.push(current);
   return chunks;
 }
 
@@ -75,11 +89,19 @@ export async function localizePayload(payload, resourceId, lang, opts = {}) {
   const toTranslate = [];
   const toTranslateMeta = [];
 
+  let hadFailures = false;
   for (let i = 0; i < entries.length; i += 1) {
     const entry = entries[i];
     const sourceLang = entry.sourceLang ?? 'en';
     if (shouldSkipTranslation(sourceLang, lang)) {
       translatedById[entry.id] = entry.text;
+    } else if ((entry.text?.length ?? 0) > MAX_TRANSLATE_ENTRY_CHARS) {
+      // Would deterministically truncate at max_tokens — keep source text.
+      console.warn(
+        `[locale] entry too large to translate (${entry.text.length} chars), keeping source: ${resourceId} ${lang} ${pathMeta[i]?.path ?? entry.id}`,
+      );
+      translatedById[entry.id] = entry.text;
+      hadFailures = true;
     } else {
       toTranslate.push(entry);
       toTranslateMeta.push(pathMeta[i]);
@@ -103,7 +125,11 @@ export async function localizePayload(payload, resourceId, lang, opts = {}) {
         for (const row of result.strings ?? []) {
           if (row?.id && row?.text != null) translatedById[row.id] = row.text;
         }
-      } catch {
+      } catch (err) {
+        console.warn(
+          `[locale] translation chunk failed, keeping source: ${resourceId} ${lang} chunk${batchIdx}: ${err?.message ?? err}`,
+        );
+        hadFailures = true;
         for (const row of batch) {
           translatedById[row.id] = row.text;
         }
@@ -114,7 +140,11 @@ export async function localizePayload(payload, resourceId, lang, opts = {}) {
   }
 
   const result = applyTranslations(payload, entries, pathMeta, translatedById);
-  await writeLocaleCache(resourceId, fingerprint, lang, result);
+  // A cache entry with untranslated fallbacks would serve English forever;
+  // skip the write so the next request retries.
+  if (!hadFailures) {
+    await writeLocaleCache(resourceId, fingerprint, lang, result);
+  }
   return result;
 }
 

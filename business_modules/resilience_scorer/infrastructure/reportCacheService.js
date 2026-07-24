@@ -3,7 +3,7 @@
  * Production runs use `extract-signals` → `assess-signals` (see docs/main_docu_files/PIPELINE-AND-SOURCES.md).
  */
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
-import { resolve, dirname, join } from 'node:path';
+import { resolve, dirname, join, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
@@ -13,7 +13,9 @@ import {
 import {
   parseReportFilename,
   resolveSpecificReportJsonPath,
+  resolveSpecificReportMdPath,
   listReportJsonFilenamesForDate,
+  listReportMdFilenamesForDate,
 } from '../domain/services/paths/reportNames.js';
 import { readCostBreakdownForDate as readCostBreakdownForDateFromLog } from '../../../cross-cut-modules/log/index.js';
 import { inferAssessmentWindowFromSourceFiles } from '../domain/services/paths/assessmentWindow.js';
@@ -207,6 +209,90 @@ export function resolveReportJsonPathForDate(date, opts = {}) {
 }
 
 /**
+ * Resolve a markdown report path for date/scope/run (excludes `-brief.md`).
+ * @param {string} date YYYY-MM-DD
+ * @param {{ reportsDir?: string, scope?: string, runId?: string | null }} [opts]
+ * @returns {string | null}
+ */
+export function resolveReportMdPathForDate(date, opts = {}) {
+  const reportsDir = resolveReportsDir(opts);
+  const scope = opts.scope ?? 'national';
+  const runId = opts.runId;
+  if (typeof runId === 'string' && runId.length > 0) {
+    return resolveSpecificReportMdPath(reportsDir, date, scope, runId);
+  }
+
+  const candidates = listReportMdFilenamesForDate(reportsDir, date, scope);
+  if (candidates.length === 0) return null;
+
+  let bestPath = null;
+  let bestMtime = -1;
+  let bestRunId = '';
+  for (const f of candidates) {
+    const p = join(reportsDir, f);
+    try {
+      const m = statSync(p).mtimeMs;
+      const parsed = parseReportFilename(f);
+      const rid = parsed?.runId ?? '';
+      if (m > bestMtime || (m === bestMtime && rid > bestRunId)) {
+        bestMtime = m;
+        bestRunId = rid;
+        bestPath = p;
+      }
+    } catch {
+      /* skip */
+    }
+  }
+  return bestPath;
+}
+
+/**
+ * Compact run ids are UTC HHmm from reportWriter basenames.
+ * @param {string} date YYYY-MM-DD
+ * @param {string | null | undefined} runId
+ * @returns {string | null}
+ */
+function synthesizeGeneratedAtFromRunId(date, runId) {
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  if (typeof runId !== 'string' || !/^\d{4}$/.test(runId) || runId === '0000') return null;
+  return `${date}T${runId.slice(0, 2)}:${runId.slice(2, 4)}:00.000Z`;
+}
+
+/**
+ * Build a loadable payload from a markdown-only report (no sibling JSON).
+ * @param {string} mdPath
+ * @param {string} date
+ * @param {string} scope
+ * @param {string | null | undefined} runId
+ */
+function loadMarkdownOnlyReport(mdPath, date, scope, runId) {
+  let markdown;
+  try {
+    markdown = readFileSync(mdPath, 'utf8');
+  } catch {
+    return null;
+  }
+  if (!String(markdown).trim()) return null;
+
+  const articlesMatch = markdown.match(/\|\s*\*\*Articles analyzed\*\*\s*\|\s*(\d+)\s*\|/i);
+  const articles = articlesMatch ? Number.parseInt(articlesMatch[1], 10) : 0;
+  const generatedAt = synthesizeGeneratedAtFromRunId(date, runId);
+
+  return {
+    generated_at: generatedAt,
+    assessment: {
+      date,
+      total_articles_analyzed: Number.isFinite(articles) ? articles : 0,
+      components: [],
+      report_scope: { id: normalizeReportScopeId(scope) },
+      markdown_only: true,
+    },
+    markdown,
+    reportDate: date,
+  };
+}
+
+/**
  * Read the assessment metadata block from a report JSON file.
  * @param {string} jsonPath
  * @returns {object|null}
@@ -336,10 +422,12 @@ export function getAvailableReportEditions(opts = {}) {
 
   return candidates.map(({ date, run_id, meta }) => {
     const windowFields = resolveEditionWindow(date, meta);
+    const generatedAt = meta.generatedAt
+      ?? synthesizeGeneratedAtFromRunId(date, run_id);
     return {
       date,
       run_id,
-      generated_at: meta.generatedAt,
+      generated_at: generatedAt,
       assessment_days: windowFields.assessment_days,
       window_start: windowFields.window_start,
       window_end: windowFields.window_end,
@@ -390,6 +478,16 @@ function _loadReportForDate(date, store, { scope = 'national', reportsDir, runId
       ...(markdown_brief ? { markdown_brief } : {}),
       ...(costBreakdown ? { costBreakdown } : {}),
     };
+  }
+
+  // Markdown-only fallback (national archives often lack sibling JSON).
+  // JSON is always preferred above — north/full runs with JSON are unchanged.
+  const mdPath = resolveReportMdPathForDate(date, { scope, reportsDir, runId });
+  if (mdPath && existsSync(mdPath)) {
+    const parsedRunId = runId
+      || parseReportFilename(basename(mdPath))?.runId
+      || null;
+    return loadMarkdownOnlyReport(mdPath, date, scope, parsedRunId);
   }
 
   if (scope === 'national' && store) {

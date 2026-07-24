@@ -94,22 +94,39 @@ export function formatEditionSignalsSummary(t, edition) {
 }
 
 /**
+ * Prefer report JSON `generated_at`; otherwise synthesize from compact run id (UTC HHmm).
+ * Many older editions are markdown-only and have no JSON metadata.
  * @param {ReportEdition | null | undefined} edition
+ * @returns {string | null} ISO-8601 timestamp
  */
-export function editionRunDiffersFromAnchor(edition) {
-  if (!edition?.generated_at || !edition?.date) return false;
-  return edition.generated_at.slice(0, 10) !== edition.date;
+export function resolveEditionProducedAt(edition) {
+  if (!edition) return null;
+  if (typeof edition.generated_at === 'string' && edition.generated_at.trim()) {
+    return edition.generated_at.trim();
+  }
+  const date = edition.date;
+  const runId = edition.run_id;
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  if (typeof runId !== 'string' || !/^\d{4}$/.test(runId) || runId === '0000') return null;
+  return `${date}T${runId.slice(0, 2)}:${runId.slice(2, 4)}:00.000Z`;
 }
 
 /**
  * @param {ReportEdition | null | undefined} edition
- * @param {number} [sameDateCount]
  */
-export function shouldLabelEditionRunTime(edition, sameDateCount = 1) {
-  return Boolean(
-    edition?.generated_at
-    && (sameDateCount > 1 || editionRunDiffersFromAnchor(edition)),
-  );
+export function editionRunDiffersFromAnchor(edition) {
+  const producedAt = resolveEditionProducedAt(edition);
+  if (!producedAt || !edition?.date) return false;
+  return producedAt.slice(0, 10) !== edition.date;
+}
+
+/**
+ * Always label when a production timestamp is known (JSON or filename run id).
+ * @param {ReportEdition | null | undefined} edition
+ * @param {number} [_sameDateCount] retained for call-site compatibility
+ */
+export function shouldLabelEditionRunTime(edition, _sameDateCount = 1) {
+  return resolveEditionProducedAt(edition) != null;
 }
 
 /**

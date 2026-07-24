@@ -9,6 +9,7 @@ import {
   formatWindowDaysLabel,
   formatWindowRangeLabel,
   resolveActiveEdition,
+  resolveEditionProducedAt,
   shouldLabelEditionRunTime,
 } from '../../../client/src/lib/reportEditionFormat.js';
 
@@ -71,15 +72,32 @@ describe('reportEditionFormat', () => {
     assert.equal(editionSelectionKey({ date: '2026-04-02', run_id: '0900' }), '2026-04-02:0900');
   });
 
-  it('shouldLabelEditionRunTime when multiple runs or run date differs from report date', () => {
+  it('resolveEditionProducedAt prefers generated_at then date+run_id', () => {
+    assert.equal(
+      resolveEditionProducedAt({ date: '2026-04-02', generated_at: '2026-04-02T09:15:00.000Z', run_id: '0915' }),
+      '2026-04-02T09:15:00.000Z',
+    );
+    assert.equal(
+      resolveEditionProducedAt({ date: '2026-04-16', run_id: '1040' }),
+      '2026-04-16T10:40:00.000Z',
+    );
+    assert.equal(resolveEditionProducedAt({ date: '2026-04-16' }), null);
+  });
+
+  it('shouldLabelEditionRunTime whenever a production timestamp is known', () => {
     assert.equal(
       shouldLabelEditionRunTime({ date: '2026-04-11', generated_at: '2026-06-14T17:59:00.000Z' }, 1),
       true,
     );
     assert.equal(
       shouldLabelEditionRunTime({ date: '2026-04-02', generated_at: '2026-04-02T09:15:00.000Z' }, 1),
-      false,
+      true,
     );
+    assert.equal(
+      shouldLabelEditionRunTime({ date: '2026-04-16', run_id: '1040' }, 1),
+      true,
+    );
+    assert.equal(shouldLabelEditionRunTime({ date: '2026-04-16' }, 1), false);
     assert.equal(editionRunDiffersFromAnchor({ date: '2026-04-11', generated_at: '2026-06-14T17:59:00.000Z' }), true);
   });
 
