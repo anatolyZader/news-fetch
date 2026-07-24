@@ -4,8 +4,8 @@
  * Pipeline position: evidence pipeline prep — builds narrativeScopeSignals used by
  * investigation pool, narrative digest, and LLM narrative pipeline.
  *
- * Owns: scope decision annotation, national/regional context selection, dedupe keys,
- * merged narrative scope signal list.
+ * Owns: national/regional context selection, dedupe keys, merged narrative
+ * scope signal list. Scope decision annotation lives in signals/regionSignalFilter.js.
  * Does NOT: score signals or run narrative LLM calls.
  *
  * Key collaborators: `signals/regionSignalFilter.js`, `signals/evidenceEligibility.js`,
@@ -19,7 +19,7 @@ import {
 } from '../signals/evidenceEligibility.js';
 import { SIGNAL_TO_COMPONENTS } from '../signals/routing/signalRouter.js';
 import { scopeDecisionForSignal } from '../signals/regionSignalFilter.js';
-import { isExcludedNationalContextSignalType } from '../signals/routing/signalTypeHygiene.js';
+import { isExcludedNationalContextSignalType } from '../signals/hygiene/signalTypeHygiene.js';
 
 const NATIONAL_PRESS_SOURCE_TYPES = new Set(['news', 'radio']);
 
@@ -74,26 +74,6 @@ export function narrativeNationalCapPerDay(env = process.env) {
   if (raw == null || raw === '') return null;
   const n = Number.parseInt(raw, 10);
   return Number.isFinite(n) && n > 0 ? Math.min(n, 200) : null;
-}
-
-// ── Scope annotation ──────────────────────────────────────────────────────────
-
-/**
- * Stamp scopeDecision on every signal before regional filtering.
- * @param {object[]} signals
- * @param {string} reportScopeId
- * @returns {object[]}
- */
-export function annotateScopeDecisions(signals, reportScopeId) {
-  return (signals ?? []).map((s) => {
-    if (!s || typeof s !== 'object') return s;
-    const scopeDecision = scopeDecisionForSignal(s, reportScopeId);
-    const merged = { ...s, scopeDecision };
-    if (scopeDecision.macro_scope === 'national') {
-      merged.macro_scope = 'national';
-    }
-    return merged;
-  });
 }
 
 /**

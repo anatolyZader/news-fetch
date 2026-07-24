@@ -6,9 +6,9 @@
  * Owns: Hebrew/English clause splitting and reclassification of harm vs infrastructure_damage_acute.
  * Does NOT: catalogue routing, field-report blob stripping (fieldReportHygiene.js), or grounding.
  *
- * Key collaborators: ../../contracts/signalCatalog.js, fieldReportHygiene.js, routing/signalTypeHygiene.js, componentSignalGroups.js.
+ * Key collaborators: ../../../contracts/signalCatalog.js, fieldReportHygiene.js, signalTypeHygiene.js, ../componentSignalGroups.js.
  */
-import { canonicalizeSignalType } from '../../contracts/signalCatalog.js';
+import { canonicalizeSignalType } from '../../../contracts/signalCatalog.js';
 
 /**
  * True if any of the given patterns matches. Splitting a wide alternation into

@@ -15,10 +15,7 @@
  * and field-report hygiene callers.
  */
 import { canonicalizeSignalType } from '../../../contracts/signalCatalog.js';
-import { splitBundledHarmInfrastructure, testAny } from '../harmInfrastructureSplit.js';
-
-/** @deprecated Prefer SIGNAL_ALIASES / canonicalizeSignalType via signalRouter. */
-export { SIGNAL_ALIASES as FIELD_REPORT_SIGNAL_TYPE_ALIASES } from '../../../contracts/signalCatalog.js';
+import { splitBundledHarmInfrastructure, testAny } from './harmInfrastructureSplit.js';
 
 /**
  * Resolve legacy / alias spellings to the canonical catalog type id.
@@ -106,7 +103,7 @@ const WAR_EMERGENCY_FRAMING_RE =
 
 /** National EMS cumulative or batch roll-ups — not community behavioral evidence. */
 const EMS_AGGREGATE_ROLLUP_RE =
-  /(?:מתחילת מבצע|מאז תחילת).{0,80}\d{3,}|מגן דוד אדום.{0,60}טיפול רפואי ל-?\s*\d{2,}.\{0,50}בני אדם/i;
+  /(?:מתחילת מבצע|מאז תחילת).{0,80}\d{3,}|מגן דוד אדום.{0,60}טיפול רפואי ל-?\s*\d{2,}.{0,50}בני אדם/i;
 
 /** Types that should not pad regional report national-context pools. */
 export const NATIONAL_CONTEXT_EXCLUDED_SIGNAL_TYPES = new Set([

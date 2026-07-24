@@ -90,3 +90,11 @@ export {
   inferSourceDensityClass,
   inferDominantSourceClass,
 } from './learningCaptureRecordHelpers.js';
+export {
+  FIELD_ANCHOR_SOURCE_TYPES,
+  VISITS_SOURCE_TYPES,
+  FIELD_FAMILY_SOURCE_TYPES,
+  DEFAULT_NORTH_SOURCE_TYPES,
+  WHATSAPP_SOURCE_TYPES,
+} from './sourceFamilies.js';
+export { assertValidResilienceContentBatch } from './resilienceContentBatch.js';

@@ -22,8 +22,8 @@ import { attachSourceIdsToSignals } from '../../../../db/source_archive/attachSo
 import { archiveArtifactBeforeWrite } from '../../../../cross-cut-modules/log/index.js';
 import { closedSignalsDir } from '../../domain/contracts/index.js';
 import { isVisitsSourceType, normalizeVisitsSourceType } from '../../domain/services/signals/visitsSourceType.js';
-import { applySignalTypeHygiene } from '../../domain/services/signals/routing/signalTypeHygiene.js';
-import { applyFieldReportSignalHygiene } from '../../domain/services/signals/fieldReportHygiene.js';
+import { applySignalTypeHygiene } from '../../domain/services/signals/hygiene/signalTypeHygiene.js';
+import { applyFieldReportSignalHygiene } from '../../domain/services/signals/hygiene/fieldReportHygiene.js';
 
 /** Stamp article_date from the 1-based article_index when publishedAt is a YYYY-MM-DD. */
 function attachArticleDatesToSignals(signals, articles) {

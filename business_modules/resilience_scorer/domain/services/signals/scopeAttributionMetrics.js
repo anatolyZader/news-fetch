@@ -33,7 +33,20 @@ export function recordDefaultNorthFallback(count = 1) {
 }
 
 /**
+ * Count of scoped signals whose scope decision used the default-north fallback.
+ *
+ * @param {object[]} scopedSignals signals after filterSignalsForScope
+ * @returns {number}
+ */
+export function defaultNorthSignalCount(scopedSignals) {
+  return (scopedSignals ?? []).filter(
+    (s) => s?.scopeDecision?.source === 'default_north_district',
+  ).length;
+}
+
+/**
  * Count scoped signals using default-north district, log warning, and annotate assessment.
+ * Sole owner of the default-north fallback metric — call once per assessment run.
  *
  * @param {object[]} scopedSignals signals after filterSignalsForScope
  * @param {{ log?: boolean, assessment?: object }} [opts]
@@ -41,9 +54,7 @@ export function recordDefaultNorthFallback(count = 1) {
  */
 export function countAndLogDefaultNorthSignals(scopedSignals, opts = {}) {
   const { log = true, assessment = null } = opts;
-  const count = (scopedSignals ?? []).filter(
-    (s) => s?.scopeDecision?.source === 'default_north_district',
-  ).length;
+  const count = defaultNorthSignalCount(scopedSignals);
   if (count > 0) {
     recordDefaultNorthFallback(count);
     if (log) {
@@ -91,9 +102,7 @@ export function defaultNorthGateBlockEnabled(env = process.env) {
  * @returns {{ count: number, pct: number, blocked: boolean, thresholdPct: number, blockEnabled: boolean }}
  */
 export function evaluateDefaultNorthGate(scopedSignals, env = process.env) {
-  const count = (scopedSignals ?? []).filter(
-    (s) => s?.scopeDecision?.source === 'default_north_district',
-  ).length;
+  const count = defaultNorthSignalCount(scopedSignals);
   const total = Math.max((scopedSignals ?? []).length, 1);
   const pct = Math.round((count / total) * 1000) / 10;
   const thresholdPct = defaultNorthGateThresholdPct(env);

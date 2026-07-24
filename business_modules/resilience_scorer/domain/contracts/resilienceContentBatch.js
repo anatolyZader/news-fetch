@@ -1,12 +1,12 @@
 /**
- * Pure validation for ResilienceContentBatch ingest payloads.
+ * Pure validation for ResilienceContentBatch ingest payloads (client-safe contract).
  *
  * Pipeline position: extract/ingest — validates news/audio content batches before signal extraction.
  *
  * Owns: ResilienceContentBatch shape assertions (reportDate, contentKind, items).
  * Does NOT: signal extraction, catalogue validation, or resilience assessment output.
  *
- * Key collaborators: composition/registerIngestion.js, app/extraction/, resilienceBatchValidation consumers in input/.
+ * Key collaborators: composition/registerIngestion.js, app/extraction/, app/resilienceAnalysisService.js.
  *
  * @see docs/specs/resilience-business-module.md
  */

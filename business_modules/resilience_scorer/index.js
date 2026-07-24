@@ -89,7 +89,7 @@ export { enrichFieldProvenance } from './domain/services/signals/fieldSignalPoli
 export {
   applyFieldReportSignalHygiene,
   isTrivialFieldReportEvidence,
-} from './domain/services/signals/fieldReportHygiene.js';
+} from './domain/services/signals/hygiene/fieldReportHygiene.js';
 export {
   resolveSignalTypeAlias,
   applySignalTypeHygiene,
@@ -98,12 +98,12 @@ export {
   isExcludedNationalContextSignalType,
   isBareHazardTickerEvidence,
   NATIONAL_CONTEXT_EXCLUDED_SIGNAL_TYPES,
-} from './domain/services/signals/routing/signalTypeHygiene.js';
+} from './domain/services/signals/hygiene/signalTypeHygiene.js';
 export {
   splitBundledHarmInfrastructure,
   splitEvidenceClauses,
   classifyHarmInfrastructureClause,
-} from './domain/services/signals/harmInfrastructureSplit.js';
+} from './domain/services/signals/hygiene/harmInfrastructureSplit.js';
 export { topContributorsFromScored } from './domain/services/operator/topContributors.js';
 
 // --- Application services ---

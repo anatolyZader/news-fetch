@@ -17,8 +17,8 @@ const DEFAULT_MIN_CORROBORATION = 2;
 const UNCORROBORATED_CONFIDENCE = 0.85;
 const CORROBORATED_CONFIDENCE = 1;
 
-function parseEnvInt(name, fallback) {
-  const raw = Number.parseInt(process.env[name] ?? String(fallback), 10);
+function parseEnvInt(env, name, fallback) {
+  const raw = Number.parseInt(env[name] ?? String(fallback), 10);
   return Number.isFinite(raw) ? raw : fallback;
 }
 
@@ -37,11 +37,11 @@ export function probeSourceAllowlist(env = process.env) {
 /**
  * Minimum distinct probe sources required for confirmed outage (env RESILIENCE_PROBE_MIN_CORROBORATION).
  *
- * @param {NodeJS.ProcessEnv} [_env]
+ * @param {NodeJS.ProcessEnv} [env]
  * @returns {number}
  */
-export function probeMinCorroboration(_env = process.env) {
-  return parseEnvInt('RESILIENCE_PROBE_MIN_CORROBORATION', DEFAULT_MIN_CORROBORATION);
+export function probeMinCorroboration(env = process.env) {
+  return parseEnvInt(env, 'RESILIENCE_PROBE_MIN_CORROBORATION', DEFAULT_MIN_CORROBORATION);
 }
 
 /**

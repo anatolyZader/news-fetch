@@ -7,12 +7,12 @@ import {
   shouldDropNonResilienceCasualtySignal,
   isBareHazardTickerEvidence,
   resolveSignalTypeAlias,
-} from '../../../../../business_modules/resilience_scorer/domain/services/signals/routing/signalTypeHygiene.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/hygiene/signalTypeHygiene.js';
 import {
   applyFieldReportSignalHygiene,
   isTrivialFieldReportEvidence,
   stripFieldReportScoreBlob,
-} from '../../../../../business_modules/resilience_scorer/domain/services/signals/fieldReportHygiene.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/signals/hygiene/fieldReportHygiene.js';
 
 describe('signalTypeHygiene', () => {
   const holySepulcherEvidence =

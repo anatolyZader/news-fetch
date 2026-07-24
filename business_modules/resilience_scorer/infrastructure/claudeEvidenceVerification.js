@@ -395,6 +395,3 @@ export async function runEntailmentVerifier(borderlineItems, sourceLabel, usageC
   }
 }
 
-
-
-export {deriveTierFromVerifyFailure, isCriticalForGrounding} from '../domain/services/signals/groundingPolicy.js';

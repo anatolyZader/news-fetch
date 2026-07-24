@@ -56,12 +56,11 @@ export function getComponentEdge(signalType, componentId) {
 
 /**
  * Whether a signal type is a direct (primary-role) observation of a component.
- * Missing edges are treated as primary for historical call-site compatibility.
+ * A type with no edge to the component is not primary — it does not route there.
  * @param {string} signalType
  * @param {string} componentId
  * @returns {boolean}
  */
 export function isPrimaryEdge(signalType, componentId) {
-  const edge = getComponentEdge(signalType, componentId);
-  return edge == null || edge.role === 'primary';
+  return getComponentEdge(signalType, componentId)?.role === 'primary';
 }

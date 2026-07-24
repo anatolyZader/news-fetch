@@ -344,7 +344,7 @@ export async function runAssessmentAgent(params) {
     residualByComponent,
     investigationOovBurst: investigationBurst,
   });
-  epistemicProfileBase = applyInvestigationSignalFlags(epistemicProfileBase, signals, dataVoid);
+  epistemicProfileBase = applyInvestigationSignalFlags(epistemicProfileBase, signals);
 
   const evidenceGraphInitial = buildEvidenceGraph({
     hits: [],
@@ -400,7 +400,7 @@ export async function runAssessmentAgent(params) {
     residualByComponent,
     investigationOovBurst: investigationBurst,
   });
-  epistemicProfileEnriched = applyInvestigationSignalFlags(epistemicProfileEnriched, signals, dataVoid);
+  epistemicProfileEnriched = applyInvestigationSignalFlags(epistemicProfileEnriched, signals);
 
   const evidenceGraph = buildEvidenceGraph({
     hits,

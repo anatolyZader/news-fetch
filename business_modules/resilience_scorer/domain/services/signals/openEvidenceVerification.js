@@ -54,21 +54,46 @@ function resolveCorroborationLevel(multiHop, refs) {
   return null;
 }
 
-function verifyOpenClaimEntry({
+/** Graph-fallback labels: single-level rag_chunk / multi_hop (legacy output shape). */
+function resolveGraphCorroborationLevel(multiHop, refs) {
+  if (hasCorroboratingRef(refs)) return 'rag_chunk';
+  return multiHop ? 'multi_hop' : null;
+}
+
+/**
+ * Build one verified entry from a claim citing an open observation, or null.
+ *
+ * Path differences are expressed as opts (behavior-preserving merge of the
+ * former per-path builders):
+ * - includeResidualRefs: primary path also accepts residual: refs as the open
+ *   citation; the graph fallback only accepts open: refs.
+ * - requireObservation: the graph fallback drops entries whose observation id
+ *   does not resolve, and reports single-level corroboration labels
+ *   (rag_chunk / multi_hop) instead of the combined resolveCorroborationLevel.
+ */
+function buildVerifiedClaimEntry({
   claim,
   componentId,
   multiHop,
   obsById,
   seen,
+  includeResidualRefs = true,
+  requireObservation = false,
 }) {
   const refs = claimEvidenceRefs(claim);
   if (!hasOpenRef(refs)) return null;
 
-  const openRef = refs.find((r) => OPEN_REF_PREFIX.test(r) || RESIDUAL_REF_PREFIX.test(r));
+  const openRef = refs.find(
+    (r) => OPEN_REF_PREFIX.test(r) || (includeResidualRefs && RESIDUAL_REF_PREFIX.test(r)),
+  );
   const observationId = openRef?.includes(':') ? openRef.split(':').slice(1).join(':') : null;
   const obs = observationId ? obsById.get(observationId) : null;
+  if (requireObservation && !obs) return null;
   const resolvedId = obs?.observation_id ?? observationId ?? 'unknown';
-  const corroboration_level = resolveCorroborationLevel(multiHop, refs);
+
+  const corroboration_level = requireObservation
+    ? resolveGraphCorroborationLevel(multiHop, refs)
+    : resolveCorroborationLevel(multiHop, refs);
   if (!corroboration_level) return null;
 
   const key = `${resolvedId}:${componentId}:${claim.claim_id ?? claim.text?.slice(0, 40)}`;
@@ -84,26 +109,6 @@ function verifyOpenClaimEntry({
   };
 }
 
-function verifyGraphClaimEntry(claim, componentId, multiHop, obsById, seen) {
-  const refs = claimEvidenceRefs(claim);
-  if (!hasOpenRef(refs)) return null;
-  const openRef = refs.find((r) => OPEN_REF_PREFIX.test(r));
-  const observationId = openRef?.split(':')[1];
-  const obs = observationId ? obsById.get(observationId) : null;
-  if (!obs) return null;
-  const key = `${obs.observation_id}:${componentId}:${claim.claim_id}`;
-  if (seen.has(key)) return null;
-  if (!multiHop && !hasCorroboratingRef(refs)) return null;
-  seen.add(key);
-  return {
-    observation_id: obs.observation_id,
-    component_id: componentId,
-    claim_id: claim.claim_id ?? null,
-    corroboration_level: hasCorroboratingRef(refs) ? 'rag_chunk' : 'multi_hop',
-    observation: obs,
-  };
-}
-
 function verifyOpenClaimsFromGraph(assessment, evidenceGraph, obsById, seen) {
   const verified = [];
   for (const [componentId, graph] of Object.entries(evidenceGraph.by_component)) {
@@ -111,7 +116,15 @@ function verifyOpenClaimsFromGraph(assessment, evidenceGraph, obsById, seen) {
     if (comp?.specialist_ran !== true) continue;
     const multiHop = specialistMultiHop(componentClaims(assessment, componentId));
     for (const claim of graph.claims ?? []) {
-      const entry = verifyGraphClaimEntry(claim, componentId, multiHop, obsById, seen);
+      const entry = buildVerifiedClaimEntry({
+        claim,
+        componentId,
+        multiHop,
+        obsById,
+        seen,
+        includeResidualRefs: false,
+        requireObservation: true,
+      });
       if (entry) verified.push(entry);
     }
   }
@@ -143,7 +156,7 @@ export function verifyOpenEvidenceClaims(assessment, openObservations = [], evid
     const multiHop = specialistMultiHop(compAssessment);
 
     for (const claim of compAssessment.claims) {
-      const entry = verifyOpenClaimEntry({
+      const entry = buildVerifiedClaimEntry({
         claim,
         componentId,
         multiHop,

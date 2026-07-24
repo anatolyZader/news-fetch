@@ -12,21 +12,14 @@ import {
   ISRAEL_REGIONAL_DISTRICT_ORDER,
   normalizeIsraelDistrictId,
 } from '../../../../../cross-cut-modules/geo/israelDistricts.js';
+import { DEFAULT_NORTH_SOURCE_TYPES } from '../../contracts/sourceFamilies.js';
 
 /**
  * Structured source types that are exclusively north-domain feeds.
  * When `district_id` is absent on a signal from these sources, north is the correct default.
- * Extractors should write `district_id: 'north'` explicitly; this constant is a safety net.
+ * Extractors should write `district_id: 'north'` explicitly; this set is a safety net.
  */
-export const DEFAULT_NORTH_SOURCE_TYPES = Object.freeze([
-  'visits',
-  'field', // read-compat for older bundles
-  'field_whatsapp',
-  'pbo',
-  'pbo_regional',
-  'naftali',
-  'whatsapp',
-]);
+export { DEFAULT_NORTH_SOURCE_TYPES } from '../../contracts/sourceFamilies.js';
 
 const DEFAULT_NORTH_SET = new Set(DEFAULT_NORTH_SOURCE_TYPES);
 

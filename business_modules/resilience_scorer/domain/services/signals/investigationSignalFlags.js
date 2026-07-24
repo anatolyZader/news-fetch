@@ -25,10 +25,9 @@ function hasSalientCriticalSignal(items) {
  *
  * @param {object} profile epistemic profile with by_component map
  * @param {object[]} signals scoped/verified signal instances
- * @param {object|null|undefined} _dataVoid reserved; unused
  * @returns {object} profile copy with investigation flags merged into by_component
  */
-export function applyInvestigationSignalFlags(profile, signals = [], _dataVoid = null) {
+export function applyInvestigationSignalFlags(profile, signals = []) {
   if (!profile?.by_component) return profile;
 
   const byComponent = { ...profile.by_component };

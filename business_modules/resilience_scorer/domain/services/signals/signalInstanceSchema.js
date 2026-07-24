@@ -6,7 +6,7 @@
  * Owns: allowed values for signal_class, intensity, phase, affected subgroups/systems; polarity-override whitelist.
  * Does NOT: catalogue routing (routing/signalRouter.js), schema validation runner, or open-vocabulary types.
  *
- * Key collaborators: componentSignalGroups.js, routing/signalRouter.js, ../../contracts/signalCatalog.js, resilienceBatchValidation.js.
+ * Key collaborators: componentSignalGroups.js, routing/signalRouter.js, ../../contracts/signalCatalog.js, ../../contracts/resilienceContentBatch.js.
  */
 
 /** Allowed signal_class values on extracted signal instances. */

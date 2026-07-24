@@ -74,20 +74,6 @@ export function assignGroundingFields(signal, { tier, reason, method }) {
 }
 
 /**
- * Derive tier when primary verification failed and no rescue succeeded yet.
- *
- * @param {object} signal
- * @param {{ ok?: boolean, reason?: string }} verifyResult
- * @param {{ rescuedBy?: string|null, entailmentPending?: boolean }} [opts]
- * @returns {string} GROUNDING_TIER value
- */
-export function deriveTierFromVerifyFailure(signal, verifyResult, opts = {}) {
-  if (opts.entailmentPending) return GROUNDING_TIER.weak;
-  if (isCriticalForGrounding(signal)) return GROUNDING_TIER.unverified_critical;
-  return GROUNDING_TIER.rejected;
-}
-
-/**
  * Map a successful verification result to tier A (grounded).
  *
  * @param {{ reason?: string }} verifyResult

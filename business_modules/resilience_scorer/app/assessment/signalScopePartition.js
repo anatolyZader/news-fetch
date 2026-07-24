@@ -13,15 +13,15 @@ import {
   annotateSignalsEpistemics,
   partitionMacroSignals,
 } from '../../domain/services/signals/evidenceEligibility.js';
+import { annotateScopeDecisions } from '../../domain/services/signals/regionSignalFilter.js';
 import {
-  annotateScopeDecisions,
   buildNarrativeScopeSignals,
   scopedSignalKeys,
   selectNarrativeNationalContext,
   selectRegionalPressContext,
   signalDedupeKey,
 } from '../../domain/services/narrative/narrativeScopeSignals.js';
-import { shouldDropNonResilienceCasualtySignal } from '../../domain/services/signals/routing/signalTypeHygiene.js';
+import { shouldDropNonResilienceCasualtySignal } from '../../domain/services/signals/hygiene/signalTypeHygiene.js';
 
 /**
  * Remove crime / EMS aggregate casualty noise before scope partition and scoring.

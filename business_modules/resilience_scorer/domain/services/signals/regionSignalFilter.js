@@ -22,7 +22,6 @@ import {
   hasExplicitSignalDistrictId,
   signalDistrictId,
 } from './signalDistrictId.js';
-import { recordDefaultNorthFallback } from './scopeAttributionMetrics.js';
 
 /**
  * District ids implied by signal district assignment and resolved geo.
@@ -75,9 +74,6 @@ export function scopeDecisionForSignal(signal, targetScopeId = ISRAEL_NATIONAL_D
   const assigned = assignedDistrictScopeMatch(signal, scopeId);
   if (assigned) {
     const explicit = hasExplicitSignalDistrictId(signal);
-    if (assigned.source === 'default_north_district') {
-      recordDefaultNorthFallback(1);
-    }
     reasons.push(
       `signal_district=${assigned.districtId}${explicit ? '' : ' (default_north_district)'}`,
     );
@@ -117,6 +113,22 @@ export function scopeDecisionForSignal(signal, targetScopeId = ISRAEL_NATIONAL_D
 }
 
 /**
+ * Stamp scopeDecision on every signal (reuses an existing scopeDecision when present).
+ *
+ * @param {object[]} signals
+ * @param {string} scope report scope id
+ * @returns {object[]} signals with scopeDecision attached
+ */
+export function annotateScopeDecisions(signals, scope) {
+  const scopeId = normalizeReportScopeId(scope);
+  return (signals ?? []).map((s) => {
+    if (!s || typeof s !== 'object') return s;
+    if (s.scopeDecision) return s;
+    return { ...s, scopeDecision: scopeDecisionForSignal(s, scopeId) };
+  });
+}
+
+/**
  * Attach scopeDecision to each signal and filter to scope-relevant instances (regional scopes only).
  *
  * @param {object[]} signals
@@ -125,14 +137,7 @@ export function scopeDecisionForSignal(signal, targetScopeId = ISRAEL_NATIONAL_D
  */
 export function filterSignalsForScope(signals, scope) {
   const scopeId = normalizeReportScopeId(scope);
-  const out = (signals ?? []).map((s) => {
-    const d = scopeDecisionForSignal(s, scopeId);
-    const merged = s && typeof s === 'object' ? { ...s, scopeDecision: d } : s;
-    if (merged?.scopeDecision?.macro_scope === 'national') {
-      merged.macro_scope = 'national';
-    }
-    return merged;
-  });
+  const out = annotateScopeDecisions(signals, scopeId);
   if (scopeId === ISRAEL_NATIONAL_DISTRICT_ID) return out;
   return out.filter((s) => s?.scopeDecision?.isScopeRelevant);
 }

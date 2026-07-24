@@ -6,17 +6,11 @@
  * Owns: field_provenance attachment from known signal fields when missing.
  * Does NOT: extraction itself, gaming caps (signalGamingPolicy.js), or geo resolution.
  *
- * Key collaborators: visitsSourceType.js, fieldReportHygiene.js, signalGamingPolicy.js, probeCorroborationPolicy.js.
+ * Key collaborators: ../../contracts/sourceFamilies.js, visitsSourceType.js, fieldReportHygiene.js, signalGamingPolicy.js, probeCorroborationPolicy.js.
  */
+import { FIELD_FAMILY_SOURCE_TYPES } from '../../contracts/sourceFamilies.js';
 
-const FIELD_SOURCE_TYPES = new Set([
-  'visits',
-  'field', // read-compat for older bundles
-  'field_whatsapp',
-  'pbo',
-  'pbo_regional',
-  'naftali',
-]);
+const FIELD_SOURCE_TYPES = new Set(FIELD_FAMILY_SOURCE_TYPES);
 
 function isFieldFamilySource(signal) {
   return FIELD_SOURCE_TYPES.has(signal?.source_type);

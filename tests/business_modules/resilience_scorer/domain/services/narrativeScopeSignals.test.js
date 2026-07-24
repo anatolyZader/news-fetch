@@ -8,8 +8,8 @@ import {
   scopedSignalKeys,
   evidenceMatchesMacroNationalTerms,
   mergeNationalContextSignals,
-  annotateScopeDecisions,
 } from '../../../../../business_modules/resilience_scorer/domain/services/narrative/narrativeScopeSignals.js';
+import { annotateScopeDecisions } from '../../../../../business_modules/resilience_scorer/domain/services/signals/regionSignalFilter.js';
 import { scopeAndPartitionSignals } from '../../../../../business_modules/resilience_scorer/app/assessment/signalScopePartition.js';
 import { SIGNAL_PROVENANCE } from '../../../../../business_modules/resilience_scorer/domain/services/signals/evidenceEligibility.js';
 

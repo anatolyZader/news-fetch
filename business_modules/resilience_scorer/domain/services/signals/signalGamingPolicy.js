@@ -10,13 +10,19 @@
  */
 
 import { CRITICAL_BYPASS_SIGNAL_TYPES } from '../../epistemic/highSalienceBypass.js';
+import {
+  FIELD_ANCHOR_SOURCE_TYPES,
+  WHATSAPP_SOURCE_TYPES,
+} from '../../contracts/sourceFamilies.js';
 import { GROUNDING_TIER } from './groundingPolicy.js';
+
+const WHATSAPP_SET = new Set(WHATSAPP_SOURCE_TYPES);
 
 const DEFAULT_DAILY_CAP = 20;
 const DEFAULT_HOURLY_TYPE_CAP = 5;
 
-function parseEnvInt(name, fallback) {
-  const raw = Number.parseInt(process.env[name] ?? String(fallback), 10);
+function parseEnvInt(env, name, fallback) {
+  const raw = Number.parseInt(env[name] ?? String(fallback), 10);
   return Number.isFinite(raw) ? raw : fallback;
 }
 
@@ -33,21 +39,23 @@ export function isGamingPolicyEnabled(env = process.env) {
 /**
  * Max signals per sender per day for WhatsApp sources.
  *
- * @param {NodeJS.ProcessEnv} [_env]
+ * @param {NodeJS.ProcessEnv} [env]
  * @returns {number}
  */
-export function whatsappDailyCap(_env = process.env) {
-  return parseEnvInt('RESILIENCE_WHATSAPP_MAX_SIGNALS_PER_SENDER', DEFAULT_DAILY_CAP);
+export function whatsappDailyCap(env = process.env) {
+  return parseEnvInt(env, 'RESILIENCE_WHATSAPP_MAX_SIGNALS_PER_SENDER', DEFAULT_DAILY_CAP);
 }
 
 /**
- * Max signals per sender per signal_type per hour for WhatsApp sources.
+ * Max signals per sender per signal_type per run for WhatsApp sources.
+ * (Env var keeps its historical HOURLY name for config compatibility, but the
+ * cap is applied per processed batch — no timestamps are consulted.)
  *
- * @param {NodeJS.ProcessEnv} [_env]
+ * @param {NodeJS.ProcessEnv} [env]
  * @returns {number}
  */
-export function whatsappHourlyTypeCap(_env = process.env) {
-  return parseEnvInt('RESILIENCE_WHATSAPP_HOURLY_TYPE_CAP', DEFAULT_HOURLY_TYPE_CAP);
+export function whatsappPerRunTypeCap(env = process.env) {
+  return parseEnvInt(env, 'RESILIENCE_WHATSAPP_HOURLY_TYPE_CAP', DEFAULT_HOURLY_TYPE_CAP);
 }
 
 /**
@@ -61,7 +69,7 @@ export function applyWhatsappSenderCaps(signals, env = process.env) {
   if (!isGamingPolicyEnabled(env)) return signals ?? [];
   const list = Array.isArray(signals) ? signals : [];
   const dailyCap = whatsappDailyCap(env);
-  const hourlyTypeCap = whatsappHourlyTypeCap(env);
+  const perRunTypeCap = whatsappPerRunTypeCap(env);
 
   /** @type {Record<string, number>} */
   const dailyCount = {};
@@ -69,8 +77,7 @@ export function applyWhatsappSenderCaps(signals, env = process.env) {
   const hourlyTypeCount = {};
 
   return list.map((s) => {
-    const st = s?.source_type;
-    if (st !== 'whatsapp' && st !== 'field_whatsapp') return s;
+    if (!WHATSAPP_SET.has(s?.source_type)) return s;
 
     const sender = s?.field_provenance?.officer_id
       ?? s?.sender_phone
@@ -85,8 +92,8 @@ export function applyWhatsappSenderCaps(signals, env = process.env) {
     ht[typeKey] = (ht[typeKey] ?? 0) + 1;
 
     const overDaily = dailyCount[dayKey] > dailyCap;
-    const overHourlyType = ht[typeKey] > hourlyTypeCap;
-    if (!overDaily && !overHourlyType) return s;
+    const overPerRunType = ht[typeKey] > perRunTypeCap;
+    if (!overDaily && !overPerRunType) return s;
 
     return {
       ...s,
@@ -106,7 +113,7 @@ export function applyWhatsappSenderCaps(signals, env = process.env) {
 export function applyFieldCorroborationGaming(signals) {
   const list = Array.isArray(signals) ? signals : [];
   const hasNonWaField = list.some((s) =>
-    ['field', 'visits', 'pbo', 'pbo_regional', 'naftali'].includes(s?.source_type),
+    FIELD_ANCHOR_SOURCE_TYPES.includes(s?.source_type),
   );
   const hasNewsRadio = list.some((s) => ['news', 'radio'].includes(s?.source_type));
 

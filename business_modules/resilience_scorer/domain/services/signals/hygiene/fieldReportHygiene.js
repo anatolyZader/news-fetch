@@ -4,11 +4,11 @@
  * Pipeline position: extract/assess — hygiene pass before verification and scope filtering.
  *
  * Owns: trivial-evidence drop, officer score-blob stripping, misclassified type rewrite on field reports.
- * Does NOT: catalogue routing (routing/signalTypeHygiene.js owns rewrite rules), or gaming/grounding policy.
+ * Does NOT: catalogue routing (signalTypeHygiene.js owns rewrite rules), or gaming/grounding policy.
  *
- * Key collaborators: routing/signalTypeHygiene.js, fieldSignalPolicy.js, visitsSourceType.js, harmInfrastructureSplit.js.
+ * Key collaborators: signalTypeHygiene.js, ../fieldSignalPolicy.js, ../visitsSourceType.js, harmInfrastructureSplit.js.
  */
-import { rewriteMisclassifiedSignalType } from './routing/signalTypeHygiene.js';
+import { rewriteMisclassifiedSignalType } from './signalTypeHygiene.js';
 
 const TRIVIAL_FIELD_REPORT_EVIDENCE_RE = /^(אין|ללא שינוי|אותו דבר|אותו הדבר|none|n\/a|—|-|\.)$/i;
 

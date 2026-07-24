@@ -6,24 +6,13 @@
  * Owns: synthetic signal construction from verified open claims with open_score_weight discount.
  * Does NOT: open claim verification (openEvidenceVerification.js), closed catalogue extraction, or routing weights.
  *
- * Key collaborators: openEvidenceVerification.js, ../oov/openExtractConfig.js, evidenceEligibility.js, groundingPolicy.js.
+ * Key collaborators: openEvidenceVerification.js, ../oov/openExtractConfig.js, routing/catalogMappingService.js, evidenceEligibility.js, groundingPolicy.js.
  */
 import {
   isOpenEvidenceScoringEnabled,
   openEvidenceScoreWeight,
 } from '../oov/openExtractConfig.js';
-
-/**
- * Pick a closed-catalogue signal type for a verified open observation.
- *
- * @param {object|null|undefined} observation
- * @returns {string} catalogue type or novel_behavior_observed fallback
- */
-function signalTypeForObservation(observation) {
-  const hints = observation?.suggested_catalog_types ?? observation?.nearest_existing_types ?? [];
-  const first = hints.find((t) => typeof t === 'string' && t.trim());
-  return first ?? 'novel_behavior_observed';
-}
+import { resolveCatalogTypeForObservation } from './routing/catalogMappingService.js';
 
 /**
  * Build synthetic closed-catalogue signals from verified open evidence claims.
@@ -48,7 +37,7 @@ export function synthesizeOpenEvidenceScoringSignals(verifiedClaims, openObserva
     const obs = entry.observation ?? obsById.get(String(entry.observation_id));
     if (!obs) continue;
 
-    const signalType = signalTypeForObservation(obs);
+    const signalType = resolveCatalogTypeForObservation(obs) ?? 'novel_behavior_observed';
     const evidence = String(obs.evidence ?? obs.behavioral_description ?? '').slice(0, 280);
     signals.push({
       signal_type: signalType,

@@ -6,8 +6,11 @@
  * Owns: visits/field/field_whatsapp source type checks and canonical pipeline keys.
  * Does NOT: field provenance enrichment (fieldSignalPolicy.js) or district defaults (signalDistrictId.js).
  *
- * Key collaborators: fieldSignalPolicy.js, signalDistrictId.js, fieldReportHygiene.js, composition ingest config.
+ * Key collaborators: ../../contracts/sourceFamilies.js, fieldSignalPolicy.js, signalDistrictId.js, fieldReportHygiene.js, composition ingest config.
  */
+import { VISITS_SOURCE_TYPES } from '../../contracts/sourceFamilies.js';
+
+const VISITS_SET = new Set(VISITS_SOURCE_TYPES);
 
 /**
  * Whether the source type belongs to the visits/field family.
@@ -16,8 +19,7 @@
  * @returns {boolean}
  */
 export function isVisitsSourceType(sourceType) {
-  const t = String(sourceType ?? '');
-  return t === 'visits' || t === 'field' || t === 'field_whatsapp';
+  return VISITS_SET.has(String(sourceType ?? ''));
 }
 
 /**

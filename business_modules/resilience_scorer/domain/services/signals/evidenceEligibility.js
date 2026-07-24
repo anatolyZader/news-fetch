@@ -48,6 +48,7 @@ export function deriveSignalProvenance(signal) {
     return SIGNAL_PROVENANCE.narrative_national_context;
   }
   const scope = signal?.scopeDecision;
+  // read-compat: only persisted legacy report files carry macro_scope on scopeDecision
   if (scope?.macro_scope === 'national') return SIGNAL_PROVENANCE.macro_national;
   if (signalDistrictId(signal)) {
     return SIGNAL_PROVENANCE.source_assigned;
@@ -147,13 +148,4 @@ export function partitionMacroSignals(signals, reportScope = 'national') {
     }
   }
   return { metricsSignals, macroSignals };
-}
-
-/**
- * Whether epistemic geo v2 policy is enabled (env RESILIENCE_EPISTEMIC_GEO_V2).
- *
- * @returns {boolean}
- */
-export function isEpistemicGeoV2Enabled() {
-  return process.env.RESILIENCE_EPISTEMIC_GEO_V2 !== '0';
 }

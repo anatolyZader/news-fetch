@@ -16,7 +16,7 @@
  * **Collaborators:** `extraction` (LLM extract), `assessmentStageRunner`, `pipelineRunTracker`,
  * `cross-cut-modules/geo` (geo enrichment), connectivity probe adapter.
  */
-import { assertValidResilienceContentBatch } from '../domain/services/signals/resilienceBatchValidation.js';
+import { assertValidResilienceContentBatch } from '../domain/contracts/resilienceContentBatch.js';
 import { mergeDualExtractionSignals } from '../infrastructure/dualModelExtract.js';
 import {
   normalizeReportScope,
@@ -169,7 +169,7 @@ function persistReportIfRequested({
 /**
  * End-to-end batch assessment: extract → shared assess core → optional persist.
  *
- * @param {import('../domain/services/signals/resilienceBatchValidation.js').ResilienceContentBatch} batch
+ * @param {import('../domain/contracts/resilienceContentBatch.js').ResilienceContentBatch} batch
  * @param {object} [options]
  * @param {import('../domain/ports/IResilienceLlmPort.js').IResilienceLlmPort} options.llmPort — required
  * @param {boolean} [options.persist=false] — write report when true
