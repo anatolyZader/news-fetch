@@ -9,8 +9,10 @@ import { execSync } from 'node:child_process';
  * High severity accepted until npm fix or min-release-age allows a patched release.
  * - xlsx: no upstream fix
  * - form-data, protobufjs: fixes exist but are newer than supply-chain min-release-age window
+ * - find-my-way: fix is 9.7.0 (~2026-07-21); wait for min-release-age=7
+ * - fast-uri: fix is 3.1.4 (~2026-07-19); ajv pins ^3; wait for min-release-age=7
  */
-const ALLOW_HIGH = new Set(['xlsx', 'form-data', 'protobufjs']);
+const ALLOW_HIGH = new Set(['xlsx', 'form-data', 'protobufjs', 'find-my-way', 'fast-uri']);
 
 function loadAuditJson() {
   try {
@@ -36,7 +38,7 @@ for (const [name, vuln] of Object.entries(audit.vulnerabilities ?? {})) {
 }
 
 if (blocked.length === 0) {
-  console.log('Security audit OK (production high/critical clear; documented exceptions: xlsx, form-data, protobufjs).');
+  console.log('Security audit OK (production high/critical clear; documented exceptions: xlsx, form-data, protobufjs, find-my-way, fast-uri).');
   process.exit(0);
 }
 

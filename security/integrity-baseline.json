@@ -1,18 +1,18 @@
 {
   "version": 2,
-  "recordedAt": "2026-07-20T17:42:27.818Z",
-  "gitSha": "26e3affbc5dbb3d9f9eb3b1f967cb4f7f44a4c64",
+  "recordedAt": "2026-07-24T08:38:44.115Z",
+  "gitSha": "703e0c51fc12f9c7c2007b2c6ad83f8e0cc7f53b",
   "files": {
-    "package-lock.json": "877f5663fc21a508503e0b824e15221649cb72ee0c0a7cd08e6d20b5f4eb0717",
+    "package-lock.json": "3a7e448b9ffecd94f51457d99ca3e930e1f32d5a6769457b0287cbc97e1feb72",
     "client/package-lock.json": "27bb59b51957d3f7956ace2100c710e1db17f695b80c1e458b1b8c30800beffe",
     "docs-site/package-lock.json": "b3f47c18b0bac88a259d11f2f0191964548c3e59ae8bb11036dbb28692111110",
     ".nvmrc": "88029f8a967e9b0a57e49328ab94fa6d74e07946e2b5d33626c82d0dc6e93d81",
     "openapi/openapi.yaml": "4454cb3cf5e2061de7307a104d25242468d678bad1be549aa7297ecb1ec1beae",
-    ".github/dependabot.yml": "a5848aae90e93ce36692e4f4cf770e06e0474ddde3dcd1dfb8418b23794c8057",
-    ".github/actions/setup-npm-ci/action.yml": "7a1ea9b73e7cece91469554d0e65cdf7f0eb885475e3db168034926bf277d439"
+    ".github/dependabot.yml": "1887177150ee60c1f9f3973a6d3186d580d05e9484f0fc4736a5cc4e4189a23e",
+    ".github/actions/setup-npm-ci/action.yml": "2e06fef9447799e304fb8061908ec50be523e55f2d0d46d8ac5e325082d02bc9"
   },
   "clientDist": {
-    "aggregateSha256": "fba39b0538522ab01b834c10d0aabe3230f1706ef5a4bc5a0c136cf35c4529e8",
+    "aggregateSha256": "2f7a0678d7d8226280dfb498cb9a0961bd0691d80f6b0d977fd22ac99f809c27",
     "fileCount": 70
   }
 }
