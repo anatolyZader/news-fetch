@@ -97,7 +97,7 @@ function appendComponentCriticalNotes(lines, comp) {
 function sharedCoverageLabel(basis) {
   const shared = basis?.shared_primary_articles;
   if (!shared || !shared.count) return '';
-  const pct = shared.share != null ? ` (${Math.round(shared.share * 100)}%)` : '';
+  const pct = shared.share == null ? '' : ` (${Math.round(shared.share * 100)}%)`;
   return `; shared coverage — ${shared.count}${pct} of its evidence units also feed other components`;
 }
 
@@ -191,8 +191,9 @@ export function appendMethodologyBlock(lines, assessment) {
   const lh = m.scope?.load_hygiene;
   if (lh?.total > 0) {
     const parts = Object.entries(lh.by_source ?? {}).map(([k, n]) => `${k}: ${n}`);
+    const bySourceSuffix = parts.length > 0 ? ` (${parts.join('; ')})` : '';
     lines.push(
-      `**No-change reports excluded:** ${lh.total} contentless field/municipal rows ("no change", "not relevant") were dropped before counting${parts.length ? ` (${parts.join('; ')})` : ''} — they are status confirmations, not behavioral evidence.`,
+      `**No-change reports excluded:** ${lh.total} contentless field/municipal rows ("no change", "not relevant") were dropped before counting${bySourceSuffix} — they are status confirmations, not behavioral evidence.`,
       ``,
     );
   }

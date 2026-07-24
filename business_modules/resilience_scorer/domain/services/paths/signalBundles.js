@@ -265,6 +265,90 @@ function needsFieldHygieneAtLoad(sourceType) {
 }
 
 /**
+ * Resolve district id from a loaded signal bundle (file metadata or payload).
+ * @param {object} data
+ * @param {string | null | undefined} fileDistrictId
+ * @returns {string | null}
+ */
+function resolveBundleDistrictId(data, fileDistrictId) {
+  const rawBundleDistrict = data.district_id ?? fileDistrictId;
+  const bundleDistrict = rawBundleDistrict == null
+    ? null
+    : normalizeIsraelDistrictId(String(rawBundleDistrict));
+  if (!bundleDistrict) return null;
+  return ISRAEL_REGIONAL_DISTRICT_ORDER.includes(bundleDistrict) ? bundleDistrict : null;
+}
+
+/**
+ * Weight + enrich one signal from a loaded file; returns null when hygiene drops it.
+ * @returns {{ signal: object | null, hygieneDropped: boolean }}
+ */
+function enrichLoadedSignal(s, {
+  weight,
+  targetDate,
+  sourceType,
+  canonicalType,
+  fileDate,
+  bundleDistrictId,
+  applyHygiene,
+}) {
+  let signalWeight = weight;
+  if (targetDate && isVisitsSourceType(sourceType)) {
+    const visitDate = String(s.article_date ?? fileDate).slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(visitDate)) {
+      signalWeight = temporalWeightForOffset(dateOffset(visitDate, targetDate));
+    }
+  }
+  let enriched = {
+    ...s,
+    temporal_weight: signalWeight,
+    source_type: canonicalType,
+    signal_file_date: fileDate,
+    ...(s.district_id == null && bundleDistrictId ? { district_id: bundleDistrictId } : {}),
+  };
+  if (!applyHygiene) return { signal: enriched, hygieneDropped: false };
+  const cleaned = sanitizeFieldReportSignal(enriched);
+  if (!cleaned) return { signal: null, hygieneDropped: true };
+  return { signal: cleaned, hygieneDropped: false };
+}
+
+/**
+ * Merge one loaded signal file into the accumulator.
+ * @param {object} loaded
+ * @param {{ targetDate?: string, hygieneDrops: { total: number, by_source: Record<string, number> } }} ctx
+ */
+function mergeOneLoadedSignalFile(loaded, { targetDate, hygieneDrops }) {
+  const { weight, data, sourceType, fileDate, fileDistrictId } = loaded;
+  const bundleDistrictId = resolveBundleDistrictId(data, fileDistrictId);
+  const canonicalType = normalizeVisitsSourceType(sourceType);
+  const applyHygiene = needsFieldHygieneAtLoad(sourceType);
+  const weighted = [];
+  for (const s of data.signals ?? []) {
+    const { signal, hygieneDropped } = enrichLoadedSignal(s, {
+      weight,
+      targetDate,
+      sourceType,
+      canonicalType,
+      fileDate,
+      bundleDistrictId,
+      applyHygiene,
+    });
+    if (hygieneDropped) {
+      hygieneDrops.total += 1;
+      hygieneDrops.by_source[canonicalType] = (hygieneDrops.by_source[canonicalType] ?? 0) + 1;
+      continue;
+    }
+    weighted.push(signal);
+  }
+  return {
+    weighted,
+    totalArticles: data.total_articles ?? 0,
+    sourceFiles: data.source_files ?? [],
+    canonicalType,
+  };
+}
+
+/**
  * Merge loaded bundles into a flat signal list with temporal weights.
  *
  * PBO/visits signals get field-report hygiene re-applied here (score-blob strip
@@ -283,48 +367,12 @@ export function mergeLoadedSignalFiles(loadedFiles, { targetDate } = {}) {
   const sourceTypesSeen = new Set();
   const hygieneDrops = { total: 0, by_source: {} };
 
-  for (const { weight, data, sourceType, fileDate, fileDistrictId } of loadedFiles) {
-    const rawBundleDistrict = data.district_id ?? fileDistrictId;
-    const bundleDistrict = rawBundleDistrict == null
-      ? null
-      : normalizeIsraelDistrictId(String(rawBundleDistrict));
-    const bundleDistrictId = bundleDistrict
-      && ISRAEL_REGIONAL_DISTRICT_ORDER.includes(bundleDistrict)
-      ? bundleDistrict
-      : null;
-    const canonicalType = normalizeVisitsSourceType(sourceType);
-    const applyHygiene = needsFieldHygieneAtLoad(sourceType);
-    const weighted = [];
-    for (const s of data.signals ?? []) {
-      let signalWeight = weight;
-      if (targetDate && isVisitsSourceType(sourceType)) {
-        const visitDate = String(s.article_date ?? fileDate).slice(0, 10);
-        if (/^\d{4}-\d{2}-\d{2}$/.test(visitDate)) {
-          signalWeight = temporalWeightForOffset(dateOffset(visitDate, targetDate));
-        }
-      }
-      let enriched = {
-        ...s,
-        temporal_weight: signalWeight,
-        source_type: canonicalType,
-        signal_file_date: fileDate,
-        ...(s.district_id == null && bundleDistrictId ? { district_id: bundleDistrictId } : {}),
-      };
-      if (applyHygiene) {
-        const cleaned = sanitizeFieldReportSignal(enriched);
-        if (!cleaned) {
-          hygieneDrops.total += 1;
-          hygieneDrops.by_source[canonicalType] = (hygieneDrops.by_source[canonicalType] ?? 0) + 1;
-          continue;
-        }
-        enriched = cleaned;
-      }
-      weighted.push(enriched);
-    }
-    allSignals = allSignals.concat(weighted);
-    totalArticles += data.total_articles ?? 0;
-    sourceFiles.push(...(data.source_files ?? []));
-    sourceTypesSeen.add(canonicalType);
+  for (const loaded of loadedFiles) {
+    const merged = mergeOneLoadedSignalFile(loaded, { targetDate, hygieneDrops });
+    allSignals = allSignals.concat(merged.weighted);
+    totalArticles += merged.totalArticles;
+    sourceFiles.push(...merged.sourceFiles);
+    sourceTypesSeen.add(merged.canonicalType);
   }
 
   if (hygieneDrops.total > 0) {
