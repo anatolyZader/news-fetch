@@ -264,6 +264,47 @@ function needsFieldHygieneAtLoad(sourceType) {
   return isVisitsSourceType(sourceType) || String(sourceType ?? '').startsWith('pbo');
 }
 
+/** Resolve a regional district id from bundle metadata, or null if not in the regional order. */
+function resolveBundleDistrictId(data, fileDistrictId) {
+  const rawBundleDistrict = data.district_id ?? fileDistrictId;
+  if (rawBundleDistrict == null) return null;
+  const bundleDistrict = normalizeIsraelDistrictId(String(rawBundleDistrict));
+  return bundleDistrict && ISRAEL_REGIONAL_DISTRICT_ORDER.includes(bundleDistrict)
+    ? bundleDistrict
+    : null;
+}
+
+/** Visits sources re-weight by visit date when a target date is set; others keep the file weight. */
+function signalTemporalWeight(signal, weight, sourceType, fileDate, targetDate) {
+  if (!(targetDate && isVisitsSourceType(sourceType))) return weight;
+  const visitDate = String(signal.article_date ?? fileDate).slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(visitDate)) return weight;
+  return temporalWeightForOffset(dateOffset(visitDate, targetDate));
+}
+
+/**
+ * Enrich one signal with temporal weight / district / source metadata.
+ * Returns null when load-time hygiene drops a contentless field/PBO row.
+ */
+function enrichLoadedSignal(signal, {
+  weight, sourceType, fileDate, targetDate, canonicalType, bundleDistrictId, applyHygiene,
+}) {
+  const enriched = {
+    ...signal,
+    temporal_weight: signalTemporalWeight(signal, weight, sourceType, fileDate, targetDate),
+    source_type: canonicalType,
+    signal_file_date: fileDate,
+    ...(signal.district_id == null && bundleDistrictId ? { district_id: bundleDistrictId } : {}),
+  };
+  if (!applyHygiene) return enriched;
+  return sanitizeFieldReportSignal(enriched);
+}
+
+function recordHygieneDrop(hygieneDrops, canonicalType) {
+  hygieneDrops.total += 1;
+  hygieneDrops.by_source[canonicalType] = (hygieneDrops.by_source[canonicalType] ?? 0) + 1;
+}
+
 /**
  * Merge loaded bundles into a flat signal list with temporal weights.
  *
@@ -284,40 +325,17 @@ export function mergeLoadedSignalFiles(loadedFiles, { targetDate } = {}) {
   const hygieneDrops = { total: 0, by_source: {} };
 
   for (const { weight, data, sourceType, fileDate, fileDistrictId } of loadedFiles) {
-    const rawBundleDistrict = data.district_id ?? fileDistrictId;
-    const bundleDistrict = rawBundleDistrict == null
-      ? null
-      : normalizeIsraelDistrictId(String(rawBundleDistrict));
-    const bundleDistrictId = bundleDistrict
-      && ISRAEL_REGIONAL_DISTRICT_ORDER.includes(bundleDistrict)
-      ? bundleDistrict
-      : null;
+    const bundleDistrictId = resolveBundleDistrictId(data, fileDistrictId);
     const canonicalType = normalizeVisitsSourceType(sourceType);
     const applyHygiene = needsFieldHygieneAtLoad(sourceType);
     const weighted = [];
     for (const s of data.signals ?? []) {
-      let signalWeight = weight;
-      if (targetDate && isVisitsSourceType(sourceType)) {
-        const visitDate = String(s.article_date ?? fileDate).slice(0, 10);
-        if (/^\d{4}-\d{2}-\d{2}$/.test(visitDate)) {
-          signalWeight = temporalWeightForOffset(dateOffset(visitDate, targetDate));
-        }
-      }
-      let enriched = {
-        ...s,
-        temporal_weight: signalWeight,
-        source_type: canonicalType,
-        signal_file_date: fileDate,
-        ...(s.district_id == null && bundleDistrictId ? { district_id: bundleDistrictId } : {}),
-      };
-      if (applyHygiene) {
-        const cleaned = sanitizeFieldReportSignal(enriched);
-        if (!cleaned) {
-          hygieneDrops.total += 1;
-          hygieneDrops.by_source[canonicalType] = (hygieneDrops.by_source[canonicalType] ?? 0) + 1;
-          continue;
-        }
-        enriched = cleaned;
+      const enriched = enrichLoadedSignal(s, {
+        weight, sourceType, fileDate, targetDate, canonicalType, bundleDistrictId, applyHygiene,
+      });
+      if (!enriched) {
+        recordHygieneDrop(hygieneDrops, canonicalType);
+        continue;
       }
       weighted.push(enriched);
     }

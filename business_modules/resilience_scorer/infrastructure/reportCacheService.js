@@ -460,49 +460,58 @@ function _readMarkdownSidecars(jsonPath) {
   return { markdown, markdown_brief };
 }
 
+/** Parse report JSON and attach markdown/cost sidecars. Returns null on parse failure. */
+function _loadJsonReportPayload(jsonPath, date) {
+  let parsed;
+  try {
+    parsed = JSON.parse(readFileSync(jsonPath, 'utf-8'));
+  } catch {
+    return null;
+  }
+  const { markdown, markdown_brief } = _readMarkdownSidecars(jsonPath);
+  const costBreakdown = readCostBreakdownForDate(date);
+  return {
+    ...parsed,
+    markdown,
+    ...(markdown_brief ? { markdown_brief } : {}),
+    ...(costBreakdown ? { costBreakdown } : {}),
+  };
+}
+
+/** Markdown-only filesystem fallback when no sibling JSON exists. */
+function _loadMarkdownReportPayload(date, { scope, reportsDir, runId }) {
+  const mdPath = resolveReportMdPathForDate(date, { scope, reportsDir, runId });
+  if (!(mdPath && existsSync(mdPath))) return null;
+  const parsedRunId = runId
+    || parseReportFilename(basename(mdPath))?.runId
+    || null;
+  return loadMarkdownOnlyReport(mdPath, date, scope, parsedRunId);
+}
+
+/** National-only store fallback when filesystem report files are absent. */
+function _loadStoreReportPayload(date, store, scope) {
+  if (!(scope === 'national' && store)) return null;
+  const run = store.getLatestRunForDate(date);
+  if (!run) return null;
+  const costBreakdown = readCostBreakdownForDate(date);
+  return {
+    assessment: run.reportJson,
+    markdown: run.reportMd ?? null,
+    ...(costBreakdown ? { costBreakdown } : {}),
+  };
+}
+
 /** Load a report for a specific date from filesystem or store. Returns payload or null. */
 function _loadReportForDate(date, store, { scope = 'national', reportsDir, runId } = {}) {
   const jsonPath = resolveReportJsonPathForDate(date, { scope, reportsDir, runId });
   if (jsonPath && existsSync(jsonPath)) {
-    let parsed;
-    try {
-      parsed = JSON.parse(readFileSync(jsonPath, 'utf-8'));
-    } catch {
-      return null;
-    }
-    const { markdown, markdown_brief } = _readMarkdownSidecars(jsonPath);
-    const costBreakdown = readCostBreakdownForDate(date);
-    return {
-      ...parsed,
-      markdown,
-      ...(markdown_brief ? { markdown_brief } : {}),
-      ...(costBreakdown ? { costBreakdown } : {}),
-    };
+    return _loadJsonReportPayload(jsonPath, date);
   }
 
   // Markdown-only fallback (national archives often lack sibling JSON).
   // JSON is always preferred above — north/full runs with JSON are unchanged.
-  const mdPath = resolveReportMdPathForDate(date, { scope, reportsDir, runId });
-  if (mdPath && existsSync(mdPath)) {
-    const parsedRunId = runId
-      || parseReportFilename(basename(mdPath))?.runId
-      || null;
-    return loadMarkdownOnlyReport(mdPath, date, scope, parsedRunId);
-  }
-
-  if (scope === 'national' && store) {
-    const run = store.getLatestRunForDate(date);
-    if (run) {
-      const costBreakdown = readCostBreakdownForDate(date);
-      return {
-        assessment: run.reportJson,
-        markdown: run.reportMd ?? null,
-        ...(costBreakdown ? { costBreakdown } : {}),
-      };
-    }
-  }
-
-  return null;
+  return _loadMarkdownReportPayload(date, { scope, reportsDir, runId })
+    ?? _loadStoreReportPayload(date, store, scope);
 }
 
 /** Scan the reports directory for the most recent report before `today`. */
