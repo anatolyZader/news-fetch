@@ -72,7 +72,7 @@ describe('chatRoutes session delete', () => {
       url: `/api/chat/sessions/${sessionId}`,
       headers: { 'x-test-uid': 'intruder' },
     });
-    assert.equal(res.statusCode, 200);
+    assert.equal(res.statusCode, 404);
     assert.equal(JSON.parse(res.body).ok, false);
     assert.ok(chatStore.getSession(sessionId), 'session must survive');
   });

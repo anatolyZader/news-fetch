@@ -115,7 +115,8 @@ export async function chatRoutes(app, opts) {
     const sessionId = String(request.params?.id ?? '').trim();
     if (!sessionId) return reply.code(400).send({ error: 'session id required' });
     const ok = chatStore.deleteSession({ ownerUid: uid, sessionId });
-    return reply.send({ ok });
+    if (!ok) return reply.code(404).send({ ok: false, error: 'not found' });
+    return reply.send({ ok: true });
   });
 
   app.get('/api/chat/sessions/:id/messages', authHook, async (request, reply) => {

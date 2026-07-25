@@ -146,7 +146,10 @@ export function useChat() {
       method: 'DELETE',
       headers,
     });
-    if (!res.ok) throw new Error(await res.text().catch(() => res.statusText));
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.ok === false) {
+      throw new Error(data.error || res.statusText || 'Delete failed');
+    }
     setHistory([]);
     const list = await loadSessions();
     const remaining = list.filter((s) => s.id !== sessionId);
@@ -352,9 +355,12 @@ export function useChat() {
           }
           return;
         }
+        const content = accumulated
+          ? `${accumulated}\n\n— Connection lost before the answer finished. Use Retry to continue.`
+          : 'Connection error — please try again.';
         setHistory((h) => [
           ...h,
-          { role: 'assistant', content: 'Connection error — please try again.', error: true, meta: { banner: 'error' } },
+          { role: 'assistant', content, error: true, meta: { banner: 'error' } },
         ]);
       },
     });
@@ -365,8 +371,14 @@ export function useChat() {
     beginStreaming();
 
     await runChatStreamRequest({ action: 'regenerate', scope: null }, opts, {
-      onAbort(err) {
-        const content = err?.name === 'AbortError' ? 'Cancelled.' : 'Connection error — please try again.';
+      onAbort(err, accumulated) {
+        if (err?.name === 'AbortError') {
+          setHistory((h) => [...h, { role: 'assistant', content: 'Cancelled.', error: true, meta: { banner: 'error' } }]);
+          return;
+        }
+        const content = accumulated
+          ? `${accumulated}\n\n— Connection lost before the answer finished. Use Retry to continue.`
+          : 'Connection error — please try again.';
         setHistory((h) => [...h, { role: 'assistant', content, error: true, meta: { banner: 'error' } }]);
       },
     });

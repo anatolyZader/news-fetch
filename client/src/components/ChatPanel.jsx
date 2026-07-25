@@ -77,6 +77,9 @@ export function ChatPanel({
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [historyAnchor, setHistoryAnchor] = useState(null);
   const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [sessionActionError, setSessionActionError] = useState(null);
   const [sourceView, setSourceView] = useState(null);
   const bottomRef = useRef(null);
   const closeChatButtonRef = useRef(null);
@@ -100,6 +103,10 @@ export function ChatPanel({
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') {
+        if (deleteConfirmOpen) {
+          if (!deleteBusy) setDeleteConfirmOpen(false);
+          return;
+        }
         if (closeConfirmOpen) {
           setCloseConfirmOpen(false);
           return;
@@ -109,7 +116,7 @@ export function ChatPanel({
     }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [searchOpen, closeConfirmOpen]);
+  }, [searchOpen, closeConfirmOpen, deleteConfirmOpen, deleteBusy]);
 
   const visibleHistory = useMemo(() => {
     const q = String(search ?? '').trim().toLowerCase();
@@ -413,12 +420,12 @@ export function ChatPanel({
         <MenuItem
           disabled={!activeSessionId}
           sx={{ color: 'error.main', fontWeight: 600 }}
-          onClick={async () => {
-            if (!activeSessionId) return;
-            const ok = globalThis.confirm('Delete this chat?');
-            if (!ok) return;
-            await deleteSession({ sessionId: activeSessionId });
+          onClick={() => {
+            // Native window.confirm inside a closing MUI Menu is unreliable
+            // (focus restore often cancels it). Use a Dialog instead.
             closeMenu();
+            setSessionActionError(null);
+            setDeleteConfirmOpen(true);
           }}
         >
           Delete chat
@@ -428,6 +435,9 @@ export function ChatPanel({
       <Box
         sx={(theme) => ({
           flex: 1,
+          minWidth: 0,
+          minHeight: 0,
+          overflowX: 'hidden',
           overflowY: 'auto',
           paddingTop: theme.spacing(0.5),
           paddingBottom: theme.spacing(0.5),
@@ -451,7 +461,10 @@ export function ChatPanel({
           </Typography>
         )}
         {visibleHistory.map((msg) => (
-          <Box key={msg.id ?? `${msg.role}-${String(msg.content ?? '').slice(0, 48)}`}>
+          <Box
+            key={msg.id ?? `${msg.role}-${String(msg.content ?? '').slice(0, 48)}`}
+            sx={{ minWidth: 0, maxWidth: '100%' }}
+          >
             <ChatRow
               msg={msg}
               onCopy={() => navigator.clipboard?.writeText(msg.content ?? '')}
@@ -515,6 +528,58 @@ export function ChatPanel({
           </Button>
         </Stack>
       )}
+
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => {
+          if (deleteBusy) return;
+          setDeleteConfirmOpen(false);
+        }}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontSize: '1rem' }}>Delete this chat?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            This removes the conversation from your history. This cannot be undone.
+          </Typography>
+          {sessionActionError && (
+            <Alert severity="error" variant="outlined" sx={{ mt: 1.5 }}>
+              {sessionActionError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            size="small"
+            disabled={deleteBusy}
+            onClick={() => setDeleteConfirmOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            size="small"
+            color="error"
+            variant="contained"
+            disabled={deleteBusy || !activeSessionId}
+            onClick={async () => {
+              if (!activeSessionId) return;
+              setDeleteBusy(true);
+              setSessionActionError(null);
+              try {
+                await deleteSession({ sessionId: activeSessionId });
+                setDeleteConfirmOpen(false);
+              } catch (err) {
+                setSessionActionError(err?.message ?? 'Delete failed');
+              } finally {
+                setDeleteBusy(false);
+              }
+            }}
+          >
+            {deleteBusy ? 'Deleting…' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={Boolean(sourceView)}
@@ -767,15 +832,17 @@ function ChatWorkingRow({ streamState, draft, elapsedSec, t }) {
       aria-live="polite"
       sx={(theme) => ({
         display: 'grid',
-        gridTemplateColumns: `${theme.spacing(3.5)} 1fr`,
+        gridTemplateColumns: `${theme.spacing(3.5)} minmax(0, 1fr)`,
         gap: theme.spacing(1),
         padding: theme.spacing(1.5),
+        minWidth: 0,
+        maxWidth: '100%',
         borderBottom: theme.custom.border.hairline,
         background: alpha(theme.palette.background.default, 0.75),
       })}
     >
       <ChatAvatar isUser={false} />
-      <Box>
+      <Box sx={{ minWidth: 0, maxWidth: '100%' }}>
         <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
           <CircularProgress size={16} thickness={5} />
           <Typography variant="body2" color="text.secondary">
@@ -800,6 +867,8 @@ function ChatWorkingRow({ streamState, draft, elapsedSec, t }) {
               color: theme.palette.text.primary,
               fontSize: theme.typography.chatBody.fontSize,
               lineHeight: theme.typography.chatBody.lineHeight,
+              overflowWrap: 'anywhere',
+              wordBreak: 'break-word',
             })}
           >
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={safeMarkdownComponents}>
@@ -847,9 +916,11 @@ function ChatRow({ msg, streaming = false, onCopy, onEdit, onOpenSource }) {
     <Box
       sx={(theme) => ({
         display: 'grid',
-        gridTemplateColumns: `${theme.spacing(3.5)} 1fr`,
+        gridTemplateColumns: `${theme.spacing(3.5)} minmax(0, 1fr)`,
         gap: theme.spacing(1),
         padding: theme.spacing(1.5),
+        minWidth: 0,
+        maxWidth: '100%',
         borderBottom: theme.custom.border.hairline,
         background: isUser
           ? theme.palette.background.paper
@@ -864,12 +935,14 @@ function ChatRow({ msg, streaming = false, onCopy, onEdit, onOpenSource }) {
       })}
     >
       <ChatAvatar isUser={isUser} />
-      <Box>
+      <Box sx={{ minWidth: 0, maxWidth: '100%' }}>
         <Box
           sx={(theme) => ({
             color: theme.palette.text.primary,
             fontSize: theme.typography.chatBody.fontSize,
             lineHeight: theme.typography.chatBody.lineHeight,
+            overflowWrap: 'anywhere',
+            wordBreak: 'break-word',
             '& p': { margin: `${theme.spacing(0.25)} 0` },
             '& p:first-of-type': { marginTop: 0 },
             '& p:last-of-type': { marginBottom: 0 },
@@ -890,11 +963,19 @@ function ChatRow({ msg, streaming = false, onCopy, onEdit, onOpenSource }) {
               borderRadius: panelSectionRadius(theme),
               background: theme.custom.surface.code,
               border: theme.custom.border.hairline,
+              wordBreak: 'break-word',
+            },
+            '& pre': {
+              maxWidth: '100%',
+              overflowX: 'auto',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
             },
             '& a': {
               color: 'inherit',
               textDecoration: 'underline',
               textUnderlineOffset: '2px',
+              overflowWrap: 'anywhere',
             },
           })}
         >
@@ -923,7 +1004,7 @@ function ChatRow({ msg, streaming = false, onCopy, onEdit, onOpenSource }) {
             spacing={0.5}
             flexWrap="wrap"
             useFlexGap
-            sx={(theme) => ({ marginTop: theme.spacing(1) })}
+            sx={(theme) => ({ marginTop: theme.spacing(1), minWidth: 0, maxWidth: '100%' })}
           >
             {citations.map((c) => (
               <Chip
@@ -934,6 +1015,17 @@ function ChatRow({ msg, streaming = false, onCopy, onEdit, onOpenSource }) {
                 label={citationChipLabel(c)}
                 clickable={Boolean(onOpenSource)}
                 onClick={onOpenSource ? () => onOpenSource(c) : undefined}
+                sx={{
+                  maxWidth: '100%',
+                  height: 'auto',
+                  '& .MuiChip-label': {
+                    display: 'block',
+                    whiteSpace: 'normal',
+                    overflowWrap: 'anywhere',
+                    wordBreak: 'break-word',
+                    py: 0.25,
+                  },
+                }}
               />
             ))}
           </Stack>
@@ -942,7 +1034,12 @@ function ChatRow({ msg, streaming = false, onCopy, onEdit, onOpenSource }) {
           <Typography
             variant="caption"
             color="text.secondary"
-            sx={(theme) => ({ display: 'block', marginTop: theme.spacing(0.75) })}
+            sx={(theme) => ({
+              display: 'block',
+              marginTop: theme.spacing(0.75),
+              overflowWrap: 'anywhere',
+              wordBreak: 'break-word',
+            })}
           >
             {`Investigated: ${[...new Set(toolTrail)].join(', ')}`}
           </Typography>
