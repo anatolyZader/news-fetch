@@ -214,6 +214,153 @@ describe('runToolLoop', () => {
     assert.match(result.messages[1].content, /COMPACT WORKING MEMORY/);
   });
 
+  it('compaction preserves multi-turn history including the current question', async () => {
+    const client = fakeClient([
+      {
+        stop_reason: 'tool_use',
+        content: [
+          { type: 'tool_use', id: 't1', name: 'lookup', input: { q: 'a' } },
+        ],
+        usage: { input_tokens: 10, output_tokens: 5 },
+      },
+      {
+        stop_reason: 'end_turn',
+        content: [{ type: 'text', text: 'Done.' }],
+        usage: { input_tokens: 10, output_tokens: 5 },
+      },
+    ]);
+
+    const history = [
+      { role: 'user', content: 'first question' },
+      { role: 'assistant', content: 'first answer' },
+      { role: 'user', content: 'current question' },
+    ];
+
+    const result = await runToolLoop({
+      client,
+      model: 'test-model',
+      system: 'sys',
+      messages: history,
+      tools: [{ name: 'lookup', input_schema: { type: 'object', properties: {} } }],
+      executeTool: async () => 'tool output',
+      compactHistoryAfterRound: true,
+      workingMemory: { snapshot: () => ({}) },
+      budget: { snapshot: () => ({ spentUsd: 0 }) },
+    });
+
+    assert.equal(result.messages[0].content, 'first question');
+    assert.equal(result.messages[1].content, 'first answer');
+    assert.equal(result.messages[2].content, 'current question');
+    assert.match(result.messages[3].content, /COMPACT WORKING MEMORY/);
+  });
+
+  it('streams deltas via onTextDelta and skips onTextBlock', async () => {
+    const finalMsg = {
+      stop_reason: 'end_turn',
+      content: [{ type: 'text', text: 'streamed answer' }],
+      usage: { input_tokens: 5, output_tokens: 3 },
+    };
+    let aborted = false;
+    const client = {
+      messages: {
+        create: async () => {
+          throw new Error('create must not be called when onTextDelta is set');
+        },
+        stream: () => {
+          const handlers = {};
+          return {
+            on(event, cb) { handlers[event] = cb; },
+            abort() { aborted = true; },
+            async finalMessage() {
+              handlers.text?.('streamed ');
+              handlers.text?.('answer');
+              return finalMsg;
+            },
+          };
+        },
+      },
+    };
+
+    const deltas = [];
+    const blocks = [];
+    const result = await runToolLoop({
+      client,
+      model: 'test-model',
+      system: 'sys',
+      messages: [{ role: 'user', content: 'hi' }],
+      tools: [],
+      onTextDelta: (t) => deltas.push(t),
+      onTextBlock: (t) => blocks.push(t),
+      executeTool: async () => 'unused',
+    });
+
+    assert.deepEqual(deltas, ['streamed ', 'answer']);
+    assert.deepEqual(blocks, []);
+    assert.equal(result.lastAssistantText, 'streamed answer');
+    assert.equal(aborted, false);
+  });
+
+  it('abort mid-stream surfaces AbortError and aborts the SDK stream', async () => {
+    const controller = new AbortController();
+    let sdkAborted = false;
+    const client = {
+      messages: {
+        stream: () => ({
+          on() {},
+          abort() { sdkAborted = true; },
+          async finalMessage() {
+            controller.abort(new Error('Client disconnected'));
+            throw new Error('stream interrupted');
+          },
+        }),
+      },
+    };
+
+    await assert.rejects(
+      runToolLoop({
+        client,
+        model: 'test-model',
+        system: 'sys',
+        messages: [{ role: 'user', content: 'hi' }],
+        tools: [],
+        abortSignal: controller.signal,
+        onTextDelta: () => {},
+        executeTool: async () => 'unused',
+      }),
+      (err) => err.name === 'AbortError' && /Client disconnected/.test(err.message),
+    );
+    assert.equal(sdkAborted, true);
+  });
+
+  it('falls back to messages.create when onTextDelta is absent', async () => {
+    let createCalls = 0;
+    const client = {
+      messages: {
+        create: async () => {
+          createCalls++;
+          return {
+            stop_reason: 'end_turn',
+            content: [{ type: 'text', text: 'ok' }],
+            usage: { input_tokens: 1, output_tokens: 1 },
+          };
+        },
+        stream: () => {
+          throw new Error('stream must not be called without onTextDelta');
+        },
+      },
+    };
+    const result = await runToolLoop({
+      client,
+      model: 'test-model',
+      system: 'sys',
+      messages: [{ role: 'user', content: 'hi' }],
+      tools: [],
+      executeTool: async () => 'unused',
+    });
+    assert.equal(createCalls, 1);
+    assert.equal(result.lastAssistantText, 'ok');
+  });
+
   it('forwards cached system blocks on each model call', async () => {
     const systems = [];
     const client = {

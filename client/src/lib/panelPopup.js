@@ -87,7 +87,7 @@ export function reloadPopupIfBundleStale(popup) {
 function resolvePanelPath(panelId, options = {}) {
   let path = panelPathForId(panelId);
   if (panelId === 'chat') {
-    path = buildChatPanelPath(options.reportScope, options.reportGeoScope);
+    path = buildChatPanelPath(options.reportScope, options.reportGeoScope, options.initialMessage);
   } else if (panelId === 'docs') {
     path = buildDocsPanelPath(options.slug);
   }

@@ -14,7 +14,7 @@ export const PANEL_PATHS = Object.freeze({
  * @param {string} [reportGeoScope]
  * @returns {string}
  */
-export function buildChatPanelPath(reportScope, reportGeoScope) {
+export function buildChatPanelPath(reportScope, reportGeoScope, initialMessage) {
   const params = new URLSearchParams();
   if (reportScope?.type === 'component' && reportScope.id) {
     params.set('scope', 'component');
@@ -26,6 +26,8 @@ export function buildChatPanelPath(reportScope, reportGeoScope) {
   if (reportGeoScope && reportGeoScope !== 'national') {
     params.set('geo', reportGeoScope);
   }
+  const msg = String(initialMessage ?? '').trim();
+  if (msg) params.set('q', msg.slice(0, 500));
   const qs = params.toString();
   return qs ? `${PANEL_PATHS.chat}?${qs}` : PANEL_PATHS.chat;
 }
@@ -37,6 +39,7 @@ export function buildChatPanelPath(reportScope, reportGeoScope) {
 export function parseChatReportScope(search) {
   const params = new URLSearchParams(String(search ?? ''));
   const reportGeoScope = params.get('geo') === 'north' ? 'north' : 'national';
+  const initialMessage = String(params.get('q') ?? '').trim() || null;
   if (params.get('scope') === 'component') {
     const id = params.get('id');
     if (id) {
@@ -45,10 +48,11 @@ export function parseChatReportScope(search) {
         id,
         label: params.get('label') ?? id,
         reportGeoScope,
+        initialMessage,
       };
     }
   }
-  return { type: 'all', reportGeoScope };
+  return { type: 'all', reportGeoScope, initialMessage };
 }
 
 /**

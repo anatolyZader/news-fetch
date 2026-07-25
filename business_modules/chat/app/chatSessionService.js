@@ -36,7 +36,7 @@ export function createChatSessionService(opts) {
     }
 
     const existing = chatStore.listMessages({ sessionId: sid });
-    const history = existing.map((m) => ({ role: m.role, content: m.content }));
+    let history = existing.map((m) => ({ role: m.role, content: m.content }));
     const scopeHint = buildChatSystemHint(body.scope);
     const extraHint = String(body.systemHint ?? '').trim();
     const systemHint = extraHint ? `${scopeHint}\n\n${extraHint}` : scopeHint;
@@ -52,8 +52,15 @@ export function createChatSessionService(opts) {
       act === 'send' || act === 'continue' || act === 'edit_resend';
 
     if (act === 'regenerate') {
-      const lastUser = [...existing].reverse().find((m) => m.role === 'user');
-      userMessage = String(lastUser?.content ?? '').trim();
+      const lastUserIdx = history.findLastIndex((m) => m.role === 'user');
+      if (lastUserIdx >= 0) {
+        userMessage = String(history[lastUserIdx].content ?? '').trim();
+        // Drop the previous answer and the user message itself — streamChat
+        // re-appends the question, so the model regenerates from a clean slate.
+        history = history.slice(0, lastUserIdx);
+      } else {
+        userMessage = '';
+      }
     }
 
     if (!userMessage) {
@@ -84,11 +91,12 @@ export function createChatSessionService(opts) {
    * @param {string} args.assistantText
    * @param {string} args.userMessage
    * @param {object} [args.costRecorder]
+   * @param {object|null} [args.meta] persisted on the assistant message (citations, tools)
    */
-  async function finalizeTurn({ ownerUid, sessionId, assistantText, userMessage, costRecorder }) {
+  async function finalizeTurn({ ownerUid, sessionId, assistantText, userMessage, costRecorder, meta = null }) {
     const sid = String(sessionId ?? '').trim();
     if (assistantText) {
-      chatStore.addMessage({ sessionId: sid, role: 'assistant', content: assistantText, meta: null });
+      chatStore.addMessage({ sessionId: sid, role: 'assistant', content: assistantText, meta });
       chatStore.touchSession({ ownerUid, sessionId: sid });
     }
 

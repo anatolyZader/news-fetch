@@ -86,7 +86,7 @@ function formatComponentBlock(c, { includeScores }) {
   return `### ${id} (${instLine})\n${narrative}`;
 }
 
-function formatComponentInstrumentSummary(c, { includeScores }) {
+export function formatComponentInstrumentSummary(c, { includeScores }) {
   const id = c.component_id ?? 'unknown';
   const narrative = wrapUntrustedBlock(
     clipText(c.narrative ?? '', INSTRUMENT_NARRATIVE_MAX_CHARS),
@@ -113,7 +113,7 @@ function formatV2ContextBlock(assessment) {
   return `${block}\n`;
 }
 
-function formatHeader(assessment, { includeScores }) {
+export function formatHeader(assessment, { includeScores }) {
   if (includeScores) {
     const scores = (assessment.components ?? [])
       .map((c) => `- ${c.component_id}: ${c.score}/10 (${c.confidence})`)

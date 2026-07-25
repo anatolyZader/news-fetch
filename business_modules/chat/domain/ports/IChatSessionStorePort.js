@@ -2,6 +2,7 @@
  * @typedef {object} IChatSessionStorePort
  * @property {(opts: { ownerUid: string, reportDate: string, title?: string }) => string} createSession
  * @property {(opts: { ownerUid: string, reportDate: string }) => object[]} listSessions
+ * @property {(opts: { ownerUid: string, limit?: number }) => object[]} listRecentSessions
  * @property {(sessionId: string) => object | null} getSession
  * @property {(opts: { ownerUid: string, sessionId: string, title: string }) => boolean} renameSession
  * @property {(opts: { ownerUid: string, sessionId: string }) => boolean} deleteSession

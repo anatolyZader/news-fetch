@@ -20,6 +20,9 @@ CREATE TABLE IF NOT EXISTS chat_sessions (
 CREATE INDEX IF NOT EXISTS idx_chat_sessions_owner_date
   ON chat_sessions(owner_uid, report_date, updated_at);
 
+CREATE INDEX IF NOT EXISTS idx_chat_sessions_owner_updated
+  ON chat_sessions(owner_uid, updated_at);
+
 CREATE TABLE IF NOT EXISTS chat_messages (
   id          TEXT PRIMARY KEY NOT NULL,
   session_id  TEXT NOT NULL REFERENCES chat_sessions(id) ON DELETE CASCADE,
@@ -56,6 +59,24 @@ export function createChatStore(dbPath) {
     FROM chat_sessions s
     WHERE s.owner_uid = ? AND s.report_date = ?
     ORDER BY s.updated_at DESC
+  `);
+
+  const listRecentSessionsStmt = db.prepare(`
+    SELECT
+      s.id,
+      s.report_date,
+      s.title,
+      s.created_at,
+      s.updated_at,
+      (
+        SELECT COUNT(*)
+        FROM chat_messages m
+        WHERE m.session_id = s.id AND m.hidden = 0 AND m.role IN ('user','assistant')
+      ) AS message_count
+    FROM chat_sessions s
+    WHERE s.owner_uid = ?
+    ORDER BY s.updated_at DESC
+    LIMIT ?
   `);
 
   const getSessionStmt = db.prepare(`
@@ -97,15 +118,14 @@ export function createChatStore(dbPath) {
     VALUES (?, ?, ?, ?, ?)
   `);
 
-  const hideMessageStmt = db.prepare(`
-    UPDATE chat_messages
-    SET hidden = 1
-    WHERE id = ? AND session_id = ?
-  `);
-
   return {
     listSessions({ ownerUid, reportDate }) {
       return listSessionsStmt.all(ownerUid, reportDate);
+    },
+
+    listRecentSessions({ ownerUid, limit = 50 }) {
+      const n = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 200) : 50;
+      return listRecentSessionsStmt.all(ownerUid, n);
     },
 
     getSession(id) {
@@ -152,11 +172,6 @@ export function createChatStore(dbPath) {
         meta ? JSON.stringify(meta) : null,
       );
       return id;
-    },
-
-    hideMessage({ sessionId, messageId }) {
-      const result = hideMessageStmt.run(messageId, sessionId);
-      return (result.changes ?? 0) > 0;
     },
 
     getFirstUserMessage({ sessionId }) {

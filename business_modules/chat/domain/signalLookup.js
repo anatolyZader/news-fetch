@@ -239,12 +239,13 @@ export function formatSignals(signals, opts = {}) {
  * Load a resilience report JSON for a given date.
  * Finds the latest report file matching the date.
  * @param {string} date - YYYY-MM-DD
+ * @param {string} [scopeId] report scope (default national)
  * @returns {object|null} parsed report or null
  */
-export function loadReport(date) {
+export function loadReport(date, scopeId = 'national') {
   let files;
   try {
-    files = listReportJsonFilenamesForDate(REPORTS_DIR, date, 'national')
+    files = listReportJsonFilenamesForDate(REPORTS_DIR, date, scopeId)
       .sort((a, b) => a.localeCompare(b));
   } catch {
     return null;
@@ -300,6 +301,52 @@ export function listSignalMeta() {
     sourceTypes: [...types].sort((a, b) => a.localeCompare(b)),
     signalDates: [...dates].sort((a, b) => a.localeCompare(b)),
   };
+}
+
+const SIGNAL_STATS_GROUPS = new Set(['signal_type', 'municipality', 'date', 'source_type']);
+
+function signalStatsKey(signal, groupBy) {
+  if (groupBy === 'municipality') {
+    return String(
+      signal.municipality ?? signal.locality ?? signal.geo?.matchedName ?? 'unknown',
+    );
+  }
+  return String(signal[groupBy] ?? 'unknown');
+}
+
+/**
+ * Aggregate signal counts over loadSignals + searchSignals filters.
+ * Deterministic (no LLM) — lets chat answer "how many X" in one tool round.
+ * @param {{ date_from?: string, date_to?: string, component?: string, source_type?: string,
+ *   municipality?: string, group_by?: 'signal_type'|'municipality'|'date'|'source_type' }} [input]
+ * @returns {string} counts table text
+ */
+export function signalStats(input = {}) {
+  const groupBy = SIGNAL_STATS_GROUPS.has(input.group_by) ? input.group_by : 'signal_type';
+  const signals = loadSignals({
+    dateFrom: input.date_from,
+    dateTo: input.date_to,
+    sourceType: input.source_type,
+  });
+  const matches = searchSignals(signals, {
+    component: input.component,
+    sourceType: input.source_type,
+    municipality: input.municipality,
+    limit: Number.MAX_SAFE_INTEGER,
+  });
+  const counts = new Map();
+  for (const s of matches) {
+    const key = signalStatsKey(s, groupBy);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  const rows = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 40);
+  if (rows.length === 0) return 'No signals match the given filters.';
+  return (
+    `Signal counts by ${groupBy} (total ${matches.length}):\n` +
+    rows.map(([k, n]) => `- ${k}: ${n}`).join('\n')
+  );
 }
 
 function formatDeltaArrow(delta) {

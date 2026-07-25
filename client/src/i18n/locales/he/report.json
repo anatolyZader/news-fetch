@@ -58,5 +58,6 @@
   "report.scope.north": "צפון",
   "report.supportingEvidence": "ראיות",
   "report.translateError": "תרגום לא זמין — מוצג באנגלית.",
-  "report.translating": "מתרגם…"
+  "report.translating": "מתרגם…",
+  "report.askAi": "שאל את ה-AI על רכיב זה"
 }

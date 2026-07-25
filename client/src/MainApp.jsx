@@ -635,6 +635,7 @@ function AppShell() {
   const [openReportCompId, setOpenReportCompId] = useState(() => readDeepLink().component || null);
   const [openReportEvidenceCompId, setOpenReportEvidenceCompId] = useState(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [chatInitialMessage, setChatInitialMessage] = useState(null);
   const [chatSize, setChatSize] = useState(() => {
     const browserWindow = globalThis.window;
     if (!browserWindow) return { w: 420, h: 420 };
@@ -799,6 +800,7 @@ function AppShell() {
 
   const handleChatPanelClose = useCallback(() => {
     setChatOpen(false);
+    setChatInitialMessage(null);
   }, []);
   const openChat = useCallback(() => {
     if (isDesktop) {
@@ -807,6 +809,20 @@ function AppShell() {
     }
     setChatOpen(true);
   }, [isDesktop, openPanelPopup, chatReportScope, reportScope]);
+  const askAiAboutComponent = useCallback((compId, label) => {
+    const message = `Tell me about ${label} — key evidence and what changed recently.`;
+    setOpenReportCompId(compId);
+    if (isDesktop) {
+      openPanelPopup('chat', {
+        reportScope: { type: 'component', id: compId, label },
+        reportGeoScope: reportScope,
+        initialMessage: message,
+      });
+      return;
+    }
+    setChatInitialMessage(message);
+    setChatOpen(true);
+  }, [isDesktop, openPanelPopup, reportScope]);
   const chatPopupOpen = isDesktop && isPanelPopupOpen('chat');
 
   function jumpToReportComponent(compId) {
@@ -1159,6 +1175,7 @@ function AppShell() {
                         setOpenCompId={setOpenReportCompId}
                         openEvidenceCompId={openReportEvidenceCompId}
                         setOpenEvidenceCompId={setOpenReportEvidenceCompId}
+                        onAskAiComponent={askAiAboutComponent}
                       />
                     )}
                   </Box>
@@ -1324,6 +1341,7 @@ function AppShell() {
             <ChatPanel
               reportScope={chatReportScope}
               reportGeoScope={reportScope}
+              initialMessage={chatInitialMessage}
               onClose={handleChatPanelClose}
             />
           </Box>

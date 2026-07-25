@@ -13,10 +13,19 @@ export function initialChatStreamState() {
   };
 }
 
+function accumulateCitations(accRef, citations) {
+  const acc = accRef.citations ?? (accRef.citations = []);
+  for (const c of citations ?? []) {
+    if (c?.source_id && !acc.some((x) => x.source_id === c.source_id)) {
+      acc.push(c);
+    }
+  }
+}
+
 /**
  * @param {ReturnType<typeof initialChatStreamState>} state
  * @param {object} event
- * @param {{ value: string }} accRef
+ * @param {{ value: string, citations?: Array<object> }} accRef
  * @returns {{ state: ReturnType<typeof initialChatStreamState>, terminal: string|null, event: object|null }}
  */
 export function reduceChatStreamEvent(state, event, accRef) {
@@ -48,6 +57,11 @@ export function reduceChatStreamEvent(state, event, accRef) {
 
   if (event.type === 'text') {
     accRef.value += event.text ?? '';
+    return { state, terminal: null, event: null };
+  }
+
+  if (event.type === 'citation') {
+    accumulateCitations(accRef, event.citations);
     return { state, terminal: null, event: null };
   }
 

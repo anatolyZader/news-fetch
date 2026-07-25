@@ -2,6 +2,7 @@
  * Agent runtime configuration from environment.
  */
 import { envFlagOn, envFlagOff } from '../config/envFlags.js';
+import { HAIKU_MODEL } from '../llm/modelIds.js';
 
 let _deprecatedAgentFlagLogged = false;
 
@@ -65,13 +66,19 @@ export function assessmentAgentMaxRounds() {
 }
 
 export function chatMaxToolRounds() {
-  const n = Number.parseInt(process.env.CHAT_MAX_TOOL_ROUNDS ?? '3', 10);
-  return Number.isFinite(n) && n >= 0 ? Math.min(n, 10) : 3;
+  const n = Number.parseInt(process.env.CHAT_MAX_TOOL_ROUNDS ?? '6', 10);
+  return Number.isFinite(n) && n >= 0 ? Math.min(n, 12) : 6;
 }
 
 export function chatTemporalMaxToolRounds() {
-  const n = Number.parseInt(process.env.CHAT_TEMPORAL_MAX_TOOL_ROUNDS ?? '6', 10);
-  return Number.isFinite(n) && n >= 0 ? Math.min(n, 12) : 6;
+  const n = Number.parseInt(process.env.CHAT_TEMPORAL_MAX_TOOL_ROUNDS ?? '8', 10);
+  return Number.isFinite(n) && n >= 0 ? Math.min(n, 12) : 8;
+}
+
+/** Chat LLM model — Haiku by default for cost; set CHAT_MODEL to opt into a stronger model. */
+export function chatModel() {
+  const v = String(process.env.CHAT_MODEL ?? '').trim();
+  return v || HAIKU_MODEL;
 }
 
 export function chatSessionMaxUsd() {

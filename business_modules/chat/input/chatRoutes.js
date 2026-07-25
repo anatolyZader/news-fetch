@@ -12,8 +12,28 @@ import { authPreHandlerList } from '../../../cross-cut-modules/auth/buildAuthHoo
 import { createHttpCostRecorder, createHttpChatBudgetPreHandler } from '../../../cross-cut-modules/budget/index.js';
 import { createChatRetrievalCache } from '../../../cross-cut-modules/retrieval/chatRetrievalCache.js';
 import { executePendingAction } from '../app/executePendingAction.js';
+import { getSource } from '../domain/sourceArchiveQuery.js';
 import { OPERATOR_PROPOSE_TOOL_NAMES } from '../app/chatConfig.js';
 import { METRIC } from '../../../cross-cut-modules/monitoring/domain/metricNames.js';
+
+function collectTurnMetaEvent(event, citations, toolsUsed) {
+  if (event?.type === 'citation') {
+    for (const c of event.citations ?? []) {
+      if (c?.source_id && !citations.some((x) => x.source_id === c.source_id)) {
+        citations.push(c);
+      }
+    }
+  }
+  if (event?.type === 'tool_start' && event.name) toolsUsed.push(event.name);
+}
+
+function buildTurnMeta(citations, toolsUsed) {
+  if (!citations.length && !toolsUsed.length) return null;
+  return {
+    ...(citations.length ? { citations } : {}),
+    ...(toolsUsed.length ? { tools: toolsUsed } : {}),
+  };
+}
 
 function chatRequestTimeoutMs() {
   const n = Number.parseInt(process.env.CHAT_REQUEST_TIMEOUT_MS ?? '270000', 10);
@@ -60,6 +80,15 @@ export async function chatRoutes(app, opts) {
   app.get('/api/chat/sessions', authHook, async (request, reply) => {
     const uid = chatOwnerUid(request);
     const dateParam = request.query?.date == null ? '' : String(request.query.date).trim();
+    if (dateParam === 'all') {
+      const limit = Number.parseInt(String(request.query?.limit ?? '50'), 10);
+      return reply.send({
+        sessions: chatStore.listRecentSessions({
+          ownerUid: uid,
+          limit: Number.isFinite(limit) ? limit : 50,
+        }),
+      });
+    }
     const reportDate = dateParam || getTodayInTimezone(timezone);
     return reply.send({ sessions: chatStore.listSessions({ ownerUid: uid, reportDate }) });
   });
@@ -97,14 +126,15 @@ export async function chatRoutes(app, opts) {
     return reply.send({ messages: chatStore.listMessages({ sessionId }) });
   });
 
-  app.delete('/api/chat/sessions/:id/messages/:messageId', authHook, async (request, reply) => {
-    const uid = chatOwnerUid(request);
-    const sessionId = String(request.params?.id ?? '').trim();
-    const messageId = String(request.params?.messageId ?? '').trim();
-    const session = chatStore.getSession(sessionId);
-    if (!session || session.owner_uid !== uid) return reply.code(404).send({ error: 'not found' });
-    const ok = chatStore.hideMessage({ sessionId, messageId });
-    return reply.send({ ok });
+  // Zero-LLM-cost source viewer for citation chips.
+  app.get('/api/chat/source/:sourceId', authHook, async (request, reply) => {
+    const sourceId = String(request.params?.sourceId ?? '').trim();
+    if (!sourceId) return reply.code(400).send({ error: 'sourceId required' });
+    const text = await getSource({ source_id: sourceId }, sourceArchive, evidenceStore);
+    if (text.startsWith('No source found') || text.startsWith('get_source:')) {
+      return reply.code(404).send({ error: text });
+    }
+    return reply.send({ source_id: sourceId, text });
   });
 
   app.post('/api/chat/confirm-action', authHook, async (request, reply) => {
@@ -198,6 +228,8 @@ export async function chatRoutes(app, opts) {
     });
 
     let assistantText = '';
+    const citations = [];
+    const toolsUsed = [];
     const costRecorder = createHttpCostRecorder({
       script: request.useCrisisChatBudget ? 'http:chat:crisis' : 'http:chat',
       ownerUid: uid,
@@ -208,6 +240,12 @@ export async function chatRoutes(app, opts) {
     const timeoutId = setTimeout(() => {
       abortController.abort(new Error('Chat request timed out'));
     }, chatRequestTimeoutMs());
+    // Stop LLM spend when the client goes away (Stop button, closed tab).
+    request.raw.on('close', () => {
+      if (!abortController.signal.aborted) {
+        abortController.abort(new Error('Client disconnected'));
+      }
+    });
 
     const runChatTurn = async () => {
       try {
@@ -253,6 +291,7 @@ export async function chatRoutes(app, opts) {
           uiLang: String(body.lang ?? body.uiLang ?? 'en').trim().toLowerCase() || 'en',
           onSend: (event) => {
             if (event?.type === 'text' && typeof event.text === 'string') assistantText += event.text;
+            collectTurnMetaEvent(event, citations, toolsUsed);
           },
         },
       );
@@ -262,12 +301,17 @@ export async function chatRoutes(app, opts) {
         assistantText,
         userMessage,
         costRecorder,
+        meta: buildTurnMeta(citations, toolsUsed),
       });
       } catch (err) {
         const message = err?.message ?? 'Chat failed';
         console.error('chat turn error:', message);
-        reply.raw.write(`data: ${JSON.stringify({ type: 'error', message })}\n\n`);
-        reply.raw.write(`data: ${JSON.stringify({ type: 'done', error: true })}\n\n`);
+        try {
+          if (!reply.raw.writableEnded && !reply.raw.destroyed) {
+            reply.raw.write(`data: ${JSON.stringify({ type: 'error', message })}\n\n`);
+            reply.raw.write(`data: ${JSON.stringify({ type: 'done', error: true })}\n\n`);
+          }
+        } catch { /* client gone */ }
       }
     };
 
@@ -280,7 +324,9 @@ export async function chatRoutes(app, opts) {
     } finally {
       clearTimeout(timeoutId);
       costRecorder.flush();
-      reply.raw.end();
+      try {
+        if (!reply.raw.writableEnded) reply.raw.end();
+      } catch { /* already closed */ }
     }
   });
 }

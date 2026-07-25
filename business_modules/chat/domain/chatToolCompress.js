@@ -34,7 +34,7 @@ const SNIPPET_RE = /^snippet:\s*(.+)$/m;
 const SIGNAL_HEADER_RE = /^\[\d+\]\s+id=[^\s]+\s+—\s+(\S+)\s+\(([^)]+)\)/;
 const SIGNAL_EVIDENCE_RE = /\n\s+(.+)/s;
 
-function parseSearchHits(text, maxHits = 6) {
+function parseSearchHits(text, maxHits = 6, snippetChars = 200) {
   const blocks = String(text ?? '').split(/\n\n+/).filter(Boolean);
   const hits = [];
   for (const block of blocks) {
@@ -44,7 +44,7 @@ function parseSearchHits(text, maxHits = 6) {
     hits.push({
       source_id: sourceMatch?.[1]?.trim() ?? null,
       title: titleMatch?.[1]?.trim() ?? null,
-      snippet_200: snippet(snippetMatch?.[1] ?? block, 200),
+      snippet_200: snippet(snippetMatch?.[1] ?? block, snippetChars),
     });
     if (hits.length >= maxHits) break;
   }
@@ -55,7 +55,7 @@ function parseSearchHits(text, maxHits = 6) {
   };
 }
 
-function parseSignalLines(text, maxSignals = 8) {
+function parseSignalLines(text, maxSignals = 8, snippetChars = 200) {
   const blocks = String(text ?? '').split(/\n\n+/).filter(Boolean);
   const signals = [];
   for (const block of blocks) {
@@ -64,7 +64,7 @@ function parseSignalLines(text, maxSignals = 8) {
     signals.push({
       signal_type: header?.[1] ?? 'unknown',
       component: header?.[2]?.split(',')[0]?.trim() ?? null,
-      evidence_200: snippet(evidence?.[1] ?? block, 200),
+      evidence_200: snippet(evidence?.[1] ?? block, snippetChars),
     });
     if (signals.length >= maxSignals) break;
   }
@@ -74,6 +74,10 @@ function parseSignalLines(text, maxSignals = 8) {
     signals,
   };
 }
+
+/** Compression caps — relaxed when a stronger (non-default) chat model is configured. */
+const DEFAULT_CAPS = { searchHits: 6, signals: 8, snippetChars: 200 };
+const STRONG_MODEL_CAPS = { searchHits: 10, signals: 15, snippetChars: 400 };
 
 function truncateLongText(text, maxChars = 4000) {
   const s = String(text ?? '');
@@ -89,39 +93,21 @@ function compressCompareDates(text) {
   return `${header}\n…[truncated middle]…\n${tail}`;
 }
 
-function compressDrift(text) {
-  try {
-    const data = typeof text === 'object' ? text : null;
-    if (data?.overall_series) {
-      return JSON.stringify({
-        ...data,
-        overall_series: (data.overall_series ?? []).slice(-14),
-        alerts: (data.alerts ?? []).slice(0, 5),
-      });
-    }
-  } catch {
-    // fall through
-  }
-  return truncateLongText(text, 4000);
-}
-
-function compressToolOutput(toolName, raw) {
+function compressToolOutput(toolName, raw, caps = DEFAULT_CAPS) {
   switch (toolName) {
     case 'get_source':
-    case 'lookup_evidence':
       if (!raw.startsWith('get_source:') && !raw.startsWith('No source')) {
         return JSON.stringify(parseKeyValueSource(raw));
       }
       return raw;
     case 'search_sources':
-    case 'search_evidence':
     case 'list_sources':
       if (!raw.startsWith('No matching') && !raw.includes('not available')) {
-        return JSON.stringify(parseSearchHits(raw, 6));
+        return JSON.stringify(parseSearchHits(raw, caps.searchHits, caps.snippetChars));
       }
       return raw;
     case 'lookup_signals':
-      return JSON.stringify(parseSignalLines(raw, 8));
+      return JSON.stringify(parseSignalLines(raw, caps.signals, caps.snippetChars));
     case 'compare_dates':
       return compressCompareDates(raw);
     case 'trace_component_timeline':
@@ -135,11 +121,8 @@ function compressToolOutput(toolName, raw) {
       } catch {
         return truncateLongText(raw, 4000);
       }
-    case 'search_similar_articles':
     case 'search_pbo_history':
       return truncateLongText(raw, 2500);
-    case 'get_resilience_drift':
-      return compressDrift(raw);
     default:
       if (raw.length > 4000) {
         return `${raw.slice(0, 3960)}…\n{"truncated":true}`;
@@ -151,7 +134,7 @@ function compressToolOutput(toolName, raw) {
 /**
  * @param {string} toolName
  * @param {string} result
- * @param {{ enabled?: boolean, economyOverride?: string }} [opts]
+ * @param {{ enabled?: boolean, economyOverride?: string, strongModel?: boolean }} [opts]
  */
 export function compressChatToolResult(toolName, result, opts = {}) {
   if (opts.enabled === false) return result;
@@ -162,7 +145,8 @@ export function compressChatToolResult(toolName, result, opts = {}) {
   if (!raw) return raw;
 
   const before = raw.length;
-  const compressed = compressToolOutput(toolName, raw);
+  const caps = opts.strongModel === true ? STRONG_MODEL_CAPS : DEFAULT_CAPS;
+  const compressed = compressToolOutput(toolName, raw, caps);
   const after = compressed.length;
   if (before > 0 && after > 0 && before / after > 2) {
     console.error(`chat tool compress ${toolName}: ${before} → ${after} chars`);

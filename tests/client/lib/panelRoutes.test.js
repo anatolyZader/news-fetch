@@ -51,14 +51,20 @@ describe('panelRoutes', () => {
   });
 
   it('parseChatReportScope reads scope from search params', () => {
-    assert.deepEqual(parseChatReportScope('?scope=all'), { type: 'all', reportGeoScope: 'national' });
+    assert.deepEqual(parseChatReportScope('?scope=all'), { type: 'all', reportGeoScope: 'national', initialMessage: null });
     assert.deepEqual(parseChatReportScope('?scope=component&id=belonging_solidarity&label=Belonging'), {
       type: 'component',
       id: 'belonging_solidarity',
       label: 'Belonging',
       reportGeoScope: 'national',
+      initialMessage: null,
     });
-    assert.deepEqual(parseChatReportScope(''), { type: 'all', reportGeoScope: 'national' });
+    assert.deepEqual(parseChatReportScope(''), { type: 'all', reportGeoScope: 'national', initialMessage: null });
+  });
+
+  it('parseChatReportScope reads initialMessage from q param', () => {
+    const parsed = parseChatReportScope('?scope=component&id=leadership&q=Tell%20me%20about%20Leadership');
+    assert.equal(parsed.initialMessage, 'Tell me about Leadership');
   });
 
   it('buildDocsPanelPath encodes slug', () => {

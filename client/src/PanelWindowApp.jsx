@@ -60,6 +60,7 @@ export function PanelWindowApp({ panelId }) {
         variant="window"
         reportScope={parsed}
         reportGeoScope={parsed.reportGeoScope ?? 'national'}
+        initialMessage={parsed.initialMessage ?? null}
         onClose={handleClose}
       />
     );

@@ -11,6 +11,12 @@ import TextField from '@mui/material/TextField';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Divider from '@mui/material/Divider';
+import Chip from '@mui/material/Chip';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import Alert from '@mui/material/Alert';
@@ -20,6 +26,7 @@ import { alpha } from '@mui/material/styles';
 import { useChat } from '../hooks/useChat.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { resolveChatStreamLabel, resolveSlowWarning } from '../lib/chatStreamStatus.js';
+import { groupSessionsByRecency } from '../lib/chatSessionGroups.js';
 import { panelHeaderButtonSx, panelSectionRadius } from '../ui/panelChrome.js';
 import {
   chatActionsVisibilitySx,
@@ -58,6 +65,8 @@ export function ChatPanel({
     stop,
     pendingActions,
     confirmAction,
+    fetchSource,
+    todayStr,
   } = useChat();
   const seededInitialRef = useRef(false);
   const { t, lang } = useLanguage();
@@ -67,8 +76,19 @@ export function ChatPanel({
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [historyAnchor, setHistoryAnchor] = useState(null);
   const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
+  const [sourceView, setSourceView] = useState(null);
   const bottomRef = useRef(null);
   const closeChatButtonRef = useRef(null);
+
+  async function openSource(citation) {
+    setSourceView({ citation, loading: true, text: '', error: null });
+    try {
+      const data = await fetchSource(citation.source_id);
+      setSourceView({ citation, loading: false, text: data?.text ?? '', error: null });
+    } catch (err) {
+      setSourceView({ citation, loading: false, text: '', error: err?.message ?? 'Failed to load source' });
+    }
+  }
 
   useEffect(() => {
     if (history.length > 0 || draft) {
@@ -301,20 +321,32 @@ export function ChatPanel({
         {sessions.length === 0 && (
           <MenuItem disabled>No past chats yet</MenuItem>
         )}
-        {sessions.map((s) => (
-          <MenuItem
-            key={s.id}
-            selected={s.id === activeSessionId}
-            onClick={() => {
-              setActiveSessionId(s.id);
-              closeHistory();
-            }}
-          >
-            <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 240 }}>
-              {s.title?.trim() ? s.title.trim() : 'Untitled'}
-            </Box>
-          </MenuItem>
-        ))}
+        {groupSessionsByRecency(sessions, todayStr).flatMap((group) => [
+          <MenuItem key={`header-${group.key}`} disabled dense>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+              {t(`chat.history.${group.key}`)}
+            </Typography>
+          </MenuItem>,
+          ...group.sessions.map((s) => (
+            <MenuItem
+              key={s.id}
+              selected={s.id === activeSessionId}
+              onClick={() => {
+                setActiveSessionId(s.id);
+                closeHistory();
+              }}
+            >
+              <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 240 }}>
+                {s.title?.trim() ? s.title.trim() : 'Untitled'}
+              </Box>
+              {s.report_date && s.report_date !== todayStr && (
+                <Typography variant="caption" color="text.secondary" sx={{ marginLeft: 1, flexShrink: 0 }}>
+                  {s.report_date}
+                </Typography>
+              )}
+            </MenuItem>
+          )),
+        ])}
       </Menu>
 
       <Menu
@@ -423,6 +455,7 @@ export function ChatPanel({
               msg={msg}
               onCopy={() => navigator.clipboard?.writeText(msg.content ?? '')}
               onEdit={() => setInput(msg.content ?? '')}
+              onOpenSource={openSource}
             />
             {msg.meta?.banner && (
               <ChatCompletionBanner banner={msg.meta.banner} t={t} />
@@ -481,6 +514,51 @@ export function ChatPanel({
           </Button>
         </Stack>
       )}
+
+      <Dialog
+        open={Boolean(sourceView)}
+        onClose={() => setSourceView(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontSize: '0.95rem', wordBreak: 'break-all' }}>
+          {sourceView?.citation?.title ?? sourceView?.citation?.source_id ?? ''}
+        </DialogTitle>
+        <DialogContent dividers>
+          {sourceView?.loading && (
+            <Stack direction="row" spacing={1} alignItems="center">
+              <CircularProgress size={16} thickness={5} />
+              <Typography variant="body2" color="text.secondary">…</Typography>
+            </Stack>
+          )}
+          {sourceView?.error && (
+            <Alert severity="error" variant="outlined">{sourceView.error}</Alert>
+          )}
+          {!sourceView?.loading && !sourceView?.error && (
+            <Typography
+              variant="body2"
+              component="pre"
+              sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'inherit', margin: 0 }}
+            >
+              {sourceView?.text ?? ''}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          {sourceView?.citation?.url && (
+            <Link
+              href={sourceView.citation.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="body2"
+              sx={{ marginRight: 'auto' }}
+            >
+              {sourceView.citation.url.slice(0, 60)}
+            </Link>
+          )}
+          <Button size="small" onClick={() => setSourceView(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
 
       {pendingActions.length > 0 && (
         <Stack spacing={1} sx={(theme) => ({ padding: theme.spacing(1, 1.25) })}>
@@ -759,9 +837,11 @@ ChatWorkingRow.propTypes = {
   t: PropTypes.func.isRequired,
 };
 
-function ChatRow({ msg, streaming = false, onCopy, onEdit }) {
+function ChatRow({ msg, streaming = false, onCopy, onEdit, onOpenSource }) {
   const isUser = msg.role === 'user';
   const hasActions = !streaming && Boolean(onCopy || onEdit);
+  const citations = !isUser && !streaming ? (msg.meta?.citations ?? []) : [];
+  const toolTrail = !isUser && !streaming ? (msg.meta?.tools ?? []) : [];
   return (
     <Box
       sx={(theme) => ({
@@ -836,6 +916,36 @@ function ChatRow({ msg, streaming = false, onCopy, onEdit }) {
             />
           )}
         </Box>
+        {citations.length > 0 && (
+          <Stack
+            direction="row"
+            spacing={0.5}
+            flexWrap="wrap"
+            useFlexGap
+            sx={(theme) => ({ marginTop: theme.spacing(1) })}
+          >
+            {citations.map((c) => (
+              <Chip
+                key={c.source_id}
+                size="small"
+                variant="outlined"
+                title={c.source_id}
+                label={(c.title ?? c.source_id).slice(0, 40)}
+                clickable={Boolean(onOpenSource)}
+                onClick={onOpenSource ? () => onOpenSource(c) : undefined}
+              />
+            ))}
+          </Stack>
+        )}
+        {toolTrail.length > 0 && (
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={(theme) => ({ display: 'block', marginTop: theme.spacing(0.75) })}
+          >
+            {`Investigated: ${[...new Set(toolTrail)].join(', ')}`}
+          </Typography>
+        )}
         {hasActions && (
           <Stack
             direction="row"
@@ -868,8 +978,10 @@ ChatRow.propTypes = {
     content: PropTypes.string,
     id: PropTypes.string,
     error: PropTypes.bool,
+    meta: PropTypes.object,
   }).isRequired,
   streaming: PropTypes.bool,
   onCopy: PropTypes.func,
   onEdit: PropTypes.func,
+  onOpenSource: PropTypes.func,
 };

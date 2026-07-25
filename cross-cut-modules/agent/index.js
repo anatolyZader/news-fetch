@@ -15,6 +15,7 @@ export {
   chatMaxToolRounds,
   chatTemporalMaxToolRounds,
   chatSessionMaxUsd,
+  chatModel,
   validationAgentMaxRounds,
   deterministicPlannerEnabled,
   slimPromptsEnabled,

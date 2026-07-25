@@ -67,6 +67,37 @@ function notifyToolStart(onToolStart, toolUseBlocks, round, maxRounds) {
   }
 }
 
+/**
+ * Stream one model round via the SDK MessageStream; resolves to the final Message.
+ * @param {{ messages: { stream: Function } }} client
+ * @param {object} request prepared + stripped Anthropic request
+ * @param {{ onTextDelta: (t: string) => void, abortSignal?: AbortSignal|null }} opts
+ * @returns {Promise<object>} final message (content, stop_reason, usage)
+ */
+async function streamModelRound(client, request, opts) {
+  const stream = client.messages.stream(request);
+  const signal = opts.abortSignal ?? null;
+  const onAbort = () => stream.abort();
+  if (signal?.aborted) stream.abort();
+  else signal?.addEventListener('abort', onAbort, { once: true });
+  stream.on('text', (delta) => {
+    try { opts.onTextDelta(delta); } catch { /* delta callback must not break the loop */ }
+  });
+  try {
+    return await stream.finalMessage();
+  } catch (err) {
+    if (signal?.aborted) {
+      const reason = signal.reason;
+      const e = new Error(reason instanceof Error ? reason.message : String(reason ?? 'Aborted'));
+      e.name = 'AbortError';
+      throw e;
+    }
+    throw err;
+  } finally {
+    signal?.removeEventListener('abort', onAbort);
+  }
+}
+
 async function performModelRound(opts, currentMessages, round) {
   const { client, model, tools, maxTokens = 4000, temperature = 0, agentKind = 'unknown', onUsage } = opts;
   const prepared = prepareAnthropicRequest({
@@ -80,7 +111,12 @@ async function performModelRound(opts, currentMessages, round) {
     callContext: opts.callContext,
   }, { feature: resolvePromptCacheFeature({ ...opts, agentKind }) });
 
-  const response = await client.messages.create(stripAnthropicInternalParams(prepared));
+  const request = stripAnthropicInternalParams(prepared);
+  const useStream = typeof opts.onTextDelta === 'function'
+    && typeof client.messages?.stream === 'function';
+  const response = useStream
+    ? await streamModelRound(client, request, opts)
+    : await client.messages.create(request);
   const stopReason = response.stop_reason ?? null;
   const usage = response.usage ?? null;
 
@@ -98,7 +134,7 @@ async function performModelRound(opts, currentMessages, round) {
 }
 
 function applyCompactHistoryMessages({
-  initialUserMessage,
+  initialMessages,
   responseContent,
   toolResults,
   workingMemory,
@@ -109,9 +145,7 @@ function applyCompactHistoryMessages({
   );
   const tailAssistant = { role: 'assistant', content: responseContent };
   const tailUser = { role: 'user', content: toolResults };
-  return initialUserMessage
-    ? [initialUserMessage, memoryBlock, tailAssistant, tailUser]
-    : [memoryBlock, tailAssistant, tailUser];
+  return [...initialMessages, memoryBlock, tailAssistant, tailUser];
 }
 
 /**
@@ -126,6 +160,7 @@ function applyCompactHistoryMessages({
  *   temperature?: number,
  *   executeTool: (name: string, input: object, toolUseBlock: object) => Promise<string> | string,
  *   onTextBlock?: (text: string) => void,
+ *   onTextDelta?: (text: string) => void,
  *   onToolStart?: (meta: { name: string, round: number, maxRounds: number }) => void,
  *   onToolRound?: (meta: object) => void,
  *   onUsage?: (payload: { label: string, model: string, usage: object }) => void,
@@ -153,7 +188,9 @@ export async function runToolLoop(opts) {
   } = opts;
 
   let currentMessages = opts.messages ?? [];
-  const initialUserMessage = currentMessages.find((m) => m.role === 'user') ?? currentMessages[0] ?? null;
+  // Compaction must preserve the whole seed conversation (history + current
+  // question), not just the first user message — see chat multi-turn sessions.
+  const initialMessages = [...currentMessages];
   let stopReason = null;
   let lastUsage = null;
   let endedByToolLoop = false;
@@ -177,7 +214,8 @@ export async function runToolLoop(opts) {
     const textBlocks = response.content.filter((b) => b.type === 'text');
     const toolUseBlocks = response.content.filter((b) => b.type === 'tool_use');
 
-    emitTextBlocks(textBlocks, onTextBlock);
+    // With onTextDelta the text was already streamed token-by-token.
+    if (!opts.onTextDelta) emitTextBlocks(textBlocks, onTextBlock);
 
     if (shouldEndToolLoop(toolUseBlocks, stopReason)) {
       currentMessages = appendAssistantText(currentMessages, textBlocks);
@@ -208,7 +246,7 @@ export async function runToolLoop(opts) {
 
     if (compactHistoryAfterRound && round >= 0 && workingMemory) {
       currentMessages = applyCompactHistoryMessages({
-        initialUserMessage,
+        initialMessages,
         responseContent: response.content,
         toolResults,
         workingMemory,

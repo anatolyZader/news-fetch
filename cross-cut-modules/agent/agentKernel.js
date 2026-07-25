@@ -60,6 +60,7 @@ export function createAgentKernel(deps) {
    *   temperature?: number,
    *   executeTool: (name: string, input: object, toolUseBlock?: object) => Promise<string>|string,
    *   onTextBlock?: (text: string) => void,
+   *   onTextDelta?: (text: string) => void,
    *   onUsage?: (payload: object) => void,
    *   budget?: ReturnType<typeof createAgentBudgetGovernor>,
    *   runId?: string,
@@ -104,6 +105,7 @@ export function createAgentKernel(deps) {
         purpose: `${agentKind}:tool_loop`,
       },
       onTextBlock: opts.onTextBlock,
+      onTextDelta: opts.onTextDelta,
       onToolStart: opts.onToolStart,
       onUsage: (p) => {
         budget.recordUsage({ model: p.model, usage: p.usage });

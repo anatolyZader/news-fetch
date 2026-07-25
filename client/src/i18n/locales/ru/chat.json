@@ -26,5 +26,8 @@
   "chat.banner.loop_exhausted": "Достигнут лимит поиска — ответ может быть неполным. Повторите или сузьте вопрос.",
   "chat.banner.error": "Не удалось завершить ответ.",
   "chat.banner.deterministic_fallback": "Ответ без ИИ (режим бюджета).",
-  "chat.banner.planning_only": "Ответ может быть неполным — повторить?"
+  "chat.banner.planning_only": "Ответ может быть неполным — повторить?",
+  "chat.history.today": "Сегодня",
+  "chat.history.thisWeek": "На этой неделе",
+  "chat.history.older": "Ранее"
 }

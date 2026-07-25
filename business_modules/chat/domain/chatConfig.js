@@ -27,6 +27,16 @@ export function chatCompressToolsEnabled() {
   return process.env.CHAT_COMPRESS_TOOLS !== '0';
 }
 
+/** Token-level SSE streaming of chat text (CHAT_STREAM_DELTAS=0 to fall back to block emission). */
+export function chatStreamDeltasEnabled() {
+  return process.env.CHAT_STREAM_DELTAS !== '0';
+}
+
+/** Deterministic (no-LLM) chat fallback when the LLM budget is exhausted. */
+export function chatDeterministicFallbackEnabled() {
+  return process.env.CHAT_DETERMINISTIC_FALLBACK !== '0';
+}
+
 export const PENDING_ACTION_TTL_MS = 15 * 60 * 1000;
 
 export const PROPOSE_TOOL_NAMES = new Set([

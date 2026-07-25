@@ -27,6 +27,12 @@ const TEMPORAL_PATTERNS = [
   /התפתח/,
   /כל התאריכים/,
   /מתחילה ועד/,
+  /со временем/i,
+  /за вс[её] время/i,
+  /хронологи/i,
+  /как менял/i,
+  /в течение войны/i,
+  /все даты/i,
 ];
 
 const ANTI_COMPARE_PATTERNS = [
@@ -51,6 +57,8 @@ const FULL_PATTERNS = [
   /סכם הכל/,
   /כל הרכיבים/,
   /דוח מלא/,
+  /весь отч[её]т/i,
+  /все компоненты/i,
 ];
 
 const COMPARE_PATTERNS = [
@@ -61,6 +69,8 @@ const COMPARE_PATTERNS = [
   /השוואה/,
   /מה השתנה/,
   /השתנה/,
+  /что изменилось/i,
+  /сравни/i,
 ];
 
 const HUB_PATTERNS = [
@@ -109,9 +119,6 @@ export function chatContextSlicingEnabled() {
   const v = process.env.CHAT_CONTEXT_TIERING;
   return v !== '0' && v !== 'false';
 }
-
-/** @deprecated Use chatContextSlicingEnabled */
-export const chatContextTieringEnabled = chatContextSlicingEnabled;
 
 /**
  * @param {string} text
@@ -169,10 +176,6 @@ export function resolveChatContextTier(message, opts = {}) {
 
   if (HUB_PATTERNS.some((re) => re.test(text))) {
     return { contextSlice: 'hub', reason: 'hub_or_priority' };
-  }
-
-  if (opts.toolProfile === 'validation') {
-    return { contextSlice: 'minimal', reason: 'validation_profile' };
   }
 
   if (MINIMAL_PATTERNS.some((re) => re.test(text))) {

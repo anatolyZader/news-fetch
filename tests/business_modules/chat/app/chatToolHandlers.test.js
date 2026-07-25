@@ -94,6 +94,82 @@ describe('chatToolHandlers', () => {
   });
 });
 
+describe('new deterministic tools', () => {
+  it('get_report reports not-found with available dates', async () => {
+    const result = await handleChatToolCall('get_report', { date: '1999-01-01' }, {
+      reportData: {},
+      isAnalyst: false,
+      analystToolsEnabled: true,
+      confirmActionsEnabled: true,
+    });
+    assert.match(result, /No report found for 1999-01-01/);
+  });
+
+  it('get_report_context returns the requested slice of today\'s report', async () => {
+    const result = await handleChatToolCall('get_report_context', { slice: 'component', component: 'leadership' }, {
+      reportData: {
+        display_view: 'operator',
+        assessment: {
+          date: '2026-07-01',
+          components: [
+            { component_id: 'leadership', narrative: 'Mayors were visible in shelters.', confidence: 'medium' },
+          ],
+        },
+      },
+      isAnalyst: false,
+      analystToolsEnabled: true,
+      confirmActionsEnabled: true,
+    });
+    assert.match(result, /Component detail:/);
+    assert.match(result, /leadership/);
+  });
+
+  it('signal_stats returns a no-match message for impossible filters', async () => {
+    const result = await handleChatToolCall('signal_stats', { group_by: 'signal_type', date_from: '1999-01-01', date_to: '1999-01-02' }, {
+      reportData: {},
+      isAnalyst: false,
+      analystToolsEnabled: true,
+      confirmActionsEnabled: true,
+    });
+    assert.match(result, /No signals match/);
+  });
+
+  it('list_observations is analyst-gated', async () => {
+    const result = await handleChatToolCall('list_observations', {}, {
+      isAnalyst: false,
+      analystToolsEnabled: true,
+      confirmActionsEnabled: true,
+    });
+    assert.match(result, /analyst access/i);
+  });
+
+  it('onCitation fires for citation-bearing tools and a throwing callback is contained', async () => {
+    const events = [];
+    const ctx = {
+      pboLookup: {},
+      reportData: { assessment: { date: '2026-07-01' } },
+      isAnalyst: false,
+      analystToolsEnabled: true,
+      confirmActionsEnabled: true,
+      sourceArchive: {
+        getBySourceId: () => ({
+          source_id: 'db:1', title: 'T', source_type: 'news', body: 'Body',
+        }),
+        search: () => [],
+      },
+      onCitation: (p) => {
+        events.push(p);
+        throw new Error('listener bug');
+      },
+    };
+    const result = await handleChatToolCall('get_source', { source_id: 'db:1' }, ctx);
+    assert.equal(events.length, 1);
+    assert.equal(events[0].tool, 'get_source');
+    assert.equal(events[0].citations[0].source_id, 'db:1');
+    assert.ok(result.length > 0, 'tool result must survive a throwing onCitation');
+  });
+});
+
 describe('chatPendingActionStore', () => {
   it('creates and consumes pending actions', () => {
     const dir = mkdtempSync(join(tmpdir(), 'chat-pending-'));

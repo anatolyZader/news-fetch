@@ -16,8 +16,6 @@ export const TOOLS_RETURNING_UNTRUSTED_CONTENT = new Set([
   'lookup_signals',
   'search_sources',
   'get_source',
-  'lookup_evidence',
-  'search_evidence',
   'search_similar_articles',
   'get_validation_item',
   'explain_validation_item',
@@ -25,6 +23,10 @@ export const TOOLS_RETURNING_UNTRUSTED_CONTENT = new Set([
   'get_pbo_review',
   'lookup_pbo',
   'list_sources',
+  'trace_component_timeline',
+  'get_component_evidence_bundle',
+  'get_report',
+  'list_observations',
 ]);
 
 /**

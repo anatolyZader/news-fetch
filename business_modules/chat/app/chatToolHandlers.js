@@ -3,11 +3,25 @@
  */
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
-import { loadSignals, searchSignals, formatSignals, compareReports } from '../domain/signalLookup.js';
+import { chatModel } from '../../../cross-cut-modules/agent/index.js';
+import {
+  loadSignals,
+  searchSignals,
+  formatSignals,
+  compareReports,
+  loadReport,
+  listReportDates,
+  loadObservations,
+  signalStats,
+} from '../domain/signalLookup.js';
+import {
+  buildReportContext,
+  formatHeader,
+  formatComponentInstrumentSummary,
+} from '../domain/reportContext.js';
 import { formatComponentEvidenceBundle } from '../domain/componentEvidenceBundle.js';
 import {
   deriveInstrumentState,
-  operatorAssessmentSummary,
   DISPLAY_VIEWS,
   normalizeReportScope,
   buildAttentionItems,
@@ -21,8 +35,10 @@ import {
   chatCompressToolsEnabled,
 } from '../domain/chatConfig.js';
 import { compressChatToolResult } from '../domain/chatToolCompress.js';
+import { extractCitationsFromToolResult } from '../domain/chatCitations.js';
 import { wrapToolResultIfUntrusted, wrapUntrustedBlock } from '../../../cross-cut-modules/security/index.js';
 import { buildComponentTimeline, formatComponentTimeline } from '../domain/traceComponentTimeline.js';
+import { resolveMunicipalityName } from '../domain/municipalityResolve.js';
 
 
 function inferredDate(input, reportData) {
@@ -87,10 +103,7 @@ function buildAssessmentBriefContext(reportData, opts = {}) {
   if (!reportData?.assessment) return '';
   const assessment = reportData.assessment;
   const includeScores = opts.includeScores === true;
-  let context = `Assessment date: ${assessment.date}\n`;
-  context += includeScores
-    ? `Overall score: ${assessment.overall_resilience_score}/10\n`
-    : `${operatorAssessmentSummary(assessment)}\n`;
+  let context = formatHeader(assessment, { includeScores });
   context += `Executive summary: ${assessment.cross_component_synthesis?.slice(0, 2000) ?? 'N/A'}\n\n`;
   for (const component of assessment.components ?? []) {
     context += formatComponentBriefLine(component, includeScores);
@@ -101,8 +114,10 @@ function buildAssessmentBriefContext(reportData, opts = {}) {
 function appendMunicipalityBriefContext(context, scope, municipality, pboLookup) {
   if (scope !== 'municipality' || !municipality) return context;
   let next = context;
-  const muniData = pboLookup[municipality]
-    ?? pboLookup[Object.keys(pboLookup).find((k) => k.includes(municipality) || municipality.includes(k))] ?? '';
+  const resolved = resolveMunicipalityName(municipality, {
+    pboLookupKeys: Object.keys(pboLookup),
+  });
+  const muniData = pboLookup[municipality] ?? (resolved ? pboLookup[resolved] : null) ?? '';
   if (muniData) next += `\nPBO data for ${municipality}:\n${muniData}\n`;
   const signals = loadSignals({});
   const matches = searchSignals(signals, { municipality, limit: 15 });
@@ -151,13 +166,10 @@ async function generateBrief(input, reportData, pboLookup, costRecorder = null) 
 
 async function handleLookupPbo(input, ctx) {
   const muniName = input?.municipality ?? '';
-  let result = ctx.pboLookup[muniName];
-  if (!result) {
-    const key = Object.keys(ctx.pboLookup).find(
-      (k) => k.includes(muniName) || muniName.includes(k),
-    );
-    result = key ? ctx.pboLookup[key] : null;
-  }
+  const resolved = resolveMunicipalityName(muniName, {
+    pboLookupKeys: Object.keys(ctx.pboLookup),
+  });
+  const result = ctx.pboLookup[muniName] ?? (resolved ? ctx.pboLookup[resolved] : null);
   return result ?? `No PBO data found for "${muniName}". Available: ${Object.keys(ctx.pboLookup).join(', ')}`;
 }
 
@@ -203,7 +215,7 @@ function handleListSources(input, ctx) {
 
 function handleGetSource(input, ctx) {
   const source_id = input?.source_id ?? input?.evidence_id;
-  const max_chars = Math.min(Number(input?.max_chars ?? 8000) || 8000, 8000);
+  const max_chars = Math.min(Number(input?.max_chars ?? 8000) || 8000, 25_000);
   return getSource(
     { ...input, source_id, max_chars, date: inferredDate(input, ctx.reportData) },
     ctx.sourceArchive,
@@ -316,6 +328,57 @@ function handleGetDecisionBrief(_toolName, _input, ctx) {
   return JSON.stringify(brief, null, 2).slice(0, 12000);
 }
 
+function handleGetReport(_toolName, input, ctx) {
+  const date = String(input?.date ?? '').trim();
+  const scope = normalizeReportScope(String(input?.scope ?? 'national'));
+  const report = loadReport(date, scope);
+  if (!report?.assessment) {
+    return `No report found for ${date} (scope=${scope}). Available dates: ${listReportDates().join(', ')}`;
+  }
+  const includeScores = ctx.reportData?.display_view === DISPLAY_VIEWS.analyst;
+  const a = report.assessment;
+  const lines = (a.components ?? [])
+    .map((c) => formatComponentInstrumentSummary(c, { includeScores }))
+    .join('\n');
+  const exec = String(a.cross_component_synthesis ?? '').slice(0, 1000);
+  return (
+    formatHeader(a, { includeScores }) +
+    lines +
+    (exec ? `\n\nExecutive summary (excerpt):\n${exec}` : '')
+  );
+}
+
+const REPORT_CONTEXT_SLICES = new Set(['full', 'component', 'hub', 'standard']);
+
+function handleGetReportContext(_toolName, input, ctx) {
+  if (!ctx.reportData) return 'No report loaded for today.';
+  const slice = REPORT_CONTEXT_SLICES.has(input?.slice) ? input.slice : 'standard';
+  const componentId = String(input?.component ?? '').trim() || undefined;
+  const includeScores = ctx.reportData?.display_view === DISPLAY_VIEWS.analyst;
+  const { context } = buildReportContext(ctx.reportData, {
+    includeScores,
+    contextSlice: slice,
+    componentId,
+  });
+  return context;
+}
+
+function handleListObservations(toolName, input, ctx) {
+  const gate = requireAnalyst(ctx, toolName);
+  if (gate) return gate;
+  const rows = loadObservations({
+    date: input?.date,
+    profile: input?.profile,
+    limit: Math.min(Math.max(input?.limit ?? 20, 1), 50),
+  });
+  if (!rows.length) return 'No open observations found.';
+  return rows.map((o, i) =>
+    `[${i + 1}] ${o.observation_id ?? o.file} (${o.profile ?? '?'}, ${o.date ?? '?'}, ${o.source_type ?? '?'}, ${o.polarity ?? '?'})\n` +
+    `    ${String(o.behavioral_description ?? '').slice(0, 200)}\n` +
+    `    evidence: ${String(o.evidence ?? '').slice(0, 200)}`,
+  ).join('\n\n');
+}
+
 function handleGetComponentEvidenceBundle(_toolName, input, ctx) {
   const componentId = String(input?.component ?? '').trim();
   if (!componentId) return 'component is required';
@@ -331,6 +394,10 @@ const CHAT_TOOL_HANDLERS = {
   get_component_evidence_bundle: handleGetComponentEvidenceBundle,
   compare_dates: (_toolName, input, ctx) => handleCompareDates(input, ctx),
   trace_component_timeline: handleTraceComponentTimeline,
+  get_report: handleGetReport,
+  get_report_context: handleGetReportContext,
+  signal_stats: (_toolName, input) => signalStats(input ?? {}),
+  list_observations: handleListObservations,
   generate_brief: (_toolName, input, ctx) =>
     generateBrief(
       { ...input, language: input.language ?? ctx.uiLang ?? 'en' },
@@ -340,9 +407,7 @@ const CHAT_TOOL_HANDLERS = {
     ),
   list_sources: (_toolName, input, ctx) => handleListSources(input, ctx),
   get_source: (_toolName, input, ctx) => handleGetSource(input, ctx),
-  lookup_evidence: (_toolName, input, ctx) => handleGetSource(input, ctx),
   search_sources: (_toolName, input, ctx) => handleSearchSources(input, ctx),
-  search_evidence: (_toolName, input, ctx) => handleSearchSources(input, ctx),
   search_pbo_history: handleSearchPboHistory,
   list_pbo_reviews: handleListPboReviews,
   get_pbo_review: handleGetPboReview,
@@ -365,9 +430,16 @@ export async function handleChatToolCall(toolName, input, ctx) {
   const handler = CHAT_TOOL_HANDLERS[toolName];
   if (!handler) return 'Unknown tool';
   const raw = await handler(toolName, input, ctx);
+  if (ctx.onCitation) {
+    try {
+      const citations = extractCitationsFromToolResult(toolName, String(raw ?? ''));
+      if (citations.length) ctx.onCitation({ tool: toolName, citations });
+    } catch { /* citations must not break tool execution */ }
+  }
   const compressed = compressChatToolResult(toolName, raw, {
     enabled: chatCompressToolsEnabled(),
     economyOverride: ctx.economyOverride,
+    strongModel: chatModel() !== HAIKU_MODEL,
   });
   return wrapToolResultIfUntrusted(toolName, compressed);
 }

@@ -54,10 +54,10 @@ describe('chatContextTier', () => {
     assert.equal(r.contextSlice, 'minimal');
   });
 
-  it('validation profile forces minimal', () => {
+  it('component questions resolve component slice regardless of unknown profiles', () => {
     const r = resolveChatContextTier('Tell me about leadership', { toolProfile: 'validation' });
-    assert.equal(r.contextSlice, 'minimal');
-    assert.equal(r.reason, 'validation_profile');
+    assert.equal(r.contextSlice, 'component');
+    assert.equal(r.componentId, 'leadership');
   });
 
   it('resolves component context_slice', () => {

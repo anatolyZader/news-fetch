@@ -58,5 +58,6 @@
   "report.scope.north": "Север",
   "report.supportingEvidence": "Доказательства",
   "report.translateError": "Перевод недоступен — показан английский текст.",
-  "report.translating": "Перевод…"
+  "report.translating": "Перевод…",
+  "report.askAi": "Спросить ИИ об этом компоненте"
 }

@@ -21,6 +21,7 @@ import { buildChatToolList } from '../domain/tools/chatToolSchemas.js';
  * @param {string} [deps.ownerUid]
  * @param {string} [deps.sessionId]
  * @param {function} [deps.onActionProposed]
+ * @param {function} [deps.onCitation]
  * @param {object} [deps.costRecorder]
  * @param {object} [deps.retrievalCache]
  */
@@ -50,6 +51,7 @@ export function createChatToolContext(deps = {}) {
     ownerUid: deps.ownerUid ?? '',
     sessionId: deps.sessionId ?? '',
     onActionProposed: deps.onActionProposed ?? null,
+    onCitation: deps.onCitation ?? null,
     economyOverride: deps.economyOverride ?? 'default',
     uiLang: deps.uiLang ?? 'en',
     tools: buildChatToolList({

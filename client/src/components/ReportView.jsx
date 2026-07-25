@@ -18,6 +18,7 @@ import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import IconButton from '@mui/material/IconButton';
+import Button from '@mui/material/Button';
 import { evidenceAnchorId } from '../../../business_modules/resilience_scorer/domain/contracts/evidenceAnchor.js';
 import { expandSourceCitationLinks } from './ReportMarkdownView.jsx';
 import {
@@ -504,6 +505,7 @@ function ComponentCard({
   evidenceOpen,
   onToggle,
   onEvidenceToggle,
+  onAskAi = null,
 }) {
   const theme = useTheme();
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replaceAll('_', ' ');
@@ -676,6 +678,23 @@ function ComponentCard({
         </Stack>
       </AccordionSummary>
       <AccordionDetails>
+        {onAskAi && (
+          <Button
+            type="button"
+            variant="text"
+            size="small"
+            onClick={() => onAskAi(comp.component_id, label)}
+            sx={(theme) => ({
+              marginBottom: theme.spacing(0.5),
+              padding: theme.spacing(0.25, 0.75),
+              minWidth: 0,
+              fontSize: theme.typography.caption.fontSize,
+              color: theme.palette.primary.main,
+            })}
+          >
+            {t('report.askAi') || 'Ask AI about this component'}
+          </Button>
+        )}
         {isRichMode && comp.data_quality_caveat && String(comp.data_quality_caveat).trim() && (
           <Typography variant="caption" color="info.main" sx={{ display: 'block', marginBottom: 1 }}>
             {t('report.dataQualityCaveat')}: {comp.data_quality_caveat}
@@ -813,6 +832,7 @@ export function ReportView({
   setOpenCompId: setOpenCompIdProp,
   openEvidenceCompId: openEvidenceCompIdProp,
   setOpenEvidenceCompId: setOpenEvidenceCompIdProp,
+  onAskAiComponent = null,
 }) {
   const { t } = useLanguage();
   const theme = useTheme();
@@ -939,6 +959,7 @@ export function ReportView({
                 onEvidenceToggle={(isOpen) => {
                   setOpenEvidenceCompId(isOpen ? c.component_id : null);
                 }}
+                onAskAi={onAskAiComponent}
               />
             </Box>
           ))}
@@ -986,6 +1007,7 @@ ComponentCard.propTypes = {
   evidenceOpen: PropTypes.bool,
   onToggle: PropTypes.func.isRequired,
   onEvidenceToggle: PropTypes.func.isRequired,
+  onAskAi: PropTypes.func,
 };
 
 ReportView.propTypes = {
@@ -1008,4 +1030,5 @@ ReportView.propTypes = {
   setOpenCompId: PropTypes.func,
   openEvidenceCompId: PropTypes.string,
   setOpenEvidenceCompId: PropTypes.func,
+  onAskAiComponent: PropTypes.func,
 };

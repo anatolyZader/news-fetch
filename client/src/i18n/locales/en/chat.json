@@ -26,5 +26,8 @@
   "chat.banner.loop_exhausted": "Search limit reached — answer may be incomplete. Try Regenerate or narrow the question.",
   "chat.banner.error": "This response could not be completed.",
   "chat.banner.deterministic_fallback": "Answer generated without AI (budget mode).",
-  "chat.banner.planning_only": "Response may be incomplete — Regenerate?"
+  "chat.banner.planning_only": "Response may be incomplete — Regenerate?",
+  "chat.history.today": "Today",
+  "chat.history.thisWeek": "This week",
+  "chat.history.older": "Older"
 }

@@ -26,5 +26,8 @@
   "chat.banner.loop_exhausted": "הגעת למגבלת חיפוש — התשובה עלולה להיות חלקית. נסה ליצור מחדש או לצמצם את השאלה.",
   "chat.banner.error": "לא ניתן היה להשלים את התשובה.",
   "chat.banner.deterministic_fallback": "תשובה ללא AI (מצב תקציב).",
-  "chat.banner.planning_only": "ייתכן שהתשובה לא הושלמה — ליצור מחדש?"
+  "chat.banner.planning_only": "ייתכן שהתשובה לא הושלמה — ליצור מחדש?",
+  "chat.history.today": "היום",
+  "chat.history.thisWeek": "השבוע",
+  "chat.history.older": "ישן יותר"
 }

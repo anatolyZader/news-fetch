@@ -58,5 +58,6 @@
   "report.scope.north": "North",
   "report.supportingEvidence": "Evidence",
   "report.translateError": "Translation unavailable — showing English.",
-  "report.translating": "Translating…"
+  "report.translating": "Translating…",
+  "report.askAi": "Ask AI about this component"
 }

@@ -164,6 +164,53 @@ export const CORE_CHAT_TOOLS = [
     },
   },
   {
+    name: 'get_report',
+    description:
+      'Load a past resilience assessment report by date — compact operator-view summary ' +
+      '(header + per-component instrument lines). Use compare_dates for pairwise deltas, ' +
+      'trace_component_timeline for evolution.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        date: { type: 'string', description: 'YYYY-MM-DD (see Report dates in context).' },
+        scope: { type: 'string', enum: ['national', 'north'], description: 'Report scope (default national).' },
+      },
+      required: ['date'],
+    },
+  },
+  {
+    name: 'get_report_context',
+    description:
+      'Fetch a different slice of today\'s report context when the current context is too thin ' +
+      '(e.g. full detail, a single component, or the priorities hub).',
+    input_schema: {
+      type: 'object',
+      properties: {
+        slice: { type: 'string', enum: ['full', 'component', 'hub', 'standard'], description: 'Context slice to load.' },
+        component: { type: 'string', enum: COMPONENT_ENUM, description: 'Required when slice is component.' },
+      },
+      required: ['slice'],
+    },
+  },
+  {
+    name: 'signal_stats',
+    description:
+      'Aggregate signal counts (no excerpts) grouped by type, municipality, date, or source. ' +
+      'Use for "how many"-style questions instead of listing signals.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        date_from: { type: 'string', description: 'Start date YYYY-MM-DD inclusive (optional).' },
+        date_to: { type: 'string', description: 'End date YYYY-MM-DD inclusive (optional).' },
+        component: { type: 'string', enum: COMPONENT_ENUM, description: 'Filter by component (optional).' },
+        source_type: { type: 'string', enum: SIGNAL_SOURCE_ENUM, description: 'Filter by source type (optional).' },
+        municipality: { type: 'string', description: 'Filter by municipality (optional).' },
+        group_by: { type: 'string', enum: ['signal_type', 'municipality', 'date', 'source_type'] },
+      },
+      required: ['group_by'],
+    },
+  },
+  {
     name: 'list_attention_items',
     description:
       'List ranked attention items for today\'s assessment (data void, patterns, thin evidence, recommendations).',
@@ -231,6 +278,18 @@ export const ANALYST_READ_TOOLS = [
         municipality: { type: 'string' },
       },
       required: ['date', 'municipality'],
+    },
+  },
+  {
+    name: 'list_observations',
+    description: 'List open (unmapped) behavioral observations from extraction bundles (analyst only).',
+    input_schema: {
+      type: 'object',
+      properties: {
+        date: { type: 'string', description: 'YYYY-MM-DD (optional).' },
+        profile: { type: 'string', description: 'Extraction profile filter (optional).' },
+        limit: { type: 'number', description: 'Max observations (default 20, max 50).' },
+      },
     },
   },
   {
@@ -341,8 +400,11 @@ export function buildSystemTemplateToolList(opts = {}) {
   const core = [
     '- lookup_pbo: detailed PBO municipality data',
     '- lookup_signals: search raw behavioral signals',
+    '- signal_stats: aggregate signal counts (by type / municipality / date / source) — prefer for "how many" questions',
     '- compare_dates: compare two assessment dates (pairwise only)',
     '- trace_component_timeline: multi-date component evolution (prefer over compare_dates for timelines)',
+    '- get_report: load a past report summary by date',
+    '- get_report_context: fetch a fuller slice of today\'s report when context is thin',
     '- generate_brief: formatted brief for an audience',
     '- list_sources / search_sources / get_source: original archive documents',
   ];
@@ -372,6 +434,7 @@ export function buildSystemTemplateToolList(opts = {}) {
     core.push(
       ...pboLines,
       '- list_geo_unknown: geo unknown locality queue',
+      '- list_observations: open (unmapped) observation bundles',
     );
     if (opts.confirmActionsEnabled) {
       core.push(

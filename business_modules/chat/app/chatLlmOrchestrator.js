@@ -9,12 +9,13 @@ import {
   chatTemporalMaxToolRounds,
   chatSessionMaxUsd,
   chatCompactToolLoopEnabled,
+  chatModel,
   HAIKU_MODEL,
 } from '../../../cross-cut-modules/agent/index.js';
 import { handleChatToolCall } from './chatToolHandlers.js';
 import { createChatToolContext } from './createChatToolContext.js';
 import { buildSystemTemplateToolList } from '../domain/tools/chatToolSchemas.js';
-import { chatAnalystToolsEnabled, chatConfirmActionsEnabled } from '../domain/chatConfig.js';
+import { chatAnalystToolsEnabled, chatConfirmActionsEnabled, chatStreamDeltasEnabled } from '../domain/chatConfig.js';
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import { UNTRUSTED_CONTENT_INSTRUCTION } from '../../../cross-cut-modules/security/index.js';
 import { operatorEpistemicOverlayEnabled } from '../../resilience_scorer/index.js';
@@ -30,10 +31,6 @@ function buildSystemTemplate(ctx) {
     confirmActionsEnabled: chatConfirmActionsEnabled(),
     toolProfile: ctx.toolProfile ?? 'default',
   });
-  const validationNote =
-    ctx.toolProfile === 'validation'
-      ? '- Validation mode: focus on queue items and evidence; use propose_validation_decision after investigation (user must confirm).\n'
-      : '';
   let langLine = '- Answer in the same language the user writes in.\n';
   if (uiLang === 'he') {
     langLine = '- Always respond in Hebrew (UI language), regardless of the language the user writes in.\n';
@@ -45,7 +42,6 @@ function buildSystemTemplate(ctx) {
     `Help the user understand population resilience assessments and act on insights.\n\n` +
     `TOOLS:\n${toolList}\n\n` +
     `GUIDELINES:\n` +
-    validationNote +
     (narrativeFocus
       ? '- Focus on component narratives and underlying evidence; use lookup_signals and get_source for quotes.\n'
       : '- Hub mode: for "what should I focus on" or operational priorities, call list_attention_items and get_decision_brief before answering.\n') +
@@ -65,7 +61,6 @@ function buildSystemTemplate(ctx) {
     (narrativeFocus
       ? '- When the user asks for a summary or brief, use generate_brief or summarize from component narratives and signals.\n'
       : '- When the user asks for a summary or brief, use generate_brief or get_decision_brief as appropriate.\n') +
-    `- Validation investigate: use get_validation_item, search_similar_articles, then propose_validation_decision after review (user must confirm).\n` +
     (narrativeFocus
       ? '- For mutations (validation decisions, geo updates, catalog reviews), use propose_* tools only; tell the user to confirm in the UI.\n'
       : '- For mutations (validation decisions, geo updates, catalog reviews, operator recommendations), use propose_* tools only; tell the user to confirm in the UI.\n') +
@@ -118,6 +113,7 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
     ownerUid: opts.ownerUid ?? '',
     sessionId: opts.sessionId ?? '',
     onActionProposed: (event) => send(event),
+    onCitation: (payload) => send({ type: 'citation', tool: payload.tool, citations: payload.citations }),
     toolProfile: opts.toolProfile ?? 'default',
     economyOverride,
     uiLang: opts.uiLang ?? 'en',
@@ -151,18 +147,28 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
   const loopResult = await agentKernel.run({
     profile: 'chat',
     agentKind: 'chat',
-    model: HAIKU_MODEL,
+    model: chatModel(),
     maxTokens: 4000,
     maxRounds: maxToolRounds,
     system,
     messages,
     tools: toolCtx.tools,
     executeTool: (name, input) => handleChatToolCall(name, input, toolCtx),
-    onTextBlock: (text) => {
-      const t = String(text ?? '');
-      assistantText += t;
-      send({ type: 'text', text: t });
-    },
+    ...(chatStreamDeltasEnabled()
+      ? {
+        onTextDelta: (delta) => {
+          const t = String(delta ?? '');
+          assistantText += t;
+          send({ type: 'text', text: t });
+        },
+      }
+      : {
+        onTextBlock: (text) => {
+          const t = String(text ?? '');
+          assistantText += t;
+          send({ type: 'text', text: t });
+        },
+      }),
     agentKernel: opts.agentKernel ?? null,
     abortSignal: opts.abortSignal ?? null,
     compactHistoryAfterRound: compactToolLoop,

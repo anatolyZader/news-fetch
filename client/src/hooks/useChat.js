@@ -49,6 +49,10 @@ function upsertPendingAction(prev, sideEffect) {
   ];
 }
 
+function getTodayStr() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
+}
+
 export function useChat() {
   const { getIdToken, getAppCheckToken } = useAuth();
   const [sessions, setSessions] = useState([]);
@@ -62,8 +66,6 @@ export function useChat() {
   const abortRef = useRef(null);
   const streamStateRef = useRef(initialChatStreamState());
 
-  const todayStr = useMemo(() => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' }), []);
-
   const authedHeaders = useCallback(async () => {
     const headers = await buildAuthHeaders({ getIdToken, getAppCheckToken });
     if (!headers.has('Content-Type')) {
@@ -74,13 +76,13 @@ export function useChat() {
 
   const loadSessions = useCallback(async () => {
     const headers = await authedHeaders();
-    const res = await fetch(`/api/chat/sessions?date=${encodeURIComponent(todayStr)}`, { headers });
+    const res = await fetch('/api/chat/sessions?date=all', { headers });
     if (!res.ok) throw new Error(await res.text().catch(() => res.statusText));
     const data = await res.json();
     const list = data.sessions ?? [];
     setSessions(list);
     return list;
-  }, [authedHeaders, todayStr]);
+  }, [authedHeaders]);
 
   const displaySessions = useMemo(() => {
     const active = activeSessionId;
@@ -92,7 +94,7 @@ export function useChat() {
     const res = await fetch('/api/chat/sessions', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ date: todayStr, title: title ?? '' }),
+      body: JSON.stringify({ date: getTodayStr(), title: title ?? '' }),
     });
     if (!res.ok) throw new Error(await res.text().catch(() => res.statusText));
     const data = await res.json();
@@ -100,7 +102,7 @@ export function useChat() {
     if (id) setActiveSessionId(id);
     await loadSessions();
     return id;
-  }, [authedHeaders, loadSessions, todayStr]);
+  }, [authedHeaders, loadSessions]);
 
   const renameSession = useCallback(async ({ sessionId, title }) => {
     const headers = await authedHeaders();
@@ -131,20 +133,9 @@ export function useChat() {
     const res = await fetch(`/api/chat/sessions/${encodeURIComponent(sessionId)}/messages`, { headers });
     if (!res.ok) throw new Error(await res.text().catch(() => res.statusText));
     const data = await res.json();
-    const msgs = (data.messages ?? []).map((m) => ({ id: m.id, role: m.role, content: m.content }));
+    const msgs = (data.messages ?? []).map((m) => ({ id: m.id, role: m.role, content: m.content, meta: m.meta ?? null }));
     setHistory(msgs);
   }, [authedHeaders]);
-
-  const deleteMessage = useCallback(async ({ sessionId, messageId }) => {
-    const headers = await authedHeaders();
-    const res = await fetch(`/api/chat/sessions/${encodeURIComponent(sessionId)}/messages/${encodeURIComponent(messageId)}`, {
-      method: 'DELETE',
-      headers,
-    });
-    if (!res.ok) throw new Error(await res.text().catch(() => res.statusText));
-    await loadMessages(sessionId);
-    await loadSessions();
-  }, [authedHeaders, loadMessages, loadSessions]);
 
   useEffect(() => {
     let cancelled = false;
@@ -215,11 +206,12 @@ export function useChat() {
     return body;
   }
 
-  function completeSseOutcome(outcome, accumulated) {
+  function completeSseOutcome(outcome, accumulated, citations = []) {
+    const citationMeta = citations.length ? { citations } : {};
     if (outcome.terminal === 'done') {
       if (outcome.event?.error) {
         const content = resolveAssistantErrorContent(outcome.event, accumulated);
-        const meta = buildAssistantTurnMeta(outcome.event, content);
+        const meta = { ...buildAssistantTurnMeta(outcome.event, content), ...citationMeta };
         setHistory((h) => [
           ...h,
           {
@@ -233,7 +225,7 @@ export function useChat() {
         loadSessions().catch(() => {});
         return true;
       }
-      const meta = buildAssistantTurnMeta(outcome.event, accumulated);
+      const meta = { ...buildAssistantTurnMeta(outcome.event, accumulated), ...citationMeta };
       setHistory((h) => [...h, { role: 'assistant', content: accumulated, meta }]);
       finishStreaming();
       loadSessions().catch(() => {});
@@ -255,7 +247,7 @@ export function useChat() {
   async function runChatStreamRequest(bodyPartial, opts, { onAbort } = {}) {
     const controller = new AbortController();
     abortRef.current = controller;
-    const accRef = { value: '' };
+    const accRef = { value: '', citations: [] };
     const timeoutId = setTimeout(() => controller.abort(new Error('Chat request timed out')), chatClientTimeoutMs());
 
     try {
@@ -291,10 +283,13 @@ export function useChat() {
         return terminal;
       });
       const accumulated = accRef.value;
-      if (completeSseOutcome(outcome, accumulated)) return;
+      if (completeSseOutcome(outcome, accumulated, accRef.citations)) return;
 
       if (accumulated) {
-        const meta = buildAssistantTurnMeta(null, accumulated);
+        const meta = {
+          ...buildAssistantTurnMeta(null, accumulated),
+          ...(accRef.citations.length ? { citations: accRef.citations } : {}),
+        };
         setHistory((h) => [...h, { role: 'assistant', content: accumulated, meta }]);
         finishStreaming();
         return;
@@ -351,6 +346,16 @@ export function useChat() {
     abortRef.current?.abort();
   }
 
+  const fetchSource = useCallback(async (sourceId) => {
+    const headers = await buildAuthHeaders({ getIdToken, getAppCheckToken });
+    const res = await fetch(`/api/chat/source/${encodeURIComponent(sourceId)}`, { headers });
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.error ?? `Source fetch failed (${res.status})`);
+    }
+    return res.json();
+  }, [getIdToken, getAppCheckToken]);
+
   async function confirmAction(actionId, confirmed) {
     if (!activeSessionId || !actionId) return null;
     try {
@@ -375,7 +380,6 @@ export function useChat() {
     createSession,
     renameSession,
     deleteSession,
-    deleteMessage,
     history,
     streaming,
     draft,
@@ -383,8 +387,10 @@ export function useChat() {
     elapsedSec: streaming ? elapsedSec : 0,
     pendingActions,
     confirmAction,
+    fetchSource,
     send,
     regenerateLast,
     stop,
+    todayStr: getTodayStr(),
   };
 }

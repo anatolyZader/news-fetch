@@ -60,6 +60,35 @@ describe('buildAssistantTurnMeta', () => {
   });
 });
 
+describe('citation events', () => {
+  it('accumulates and dedupes citations into accRef', () => {
+    const accRef = { value: '', citations: [] };
+    const state = initialChatStreamState();
+    reduceChatStreamEvent(state, {
+      type: 'citation',
+      tool: 'search_sources',
+      citations: [{ source_id: 'db:1', title: 'A' }, { source_id: 'db:2' }],
+    }, accRef);
+    reduceChatStreamEvent(state, {
+      type: 'citation',
+      tool: 'get_source',
+      citations: [{ source_id: 'db:1' }, { source_id: 'db:3' }],
+    }, accRef);
+    assert.deepEqual(accRef.citations.map((c) => c.source_id), ['db:1', 'db:2', 'db:3']);
+    assert.equal(accRef.citations[0].title, 'A');
+  });
+
+  it('citation events are not terminal and skip malformed entries', () => {
+    const accRef = { value: '', citations: [] };
+    const { terminal } = reduceChatStreamEvent(initialChatStreamState(), {
+      type: 'citation',
+      citations: [{ title: 'no id' }, null],
+    }, accRef);
+    assert.equal(terminal, null);
+    assert.deepEqual(accRef.citations, []);
+  });
+});
+
 describe('resolveAssistantErrorContent', () => {
   it('prefers done message over partial accumulated text', () => {
     assert.equal(
