@@ -33,6 +33,7 @@ function throwIfAborted(abortSignal) {
 function buildChatToolContextDeps(opts) {
   return {
     userEmail: opts.userEmail ?? '',
+    redactReportPayload: opts.redactReportPayload ?? null,
     sourceArchive: opts.sourceArchive ?? null,
     evidenceStore: opts.evidenceStore ?? null,
     retrievalService: opts.retrievalService ?? null,
@@ -168,6 +169,7 @@ async function handleStreamChatLlmError(err, send, {
 
 function buildChatLlmStreamOptions(opts, { chatEconomyMeta, abortSignal, onLoopExhausted }) {
   return {
+    redactReportPayload: opts.redactReportPayload ?? null,
     sourceArchive: opts.sourceArchive ?? null,
     evidenceStore: opts.evidenceStore ?? null,
     retrievalService: opts.retrievalService ?? null,

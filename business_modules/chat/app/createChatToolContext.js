@@ -37,6 +37,7 @@ export function createChatToolContext(deps = {}) {
     analystToolsEnabled,
     confirmActionsEnabled,
     reportData: deps.reportData ?? null,
+    redactReportPayload: deps.redactReportPayload ?? null,
     pboLookup: deps.pboLookup ?? {},
     sourceArchive: deps.sourceArchive ?? null,
     evidenceStore: deps.evidenceStore ?? null,

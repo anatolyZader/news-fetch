@@ -12,6 +12,7 @@ import {
   operatorEpistemicOverlayEnabled,
 } from '../../resilience_scorer/index.js';
 import { formatPoolSummaryForChat } from './componentEvidenceBundle.js';
+import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 
 const MAX_ATTENTION_SUMMARY = 8;
 const EXEC_SUMMARY_MAX_CHARS = 2000;
@@ -113,19 +114,40 @@ function formatV2ContextBlock(assessment) {
   return `${block}\n`;
 }
 
-export function formatHeader(assessment, { includeScores }) {
+function resolveTodayDate(todayDate) {
+  return todayDate ?? getTodayInTimezone(process.env.TZ_ARTICLES || 'Asia/Jerusalem');
+}
+
+/**
+ * Only a report actually dated today may be called "today's". Anything older is
+ * labeled stale so the model never presents old data as current.
+ */
+function formatHeaderDateLine(assessment, todayDate) {
+  const today = resolveTodayDate(todayDate);
+  if (assessment.date === today) {
+    return `Today's resilience assessment (${assessment.date})\n`;
+  }
+  return (
+    `Resilience assessment dated ${assessment.date} — NOT today's. ` +
+    `Today is ${today}; no report has been generated for today. ` +
+    `Always state the report date when answering; never present this as current data.\n`
+  );
+}
+
+export function formatHeader(assessment, { includeScores, todayDate }) {
+  const dateLine = formatHeaderDateLine(assessment, todayDate);
   if (includeScores) {
     const scores = (assessment.components ?? [])
       .map((c) => `- ${c.component_id}: ${c.score}/10 (${c.confidence})`)
       .join('\n');
     return (
-      `Today's resilience assessment (${assessment.date})\n` +
+      dateLine +
       `Overall score: ${assessment.overall_resilience_score}/10\n\n` +
       `Component scores:\n${scores}\n\n`
     );
   }
   return (
-    `Today's resilience assessment (${assessment.date})\n` +
+    dateLine +
     `${operatorAssessmentSummary(assessment)}\n\n` +
     `Component instrument summary (no headline 1–10 scores in operator view):\n`
   );
@@ -192,7 +214,7 @@ function buildTemporalContext(a, reportScopeId, includeScores, componentId) {
     const comp = (a.components ?? []).find((c) => c.component_id === componentId);
     const componentBlock = comp
       ? formatComponentBlock(comp, { includeScores })
-      : `(Component ${componentId} not found in today's report.)`;
+      : `(Component ${componentId} not found in this report.)`;
     body += `Component focus:\n${componentBlock}\n`;
   }
   body += '\nUse trace_component_timeline for multi-date evolution across all report dates.\n';

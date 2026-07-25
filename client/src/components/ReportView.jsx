@@ -17,6 +17,7 @@ import Diversity3OutlinedIcon from '@mui/icons-material/Diversity3Outlined';
 import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import ChatOutlinedIcon from '@mui/icons-material/ChatOutlined';
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import { evidenceAnchorId } from '../../../business_modules/resilience_scorer/domain/contracts/evidenceAnchor.js';
@@ -681,15 +682,31 @@ function ComponentCard({
         {onAskAi && (
           <Button
             type="button"
-            variant="text"
+            variant="outlined"
             size="small"
+            startIcon={<ChatOutlinedIcon sx={{ fontSize: '1rem !important' }} />}
             onClick={() => onAskAi(comp.component_id, label)}
             sx={(theme) => ({
-              marginBottom: theme.spacing(0.5),
-              padding: theme.spacing(0.25, 0.75),
-              minWidth: 0,
+              marginBottom: theme.spacing(1),
+              padding: theme.spacing(0.5, 1.25),
+              minHeight: 32,
+              borderRadius: `${theme.custom.radius.control ?? theme.custom.radius.section}px`,
+              borderColor: alpha(theme.palette.primary.main, 0.4),
+              backgroundColor: alpha(theme.palette.primary.main, 0.06),
+              color: theme.palette.primary.dark,
               fontSize: theme.typography.caption.fontSize,
-              color: theme.palette.primary.main,
+              fontWeight: 600,
+              textTransform: 'none',
+              boxShadow: 'none',
+              '&:hover': {
+                borderColor: theme.palette.primary.main,
+                backgroundColor: alpha(theme.palette.primary.main, 0.12),
+                boxShadow: theme.custom.elevation?.hover,
+              },
+              '&:focus-visible': {
+                outline: `2px solid ${theme.palette.primary.main}`,
+                outlineOffset: 2,
+              },
             })}
           >
             {t('report.askAi') || 'Ask AI about this component'}

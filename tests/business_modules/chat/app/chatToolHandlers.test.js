@@ -105,6 +105,45 @@ describe('new deterministic tools', () => {
     assert.match(result, /No report found for 1999-01-01/);
   });
 
+  it('get_report_context with an unknown past date lists available dates', async () => {
+    const result = await handleChatToolCall('get_report_context', { slice: 'full', date: '1999-01-01' }, {
+      reportData: { display_view: 'operator', assessment: { report_scope: { id: 'north' } } },
+      isAnalyst: false,
+      analystToolsEnabled: true,
+      confirmActionsEnabled: true,
+    });
+    assert.match(result, /No report found for 1999-01-01 \(scope=north\)/);
+    assert.match(result, /Available dates:/);
+  });
+
+  it('get_component_evidence_bundle with an unknown past date lists available dates', async () => {
+    const result = await handleChatToolCall(
+      'get_component_evidence_bundle',
+      { component: 'leadership', date: '1999-01-01' },
+      {
+        reportData: { display_view: 'operator', assessment: {} },
+        isAnalyst: false,
+        analystToolsEnabled: true,
+        confirmActionsEnabled: true,
+      },
+    );
+    assert.match(result, /No report found for 1999-01-01/);
+  });
+
+  it('get_report_context redacts a past report for non-analyst sessions', async () => {
+    let redactedWith = null;
+    const result = await handleChatToolCall('get_report_context', { slice: 'full', date: '1999-01-01' }, {
+      reportData: { display_view: 'operator', assessment: {} },
+      redactReportPayload: (raw, view) => { redactedWith = view; return raw; },
+      isAnalyst: false,
+      analystToolsEnabled: true,
+      confirmActionsEnabled: true,
+    });
+    // Unknown date short-circuits before redaction — redactor must not have run.
+    assert.equal(redactedWith, null);
+    assert.match(result, /No report found/);
+  });
+
   it('get_report_context returns the requested slice of today\'s report', async () => {
     const result = await handleChatToolCall('get_report_context', { slice: 'component', component: 'leadership' }, {
       reportData: {

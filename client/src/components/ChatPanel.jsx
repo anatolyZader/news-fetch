@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { safeMarkdownComponents } from '../ui/safeMarkdownComponents.js';
+import { citationChipLabel } from '../lib/citationLabel.js';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
@@ -930,7 +931,7 @@ function ChatRow({ msg, streaming = false, onCopy, onEdit, onOpenSource }) {
                 size="small"
                 variant="outlined"
                 title={c.source_id}
-                label={(c.title ?? c.source_id).slice(0, 40)}
+                label={citationChipLabel(c)}
                 clickable={Boolean(onOpenSource)}
                 onClick={onOpenSource ? () => onOpenSource(c) : undefined}
               />

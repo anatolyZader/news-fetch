@@ -99,6 +99,7 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
   const toolCtx = createChatToolContext({
     userEmail: opts.userEmail ?? '',
     reportData,
+    redactReportPayload: opts.redactReportPayload ?? null,
     pboLookup,
     sourceArchive: opts.sourceArchive ?? null,
     evidenceStore: opts.evidenceStore ?? null,
@@ -143,6 +144,19 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
     ? lastUser.content
     : String(lastUser?.content ?? '');
   let assistantText = '';
+  // The model rarely puts whitespace between the text it wrote before a tool
+  // round and the text it writes after — inject a paragraph break at that seam.
+  let toolRoundSinceText = false;
+  const emitText = (t) => {
+    if (!t) return;
+    if (toolRoundSinceText && assistantText && !/\s$/.test(assistantText) && !/^\s/.test(t)) {
+      assistantText += '\n\n';
+      send({ type: 'text', text: '\n\n' });
+    }
+    toolRoundSinceText = false;
+    assistantText += t;
+    send({ type: 'text', text: t });
+  };
 
   const loopResult = await agentKernel.run({
     profile: 'chat',
@@ -155,20 +169,8 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
     tools: toolCtx.tools,
     executeTool: (name, input) => handleChatToolCall(name, input, toolCtx),
     ...(chatStreamDeltasEnabled()
-      ? {
-        onTextDelta: (delta) => {
-          const t = String(delta ?? '');
-          assistantText += t;
-          send({ type: 'text', text: t });
-        },
-      }
-      : {
-        onTextBlock: (text) => {
-          const t = String(text ?? '');
-          assistantText += t;
-          send({ type: 'text', text: t });
-        },
-      }),
+      ? { onTextDelta: (delta) => emitText(String(delta ?? '')) }
+      : { onTextBlock: (text) => emitText(String(text ?? '')) }),
     agentKernel: opts.agentKernel ?? null,
     abortSignal: opts.abortSignal ?? null,
     compactHistoryAfterRound: compactToolLoop,
@@ -177,6 +179,7 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
       ? (p) => costRecorder.onUsage({ label: p.label, model: p.model, usage: p.usage })
       : undefined,
     onToolStart: ({ name, round, maxRounds }) => {
+      toolRoundSinceText = true;
       send({ type: 'tool_start', name, round, maxRounds });
     },
   });

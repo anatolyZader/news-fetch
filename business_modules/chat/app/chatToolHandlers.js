@@ -350,12 +350,37 @@ function handleGetReport(_toolName, input, ctx) {
 
 const REPORT_CONTEXT_SLICES = new Set(['full', 'component', 'hub', 'standard']);
 
+/**
+ * Resolve the report a tool should operate on: the loaded (today's) report by
+ * default, or a past report from disk when input.date is set. Past reports come
+ * raw off disk, so the live report's operator redaction is re-applied.
+ * @returns {{ reportData?: object|null, error?: string }}
+ */
+function resolveReportDataForDate(input, ctx) {
+  const date = String(input?.date ?? '').trim();
+  if (!date) return { reportData: ctx.reportData };
+  const scope = normalizeReportScope(
+    String(input?.scope ?? ctx.reportData?.assessment?.report_scope?.id ?? 'national'),
+  );
+  const report = loadReport(date, scope);
+  if (!report?.assessment) {
+    return { error: `No report found for ${date} (scope=${scope}). Available dates: ${listReportDates().join(', ')}` };
+  }
+  if (ctx.reportData?.display_view !== DISPLAY_VIEWS.analyst && ctx.redactReportPayload) {
+    return { reportData: ctx.redactReportPayload(report, DISPLAY_VIEWS.operator) };
+  }
+  return { reportData: report };
+}
+
 function handleGetReportContext(_toolName, input, ctx) {
-  if (!ctx.reportData) return 'No report loaded for today.';
+  const resolved = resolveReportDataForDate(input, ctx);
+  if (resolved.error) return resolved.error;
+  const reportData = resolved.reportData;
+  if (!reportData) return 'No report loaded.';
   const slice = REPORT_CONTEXT_SLICES.has(input?.slice) ? input.slice : 'standard';
   const componentId = String(input?.component ?? '').trim() || undefined;
   const includeScores = ctx.reportData?.display_view === DISPLAY_VIEWS.analyst;
-  const { context } = buildReportContext(ctx.reportData, {
+  const { context } = buildReportContext(reportData, {
     includeScores,
     contextSlice: slice,
     componentId,
@@ -382,7 +407,9 @@ function handleListObservations(toolName, input, ctx) {
 function handleGetComponentEvidenceBundle(_toolName, input, ctx) {
   const componentId = String(input?.component ?? '').trim();
   if (!componentId) return 'component is required';
-  return formatComponentEvidenceBundle(ctx.reportData, componentId, {
+  const resolved = resolveReportDataForDate(input, ctx);
+  if (resolved.error) return resolved.error;
+  return formatComponentEvidenceBundle(resolved.reportData, componentId, {
     role: input?.role ?? null,
     limit: input?.limit ?? 50,
   });

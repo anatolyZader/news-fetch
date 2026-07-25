@@ -56,8 +56,9 @@ export const CORE_CHAT_TOOLS = [
   {
     name: 'get_component_evidence_bundle',
     description:
-      'Return the full rich operator investigation pool for a component from the current report ' +
-      '(claims, epistemic roles, evidence text). Prefer this over lookup_signals when operator_surface_mode is rich.',
+      'Return the full rich operator investigation pool for a component ' +
+      '(claims, epistemic roles, evidence text) — from the current report, or a past report when date is set. ' +
+      'Prefer this over lookup_signals when operator_surface_mode is rich.',
     input_schema: {
       type: 'object',
       properties: {
@@ -68,6 +69,8 @@ export const CORE_CHAT_TOOLS = [
           description: 'Filter by operator epistemic role (optional).',
         },
         limit: { type: 'number', description: 'Max pool items (default 50, max 100).' },
+        date: { type: 'string', description: 'Past report date YYYY-MM-DD (optional; defaults to the current report).' },
+        scope: { type: 'string', enum: ['national', 'north'], description: 'Report scope (defaults to the loaded report\'s scope).' },
       },
       required: ['component'],
     },
@@ -181,13 +184,17 @@ export const CORE_CHAT_TOOLS = [
   {
     name: 'get_report_context',
     description:
-      'Fetch a different slice of today\'s report context when the current context is too thin ' +
-      '(e.g. full detail, a single component, or the priorities hub).',
+      'Fetch a different slice of report context when the current context is too thin ' +
+      '(e.g. full detail, a single component narrative, or the priorities hub). ' +
+      'Defaults to the currently loaded report; pass date (and scope) to get detailed narrative for a past report — ' +
+      'this is the way to reach past-date component narratives.',
     input_schema: {
       type: 'object',
       properties: {
         slice: { type: 'string', enum: ['full', 'component', 'hub', 'standard'], description: 'Context slice to load.' },
         component: { type: 'string', enum: COMPONENT_ENUM, description: 'Required when slice is component.' },
+        date: { type: 'string', description: 'Past report date YYYY-MM-DD (optional; defaults to the currently loaded report).' },
+        scope: { type: 'string', enum: ['national', 'north'], description: 'Report scope (defaults to the loaded report\'s scope).' },
       },
       required: ['slice'],
     },
@@ -213,7 +220,7 @@ export const CORE_CHAT_TOOLS = [
   {
     name: 'list_attention_items',
     description:
-      'List ranked attention items for today\'s assessment (data void, patterns, thin evidence, recommendations).',
+      'List ranked attention items for the loaded assessment (data void, patterns, thin evidence, recommendations).',
     input_schema: {
       type: 'object',
       properties: {
@@ -224,7 +231,7 @@ export const CORE_CHAT_TOOLS = [
   {
     name: 'list_operator_recommendations',
     description:
-      'List operator recommendations from today\'s assessment (pending, acknowledged, dismissed).',
+      'List operator recommendations from the loaded assessment (pending, acknowledged, dismissed).',
     input_schema: {
       type: 'object',
       properties: {
@@ -235,7 +242,7 @@ export const CORE_CHAT_TOOLS = [
   {
     name: 'get_decision_brief',
     description:
-      'Get the batch-generated operator decision brief (summary and priority items) for today\'s assessment.',
+      'Get the batch-generated operator decision brief (summary and priority items) for the loaded assessment.',
     input_schema: { type: 'object', properties: {} },
   },
 ];
@@ -326,7 +333,7 @@ export const OPERATOR_PROPOSE_TOOLS = [
   {
     name: 'propose_operator_recommendation',
     description:
-      'Propose acknowledging or dismissing a pending operator recommendation from today\'s assessment ' +
+      'Propose acknowledging or dismissing a pending operator recommendation from the loaded assessment ' +
       '(requires user confirmation in UI). Does NOT execute immediately.',
     input_schema: {
       type: 'object',
@@ -404,7 +411,7 @@ export function buildSystemTemplateToolList(opts = {}) {
     '- compare_dates: compare two assessment dates (pairwise only)',
     '- trace_component_timeline: multi-date component evolution (prefer over compare_dates for timelines)',
     '- get_report: load a past report summary by date',
-    '- get_report_context: fetch a fuller slice of today\'s report when context is thin',
+    '- get_report_context: fetch a fuller slice of the loaded report (or a past date) when context is thin',
     '- generate_brief: formatted brief for an audience',
     '- list_sources / search_sources / get_source: original archive documents',
   ];
