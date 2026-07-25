@@ -1,7 +1,7 @@
 {
   "name": "Srulik's lab",
   "short_name": "Srulik",
-  "description": "Community resilience · Daily Assessment",
+  "description": "Community Resilience · Daily Assessment",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f4f7fc",
