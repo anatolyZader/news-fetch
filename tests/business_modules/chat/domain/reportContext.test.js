@@ -58,6 +58,31 @@ describe('buildReportContext', () => {
     assert.match(context, /\[Chat context slice: component/);
   });
 
+  it('component slice puts component detail before the labeled cross-component excerpt', () => {
+    const { context } = buildReportContext(fixture, {
+      includeScores: false,
+      contextSlice: 'component',
+      componentId: 'narrative',
+    });
+    const detailIdx = context.indexOf('Component detail:');
+    const crossIdx = context.indexOf('Cross-component synthesis (report-wide context — NOT findings of this component):');
+    assert.ok(detailIdx >= 0, 'component detail present');
+    assert.ok(crossIdx > detailIdx, 'cross-component excerpt comes after component detail');
+    assert.ok(!context.includes('Executive summary:'), 'unlabeled exec summary absent from component slice');
+  });
+
+  it('component-slice cross-component excerpt is clipped to ~600 chars', () => {
+    const longSynth = { ...fixture, assessment: { ...fixture.assessment, cross_component_synthesis: 'x'.repeat(3000) } };
+    const { context } = buildReportContext(longSynth, {
+      includeScores: false,
+      contextSlice: 'component',
+      componentId: 'narrative',
+    });
+    const start = context.indexOf('NOT findings of this component');
+    const excerpt = context.slice(start, context.indexOf('END_UNTRUSTED_DATA', start));
+    assert.ok(excerpt.length < 800, `excerpt should be clipped, got ${excerpt.length}`);
+  });
+
   it('minimal context_slice is header-only plus footer', () => {
     const { context } = buildReportContext(fixture, { includeScores: false, contextSlice: 'minimal' });
     assert.ok(!context.includes('Executive summary:'));

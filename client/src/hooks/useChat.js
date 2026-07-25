@@ -56,7 +56,7 @@ function getTodayStr() {
 export function useChat() {
   const { getIdToken, getAppCheckToken } = useAuth();
   const [sessions, setSessions] = useState([]);
-  const [activeSessionId, setActiveSessionId] = useState(null);
+  const [activeSessionId, setActiveSessionIdRaw] = useState(null);
   const [history, setHistory] = useState([]);
   const [streaming, setStreaming] = useState(false);
   const [draft, setDraft] = useState('');
@@ -65,6 +65,27 @@ export function useChat() {
   const [pendingActions, setPendingActions] = useState([]);
   const abortRef = useRef(null);
   const streamStateRef = useRef(initialChatStreamState());
+
+  // Any session transition must kill an in-flight stream: the client abort
+  // closes the SSE socket, which triggers the server-side LLM abort — without
+  // this, switching or opening a chat leaves the old turn running (and billing).
+  const abortActiveStream = useCallback(() => {
+    abortRef.current?.abort();
+  }, []);
+
+  // Unmount (panel closed via Slide unmountOnExit, popup navigation, …) must
+  // also kill the stream — an orphaned fetch keeps the server turn billing.
+  useEffect(() => () => {
+    abortRef.current?.abort();
+  }, []);
+
+  const setActiveSessionId = useCallback((next) => {
+    setActiveSessionIdRaw((prev) => {
+      const resolved = typeof next === 'function' ? next(prev) : next;
+      if (resolved !== prev) abortActiveStream();
+      return resolved;
+    });
+  }, [abortActiveStream]);
 
   const authedHeaders = useCallback(async () => {
     const headers = await buildAuthHeaders({ getIdToken, getAppCheckToken });
@@ -90,6 +111,7 @@ export function useChat() {
   }, [sessions, activeSessionId]);
 
   const createSession = useCallback(async ({ title } = {}) => {
+    abortActiveStream();
     const headers = await authedHeaders();
     const res = await fetch('/api/chat/sessions', {
       method: 'POST',
@@ -102,7 +124,7 @@ export function useChat() {
     if (id) setActiveSessionId(id);
     await loadSessions();
     return id;
-  }, [authedHeaders, loadSessions]);
+  }, [authedHeaders, loadSessions, abortActiveStream, setActiveSessionId]);
 
   const renameSession = useCallback(async ({ sessionId, title }) => {
     const headers = await authedHeaders();
@@ -116,16 +138,24 @@ export function useChat() {
   }, [authedHeaders, loadSessions]);
 
   const deleteSession = useCallback(async ({ sessionId }) => {
-    const headers = await authedHeaders();
+    abortActiveStream();
+    // No Content-Type here: Fastify rejects a bodyless DELETE that declares
+    // application/json (FST_ERR_CTP_EMPTY_JSON_BODY).
+    const headers = await buildAuthHeaders({ getIdToken, getAppCheckToken });
     const res = await fetch(`/api/chat/sessions/${encodeURIComponent(sessionId)}`, {
       method: 'DELETE',
       headers,
     });
     if (!res.ok) throw new Error(await res.text().catch(() => res.statusText));
     setHistory([]);
-    await loadSessions();
-    setActiveSessionId((prev) => (prev === sessionId ? null : prev));
-  }, [authedHeaders, loadSessions]);
+    const list = await loadSessions();
+    const remaining = list.filter((s) => s.id !== sessionId);
+    if (remaining.length > 0) {
+      setActiveSessionIdRaw((prev) => (prev === sessionId ? remaining[0].id : prev));
+    } else {
+      await createSession({ title: '' });
+    }
+  }, [getIdToken, getAppCheckToken, loadSessions, createSession, abortActiveStream]);
 
   const loadMessages = useCallback(async (sessionId) => {
     if (!sessionId) return;

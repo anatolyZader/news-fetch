@@ -33,6 +33,16 @@ describe('chatToolCompress', () => {
     assert.equal(out, raw);
   });
 
+  it('get_report_context keeps up to 12k chars instead of the 4k default', () => {
+    const raw = 'C'.repeat(10_000);
+    const out = compressChatToolResult('get_report_context', raw, { enabled: true });
+    assert.equal(out, raw, '10k payload must survive intact');
+    const big = 'C'.repeat(20_000);
+    const truncated = compressChatToolResult('get_report_context', big, { enabled: true });
+    assert.ok(truncated.length < 20_000);
+    assert.ok(truncated.length >= 11_000, `should truncate near 12k, got ${truncated.length}`);
+  });
+
   it('truncates compare_dates when very long', () => {
     const raw = 'HEADER\n' + 'line\n'.repeat(3000);
     const out = compressChatToolResult('compare_dates', raw, { enabled: true });

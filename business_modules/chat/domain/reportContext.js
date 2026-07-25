@@ -178,6 +178,22 @@ function formatExecutiveSummary(assessment, maxChars = EXEC_SUMMARY_MAX_CHARS) {
   return `Executive summary:\n${wrapped}\n\n`;
 }
 
+const COMPONENT_SLICE_EXEC_MAX_CHARS = 600;
+
+/**
+ * Short exec-summary excerpt for component-focused slices, explicitly labeled
+ * report-wide so its content is never attributed to the focused component.
+ */
+function formatCrossComponentExcerpt(assessment) {
+  const text = assessment?.cross_component_synthesis ?? '';
+  if (!text) return '';
+  const wrapped = wrapUntrustedBlock(
+    clipText(text, COMPONENT_SLICE_EXEC_MAX_CHARS),
+    { label: 'executive_summary' },
+  );
+  return `Cross-component synthesis (report-wide context — NOT findings of this component):\n${wrapped}\n\n`;
+}
+
 function includeGuidanceContext() {
   return operatorEpistemicOverlayEnabled();
 }
@@ -208,14 +224,16 @@ function buildCompareContext(a, reportScopeId, includeScores) {
 function buildTemporalContext(a, reportScopeId, includeScores, componentId) {
   let body =
     formatV2ContextBlock(a) +
-    formatHeader(a, { includeScores }) +
-    formatExecutiveSummary(a);
+    formatHeader(a, { includeScores });
   if (componentId) {
     const comp = (a.components ?? []).find((c) => c.component_id === componentId);
     const componentBlock = comp
       ? formatComponentBlock(comp, { includeScores })
       : `(Component ${componentId} not found in this report.)`;
     body += `Component focus:\n${componentBlock}\n`;
+    body += formatCrossComponentExcerpt(a);
+  } else {
+    body += formatExecutiveSummary(a);
   }
   body += '\nUse trace_component_timeline for multi-date evolution across all report dates.\n';
   return body;
@@ -273,11 +291,13 @@ function buildComponentContext(a, reportScopeId, includeScores, componentId) {
     extra += '\nUse get_component_evidence_bundle for full pool items and roles.\n';
   }
 
+  // Component detail comes first: downstream compression truncates from the
+  // end, and the focused component's narrative must never be the part cut off.
   return (
     formatV2ContextBlock(a) +
     formatHeader(a, { includeScores }) +
-    formatExecutiveSummary(a) +
-    `Component detail:\n${componentBlock}\n${extra}`
+    `Component detail:\n${componentBlock}\n${extra}` +
+    formatCrossComponentExcerpt(a)
   );
 }
 

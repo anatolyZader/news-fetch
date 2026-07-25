@@ -40,6 +40,19 @@ describe('chatSessionService prepareTurn', () => {
     assert.equal(store.added.length, 0, 'regenerate must not re-persist the user message');
   });
 
+  it('finalizeTurn skips title generation when the turn produced no text', async () => {
+    const store = fakeStore([{ id: 'm1', role: 'user', content: 'q' }]);
+    let titleCalls = 0;
+    const svc = createChatSessionService({
+      chatStore: store,
+      chatLlmPort: { generateChatTitle: async () => { titleCalls++; return 'T'; } },
+    });
+
+    await svc.finalizeTurn({ ownerUid: 'u1', sessionId: 's1', assistantText: '', userMessage: 'q' });
+    assert.equal(titleCalls, 0, 'no title spend for an empty/aborted turn');
+    assert.equal(store.added.length, 0, 'no assistant message persisted');
+  });
+
   it('send persists the user message and keeps full history', () => {
     const store = fakeStore([
       { id: 'm1', role: 'user', content: 'q1' },

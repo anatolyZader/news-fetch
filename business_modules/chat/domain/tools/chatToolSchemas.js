@@ -56,9 +56,10 @@ export const CORE_CHAT_TOOLS = [
   {
     name: 'get_component_evidence_bundle',
     description:
-      'Return the full rich operator investigation pool for a component ' +
-      '(claims, epistemic roles, evidence text) — from the current report, or a past report when date is set. ' +
-      'Prefer this over lookup_signals when operator_surface_mode is rich.',
+      'THE default deep-dive tool for component questions: the full evidence pool behind a component ' +
+      '(claims, epistemic roles, signal types, evidence text, urls) — far more than the curated evidence ' +
+      'rendered on the site. Works on the current report or a past one when date is set; ' +
+      'falls back to structured operator evidence on non-rich reports.',
     input_schema: {
       type: 'object',
       properties: {
@@ -405,6 +406,7 @@ export function buildSystemTemplateToolList(opts = {}) {
     ].join('\n');
   }
   const core = [
+    '- get_component_evidence_bundle: full evidence pool behind a component (all epistemic roles) — the default deep-dive for component questions',
     '- lookup_pbo: detailed PBO municipality data',
     '- lookup_signals: search raw behavioral signals',
     '- signal_stats: aggregate signal counts (by type / municipality / date / source) — prefer for "how many" questions',

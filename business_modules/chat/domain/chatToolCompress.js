@@ -112,6 +112,10 @@ function compressToolOutput(toolName, raw, caps = DEFAULT_CAPS) {
       return compressCompareDates(raw);
     case 'trace_component_timeline':
       return truncateLongText(raw, 6000);
+    case 'get_report_context':
+      // Deliberate context fetch — the default 4k cap would cut the very
+      // narrative the model asked for (component detail is emitted first).
+      return truncateLongText(raw, 12_000);
     case 'get_component_evidence_bundle':
     case 'get_decision_brief':
     case 'get_pbo_review':

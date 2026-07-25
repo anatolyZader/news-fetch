@@ -26,6 +26,19 @@ describe('chatStore listRecentSessions', () => {
     assert.equal(rows.find((r) => r.id === a).message_count, 1);
   });
 
+  it('deleteSession removes the session and cascades its messages', () => {
+    const sid = store.createSession({ ownerUid: 'u3', reportDate: '2026-07-25', title: 'doomed' });
+    store.addMessage({ sessionId: sid, role: 'user', content: 'q', meta: null });
+    store.addMessage({ sessionId: sid, role: 'assistant', content: 'a', meta: null });
+    assert.equal(store.listMessages({ sessionId: sid }).length, 2);
+
+    const ok = store.deleteSession({ ownerUid: 'u3', sessionId: sid });
+    assert.equal(ok, true);
+    assert.equal(store.getSession(sid), null);
+    assert.deepEqual(store.listMessages({ sessionId: sid }), []);
+    assert.deepEqual(store.listRecentSessions({ ownerUid: 'u3' }), []);
+  });
+
   it('respects and clamps the limit', () => {
     const rows = store.listRecentSessions({ ownerUid: 'u1', limit: 1 });
     assert.equal(rows.length, 1);

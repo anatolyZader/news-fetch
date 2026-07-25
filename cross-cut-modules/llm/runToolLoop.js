@@ -27,10 +27,13 @@ function shouldEndToolLoop(toolUseBlocks, stopReason) {
   return toolUseBlocks.length === 0 || stopReason === 'end_turn';
 }
 
-async function executeToolRound(toolUseBlocks, executeTool) {
+async function executeToolRound(toolUseBlocks, executeTool, throwIfAborted) {
   const toolMeta = [];
   const toolResults = [];
   for (const tu of toolUseBlocks) {
+    // An abort mid-round must not run the remaining tools (some, like
+    // generate_brief, make their own LLM calls).
+    throwIfAborted?.();
     const started = Date.now();
     const result = await executeTool(tu.name, tu.input ?? {}, tu);
     const latencyMs = Date.now() - started;
@@ -225,7 +228,7 @@ export async function runToolLoop(opts) {
 
     notifyToolStart(onToolStart, toolUseBlocks, round, maxRounds);
 
-    const { toolMeta, toolResults } = await executeToolRound(toolUseBlocks, executeTool);
+    const { toolMeta, toolResults } = await executeToolRound(toolUseBlocks, executeTool, throwIfAborted);
 
     const roundMeta = {
       agent: agentKind,

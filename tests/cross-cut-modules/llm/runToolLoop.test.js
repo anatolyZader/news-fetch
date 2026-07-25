@@ -332,6 +332,39 @@ describe('runToolLoop', () => {
     assert.equal(sdkAborted, true);
   });
 
+  it('abort between tool calls of a round skips the remaining tools', async () => {
+    const controller = new AbortController();
+    const client = fakeClient([
+      {
+        stop_reason: 'tool_use',
+        content: [
+          { type: 'tool_use', id: 't1', name: 'first_tool', input: {} },
+          { type: 'tool_use', id: 't2', name: 'second_tool', input: {} },
+        ],
+        usage: { input_tokens: 10, output_tokens: 5 },
+      },
+    ]);
+
+    const executed = [];
+    await assert.rejects(
+      runToolLoop({
+        client,
+        model: 'test-model',
+        system: 'sys',
+        messages: [{ role: 'user', content: 'go' }],
+        tools: [{ name: 'first_tool', input_schema: { type: 'object', properties: {} } }],
+        abortSignal: controller.signal,
+        executeTool: async (name) => {
+          executed.push(name);
+          controller.abort(new Error('Client disconnected'));
+          return 'out';
+        },
+      }),
+      (err) => err.name === 'AbortError',
+    );
+    assert.deepEqual(executed, ['first_tool'], 'second tool must not run after abort');
+  });
+
   it('falls back to messages.create when onTextDelta is absent', async () => {
     let createCalls = 0;
     const client = {

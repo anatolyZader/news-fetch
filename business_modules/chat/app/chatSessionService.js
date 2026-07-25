@@ -98,6 +98,9 @@ export function createChatSessionService(opts) {
     if (assistantText) {
       chatStore.addMessage({ sessionId: sid, role: 'assistant', content: assistantText, meta });
       chatStore.touchSession({ ownerUid, sessionId: sid });
+    } else {
+      // Failed/aborted turn with no text — don't spend on a title for it.
+      return;
     }
 
     try {
