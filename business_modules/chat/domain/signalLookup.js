@@ -156,11 +156,15 @@ export function loadObservations({ date, profile, limit = 50 } = {}) {
  * @param {{ query?: string, component?: string, sourceType?: string, municipality?: string, limit?: number }} opts
  * @returns {Array} matching signals, capped at limit
  */
-export function searchSignals(signals, { query, component, sourceType, municipality, limit = 10 } = {}) {
+export function searchSignals(signals, { query, component, signalType, sourceType, municipality, limit = 10 } = {}) {
   let filtered = signals;
 
   if (sourceType) {
     filtered = filtered.filter((s) => s.source_type === sourceType);
+  }
+
+  if (signalType) {
+    filtered = filtered.filter((s) => s.signal_type === signalType);
   }
 
   if (component) {
@@ -303,6 +307,20 @@ export function listSignalMeta() {
   };
 }
 
+/**
+ * Dates for which PBO signal bundles exist on disk (sorted ascending).
+ * @returns {string[]}
+ */
+export function listPboDates() {
+  const entries = listSignalJsonFiles({ sourceType: 'pbo' });
+  const dates = new Set();
+  for (const { name } of entries) {
+    const m = SIGNAL_FILE_RE.exec(name);
+    if (m) dates.add(m[2]);
+  }
+  return [...dates].sort((a, b) => a.localeCompare(b));
+}
+
 const SIGNAL_STATS_GROUPS = new Set(['signal_type', 'municipality', 'date', 'source_type']);
 
 function signalStatsKey(signal, groupBy) {
@@ -330,6 +348,7 @@ export function signalStats(input = {}) {
   });
   const matches = searchSignals(signals, {
     component: input.component,
+    signalType: input.signal_type,
     sourceType: input.source_type,
     municipality: input.municipality,
     limit: Number.MAX_SAFE_INTEGER,
@@ -436,12 +455,13 @@ function formatNarrativeChanges(aComps, bComps) {
  * @returns {string} formatted comparison text
  */
 export function compareReports(dateA, dateB, opts = {}) {
-  const reportA = loadReport(dateA);
-  const reportB = loadReport(dateB);
+  const scope = opts.scope ?? 'national';
+  const reportA = loadReport(dateA, scope);
+  const reportB = loadReport(dateB, scope);
 
-  if (reportA == null && reportB == null) return `No reports found for ${dateA} or ${dateB}.`;
-  if (reportA == null) return `No report found for ${dateA}. Available dates: ${listReportDates().join(', ')}`;
-  if (reportB == null) return `No report found for ${dateB}. Available dates: ${listReportDates().join(', ')}`;
+  if (reportA == null && reportB == null) return `No reports found for ${dateA} or ${dateB} (scope=${scope}).`;
+  if (reportA == null) return `No report found for ${dateA} (scope=${scope}). Available dates: ${listReportDates().join(', ')}`;
+  if (reportB == null) return `No report found for ${dateB} (scope=${scope}). Available dates: ${listReportDates().join(', ')}`;
 
   const aComps = Object.fromEntries(
     (reportA.assessment.components ?? []).map((c) => [c.component_id, c]),
@@ -451,14 +471,23 @@ export function compareReports(dateA, dateB, opts = {}) {
   );
 
   const includeScores = opts.includeScores === true;
-  const componentLines = Object.entries(bComps).map(
+  const component = opts.component ?? null;
+  const bEntries = component
+    ? Object.entries(bComps).filter(([id]) => id === component)
+    : Object.entries(bComps);
+  if (component && bEntries.length === 0) {
+    return `Component ${component} not present in the ${dateB} report (scope=${scope}).`;
+  }
+  const componentLines = bEntries.map(
     ([id, b]) => formatComponentDelta(id, aComps[id], b, includeScores),
   );
+  const narrowedA = component ? { [component]: aComps[component] } : aComps;
+  const narrowedB = component ? Object.fromEntries(bEntries) : bComps;
 
   return [
     ...formatOverallComparison(dateA, dateB, reportA, reportB, includeScores),
-    'Per-component deltas:',
+    component ? `Component delta (${component} only):` : 'Per-component deltas:',
     ...componentLines,
-    ...formatNarrativeChanges(aComps, bComps),
+    ...formatNarrativeChanges(narrowedA, narrowedB),
   ].join('\n');
 }

@@ -11,6 +11,7 @@ import {
   compareReports,
   loadReport,
   listReportDates,
+  listPboDates,
   loadObservations,
   signalStats,
 } from '../domain/signalLookup.js';
@@ -37,8 +38,9 @@ import {
 import { compressChatToolResult } from '../domain/chatToolCompress.js';
 import { extractCitationsFromToolResult } from '../domain/chatCitations.js';
 import { wrapToolResultIfUntrusted, wrapUntrustedBlock } from '../../../cross-cut-modules/security/index.js';
-import { buildComponentTimeline, formatComponentTimeline } from '../domain/traceComponentTimeline.js';
-import { resolveMunicipalityName } from '../domain/municipalityResolve.js';
+import { buildComponentTimeline, formatComponentTimeline, getCachedDashboard } from '../domain/traceComponentTimeline.js';
+import { resolveMunicipalityName, findMunicipalityInDay } from '../domain/municipalityResolve.js';
+import { buildPboIndex } from '../domain/pboIndex.js';
 
 
 function inferredDate(input, reportData) {
@@ -164,13 +166,111 @@ async function generateBrief(input, reportData, pboLookup, costRecorder = null) 
   return text || 'Brief generation returned empty.';
 }
 
+function lookupInPboIndex(lookup, muniName) {
+  const resolved = resolveMunicipalityName(muniName, { pboLookupKeys: Object.keys(lookup) });
+  return lookup[muniName] ?? (resolved ? lookup[resolved] : null);
+}
+
+function formatDashboardMunicipality(dashboard, day, muni) {
+  const order = dashboard.componentsOrder ?? Object.keys(muni.components ?? {});
+  const lines = [];
+  for (const cid of order) {
+    const comp = muni.components?.[cid];
+    if (!comp || comp.avg == null) continue;
+    const pct = Math.round(comp.avg * 100);
+    const texts = (comp.texts ?? []).slice(0, 2).join(' | ');
+    const textPart = texts ? ` — ${texts}` : '';
+    lines.push(`- ${cid}: ${pct}%${textPart}`);
+  }
+  return lines.join('\n') || '(no component scores recorded that day)';
+}
+
+function lookupPboFromDashboard(dashboard, muniName, { requestedDate, reportDate }) {
+  const days = dashboard?.days ?? [];
+  if (days.length === 0) return null;
+  const targetDate = requestedDate ?? reportDate;
+
+  const exactDay = targetDate ? days.find((d) => d.date === targetDate) : null;
+  if (exactDay) {
+    const muni = findMunicipalityInDay(exactDay, muniName);
+    if (muni) {
+      return (
+        `PBO data for "${muni.name}" (PBO report date ${exactDay.date} — state this date when answering):\n` +
+        formatDashboardMunicipality(dashboard, exactDay, muni)
+      );
+    }
+    return (
+      `No PBO data for "${muniName}" on ${exactDay.date}. ` +
+      `Municipalities with PBO data that day: ${exactDay.municipalities.map((m) => m.name).join(', ')}`
+    );
+  }
+
+  if (!requestedDate) {
+    // No explicit date and none for the loaded report date — serve the latest
+    // collection containing this municipality, honestly labeled.
+    for (let i = days.length - 1; i >= 0; i--) {
+      const muni = findMunicipalityInDay(days[i], muniName);
+      if (muni) {
+        return (
+          `PBO data for "${muni.name}" — last collected ${days[i].date}, NOT current; state this date when answering:\n` +
+          formatDashboardMunicipality(dashboard, days[i], muni)
+        );
+      }
+    }
+  }
+
+  return (
+    `No PBO data for "${muniName}" on ${targetDate ?? 'any covered date'}. ` +
+    `PBO reports exist only for: ${days.map((d) => d.date).join(', ')}. ` +
+    `Known municipalities: ${(dashboard.municipalities ?? []).slice(0, 40).join(', ')}`
+  );
+}
+
+/**
+ * PBO data is served only for dates a PBO report was actually produced.
+ * Canonical source: the municipality dashboard (parsed from officer Excel
+ * files). Fallbacks: the loaded report's embedded index, then on-disk PBO
+ * signal bundles — every answer labeled with its true collection date.
+ */
 async function handleLookupPbo(input, ctx) {
   const muniName = input?.municipality ?? '';
-  const resolved = resolveMunicipalityName(muniName, {
-    pboLookupKeys: Object.keys(ctx.pboLookup),
-  });
-  const result = ctx.pboLookup[muniName] ?? (resolved ? ctx.pboLookup[resolved] : null);
-  return result ?? `No PBO data found for "${muniName}". Available: ${Object.keys(ctx.pboLookup).join(', ')}`;
+  const requestedDate = String(input?.date ?? '').trim() || null;
+  const reportDate = ctx.reportData?.assessment?.date ?? null;
+
+  const dashboard = getCachedDashboard(ctx.getMunicipalityDashboard);
+  const fromDashboard = dashboard
+    ? lookupPboFromDashboard(dashboard, muniName, { requestedDate, reportDate })
+    : null;
+  if (fromDashboard) return fromDashboard;
+
+  if (!requestedDate || requestedDate === reportDate) {
+    const hit = lookupInPboIndex(ctx.pboLookup, muniName);
+    if (hit) return hit;
+  }
+
+  const targetDate = requestedDate ?? reportDate;
+  if (targetDate) {
+    const pboSignals = loadSignals({ sourceType: 'pbo', date: targetDate });
+    if (pboSignals.length > 0) {
+      const { lookup } = buildPboIndex(pboSignals);
+      const hit = lookupInPboIndex(lookup, muniName);
+      if (hit) {
+        return `PBO data for "${muniName}" (PBO report date ${targetDate} — state this date when answering):\n${hit}`;
+      }
+      return (
+        `No PBO data for "${muniName}" on ${targetDate}. ` +
+        `Municipalities with PBO data that day: ${Object.keys(lookup).join(', ')}`
+      );
+    }
+  }
+
+  const pboDates = listPboDates();
+  return (
+    `No PBO data for "${muniName}" on ${targetDate ?? 'the loaded report date'}. ` +
+    (pboDates.length > 0
+      ? `PBO reports exist only for: ${pboDates.join(', ')}. Re-run lookup_pbo with date set to one of these.`
+      : 'No PBO signal bundles exist on disk.')
+  );
 }
 
 function handleLookupSignals(input) {
@@ -185,6 +285,7 @@ function handleLookupSignals(input) {
   const matches = searchSignals(signals, {
     query: input.query,
     component: input.component,
+    signalType: input.signal_type,
     sourceType: input.source_type,
     municipality: input.municipality,
     limit: Math.min(input.limit ?? 10, 25),
@@ -206,7 +307,12 @@ async function handleTraceComponentTimeline(_toolName, input, ctx) {
 
 function handleCompareDates(input, ctx) {
   const includeScores = ctx.reportData?.display_view === DISPLAY_VIEWS.analyst;
-  return compareReports(input.date_a, input.date_b, { includeScores });
+  // Default to the loaded report's scope so a north session compares north reports.
+  const scope = normalizeReportScope(
+    String(input?.scope ?? ctx.reportData?.assessment?.report_scope?.id ?? 'national'),
+  );
+  const component = String(input?.component ?? '').trim() || null;
+  return compareReports(input.date_a, input.date_b, { includeScores, scope, component });
 }
 
 function handleListSources(input, ctx) {
@@ -292,7 +398,7 @@ function handleListAttentionItems(_toolName, input, ctx) {
     view: DISPLAY_VIEWS.operator,
     reportScopeId: scopeId,
   }).slice(0, limit);
-  if (!items.length) return 'No attention items for this assessment.';
+  if (!items.length) return 'No attention items — nothing was flagged for this assessment (the attention layer did run).';
   return items.map((it) => {
     const componentPart = it.component_id ? ` component=${it.component_id}` : '';
     const titlePart = it.title_key ? ` title=${it.title_key}` : '';
@@ -303,12 +409,15 @@ function handleListAttentionItems(_toolName, input, ctx) {
 function handleListOperatorRecommendations(_toolName, input, ctx) {
   const a = ctx.reportData?.assessment;
   if (!a) return 'No assessment loaded.';
+  if (a.operator_recommendations === undefined) {
+    return 'Operator recommendations were not generated for this report (feature off at assess time).';
+  }
   const statusFilter = input?.status ?? 'pending';
   let recs = a.operator_recommendations ?? [];
   if (statusFilter !== 'all') {
     recs = recs.filter((r) => r.status === statusFilter);
   }
-  if (!recs.length) return `No operator recommendations (status=${statusFilter}).`;
+  if (!recs.length) return `No operator recommendations with status=${statusFilter} — the layer ran, none matched.`;
   return recs.map((r) => {
     const actionType = r.recommended_action?.type ?? 'n/a';
     const channels = (r.recommended_action?.channels ?? []).join(', ');

@@ -3,6 +3,26 @@ import assert from 'node:assert/strict';
 
 import { searchSignals, formatSignals } from '../../../../business_modules/chat/domain/signalLookup.js';
 
+describe('searchSignals signal_type filter', () => {
+  const signals = [
+    { signal_type: 'compliance_enter_shelter', source_type: 'news', evidence: 'entered shelter' },
+    { signal_type: 'mutual_aid', source_type: 'news', evidence: 'neighbors helped' },
+    { signal_type: 'compliance_enter_shelter', source_type: 'radio', evidence: 'sprint to safe room' },
+  ];
+
+  it('filters by exact catalog type', () => {
+    const matches = searchSignals(signals, { signalType: 'compliance_enter_shelter' });
+    assert.equal(matches.length, 2);
+    assert.ok(matches.every((s) => s.signal_type === 'compliance_enter_shelter'));
+  });
+
+  it('composes with source_type', () => {
+    const matches = searchSignals(signals, { signalType: 'compliance_enter_shelter', sourceType: 'radio' });
+    assert.equal(matches.length, 1);
+    assert.equal(matches[0].evidence, 'sprint to safe room');
+  });
+});
+
 describe('signalLookup hardened municipality', () => {
   const signals = [
     {

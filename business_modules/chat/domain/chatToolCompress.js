@@ -63,7 +63,8 @@ function parseSignalLines(text, maxSignals = 8, snippetChars = 200) {
     const evidence = SIGNAL_EVIDENCE_RE.exec(block);
     signals.push({
       signal_type: header?.[1] ?? 'unknown',
-      component: header?.[2]?.split(',')[0]?.trim() ?? null,
+      // Header parens are "(source_type, when)" — this is NOT a component id.
+      source_type: header?.[2]?.split(',')[0]?.trim() ?? null,
       evidence_200: snippet(evidence?.[1] ?? block, snippetChars),
     });
     if (signals.length >= maxSignals) break;

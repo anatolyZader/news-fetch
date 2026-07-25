@@ -99,6 +99,7 @@ export {
   isBareHazardTickerEvidence,
   NATIONAL_CONTEXT_EXCLUDED_SIGNAL_TYPES,
 } from './domain/services/signals/hygiene/signalTypeHygiene.js';
+export { SIGNAL_TYPES } from './domain/contracts/signalCatalog.js';
 export {
   splitBundledHarmInfrastructure,
   splitEvidenceClauses,

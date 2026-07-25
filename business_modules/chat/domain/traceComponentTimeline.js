@@ -69,7 +69,7 @@ const DASHBOARD_CACHE_TTL_MS = 5 * 60 * 1000;
 /** @type {{ at: number, data: object|null }} */
 let dashboardCache = { at: 0, data: null };
 
-function getCachedDashboard(getMunicipalityDashboard) {
+export function getCachedDashboard(getMunicipalityDashboard) {
   if (!getMunicipalityDashboard) return null;
   const now = Date.now();
   if (dashboardCache.data && now - dashboardCache.at < DASHBOARD_CACHE_TTL_MS) {

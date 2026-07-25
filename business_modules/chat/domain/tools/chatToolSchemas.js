@@ -1,7 +1,7 @@
 /**
  * Claude tool schemas for chat agent.
  */
-import { operatorEpistemicOverlayEnabled } from '../../../resilience_scorer/index.js';
+import { operatorEpistemicOverlayEnabled, SIGNAL_TYPES } from '../../../resilience_scorer/index.js';
 import { pboReviewRagEnabled } from '../../../../cross-cut-modules/retrieval/ragConfig.js';
 
 export const SOURCE_TYPE_ENUM = [
@@ -21,13 +21,19 @@ export const CORE_CHAT_TOOLS = [
     name: 'lookup_pbo',
     description:
       'Look up detailed PBO (Population Behavior Officer) data for a specific municipality. ' +
-      'Returns per-component scores and free-text field observations.',
+      'Returns per-component scores and free-text field observations, labeled with the PBO report date. ' +
+      'Without a date it serves the latest available collection (labeled "last collected <date>"); ' +
+      'with a date it serves exactly that day or lists the dates PBO reports exist for.',
     input_schema: {
       type: 'object',
       properties: {
         municipality: {
           type: 'string',
           description: 'Municipality name (Hebrew), as it appears in the PBO index.',
+        },
+        date: {
+          type: 'string',
+          description: 'PBO report date YYYY-MM-DD (optional; defaults to the loaded report date).',
         },
       },
       required: ['municipality'],
@@ -43,6 +49,11 @@ export const CORE_CHAT_TOOLS = [
       properties: {
         query: { type: 'string', description: 'Free-text search term (optional).' },
         component: { type: 'string', enum: COMPONENT_ENUM, description: 'Filter by component (optional).' },
+        signal_type: {
+          type: 'string',
+          enum: SIGNAL_TYPES,
+          description: 'Exact catalog signal type (optional) — prefer over free-text query when the type is known.',
+        },
         source_type: { type: 'string', enum: SIGNAL_SOURCE_ENUM, description: 'Filter by source type (optional).' },
         municipality: { type: 'string', description: 'Filter by municipality (optional).' },
         date: { type: 'string', description: 'Filter by date YYYY-MM-DD (optional).' },
@@ -85,6 +96,8 @@ export const CORE_CHAT_TOOLS = [
       properties: {
         date_a: { type: 'string', description: 'Older date (YYYY-MM-DD).' },
         date_b: { type: 'string', description: 'Newer date (YYYY-MM-DD).' },
+        scope: { type: 'string', enum: ['national', 'north'], description: 'Report scope (defaults to the loaded report\'s scope).' },
+        component: { type: 'string', enum: COMPONENT_ENUM, description: 'Limit the comparison to one component (optional).' },
       },
       required: ['date_a', 'date_b'],
     },
@@ -211,6 +224,7 @@ export const CORE_CHAT_TOOLS = [
         date_from: { type: 'string', description: 'Start date YYYY-MM-DD inclusive (optional).' },
         date_to: { type: 'string', description: 'End date YYYY-MM-DD inclusive (optional).' },
         component: { type: 'string', enum: COMPONENT_ENUM, description: 'Filter by component (optional).' },
+        signal_type: { type: 'string', description: 'Exact catalog signal type id (optional; same ids as the lookup_signals enum).' },
         source_type: { type: 'string', enum: SIGNAL_SOURCE_ENUM, description: 'Filter by source type (optional).' },
         municipality: { type: 'string', description: 'Filter by municipality (optional).' },
         group_by: { type: 'string', enum: ['signal_type', 'municipality', 'date', 'source_type'] },
@@ -407,7 +421,7 @@ export function buildSystemTemplateToolList(opts = {}) {
   }
   const core = [
     '- get_component_evidence_bundle: full evidence pool behind a component (all epistemic roles) — the default deep-dive for component questions',
-    '- lookup_pbo: detailed PBO municipality data',
+    '- lookup_pbo: detailed PBO municipality data (date-aware; a miss lists the dates PBO reports exist for)',
     '- lookup_signals: search raw behavioral signals',
     '- signal_stats: aggregate signal counts (by type / municipality / date / source) — prefer for "how many" questions',
     '- compare_dates: compare two assessment dates (pairwise only)',

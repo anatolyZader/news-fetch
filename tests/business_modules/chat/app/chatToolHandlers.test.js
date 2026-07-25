@@ -94,6 +94,104 @@ describe('chatToolHandlers', () => {
   });
 });
 
+describe('lookup_pbo dashboard source', () => {
+  const dashboard = {
+    componentsOrder: ['narrative', 'leadership'],
+    componentNames: { en: {}, he: {} },
+    municipalities: ['חורפיש', 'כרמיאל'],
+    days: [
+      {
+        date: '2026-04-10',
+        municipalities: [
+          { name: 'חורפיש', components: { narrative: { avg: 0.5, texts: ['old note'] }, leadership: { avg: null, texts: [] } } },
+        ],
+      },
+      {
+        date: '2026-04-18',
+        municipalities: [
+          { name: 'חורפיש', components: { narrative: { avg: 0.81, texts: ['מתמודדים'] }, leadership: { avg: 1, texts: ['נוכחות'] } } },
+        ],
+      },
+    ],
+  };
+  const baseCtx = {
+    pboLookup: {},
+    reportData: { assessment: { date: '2026-05-23' } },
+    getMunicipalityDashboard: () => dashboard,
+    isAnalyst: false,
+    analystToolsEnabled: true,
+    confirmActionsEnabled: true,
+  };
+
+  it('serves an exact-date match labeled with the PBO report date', async () => {
+    const result = await handleChatToolCall('lookup_pbo', { municipality: 'חורפיש', date: '2026-04-18' }, baseCtx);
+    assert.match(result, /PBO report date 2026-04-18 — state this date when answering/);
+    assert.match(result, /narrative: 81% — מתמודדים/);
+    assert.match(result, /leadership: 100% — נוכחות/);
+  });
+
+  it('without a date, falls back to the latest collection with a "last collected" label', async () => {
+    const result = await handleChatToolCall('lookup_pbo', { municipality: 'חורפיש' }, baseCtx);
+    assert.match(result, /last collected 2026-04-18, NOT current/);
+    assert.match(result, /narrative: 81%/);
+  });
+
+  it('explicit-date miss lists the covered dates', async () => {
+    const result = await handleChatToolCall('lookup_pbo', { municipality: 'חורפיש', date: '2026-03-01' }, baseCtx);
+    assert.match(result, /PBO reports exist only for: 2026-04-10, 2026-04-18/);
+  });
+});
+
+describe('lookup_pbo date awareness', () => {
+  const baseCtx = {
+    pboLookup: {},
+    reportData: { assessment: { date: '2026-05-23' } },
+    isAnalyst: false,
+    analystToolsEnabled: true,
+    confirmActionsEnabled: true,
+  };
+
+  it('embedded report index still wins when it has the municipality', async () => {
+    const result = await handleChatToolCall('lookup_pbo', { municipality: 'Haifa' }, {
+      ...baseCtx,
+      pboLookup: { Haifa: 'embedded scores' },
+    });
+    assert.ok(result.includes('embedded scores'));
+  });
+
+  it('a miss names the target date and points at PBO coverage instead of a bare empty list', async () => {
+    const result = await handleChatToolCall('lookup_pbo', { municipality: 'Nowhere', date: '1888-01-01' }, baseCtx);
+    assert.match(result, /No PBO data for "Nowhere" on 1888-01-01/);
+    assert.match(result, /PBO reports exist only for:|No PBO signal bundles exist on disk/);
+  });
+});
+
+describe('empty-layer honesty', () => {
+  const gates = { isAnalyst: false, analystToolsEnabled: true, confirmActionsEnabled: true, pboLookup: {} };
+
+  it('attention items: empty list says the layer ran', async () => {
+    const result = await handleChatToolCall('list_attention_items', {}, {
+      ...gates,
+      reportData: { assessment: { date: '2026-05-30', components: [] } },
+    });
+    assert.match(result, /nothing was flagged for this assessment \(the attention layer did run\)/);
+  });
+
+  it('recommendations: absent field vs empty list are distinguished', async () => {
+    const absent = await handleChatToolCall('list_operator_recommendations', {}, {
+      ...gates,
+      reportData: { assessment: { date: '2026-05-30', components: [] } },
+    });
+    assert.match(absent, /not generated for this report \(feature off at assess time\)/);
+
+    const empty = await handleChatToolCall('list_operator_recommendations', { status: 'pending' }, {
+      ...gates,
+      reportData: { assessment: { date: '2026-05-30', components: [], operator_recommendations: [] } },
+    });
+    assert.match(empty, /status=pending — the layer ran, none matched/);
+  });
+});
+
 describe('new deterministic tools', () => {
   it('get_report reports not-found with available dates', async () => {
     const result = await handleChatToolCall('get_report', { date: '1999-01-01' }, {
