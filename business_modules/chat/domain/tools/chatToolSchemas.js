@@ -377,6 +377,34 @@ function excludeGuidanceTools(tools, opts = {}) {
   return tools.filter((t) => !GUIDANCE_CHAT_TOOL_NAMES.has(t.name));
 }
 
+/**
+ * Whitelisted input fields surfaced to the client as a human-readable
+ * tool-progress detail ("Looking up signals — coping · 2026-07-20 → 2026-07-26").
+ * Never widen this to arbitrary input echo — raw tool inputs stay server-side.
+ */
+const TOOL_DETAIL_FIELDS = [
+  'component', 'municipality', 'district', 'scope',
+  'date', 'date_a', 'date_b', 'date_from', 'date_to', 'days',
+  'query', 'source_id', 'signal_type', 'source_type',
+  'audience', 'language', 'slice', 'role', 'group_by',
+];
+
+const TOOL_DETAIL_MAX_FIELD = 48;
+const TOOL_DETAIL_MAX_TOTAL = 140;
+
+export function describeChatToolCall(input) {
+  if (!input || typeof input !== 'object') return '';
+  const parts = [];
+  for (const field of TOOL_DETAIL_FIELDS) {
+    const v = input[field];
+    if (v == null || v === '') continue;
+    const s = String(v).replaceAll('\n', ' ').trim();
+    if (!s) continue;
+    parts.push(s.length > TOOL_DETAIL_MAX_FIELD ? `${s.slice(0, TOOL_DETAIL_MAX_FIELD - 1)}…` : s);
+  }
+  return parts.join(' · ').slice(0, TOOL_DETAIL_MAX_TOTAL);
+}
+
 /** Tool name subsets for scoped chat modes. null profile = full default set. */
 export const TOOL_PROFILES = {
   default: null,

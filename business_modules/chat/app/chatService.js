@@ -6,6 +6,9 @@ import {
   resolveChatContextTier,
   resolveChatEconomyMode,
 } from '../domain/chatContextTier.js';
+import { chatFollowupSuggestionsEnabled } from '../domain/chatConfig.js';
+import { collectCitationEvent, partitionCitationsByUse } from '../domain/chatCitations.js';
+import { resolveChatModel } from '../../../cross-cut-modules/agent/index.js';
 import { runDeterministicChatFallback } from './chatDeterministicFallback.js';
 import { ragPipelineEnabled } from '../../../cross-cut-modules/retrieval/index.js';
 import { reportIndexHelpers } from '../../../cross-cut-modules/retrieval/reportIndexHelpers.js';
@@ -98,33 +101,83 @@ async function runStreamChatLlm({
   chatEconomyMeta,
   abortSignal,
   tracePort,
+  message,
+  turnCitations,
 }) {
   let loopExhausted = false;
-  const runLlm = () => chatLlmPort.streamChatResponse(
-    context,
-    pboLookup,
-    messages,
-    send,
-    reportData,
-    buildChatLlmStreamOptions(opts, {
-      chatEconomyMeta,
-      abortSignal,
-      onLoopExhausted: (meta) => {
-        loopExhausted = meta?.stopReason === 'max_rounds';
-      },
-    }),
-  );
+  let streamResult = null;
+  const runLlm = async () => {
+    streamResult = await chatLlmPort.streamChatResponse(
+      context,
+      pboLookup,
+      messages,
+      send,
+      reportData,
+      buildChatLlmStreamOptions(opts, {
+        chatEconomyMeta,
+        abortSignal,
+        onLoopExhausted: (meta) => {
+          loopExhausted = meta?.stopReason === 'max_rounds';
+        },
+      }),
+    );
+  };
 
   if (tracePort) {
     await tracePort.startActiveSpan(METRIC.CHAT_LLM_STREAM, runLlm);
   } else {
     await runLlm();
   }
+
+  const assistantText = String(streamResult?.assistantText ?? '');
+
+  // Deterministic citation grounding: re-emit the turn's citations flagged
+  // used/consulted so the UI stops implying support the answer never drew on.
+  if (turnCitations?.length) {
+    send({
+      type: 'citations_final',
+      citations: partitionCitationsByUse(turnCitations, assistantText),
+    });
+  }
+
+  await emitFollowupSuggestions(send, {
+    chatLlmPort,
+    message,
+    assistantText,
+    opts,
+    abortSignal,
+    loopExhausted,
+  });
+
   send({
     type: 'done',
     chat_economy: chatEconomyMeta,
     ...(loopExhausted ? { loop_exhausted: true } : {}),
   });
+}
+
+async function emitFollowupSuggestions(send, {
+  chatLlmPort,
+  message,
+  assistantText,
+  opts,
+  abortSignal,
+  loopExhausted,
+}) {
+  if (!chatFollowupSuggestionsEnabled()) return;
+  if (loopExhausted || abortSignal?.aborted) return;
+  if (!assistantText.trim() || !chatLlmPort.generateChatFollowups) return;
+  try {
+    const items = await chatLlmPort.generateChatFollowups(
+      { question: message, answer: assistantText, uiLang: opts.uiLang ?? 'en' },
+      { costRecorder: opts.costRecorder ?? null },
+    );
+    if (Array.isArray(items) && items.length) {
+      send({ type: 'suggestions', items });
+    }
+  } catch {
+    // Suggestions are decoration — never fail the turn over them.
+  }
 }
 
 function isBillingError(err) {
@@ -150,6 +203,9 @@ async function handleStreamChatLlmError(err, send, {
   opts,
   chatEconomyMeta,
 }) {
+  // Aborts (Stop button, disconnect, timeout) are not chat failures — let the
+  // route persist the partial answer and label the turn stopped.
+  if (err?.name === 'AbortError') throw err;
   if (err?.code === 'llm_circuit_open' && err?.name !== 'AbortError') {
     await sendDeterministicFallback(send, {
       message,
@@ -241,6 +297,7 @@ export async function streamChat(message, history, rawReply, getReportData, opts
     context_slicing_enabled: economy.contextSlicingEnabled,
     economy_override: economy.economyOverride,
     context_slice_reason: sliceResult.reason,
+    model: resolveChatModel(sliceResult.contextSlice),
   };
 
   const tracePort = opts.tracePort ?? null;
@@ -248,7 +305,9 @@ export async function streamChat(message, history, rawReply, getReportData, opts
 
   throwIfAborted(abortSignal);
 
+  const turnCitations = [];
   const send = (data) => {
+    collectCitationEvent(turnCitations, data);
     try { opts.onSend?.(data); } catch { /* ignore */ }
     if (rawReply.writableEnded || rawReply.destroyed) return;
     try {
@@ -284,8 +343,12 @@ export async function streamChat(message, history, rawReply, getReportData, opts
 
   throwIfAborted(abortSignal);
 
+  const historySummary = String(opts.historySummary ?? '').trim();
   const context =
     String(baseContext ?? '') +
+    (historySummary
+      ? `\n\nCONVERSATION SUMMARY (earlier turns of this chat, condensed):\n${historySummary}`
+      : '') +
     (opts.systemHint ? `\n\n${opts.systemHint}` : '') +
     (retrievalHint ? `\n\n${retrievalHint}` : '');
 
@@ -321,6 +384,8 @@ export async function streamChat(message, history, rawReply, getReportData, opts
       chatEconomyMeta,
       abortSignal,
       tracePort,
+      message,
+      turnCitations,
     });
   } catch (err) {
     await handleStreamChatLlmError(err, send, {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { buildAuthHeaders } from '../lib/authFetch.js';
+import { authFetch, buildAuthHeaders } from '../lib/authFetch.js';
 import {
   initialChatStreamState,
   reduceChatStreamEvent,
@@ -53,6 +53,30 @@ function getTodayStr() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
 }
 
+const LS_CHAT_SESSION = 'chatActiveSessionId';
+
+function buildTurnExtras(accRef) {
+  return {
+    ...(accRef.citations?.length ? { citations: accRef.citations } : {}),
+    ...(accRef.suggestions?.length ? { suggestions: accRef.suggestions } : {}),
+  };
+}
+
+function readStoredSessionId() {
+  try {
+    return localStorage.getItem(LS_CHAT_SESSION) || null;
+  } catch {
+    return null;
+  }
+}
+
+function storeSessionId(id) {
+  try {
+    if (id) localStorage.setItem(LS_CHAT_SESSION, id);
+    else localStorage.removeItem(LS_CHAT_SESSION);
+  } catch { /* storage unavailable */ }
+}
+
 export function useChat() {
   const { getIdToken, getAppCheckToken } = useAuth();
   const [sessions, setSessions] = useState([]);
@@ -65,6 +89,8 @@ export function useChat() {
   const [pendingActions, setPendingActions] = useState([]);
   const abortRef = useRef(null);
   const streamStateRef = useRef(initialChatStreamState());
+  const streamingRef = useRef(false);
+  const activeSessionIdRef = useRef(null);
 
   // Any session transition must kill an in-flight stream: the client abort
   // closes the SSE socket, which triggers the server-side LLM abort — without
@@ -83,27 +109,26 @@ export function useChat() {
     setActiveSessionIdRaw((prev) => {
       const resolved = typeof next === 'function' ? next(prev) : next;
       if (resolved !== prev) abortActiveStream();
+      storeSessionId(resolved);
+      activeSessionIdRef.current = resolved;
       return resolved;
     });
   }, [abortActiveStream]);
 
-  const authedHeaders = useCallback(async () => {
-    const headers = await buildAuthHeaders({ getIdToken, getAppCheckToken });
-    if (!headers.has('Content-Type')) {
-      headers.set('Content-Type', 'application/json');
-    }
-    return headers;
-  }, [getIdToken, getAppCheckToken]);
+  // Non-SSE calls go through authFetch for its single forced-token-refresh
+  // retry on 401 — raw fetch here previously meant an expired token surfaced
+  // as a hard error instead of a silent refresh.
+  const chatApiFetch = useCallback(
+    (url, opts = {}) => authFetch(url, { getIdToken, getAppCheckToken, ...opts }),
+    [getIdToken, getAppCheckToken],
+  );
 
   const loadSessions = useCallback(async () => {
-    const headers = await authedHeaders();
-    const res = await fetch('/api/chat/sessions?date=all', { headers });
-    if (!res.ok) throw new Error(await res.text().catch(() => res.statusText));
-    const data = await res.json();
+    const data = await chatApiFetch('/api/chat/sessions?date=all');
     const list = data.sessions ?? [];
     setSessions(list);
     return list;
-  }, [authedHeaders]);
+  }, [chatApiFetch]);
 
   const displaySessions = useMemo(() => {
     const active = activeSessionId;
@@ -112,43 +137,33 @@ export function useChat() {
 
   const createSession = useCallback(async ({ title } = {}) => {
     abortActiveStream();
-    const headers = await authedHeaders();
-    const res = await fetch('/api/chat/sessions', {
+    const data = await chatApiFetch('/api/chat/sessions', {
       method: 'POST',
-      headers,
-      body: JSON.stringify({ date: getTodayStr(), title: title ?? '' }),
+      body: { date: getTodayStr(), title: title ?? '' },
     });
-    if (!res.ok) throw new Error(await res.text().catch(() => res.statusText));
-    const data = await res.json();
     const id = data.id;
     if (id) setActiveSessionId(id);
     await loadSessions();
     return id;
-  }, [authedHeaders, loadSessions, abortActiveStream, setActiveSessionId]);
+  }, [chatApiFetch, loadSessions, abortActiveStream, setActiveSessionId]);
 
   const renameSession = useCallback(async ({ sessionId, title }) => {
-    const headers = await authedHeaders();
-    const res = await fetch(`/api/chat/sessions/${encodeURIComponent(sessionId)}`, {
+    await chatApiFetch(`/api/chat/sessions/${encodeURIComponent(sessionId)}`, {
       method: 'PUT',
-      headers,
-      body: JSON.stringify({ title }),
+      body: { title },
     });
-    if (!res.ok) throw new Error(await res.text().catch(() => res.statusText));
     await loadSessions();
-  }, [authedHeaders, loadSessions]);
+  }, [chatApiFetch, loadSessions]);
 
   const deleteSession = useCallback(async ({ sessionId }) => {
     abortActiveStream();
-    // No Content-Type here: Fastify rejects a bodyless DELETE that declares
-    // application/json (FST_ERR_CTP_EMPTY_JSON_BODY).
-    const headers = await buildAuthHeaders({ getIdToken, getAppCheckToken });
-    const res = await fetch(`/api/chat/sessions/${encodeURIComponent(sessionId)}`, {
+    // authFetch sends no Content-Type for a bodyless DELETE, which is what
+    // Fastify requires (FST_ERR_CTP_EMPTY_JSON_BODY otherwise).
+    const data = await chatApiFetch(`/api/chat/sessions/${encodeURIComponent(sessionId)}`, {
       method: 'DELETE',
-      headers,
     });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || data.ok === false) {
-      throw new Error(data.error || res.statusText || 'Delete failed');
+    if (data.ok === false) {
+      throw new Error(data.error || 'Delete failed');
     }
     setHistory([]);
     const list = await loadSessions();
@@ -158,17 +173,14 @@ export function useChat() {
     } else {
       await createSession({ title: '' });
     }
-  }, [getIdToken, getAppCheckToken, loadSessions, createSession, abortActiveStream]);
+  }, [chatApiFetch, loadSessions, createSession, abortActiveStream]);
 
   const loadMessages = useCallback(async (sessionId) => {
     if (!sessionId) return;
-    const headers = await authedHeaders();
-    const res = await fetch(`/api/chat/sessions/${encodeURIComponent(sessionId)}/messages`, { headers });
-    if (!res.ok) throw new Error(await res.text().catch(() => res.statusText));
-    const data = await res.json();
+    const data = await chatApiFetch(`/api/chat/sessions/${encodeURIComponent(sessionId)}/messages`);
     const msgs = (data.messages ?? []).map((m) => ({ id: m.id, role: m.role, content: m.content, meta: m.meta ?? null }));
     setHistory(msgs);
-  }, [authedHeaders]);
+  }, [chatApiFetch]);
 
   useEffect(() => {
     let cancelled = false;
@@ -181,7 +193,12 @@ export function useChat() {
           if (!cancelled) setActiveSessionId(id);
           return;
         }
-        if (!activeSessionId) setActiveSessionId(list[0].id);
+        if (!activeSessionId) {
+          // Restore the last-used session across panel closes and reloads.
+          const stored = readStoredSessionId();
+          const restored = stored && list.some((s) => s.id === stored) ? stored : list[0].id;
+          setActiveSessionId(restored);
+        }
       } catch {
         // ignore; chat will show errors on send
       }
@@ -210,12 +227,14 @@ export function useChat() {
     streamStateRef.current = next;
     setStreamState(next);
     setElapsedSec(0);
+    streamingRef.current = true;
     setStreaming(true);
     setDraft('');
   }
 
   function finishStreaming() {
     setDraft('');
+    streamingRef.current = false;
     setStreaming(false);
     streamStateRef.current = initialChatStreamState();
     setStreamState(initialChatStreamState());
@@ -239,12 +258,32 @@ export function useChat() {
     return body;
   }
 
-  function completeSseOutcome(outcome, accumulated, citations = []) {
-    const citationMeta = citations.length ? { citations } : {};
+  // The server generates the session title (and rolling summary) *after* the
+  // done event, so an immediate refresh still sees "Untitled" — refresh again
+  // once the post-stream work has had time to land.
+  const titleRefreshRef = useRef(null);
+  useEffect(() => () => clearTimeout(titleRefreshRef.current), []);
+  function refreshSessionsSoon() {
+    loadSessions().catch(() => {});
+    clearTimeout(titleRefreshRef.current);
+    titleRefreshRef.current = setTimeout(() => {
+      loadSessions().catch(() => {});
+      // Sync the transcript with the server copy (message ids for editing,
+      // grounded citations, persisted stopped/error flags) — but never while
+      // a newer turn is already streaming.
+      const sid = activeSessionIdRef.current;
+      if (!streamingRef.current && sid) {
+        loadMessages(sid).catch(() => {});
+      }
+    }, 2500);
+  }
+
+  function completeSseOutcome(outcome, accumulated, accRef) {
+    const extras = buildTurnExtras(accRef);
     if (outcome.terminal === 'done') {
       if (outcome.event?.error) {
         const content = resolveAssistantErrorContent(outcome.event, accumulated);
-        const meta = { ...buildAssistantTurnMeta(outcome.event, content), ...citationMeta };
+        const meta = { ...buildAssistantTurnMeta(outcome.event, content), ...extras };
         setHistory((h) => [
           ...h,
           {
@@ -255,23 +294,23 @@ export function useChat() {
           },
         ]);
         finishStreaming();
-        loadSessions().catch(() => {});
+        refreshSessionsSoon();
         return true;
       }
-      const meta = { ...buildAssistantTurnMeta(outcome.event, accumulated), ...citationMeta };
+      const meta = { ...buildAssistantTurnMeta(outcome.event, accumulated), ...extras };
       setHistory((h) => [...h, { role: 'assistant', content: accumulated, meta }]);
       finishStreaming();
-      loadSessions().catch(() => {});
+      refreshSessionsSoon();
       return true;
     }
     if (outcome.terminal === 'error') {
       const content = resolveAssistantErrorContent(outcome.event, accumulated);
       setHistory((h) => [
         ...h,
-        { role: 'assistant', content, error: true, meta: { banner: 'error' } },
+        { role: 'assistant', content, error: true, meta: { banner: 'error', ...extras } },
       ]);
       finishStreaming();
-      loadSessions().catch(() => {});
+      refreshSessionsSoon();
       return true;
     }
     return false;
@@ -283,14 +322,27 @@ export function useChat() {
     const accRef = { value: '', citations: [] };
     const timeoutId = setTimeout(() => controller.abort(new Error('Chat request timed out')), chatClientTimeoutMs());
 
-    try {
-      const headers = await authedHeaders();
-      const res = await fetch('/api/chat', {
+    // The SSE turn cannot go through authFetch (it needs the raw stream), so
+    // it gets its own single forced-refresh retry on 401.
+    const postChatStream = async (forceRefresh) => {
+      const headers = await buildAuthHeaders({
+        getIdToken: forceRefresh ? () => getIdToken({ forceRefresh: true }) : getIdToken,
+        getAppCheckToken,
+      });
+      headers.set('Content-Type', 'application/json');
+      return fetch('/api/chat', {
         method: 'POST',
         headers,
         body: JSON.stringify(buildChatRequestBody(bodyPartial, opts)),
         signal: controller.signal,
       });
+    };
+
+    try {
+      let res = await postChatStream(false);
+      if (res.status === 401) {
+        res = await postChatStream(true);
+      }
 
       if (!res.ok) {
         const errText = await res.text().catch(() => res.statusText);
@@ -316,21 +368,23 @@ export function useChat() {
         return terminal;
       });
       const accumulated = accRef.value;
-      if (completeSseOutcome(outcome, accumulated, accRef.citations)) return;
+      if (completeSseOutcome(outcome, accumulated, accRef)) return;
 
       if (accumulated) {
         const meta = {
           ...buildAssistantTurnMeta(null, accumulated),
-          ...(accRef.citations.length ? { citations: accRef.citations } : {}),
+          ...buildTurnExtras(accRef),
         };
         setHistory((h) => [...h, { role: 'assistant', content: accumulated, meta }]);
         finishStreaming();
         return;
       }
 
+      // Stream ended without a terminal event and no text — surface as a
+      // connection-loss banner (text comes from i18n at render time).
       setHistory((h) => [
         ...h,
-        { role: 'assistant', content: 'Connection ended unexpectedly.', error: true, meta: { banner: 'error' } },
+        { role: 'assistant', content: '', error: true, meta: { banner: 'connection_lost' } },
       ]);
       finishStreaming();
     } catch (err) {
@@ -341,6 +395,26 @@ export function useChat() {
     }
   }
 
+  // Abort/connection outcomes are stored as meta flags, not prose — the panel
+  // renders them via i18n banners, and they match what the server persists.
+  function commitInterruptedTurn(err, accumulated) {
+    if (err?.name === 'AbortError') {
+      if (accumulated) {
+        setHistory((h) => [...h, { role: 'assistant', content: accumulated, meta: { stopped: true } }]);
+      }
+      return;
+    }
+    setHistory((h) => [
+      ...h,
+      {
+        role: 'assistant',
+        content: accumulated || '',
+        error: true,
+        meta: { banner: 'connection_lost' },
+      },
+    ]);
+  }
+
   async function send(message, opts = {}) {
     if (streaming || !message.trim() || !activeSessionId) return;
 
@@ -348,39 +422,40 @@ export function useChat() {
     beginStreaming();
 
     await runChatStreamRequest({ message, action: 'send' }, opts, {
-      onAbort(err, accumulated) {
-        if (err.name === 'AbortError') {
-          if (accumulated) {
-            setHistory((h) => [...h, { role: 'assistant', content: `${accumulated} [stopped]` }]);
-          }
-          return;
-        }
-        const content = accumulated
-          ? `${accumulated}\n\n— Connection lost before the answer finished. Use Retry to continue.`
-          : 'Connection error — please try again.';
-        setHistory((h) => [
-          ...h,
-          { role: 'assistant', content, error: true, meta: { banner: 'error' } },
-        ]);
-      },
+      onAbort: commitInterruptedTurn,
+    });
+  }
+
+  /**
+   * True edit-and-resubmit: hides the edited user message and everything after
+   * it server-side (linear rewrite), then streams a fresh answer.
+   */
+  async function editMessage(messageId, message, opts = {}) {
+    if (streaming || !message.trim() || !activeSessionId || !messageId) return;
+
+    setHistory((h) => {
+      const idx = h.findIndex((m) => m.id === messageId);
+      const base = idx >= 0 ? h.slice(0, idx) : h;
+      return [...base, { role: 'user', content: message }];
+    });
+    beginStreaming();
+
+    await runChatStreamRequest({ message, messageId, action: 'edit_resend' }, opts, {
+      onAbort: commitInterruptedTurn,
     });
   }
 
   async function regenerateLast(opts = {}) {
     if (streaming || !activeSessionId) return;
+    // Drop the stale answer locally; the server truncates its copy on regenerate.
+    setHistory((h) => {
+      const lastUserIdx = h.findLastIndex((m) => m.role === 'user');
+      return lastUserIdx >= 0 ? h.slice(0, lastUserIdx + 1) : h;
+    });
     beginStreaming();
 
     await runChatStreamRequest({ action: 'regenerate', scope: null }, opts, {
-      onAbort(err, accumulated) {
-        if (err?.name === 'AbortError') {
-          setHistory((h) => [...h, { role: 'assistant', content: 'Cancelled.', error: true, meta: { banner: 'error' } }]);
-          return;
-        }
-        const content = accumulated
-          ? `${accumulated}\n\n— Connection lost before the answer finished. Use Retry to continue.`
-          : 'Connection error — please try again.';
-        setHistory((h) => [...h, { role: 'assistant', content, error: true, meta: { banner: 'error' } }]);
-      },
+      onAbort: commitInterruptedTurn,
     });
   }
 
@@ -388,29 +463,22 @@ export function useChat() {
     abortRef.current?.abort();
   }
 
-  const fetchSource = useCallback(async (sourceId) => {
-    const headers = await buildAuthHeaders({ getIdToken, getAppCheckToken });
-    const res = await fetch(`/api/chat/source/${encodeURIComponent(sourceId)}`, { headers });
-    if (!res.ok) {
-      const err = await res.json().catch(() => null);
-      throw new Error(err?.error ?? `Source fetch failed (${res.status})`);
-    }
-    return res.json();
-  }, [getIdToken, getAppCheckToken]);
+  const fetchSource = useCallback(
+    (sourceId) => chatApiFetch(`/api/chat/source/${encodeURIComponent(sourceId)}`),
+    [chatApiFetch],
+  );
 
   async function confirmAction(actionId, confirmed) {
     if (!activeSessionId || !actionId) return null;
     try {
-      const headers = await authedHeaders();
-      const res = await fetch('/api/chat/confirm-action', {
+      const data = await chatApiFetch('/api/chat/confirm-action', {
         method: 'POST',
-        headers,
-        body: JSON.stringify({ sessionId: activeSessionId, actionId, confirmed }),
+        body: { sessionId: activeSessionId, actionId, confirmed },
       });
-      const data = await res.json();
       setPendingActions((prev) => prev.filter((a) => a.actionId !== actionId));
       return data;
     } catch {
+      setPendingActions((prev) => prev.filter((a) => a.actionId !== actionId));
       return null;
     }
   }
@@ -431,7 +499,9 @@ export function useChat() {
     confirmAction,
     fetchSource,
     send,
+    editMessage,
     regenerateLast,
+    refreshSessions: loadSessions,
     stop,
     todayStr: getTodayStr(),
   };

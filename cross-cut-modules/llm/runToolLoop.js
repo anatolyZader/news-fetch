@@ -2,6 +2,7 @@
  * Shared Anthropic tool-use loop for chat and validation agents.
  */
 import { extractLastAssistantText } from './anthropicMessageUtils.js';
+import { withLlmRetry, isTransientLlmError } from './withLlmRetry.js';
 import { appendAuditEvent } from '../security/input/auditLog.js';
 import { buildCompactMemoryBlock, formatCompactMemoryMessage } from '../agent/memory/compactMemoryBlock.js';
 import {
@@ -27,28 +28,42 @@ function shouldEndToolLoop(toolUseBlocks, stopReason) {
   return toolUseBlocks.length === 0 || stopReason === 'end_turn';
 }
 
-async function executeToolRound(toolUseBlocks, executeTool, throwIfAborted) {
-  const toolMeta = [];
-  const toolResults = [];
-  for (const tu of toolUseBlocks) {
-    // An abort mid-round must not run the remaining tools (some, like
-    // generate_brief, make their own LLM calls).
-    throwIfAborted?.();
-    const started = Date.now();
-    const result = await executeTool(tu.name, tu.input ?? {}, tu);
-    const latencyMs = Date.now() - started;
-    toolMeta.push({
+async function executeSingleTool(tu, executeTool, throwIfAborted) {
+  // An abort mid-round must not run the remaining tools (some, like
+  // generate_brief, make their own LLM calls).
+  throwIfAborted?.();
+  const started = Date.now();
+  const result = await executeTool(tu.name, tu.input ?? {}, tu);
+  const latencyMs = Date.now() - started;
+  return {
+    meta: {
       name: tu.name,
       latencyMs,
       resultBytes: typeof result === 'string' ? result.length : JSON.stringify(result).length,
-    });
-    toolResults.push({
+    },
+    toolResult: {
       type: 'tool_result',
       tool_use_id: tu.id,
       content: typeof result === 'string' ? result : JSON.stringify(result),
-    });
+    },
+  };
+}
+
+async function executeToolRound(toolUseBlocks, executeTool, throwIfAborted, parallelToolCalls = false) {
+  // Parallel mode (opt-in per agent kind): a round's tool_use blocks are
+  // independent reads, so run them concurrently and keep result order.
+  const executed = parallelToolCalls && toolUseBlocks.length > 1
+    ? await Promise.all(toolUseBlocks.map((tu) => executeSingleTool(tu, executeTool, throwIfAborted)))
+    : [];
+  if (!executed.length) {
+    for (const tu of toolUseBlocks) {
+      executed.push(await executeSingleTool(tu, executeTool, throwIfAborted));
+    }
   }
-  return { toolMeta, toolResults };
+  return {
+    toolMeta: executed.map((e) => e.meta),
+    toolResults: executed.map((e) => e.toolResult),
+  };
 }
 
 function auditToolRound(roundMeta, auditLogPath) {
@@ -66,8 +81,44 @@ function notifyToolStart(onToolStart, toolUseBlocks, round, maxRounds) {
   if (!onToolStart) return;
   const displayRound = round + 1;
   for (const tu of toolUseBlocks) {
-    onToolStart({ name: tu.name, round: displayRound, maxRounds });
+    onToolStart({ name: tu.name, round: displayRound, maxRounds, input: tu.input ?? {} });
   }
+}
+
+/** Interactive callers wait in real time — back off far quicker than batch retry. */
+function interactiveRetryWaitMs(err, attempt) {
+  const is429 = err?.status === 429 || /429|rate.?limit/i.test(String(err?.message ?? ''));
+  return is429 ? 15_000 : 3_000 * attempt;
+}
+
+/**
+ * Model round with bounded transient-error retry (opts.retryModelCall = { retries }).
+ * Once any token has been streamed to the caller a retry would duplicate
+ * visible text, so retries only cover attempts that failed before first output.
+ */
+async function performModelRoundWithRetry(opts, currentMessages, round) {
+  const retryCfg = opts.retryModelCall;
+  if (!retryCfg) return performModelRound(opts, currentMessages, round);
+
+  let streamedThisAttempt = false;
+  const attemptOpts = typeof opts.onTextDelta === 'function'
+    ? { ...opts, onTextDelta: (d) => { streamedThisAttempt = true; opts.onTextDelta(d); } }
+    : opts;
+
+  return withLlmRetry(
+    () => {
+      streamedThisAttempt = false;
+      return performModelRound(attemptOpts, currentMessages, round);
+    },
+    {
+      retries: retryCfg.retries ?? 2,
+      waitMs: retryCfg.waitMs ?? interactiveRetryWaitMs,
+      shouldRetry: (err) =>
+        !streamedThisAttempt
+        && !opts.abortSignal?.aborted
+        && isTransientLlmError(err),
+    },
+  );
 }
 
 /**
@@ -164,7 +215,9 @@ function applyCompactHistoryMessages({
  *   executeTool: (name: string, input: object, toolUseBlock: object) => Promise<string> | string,
  *   onTextBlock?: (text: string) => void,
  *   onTextDelta?: (text: string) => void,
- *   onToolStart?: (meta: { name: string, round: number, maxRounds: number }) => void,
+ *   onToolStart?: (meta: { name: string, round: number, maxRounds: number, input: object }) => void,
+ *   retryModelCall?: { retries?: number, waitMs?: (err: Error, attempt: number) => number } | null,
+ *   parallelToolCalls?: boolean,
  *   onToolRound?: (meta: object) => void,
  *   onUsage?: (payload: { label: string, model: string, usage: object }) => void,
  *   agentKind?: string,
@@ -210,7 +263,7 @@ export async function runToolLoop(opts) {
 
   for (let round = 0; round <= maxRounds; round++) {
     throwIfAborted();
-    const { response, stopReason: roundStopReason, usage } = await performModelRound(opts, currentMessages, round);
+    const { response, stopReason: roundStopReason, usage } = await performModelRoundWithRetry(opts, currentMessages, round);
     stopReason = roundStopReason;
     lastUsage = usage;
 
@@ -228,7 +281,12 @@ export async function runToolLoop(opts) {
 
     notifyToolStart(onToolStart, toolUseBlocks, round, maxRounds);
 
-    const { toolMeta, toolResults } = await executeToolRound(toolUseBlocks, executeTool, throwIfAborted);
+    const { toolMeta, toolResults } = await executeToolRound(
+      toolUseBlocks,
+      executeTool,
+      throwIfAborted,
+      opts.parallelToolCalls === true,
+    );
 
     const roundMeta = {
       agent: agentKind,

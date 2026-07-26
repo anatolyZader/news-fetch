@@ -9,6 +9,23 @@ export function llmRetryWaitMs(err, attempt) {
 }
 
 /**
+ * Provider/network failures a retry can plausibly fix (mirrors the circuit
+ * breaker's classification in llmGateway). Deterministic errors (400s other
+ * than 429, schema violations, aborts) return false.
+ */
+export function isTransientLlmError(err) {
+  if (!err || typeof err !== 'object') return false;
+  if (err.name === 'AbortError') return false;
+  const status = err.status ?? err.statusCode ?? err?.response?.status;
+  if (status === 429) return true;
+  if (Number.isFinite(status) && status >= 500 && status <= 599) return true;
+  const code = err.code ?? err?.cause?.code ?? '';
+  if (['ETIMEDOUT', 'ECONNRESET', 'EAI_AGAIN', 'ENOTFOUND'].includes(code)) return true;
+  const msg = String(err.message ?? '');
+  return /rate.?limit|429|overloaded|timeout|timed out|unavailable|temporarily/i.test(msg);
+}
+
+/**
  * @template T
  * @param {(attempt: number) => Promise<T>} fn 1-based attempt index
  * @param {object} [opts]

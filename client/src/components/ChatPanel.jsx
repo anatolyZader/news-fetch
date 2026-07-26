@@ -1,7 +1,9 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { safeMarkdownComponents } from '../ui/safeMarkdownComponents.js';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { citationChipLabel } from '../lib/citationLabel.js';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -40,6 +42,85 @@ const chatFieldSx = (theme) => ({
   '& .MuiOutlinedInput-notchedOutline': { borderRadius: panelSectionRadius(theme) },
 });
 
+const LS_CHAT_DRAFT = 'chatComposerDraft';
+
+function readStoredDraft() {
+  try {
+    return localStorage.getItem(LS_CHAT_DRAFT) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+function storeDraft(value) {
+  try {
+    if (value) localStorage.setItem(LS_CHAT_DRAFT, value);
+    else localStorage.removeItem(LS_CHAT_DRAFT);
+  } catch { /* storage unavailable */ }
+}
+
+const blinkCaretSx = {
+  display: 'inline-block',
+  width: 2,
+  height: '1em',
+  background: 'currentColor',
+  marginLeft: '2px',
+  verticalAlign: 'text-bottom',
+  animation: 'chat-blink 0.8s step-end infinite',
+  '@keyframes chat-blink': { '0%,100%': { opacity: 1 }, '50%': { opacity: 0 } },
+  '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+};
+
+function ChatCodeBlock({ copyLabel, ...preProps }) {
+  const preRef = useRef(null);
+  return (
+    <Box sx={{ position: 'relative', maxWidth: '100%' }}>
+      <IconButton
+        size="small"
+        aria-label={copyLabel}
+        title={copyLabel}
+        onClick={() => navigator.clipboard?.writeText(preRef.current?.innerText ?? '')}
+        sx={{
+          position: 'absolute',
+          top: 2,
+          insetInlineEnd: 2,
+          opacity: 0.55,
+          '&:hover': { opacity: 1 },
+        }}
+      >
+        <ContentCopyIcon sx={{ fontSize: 14 }} />
+      </IconButton>
+      <pre {...preProps} />
+    </Box>
+  );
+}
+
+ChatCodeBlock.propTypes = {
+  copyLabel: PropTypes.string.isRequired,
+};
+
+/** GFM tables must scroll inside their own container in a 480px popup. */
+function buildChatMarkdownComponents(t) {
+  return {
+    ...safeMarkdownComponents,
+    table: ({ node: _node, ...rest }) => (
+      <Box sx={{ maxWidth: '100%', overflowX: 'auto' }}>
+        <table {...rest} />
+      </Box>
+    ),
+    pre: ({ node: _node, ...rest }) => (
+      <ChatCodeBlock copyLabel={t('chat.copy')} {...rest} />
+    ),
+  };
+}
+
+/** Persisted stopped-flag renders as a banner alongside explicit banners. */
+function resolveRowBanner(meta) {
+  if (meta?.banner) return meta.banner;
+  if (meta?.stopped) return 'stopped';
+  return null;
+}
+
 export function ChatPanel({
   reportScope,
   reportGeoScope = 'national',
@@ -62,7 +143,9 @@ export function ChatPanel({
     streamState,
     elapsedSec,
     send,
+    editMessage,
     regenerateLast,
+    refreshSessions,
     stop,
     pendingActions,
     confirmAction,
@@ -71,7 +154,8 @@ export function ChatPanel({
   } = useChat();
   const seededInitialRef = useRef(false);
   const { t, lang } = useLanguage();
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(readStoredDraft);
+  const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState(null);
@@ -79,10 +163,21 @@ export function ChatPanel({
   const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+  const [renameBusy, setRenameBusy] = useState(false);
   const [sessionActionError, setSessionActionError] = useState(null);
   const [sourceView, setSourceView] = useState(null);
+  const [atBottom, setAtBottom] = useState(true);
   const bottomRef = useRef(null);
+  const scrollBoxRef = useRef(null);
+  const composerRef = useRef(null);
   const closeChatButtonRef = useRef(null);
+  const prevStreamingRef = useRef(false);
+  const [completedAnnounce, setCompletedAnnounce] = useState('');
+
+  // Draft survives closing the panel / popup (parity with activeTab etc.).
+  useEffect(() => { storeDraft(input); }, [input]);
 
   async function openSource(citation) {
     setSourceView({ citation, loading: true, text: '', error: null });
@@ -90,21 +185,48 @@ export function ChatPanel({
       const data = await fetchSource(citation.source_id);
       setSourceView({ citation, loading: false, text: data?.text ?? '', error: null });
     } catch (err) {
-      setSourceView({ citation, loading: false, text: '', error: err?.message ?? 'Failed to load source' });
+      setSourceView({ citation, loading: false, text: '', error: err?.message ?? t('chat.sourceLoadFailed') });
     }
   }
 
+  // Stick to the bottom only while the user is already there; a reader who
+  // scrolled up must not be yanked down by every streamed token.
+  const handleScroll = useCallback(() => {
+    const el = scrollBoxRef.current;
+    if (!el) return;
+    const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+    setAtBottom(distance < 80);
+  }, []);
+
   useEffect(() => {
+    if (!atBottom) return;
     if (history.length > 0 || draft) {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [history, draft]);
+  }, [history, draft, atBottom]);
+
+  // Announce completion to screen readers and return focus to the composer.
+  useEffect(() => {
+    if (prevStreamingRef.current && !streaming) {
+      setCompletedAnnounce(t('chat.completed'));
+      const timer = setTimeout(() => setCompletedAnnounce(''), 3000);
+      composerRef.current?.focus();
+      prevStreamingRef.current = streaming;
+      return () => clearTimeout(timer);
+    }
+    prevStreamingRef.current = streaming;
+    return undefined;
+  }, [streaming, t]);
 
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') {
         if (deleteConfirmOpen) {
           if (!deleteBusy) setDeleteConfirmOpen(false);
+          return;
+        }
+        if (renameOpen) {
+          if (!renameBusy) setRenameOpen(false);
           return;
         }
         if (closeConfirmOpen) {
@@ -116,13 +238,25 @@ export function ChatPanel({
     }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [searchOpen, closeConfirmOpen, deleteConfirmOpen, deleteBusy]);
+  }, [searchOpen, closeConfirmOpen, deleteConfirmOpen, deleteBusy, renameOpen, renameBusy]);
 
   const visibleHistory = useMemo(() => {
     const q = String(search ?? '').trim().toLowerCase();
     if (!q) return history;
     return history.filter((m) => String(m.content ?? '').toLowerCase().includes(q));
   }, [history, search]);
+
+  // Very long transcripts render only a tail window — every row is a markdown
+  // tree, and hundreds of them make streaming re-renders crawl. The window is
+  // keyed to the session so switching chats resets it without an effect.
+  const HISTORY_TAIL = 60;
+  const [windowState, setWindowState] = useState({ sessionId: null, limit: HISTORY_TAIL });
+  const historyWindow = windowState.sessionId === activeSessionId ? windowState.limit : HISTORY_TAIL;
+  const windowedHistory = useMemo(
+    () => (search ? visibleHistory : visibleHistory.slice(-historyWindow)),
+    [visibleHistory, historyWindow, search],
+  );
+  const earlierHiddenCount = search ? 0 : Math.max(0, visibleHistory.length - historyWindow);
 
   const chatSendOpts = useMemo(() => ({
     reportGeoScope,
@@ -146,17 +280,65 @@ export function ChatPanel({
 
   function submit(e) {
     e.preventDefault();
-    if (!input.trim() || streaming) return;
-    send(input.trim(), chatSendOpts);
+    const text = input.trim();
+    if (!text || streaming) return;
+    if (editing?.messageId) {
+      editMessage(editing.messageId, text, chatSendOpts);
+    } else {
+      send(text, chatSendOpts);
+    }
+    setEditing(null);
+    setInput('');
+  }
+
+  // Edit only works on persisted messages (they carry a server id); local
+  // optimistic rows get their id via the post-turn transcript sync.
+  function startEditMessage(msg) {
+    if (!msg?.id) return;
+    setEditing({ messageId: msg.id });
+    setInput(msg.content ?? '');
+    composerRef.current?.focus();
+  }
+
+  function cancelEditing() {
+    setEditing(null);
     setInput('');
   }
 
   function onComposerKeyDown(e) {
+    if (e.key === 'ArrowUp' && !input.trim() && !streaming) {
+      const lastUser = history.findLast?.((m) => m.role === 'user' && m.id);
+      if (lastUser) {
+        e.preventDefault();
+        startEditMessage(lastUser);
+      }
+      return;
+    }
+    if (e.key === 'Escape' && editing) {
+      cancelEditing();
+      return;
+    }
     if (e.key !== 'Enter') return;
     if (e.shiftKey) return;
     e.preventDefault();
     submit(e);
   }
+
+  const followupSuggestions = useMemo(() => {
+    if (streaming || history.length === 0) return [];
+    const last = history[history.length - 1];
+    if (last?.role !== 'assistant' || last.error) return [];
+    return last.meta?.suggestions ?? [];
+  }, [history, streaming]);
+
+  const chatMarkdownComponents = useMemo(() => buildChatMarkdownComponents(t), [t]);
+
+  const starters = useMemo(
+    () => [1, 2, 3, 4]
+      .map((n) => t(`chat.starter.${n}`))
+      .filter((s) => s && !s.startsWith('chat.starter.')),
+    [t],
+  );
 
   const closeMenu = () => setMenuAnchor(null);
   const closeHistory = () => setHistoryAnchor(null);
@@ -197,8 +379,9 @@ export function ChatPanel({
         <IconButton
           size="small"
           onClick={(e) => setMenuAnchor(e.currentTarget)}
-          aria-label="Menu"
-          title="Menu"
+          aria-label={t('chat.menu')}
+          title={t('chat.menu')}
+          aria-haspopup="menu"
           sx={(theme) => ({
             border: theme.custom.border.hairline,
             borderRadius: panelSectionRadius(theme),
@@ -210,21 +393,32 @@ export function ChatPanel({
         <Button
           variant="outlined"
           size="small"
-          onClick={(e) => setHistoryAnchor(e.currentTarget)}
+          onClick={(e) => {
+            setHistoryAnchor(e.currentTarget);
+            refreshSessions().catch(() => {});
+          }}
           sx={(theme) => ({
             ...panelHeaderButtonSx(theme),
             borderColor: theme.palette.divider,
           })}
         >
-          History
+          {t('chat.historyBtn')}
         </Button>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          noWrap
+          sx={(theme) => ({ marginInlineStart: theme.spacing(0.75), minWidth: 0, flexShrink: 1 })}
+        >
+          {sessions.find((s) => s.id === activeSessionId)?.title?.trim() || ''}
+        </Typography>
         <Box sx={{ flex: 1 }} />
         {variant !== 'window' && (
           <IconButton
             ref={closeChatButtonRef}
             size="small"
-            aria-label="Close chat"
-            title="Close chat"
+            aria-label={t('chat.launcherWhenOpen')}
+            title={t('chat.launcherWhenOpen')}
             onClick={() => {
               if (closeConfirmOpen) {
                 setCloseConfirmOpen(false);
@@ -327,7 +521,7 @@ export function ChatPanel({
         slotProps={{ paper: { sx: { minWidth: 220, maxHeight: 'min(50vh, 360px)' } } }}
       >
         {sessions.length === 0 && (
-          <MenuItem disabled>No past chats yet</MenuItem>
+          <MenuItem disabled>{t('chat.history.none')}</MenuItem>
         )}
         {groupSessionsByRecency(sessions, todayStr).flatMap((group) => [
           <MenuItem key={`header-${group.key}`} disabled dense>
@@ -345,7 +539,7 @@ export function ChatPanel({
               }}
             >
               <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 240 }}>
-                {s.title?.trim() ? s.title.trim() : 'Untitled'}
+                {s.title?.trim() ? s.title.trim() : t('chat.history.untitled')}
               </Box>
               {s.report_date && s.report_date !== todayStr && (
                 <Typography variant="caption" color="text.secondary" sx={{ marginLeft: 1, flexShrink: 0 }}>
@@ -371,7 +565,7 @@ export function ChatPanel({
             closeMenu();
           }}
         >
-          {searchOpen ? 'Hide search' : 'Search'}
+          {searchOpen ? t('chat.search.hide') : t('chat.search.show')}
         </MenuItem>
         <MenuItem
           onClick={() => {
@@ -384,16 +578,16 @@ export function ChatPanel({
             closeMenu();
           }}
         >
-          Quote selection
+          {t('chat.quoteSelection')}
         </MenuItem>
         <MenuItem
           disabled={!activeSessionId || streaming}
           onClick={async () => {
-            await regenerateLast(chatSendOpts);
             closeMenu();
+            await regenerateLast(chatSendOpts);
           }}
         >
-          Retry
+          {t('chat.retry')}
         </MenuItem>
         <Divider />
         <MenuItem
@@ -402,37 +596,37 @@ export function ChatPanel({
             closeMenu();
           }}
         >
-          New chat
+          {t('chat.newChat')}
         </MenuItem>
         <MenuItem
           disabled={!activeSessionId}
-          onClick={async () => {
-            if (!activeSessionId) return;
-            const current = sessions.find((s) => s.id === activeSessionId)?.title ?? '';
-            const next = globalThis.prompt('Rename chat', current);
-            if (next == null) return;
-            await renameSession({ sessionId: activeSessionId, title: next });
+          onClick={() => {
+            // Native window.prompt/confirm inside a closing MUI Menu is
+            // unreliable (focus restore cancels it). Dialogs instead.
             closeMenu();
+            setSessionActionError(null);
+            setRenameValue(sessions.find((s) => s.id === activeSessionId)?.title ?? '');
+            setRenameOpen(true);
           }}
         >
-          Rename chat
+          {t('chat.rename.menu')}
         </MenuItem>
         <MenuItem
           disabled={!activeSessionId}
           sx={{ color: 'error.main', fontWeight: 600 }}
           onClick={() => {
-            // Native window.confirm inside a closing MUI Menu is unreliable
-            // (focus restore often cancels it). Use a Dialog instead.
             closeMenu();
             setSessionActionError(null);
             setDeleteConfirmOpen(true);
           }}
         >
-          Delete chat
+          {t('chat.delete.menu')}
         </MenuItem>
       </Menu>
 
       <Box
+        ref={scrollBoxRef}
+        onScroll={handleScroll}
         sx={(theme) => ({
           flex: 1,
           minWidth: 0,
@@ -447,53 +641,147 @@ export function ChatPanel({
         })}
       >
         {history.length === 0 && (
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={(theme) => ({
-              textAlign: 'center',
-              marginTop: theme.spacing(4),
-              marginX: 'auto',
-              maxWidth: '40ch',
-            })}
-          >
-            {t('chat.placeholder')}
-          </Typography>
-        )}
-        {visibleHistory.map((msg) => (
-          <Box
-            key={msg.id ?? `${msg.role}-${String(msg.content ?? '').slice(0, 48)}`}
-            sx={{ minWidth: 0, maxWidth: '100%' }}
-          >
-            <ChatRow
-              msg={msg}
-              onCopy={() => navigator.clipboard?.writeText(msg.content ?? '')}
-              onEdit={() => setInput(msg.content ?? '')}
-              onOpenSource={openSource}
-            />
-            {msg.meta?.banner && (
-              <ChatCompletionBanner banner={msg.meta.banner} t={t} />
+          <Box sx={(theme) => ({ marginTop: theme.spacing(4), marginX: 'auto', maxWidth: '46ch', paddingX: theme.spacing(2) })}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ textAlign: 'center' }}
+            >
+              {t('chat.placeholder')}
+            </Typography>
+            {starters.length > 0 && !streaming && (
+              <Stack
+                direction="row"
+                spacing={0.75}
+                useFlexGap
+                flexWrap="wrap"
+                justifyContent="center"
+                sx={(theme) => ({ marginTop: theme.spacing(2) })}
+              >
+                {starters.map((s) => (
+                  <Chip
+                    key={s}
+                    label={s}
+                    variant="outlined"
+                    clickable
+                    onClick={() => send(s, chatSendOpts)}
+                    sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', py: 0.5 } }}
+                  />
+                ))}
+              </Stack>
             )}
           </Box>
-        ))}
+        )}
+        {earlierHiddenCount > 0 && (
+          <Button
+            size="small"
+            variant="text"
+            onClick={() => setWindowState({ sessionId: activeSessionId, limit: historyWindow + HISTORY_TAIL })}
+            sx={{ alignSelf: 'center', my: 0.5 }}
+          >
+            {t('chat.showEarlier', { count: earlierHiddenCount })}
+          </Button>
+        )}
+        {windowedHistory.map((msg, idx) => {
+          const isLast = idx === windowedHistory.length - 1;
+          const banner = resolveRowBanner(msg.meta) ?? (msg.error ? 'error' : null);
+          const showRegenerate = !streaming && !search
+            && msg.role === 'assistant' && isLast;
+          return (
+            <Box
+              key={msg.id ?? `${msg.role}-${idx}-${String(msg.content ?? '').slice(0, 48)}`}
+              sx={{ minWidth: 0, maxWidth: '100%' }}
+            >
+              <ChatRow
+                msg={msg}
+                t={t}
+                markdownComponents={chatMarkdownComponents}
+                onCopy={() => navigator.clipboard?.writeText(msg.content ?? '')}
+                onEdit={msg.role === 'user' && msg.id ? () => startEditMessage(msg) : undefined}
+                onRegenerate={showRegenerate ? () => regenerateLast(chatSendOpts) : undefined}
+                onOpenSource={openSource}
+              />
+              {banner && (
+                <ChatCompletionBanner
+                  banner={banner}
+                  t={t}
+                  action={(banner === 'error' || banner === 'connection_lost') && isLast && !streaming ? (
+                    <Button size="small" color="inherit" onClick={() => regenerateLast(chatSendOpts)}>
+                      {t('chat.retry')}
+                    </Button>
+                  ) : undefined}
+                />
+              )}
+            </Box>
+          );
+        })}
+        {followupSuggestions.length > 0 && !search && (
+          <Stack
+            direction="row"
+            spacing={0.75}
+            useFlexGap
+            flexWrap="wrap"
+            sx={(theme) => ({ padding: theme.spacing(0.5, 1.5, 1.5, 6) })}
+          >
+            {followupSuggestions.map((s) => (
+              <Chip
+                key={s}
+                label={s}
+                size="small"
+                variant="outlined"
+                color="primary"
+                clickable
+                onClick={() => send(s, chatSendOpts)}
+                sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', overflowWrap: 'anywhere', py: 0.4 } }}
+              />
+            ))}
+          </Stack>
+        )}
         {streaming && (
           <ChatWorkingRow
             streamState={streamState}
             draft={draft}
             elapsedSec={elapsedSec}
             t={t}
+            markdownComponents={chatMarkdownComponents}
           />
         )}
         <div ref={bottomRef} />
       </Box>
+
+      {!atBottom && (
+        <Box sx={{ position: 'relative' }}>
+          <IconButton
+            size="small"
+            aria-label={t('chat.jumpToLatest')}
+            title={t('chat.jumpToLatest')}
+            onClick={() => {
+              setAtBottom(true);
+              bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            sx={(theme) => ({
+              position: 'absolute',
+              bottom: theme.spacing(1),
+              insetInlineEnd: theme.spacing(2),
+              zIndex: 1,
+              background: theme.palette.background.paper,
+              border: theme.custom.border.hairline,
+              boxShadow: theme.custom.elevation.cta,
+              '&:hover': { background: theme.palette.background.default },
+            })}
+          >
+            <KeyboardArrowDownIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      )}
 
       {searchOpen && (
         <Stack
           direction="row"
           spacing={1}
           alignItems="center"
-          role="dialog"
-          aria-label="Search chat"
+          role="search"
+          aria-label={t('chat.search.show')}
           sx={(theme) => ({
             paddingTop: theme.spacing(1),
             paddingBottom: theme.spacing(1),
@@ -506,8 +794,8 @@ export function ChatPanel({
           <TextField
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search in chat…"
-            inputProps={{ 'aria-label': 'Search in chat' }}
+            placeholder={t('chat.search.placeholder')}
+            inputProps={{ 'aria-label': t('chat.search.placeholder'), dir: 'auto' }}
             autoFocus
             size="small"
             fullWidth
@@ -524,7 +812,7 @@ export function ChatPanel({
             onClick={() => setSearchOpen(false)}
             sx={panelHeaderButtonSx}
           >
-            Close
+            {t('chat.close')}
           </Button>
         </Stack>
       )}
@@ -538,10 +826,10 @@ export function ChatPanel({
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle sx={{ fontSize: '1rem' }}>Delete this chat?</DialogTitle>
+        <DialogTitle sx={{ fontSize: '1rem' }}>{t('chat.delete.title')}</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary">
-            This removes the conversation from your history. This cannot be undone.
+            {t('chat.delete.body')}
           </Typography>
           {sessionActionError && (
             <Alert severity="error" variant="outlined" sx={{ mt: 1.5 }}>
@@ -555,7 +843,7 @@ export function ChatPanel({
             disabled={deleteBusy}
             onClick={() => setDeleteConfirmOpen(false)}
           >
-            Cancel
+            {t('chat.cancel')}
           </Button>
           <Button
             size="small"
@@ -570,13 +858,78 @@ export function ChatPanel({
                 await deleteSession({ sessionId: activeSessionId });
                 setDeleteConfirmOpen(false);
               } catch (err) {
-                setSessionActionError(err?.message ?? 'Delete failed');
+                setSessionActionError(err?.message ?? t('chat.delete.failed'));
               } finally {
                 setDeleteBusy(false);
               }
             }}
           >
-            {deleteBusy ? 'Deleting…' : 'Delete'}
+            {deleteBusy ? t('chat.delete.busy') : t('chat.delete.confirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={renameOpen}
+        onClose={() => {
+          if (renameBusy) return;
+          setRenameOpen(false);
+        }}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontSize: '1rem' }}>{t('chat.rename.title')}</DialogTitle>
+        <DialogContent>
+          <TextField
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            label={t('chat.rename.label')}
+            inputProps={{ dir: 'auto', maxLength: 120 }}
+            autoFocus
+            fullWidth
+            size="small"
+            margin="dense"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('chat-rename-save')?.click();
+              }
+            }}
+          />
+          {sessionActionError && (
+            <Alert severity="error" variant="outlined" sx={{ mt: 1.5 }}>
+              {sessionActionError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            size="small"
+            disabled={renameBusy}
+            onClick={() => setRenameOpen(false)}
+          >
+            {t('chat.cancel')}
+          </Button>
+          <Button
+            id="chat-rename-save"
+            size="small"
+            variant="contained"
+            disabled={renameBusy || !activeSessionId}
+            onClick={async () => {
+              if (!activeSessionId) return;
+              setRenameBusy(true);
+              setSessionActionError(null);
+              try {
+                await renameSession({ sessionId: activeSessionId, title: renameValue.trim() });
+                setRenameOpen(false);
+              } catch (err) {
+                setSessionActionError(err?.message ?? t('chat.delete.failed'));
+              } finally {
+                setRenameBusy(false);
+              }
+            }}
+          >
+            {t('chat.rename.save')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -622,7 +975,7 @@ export function ChatPanel({
               {sourceView.citation.url.slice(0, 60)}
             </Link>
           )}
-          <Button size="small" onClick={() => setSourceView(null)}>Close</Button>
+          <Button size="small" onClick={() => setSourceView(null)}>{t('chat.close')}</Button>
         </DialogActions>
       </Dialog>
 
@@ -636,10 +989,10 @@ export function ChatPanel({
               action={(
                 <Stack direction="row" spacing={0.5}>
                   <Button size="small" color="inherit" onClick={() => confirmAction(action.actionId, false)}>
-                    Dismiss
+                    {t('chat.dismiss')}
                   </Button>
                   <Button size="small" variant="contained" onClick={() => confirmAction(action.actionId, true)}>
-                    Confirm
+                    {t('chat.confirm')}
                   </Button>
                 </Stack>
               )}
@@ -648,6 +1001,37 @@ export function ChatPanel({
             </Alert>
           ))}
         </Stack>
+      )}
+
+      {/* Screen-reader announcement when an answer completes. */}
+      <Box
+        role="status"
+        aria-live="polite"
+        sx={{
+          position: 'absolute',
+          width: 1,
+          height: 1,
+          overflow: 'hidden',
+          clipPath: 'inset(50%)',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {completedAnnounce}
+      </Box>
+
+      {editing && (
+        <Alert
+          severity="info"
+          variant="outlined"
+          sx={(theme) => ({ marginX: theme.spacing(1.25), marginTop: theme.spacing(1), borderRadius: panelSectionRadius(theme) })}
+          action={(
+            <Button size="small" color="inherit" onClick={cancelEditing}>
+              {t('chat.editingCancel')}
+            </Button>
+          )}
+        >
+          {t('chat.editing')}
+        </Alert>
       )}
 
       <Box
@@ -670,6 +1054,8 @@ export function ChatPanel({
           onKeyDown={onComposerKeyDown}
           placeholder={t('chat.input')}
           disabled={streaming}
+          inputRef={composerRef}
+          inputProps={{ dir: 'auto' }}
           multiline
           maxRows={4}
           minRows={1}
@@ -795,16 +1181,19 @@ const BANNER_SEVERITY = {
   loop_exhausted: 'warning',
   planning_only: 'warning',
   deterministic_fallback: 'info',
+  stopped: 'info',
+  connection_lost: 'error',
   error: 'error',
 };
 
-function ChatCompletionBanner({ banner, t }) {
+function ChatCompletionBanner({ banner, t, action }) {
   const severity = BANNER_SEVERITY[banner] ?? 'warning';
   const key = `chat.banner.${banner}`;
   return (
     <Alert
       severity={severity}
       variant="outlined"
+      action={action}
       sx={(theme) => ({
         marginX: theme.spacing(1.25),
         marginBottom: theme.spacing(1),
@@ -819,9 +1208,10 @@ function ChatCompletionBanner({ banner, t }) {
 ChatCompletionBanner.propTypes = {
   banner: PropTypes.string.isRequired,
   t: PropTypes.func.isRequired,
+  action: PropTypes.node,
 };
 
-function ChatWorkingRow({ streamState, draft, elapsedSec, t }) {
+function ChatWorkingRow({ streamState, draft, elapsedSec, t, markdownComponents }) {
   const label = resolveChatStreamLabel(streamState, t);
   const slowWarning = resolveSlowWarning(elapsedSec, t);
   const showSlow = elapsedSec >= 60;
@@ -862,6 +1252,7 @@ function ChatWorkingRow({ streamState, draft, elapsedSec, t }) {
         )}
         {draft ? (
           <Box
+            dir="auto"
             sx={(theme) => ({
               marginTop: theme.spacing(1),
               color: theme.palette.text.primary,
@@ -871,22 +1262,10 @@ function ChatWorkingRow({ streamState, draft, elapsedSec, t }) {
               wordBreak: 'break-word',
             })}
           >
-            <ReactMarkdown remarkPlugins={[remarkGfm]} components={safeMarkdownComponents}>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents ?? safeMarkdownComponents}>
               {draft}
             </ReactMarkdown>
-            <Box
-              component="span"
-              sx={{
-                display: 'inline-block',
-                width: 2,
-                height: '1em',
-                background: 'currentColor',
-                marginLeft: '2px',
-                verticalAlign: 'text-bottom',
-                animation: 'chat-blink 0.8s step-end infinite',
-                '@keyframes chat-blink': { '0%,100%': { opacity: 1 }, '50%': { opacity: 0 } },
-              }}
-            />
+            <Box component="span" sx={blinkCaretSx} />
           </Box>
         ) : (
           <Box sx={(theme) => ({ marginTop: theme.spacing(1) })}>
@@ -905,11 +1284,12 @@ ChatWorkingRow.propTypes = {
   draft: PropTypes.string.isRequired,
   elapsedSec: PropTypes.number.isRequired,
   t: PropTypes.func.isRequired,
+  markdownComponents: PropTypes.object,
 };
 
-function ChatRow({ msg, streaming = false, onCopy, onEdit, onOpenSource }) {
+function ChatRow({ msg, streaming = false, t, markdownComponents, onCopy, onEdit, onRegenerate, onOpenSource }) {
   const isUser = msg.role === 'user';
-  const hasActions = !streaming && Boolean(onCopy || onEdit);
+  const hasActions = !streaming && Boolean(onCopy || onEdit || onRegenerate);
   const citations = !isUser && !streaming ? (msg.meta?.citations ?? []) : [];
   const toolTrail = !isUser && !streaming ? (msg.meta?.tools ?? []) : [];
   return (
@@ -937,12 +1317,42 @@ function ChatRow({ msg, streaming = false, onCopy, onEdit, onOpenSource }) {
       <ChatAvatar isUser={isUser} />
       <Box sx={{ minWidth: 0, maxWidth: '100%' }}>
         <Box
+          dir="auto"
           sx={(theme) => ({
             color: theme.palette.text.primary,
             fontSize: theme.typography.chatBody.fontSize,
             lineHeight: theme.typography.chatBody.lineHeight,
             overflowWrap: 'anywhere',
             wordBreak: 'break-word',
+            '& h1, & h2, & h3, & h4, & h5, & h6': {
+              fontSize: '1.02em',
+              fontWeight: 700,
+              lineHeight: 1.35,
+              margin: `${theme.spacing(1.25)} 0 ${theme.spacing(0.5)}`,
+            },
+            '& h1': { fontSize: '1.12em' },
+            '& h2': { fontSize: '1.07em' },
+            '& blockquote': {
+              margin: `${theme.spacing(0.75)} 0`,
+              paddingInlineStart: theme.spacing(1.25),
+              borderInlineStart: `3px solid ${theme.palette.divider}`,
+              color: theme.palette.text.secondary,
+            },
+            '& table': {
+              borderCollapse: 'collapse',
+              fontSize: '0.92em',
+              margin: `${theme.spacing(0.75)} 0`,
+            },
+            '& th, & td': {
+              border: `1px solid ${theme.palette.divider}`,
+              padding: theme.spacing(0.5, 0.75),
+              textAlign: 'start',
+              verticalAlign: 'top',
+            },
+            '& th': {
+              background: theme.custom.surface.code,
+              fontWeight: 700,
+            },
             '& p': { margin: `${theme.spacing(0.25)} 0` },
             '& p:first-of-type': { marginTop: 0 },
             '& p:last-of-type': { marginBottom: 0 },
@@ -979,24 +1389,10 @@ function ChatRow({ msg, streaming = false, onCopy, onEdit, onOpenSource }) {
             },
           })}
         >
-          <ReactMarkdown remarkPlugins={[remarkGfm]} components={safeMarkdownComponents}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents ?? safeMarkdownComponents}>
             {msg.content ?? ''}
           </ReactMarkdown>
-          {streaming && (
-            <Box
-              component="span"
-              sx={{
-                display: 'inline-block',
-                width: 2,
-                height: '1em',
-                background: 'currentColor',
-                marginLeft: '2px',
-                verticalAlign: 'text-bottom',
-                animation: 'chat-blink 0.8s step-end infinite',
-                '@keyframes chat-blink': { '0%,100%': { opacity: 1 }, '50%': { opacity: 0 } },
-              }}
-            />
-          )}
+          {streaming && <Box component="span" sx={blinkCaretSx} />}
         </Box>
         {citations.length > 0 && (
           <Stack
@@ -1011,13 +1407,17 @@ function ChatRow({ msg, streaming = false, onCopy, onEdit, onOpenSource }) {
                 key={c.source_id}
                 size="small"
                 variant="outlined"
-                title={c.source_id}
+                title={c.used === false && t ? `${c.source_id} — ${t('chat.consulted')}` : c.source_id}
                 label={citationChipLabel(c)}
                 clickable={Boolean(onOpenSource)}
                 onClick={onOpenSource ? () => onOpenSource(c) : undefined}
+                aria-haspopup="dialog"
                 sx={{
                   maxWidth: '100%',
                   height: 'auto',
+                  // Grounded-but-unused ("consulted") sources render dimmed so
+                  // chips no longer imply support the answer never drew on.
+                  ...(c.used === false ? { opacity: 0.55 } : {}),
                   '& .MuiChip-label': {
                     display: 'block',
                     whiteSpace: 'normal',
@@ -1041,7 +1441,9 @@ function ChatRow({ msg, streaming = false, onCopy, onEdit, onOpenSource }) {
               wordBreak: 'break-word',
             })}
           >
-            {`Investigated: ${[...new Set(toolTrail)].join(', ')}`}
+            {t
+              ? t('chat.investigated', { tools: [...new Set(toolTrail)].join(', ') })
+              : `Investigated: ${[...new Set(toolTrail)].join(', ')}`}
           </Typography>
         )}
         {hasActions && (
@@ -1061,8 +1463,11 @@ function ChatRow({ msg, streaming = false, onCopy, onEdit, onOpenSource }) {
               chatActionsVisibilitySx,
             ]}
           >
-            {onCopy && <ChatActionButton onClick={onCopy}>Copy</ChatActionButton>}
-            {isUser && onEdit && <ChatActionButton onClick={onEdit}>Edit</ChatActionButton>}
+            {onCopy && <ChatActionButton onClick={onCopy}>{t ? t('chat.copy') : 'Copy'}</ChatActionButton>}
+            {isUser && onEdit && <ChatActionButton onClick={onEdit}>{t ? t('chat.edit') : 'Edit'}</ChatActionButton>}
+            {!isUser && onRegenerate && (
+              <ChatActionButton onClick={onRegenerate}>{t ? t('chat.regenerate') : 'Regenerate'}</ChatActionButton>
+            )}
           </Stack>
         )}
       </Box>
@@ -1079,7 +1484,10 @@ ChatRow.propTypes = {
     meta: PropTypes.object,
   }).isRequired,
   streaming: PropTypes.bool,
+  t: PropTypes.func,
+  markdownComponents: PropTypes.object,
   onCopy: PropTypes.func,
   onEdit: PropTypes.func,
+  onRegenerate: PropTypes.func,
   onOpenSource: PropTypes.func,
 };

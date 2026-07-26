@@ -96,6 +96,8 @@ export function createAgentKernel(deps) {
       tools,
       agentKind,
       abortSignal: opts.abortSignal ?? null,
+      retryModelCall: opts.retryModelCall ?? null,
+      parallelToolCalls: opts.parallelToolCalls === true,
       compactHistoryAfterRound: resolveCompactHistory(opts.profile, opts.compactHistoryAfterRound),
       workingMemory: memory,
       budget,

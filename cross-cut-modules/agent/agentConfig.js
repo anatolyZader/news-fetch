@@ -2,7 +2,7 @@
  * Agent runtime configuration from environment.
  */
 import { envFlagOn, envFlagOff } from '../config/envFlags.js';
-import { HAIKU_MODEL } from '../llm/modelIds.js';
+import { HAIKU_MODEL, SONNET_MODEL } from '../llm/modelIds.js';
 
 let _deprecatedAgentFlagLogged = false;
 
@@ -79,6 +79,32 @@ export function chatTemporalMaxToolRounds() {
 export function chatModel() {
   const v = String(process.env.CHAT_MODEL ?? '').trim();
   return v || HAIKU_MODEL;
+}
+
+/** Escalation model for deep-dive chat turns; set CHAT_MODEL_STRONG to override. */
+export function chatStrongModel() {
+  const v = String(process.env.CHAT_MODEL_STRONG ?? '').trim();
+  return v || SONNET_MODEL;
+}
+
+export function chatModelRouterEnabled() {
+  const v = process.env.CHAT_MODEL_ROUTER;
+  return v !== '0' && v !== 'false';
+}
+
+/** Context slices whose answers hinge on multi-tool synthesis — worth the stronger model. */
+const CHAT_STRONG_MODEL_SLICES = new Set(['temporal', 'compare', 'component', 'full']);
+
+/**
+ * Hybrid model router: Haiku for cheap slices, the strong model for deep-dive
+ * slices. CHAT_MODEL_ROUTER=0 pins everything to chatModel().
+ * @param {string} [contextSlice]
+ */
+export function resolveChatModel(contextSlice) {
+  if (!chatModelRouterEnabled()) return chatModel();
+  return CHAT_STRONG_MODEL_SLICES.has(String(contextSlice ?? ''))
+    ? chatStrongModel()
+    : chatModel();
 }
 
 export function chatSessionMaxUsd() {

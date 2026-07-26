@@ -14,7 +14,7 @@ import {
 } from '../../../cross-cut-modules/agent/index.js';
 import { handleChatToolCall } from './chatToolHandlers.js';
 import { createChatToolContext } from './createChatToolContext.js';
-import { buildSystemTemplateToolList } from '../domain/tools/chatToolSchemas.js';
+import { buildSystemTemplateToolList, describeChatToolCall } from '../domain/tools/chatToolSchemas.js';
 import { chatAnalystToolsEnabled, chatConfirmActionsEnabled, chatStreamDeltasEnabled } from '../domain/chatConfig.js';
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import { UNTRUSTED_CONTENT_INSTRUCTION } from '../../../cross-cut-modules/security/index.js';
@@ -114,7 +114,11 @@ async function emitSemanticOutputGate(send, userIntentText, assistantText) {
 export async function streamChatResponse(systemContext, pboLookup, messages, send, reportData, opts = {}) {
   const costRecorder = opts.costRecorder ?? null;
   const economyOverride = opts.economy?.economy_override ?? 'default';
+  // Hybrid router: chatService resolves the model from the context slice;
+  // direct callers without economy meta fall back to the base chat model.
+  const model = opts.economy?.model ?? chatModel();
   const toolCtx = createChatToolContext({
+    resolvedModel: model,
     userEmail: opts.userEmail ?? '',
     reportData,
     redactReportPayload: opts.redactReportPayload ?? null,
@@ -179,9 +183,13 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
   const loopResult = await agentKernel.run({
     profile: 'chat',
     agentKind: 'chat',
-    model: chatModel(),
+    model,
     maxTokens: 4000,
     maxRounds: maxToolRounds,
+    retryModelCall: { retries: 2 },
+    // Chat tools are independent reads — a multi-tool round runs them
+    // concurrently (CHAT_PARALLEL_TOOLS=0 to fall back to sequential).
+    parallelToolCalls: process.env.CHAT_PARALLEL_TOOLS !== '0',
     system,
     messages,
     tools: toolCtx.tools,
@@ -196,9 +204,10 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
     onUsage: costRecorder
       ? (p) => costRecorder.onUsage({ label: p.label, model: p.model, usage: p.usage })
       : undefined,
-    onToolStart: ({ name, round, maxRounds }) => {
+    onToolStart: ({ name, round, maxRounds, input }) => {
       toolRoundSinceText = true;
-      send({ type: 'tool_start', name, round, maxRounds });
+      const detail = describeChatToolCall(input);
+      send({ type: 'tool_start', name, round, maxRounds, ...(detail ? { detail } : {}) });
     },
   });
 
@@ -207,6 +216,8 @@ export async function streamChatResponse(systemContext, pboLookup, messages, sen
   }
 
   await emitSemanticOutputGate(send, userIntentText, assistantText);
+
+  return { assistantText, stopReason: loopResult?.stopReason ?? null };
 }
 
 export async function generateChatTitle(seedText, opts = {}) {
@@ -235,4 +246,85 @@ export async function generateChatTitle(seedText, opts = {}) {
   }
   const block = response.content?.find((b) => b.type === 'text');
   return block?.text?.trim() || null;
+}
+
+const FOLLOWUP_LANG_LINES = {
+  he: 'Write the questions in Hebrew.',
+  ru: 'Write the questions in Russian.',
+};
+
+/**
+ * Cheap post-answer follow-up suggestions (always Haiku — a 3-line JSON array
+ * is not worth the strong model). Returns up to 3 short strings, or [].
+ */
+export async function generateChatFollowups({ question, answer, uiLang }, opts = {}) {
+  const q = String(question ?? '').trim();
+  const a = String(answer ?? '').trim();
+  if (!q || !a) return [];
+  const langLine = FOLLOWUP_LANG_LINES[String(uiLang ?? '').toLowerCase()]
+    ?? 'Write the questions in the same language as the user\'s question.';
+  const model = HAIKU_MODEL;
+  const response = await getDefaultLlmPort().createMessage({
+    model,
+    max_tokens: 250,
+    system:
+      'You suggest follow-up questions for a resilience-assessment chat. ' +
+      'Return ONLY a JSON array of 3 short, concrete follow-up questions (each under 90 characters) ' +
+      'that dig deeper into evidence, timelines, components, or municipalities. ' +
+      `No prose outside the JSON array. ${langLine}`,
+    messages: [{
+      role: 'user',
+      content:
+        `USER QUESTION:\n${q.slice(0, 600)}\n\n` +
+        `ASSISTANT ANSWER (tail):\n${a.slice(-1200)}`,
+    }],
+  });
+  if (opts.costRecorder && response.usage) {
+    opts.costRecorder.onUsage({ label: 'chat:followups', model, usage: response.usage });
+  }
+  const text = response.content?.filter((b) => b.type === 'text').map((b) => b.text).join('') ?? '';
+  const jsonMatch = text.match(/\[[\s\S]*\]/);
+  if (!jsonMatch) return [];
+  try {
+    const parsed = JSON.parse(jsonMatch[0]);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((s) => typeof s === 'string' && s.trim())
+      .slice(0, 3)
+      .map((s) => s.trim().slice(0, 120));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Rolling conversation summary (always Haiku). Folds older turns into a
+ * compact brief so long chats keep their early context instead of losing it
+ * to the hard history cutoff.
+ */
+export async function generateChatSummary({ previousSummary, transcript }, opts = {}) {
+  const body = String(transcript ?? '').trim();
+  if (!body) return null;
+  const model = HAIKU_MODEL;
+  const response = await getDefaultLlmPort().createMessage({
+    model,
+    max_tokens: 600,
+    system:
+      'You maintain a rolling summary of a resilience-assessment chat conversation. ' +
+      'Produce a compact brief (under 250 words) that preserves: the user\'s goals and constraints, ' +
+      'key findings and figures already established, source_ids and dates already cited, ' +
+      'components/municipalities discussed, and open threads. ' +
+      'Merge the previous summary with the new turns; drop pleasantries. Plain text only.',
+    messages: [{
+      role: 'user',
+      content:
+        (previousSummary ? `PREVIOUS SUMMARY:\n${String(previousSummary).slice(0, 2500)}\n\n` : '') +
+        `NEW TURNS TO FOLD IN:\n${body.slice(0, 8000)}`,
+    }],
+  });
+  if (opts.costRecorder && response.usage) {
+    opts.costRecorder.onUsage({ label: 'chat:summary', model, usage: response.usage });
+  }
+  const text = response.content?.filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+  return text || null;
 }

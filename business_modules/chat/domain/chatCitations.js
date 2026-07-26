@@ -59,3 +59,56 @@ export function extractCitationsFromToolResult(toolName, rawResult) {
 
   return out;
 }
+
+/**
+ * Fold a streamed `citation` event into a deduped per-turn list, remembering
+ * which tool produced each source (used by grounding below).
+ * @param {Array<object>} list mutated in place
+ * @param {{ type?: string, tool?: string, citations?: Array<object> }} event
+ */
+export function collectCitationEvent(list, event) {
+  if (event?.type !== 'citation') return;
+  for (const c of event.citations ?? []) {
+    const id = String(c?.source_id ?? '').trim();
+    if (!id) continue;
+    const existing = list.find((x) => x.source_id === id);
+    if (existing) {
+      // get_source is the strongest "the model actually read this" signal — keep it.
+      if (event.tool === 'get_source') existing.tool = 'get_source';
+      continue;
+    }
+    list.push({ ...c, source_id: id, ...(event.tool ? { tool: event.tool } : {}) });
+  }
+}
+
+/**
+ * Deterministic citation grounding: a citation is `used` when the answer prose
+ * mentions its source_id, or the model explicitly fetched it via get_source.
+ * Everything else the tools merely surfaced is kept but labeled `used: false`
+ * ("consulted") so the UI stops implying support the answer never drew on.
+ *
+ * @param {Array<{ source_id: string, title?: string, url?: string, tool?: string }>} citations
+ * @param {string} assistantText
+ * @returns {Array<{ source_id: string, title?: string, url?: string, used: boolean }>}
+ */
+function textMentionsSourceId(text, id) {
+  if (!id) return false;
+  let idx = 0;
+  while ((idx = text.indexOf(id, idx)) !== -1) {
+    // Boundary check so "db:1" does not match inside "db:11" or "db:1a".
+    const next = text[idx + id.length];
+    if (next === undefined || !/[\w#]/.test(next)) return true;
+    idx += 1;
+  }
+  return false;
+}
+
+export function partitionCitationsByUse(citations, assistantText) {
+  const text = String(assistantText ?? '');
+  const flagged = (citations ?? []).map(({ tool, ...c }) => ({
+    ...c,
+    used: tool === 'get_source' || textMentionsSourceId(text, c.source_id),
+  }));
+  flagged.sort((a, b) => Number(b.used) - Number(a.used));
+  return flagged.slice(0, MAX_CITATIONS);
+}

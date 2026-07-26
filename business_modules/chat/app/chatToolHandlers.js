@@ -127,7 +127,7 @@ function appendMunicipalityBriefContext(context, scope, municipality, pboLookup)
   return next;
 }
 
-async function generateBrief(input, reportData, pboLookup, costRecorder = null) {
+async function generateBrief(input, reportData, pboLookup, costRecorder = null, model = HAIKU_MODEL) {
   const { scope, municipality, audience, language } = input;
   let briefContext = buildAssessmentBriefContext(reportData, {
     includeScores: reportData?.display_view === DISPLAY_VIEWS.analyst,
@@ -146,7 +146,6 @@ async function generateBrief(input, reportData, pboLookup, costRecorder = null) 
     ? `Focus the brief on the municipality: ${municipality}.`
     : 'Produce an overall situation brief covering all components.';
 
-  const model = HAIKU_MODEL;
   const response = await getDefaultLlmPort().createMessage({
     model,
     max_tokens: 3000,
@@ -540,6 +539,8 @@ const CHAT_TOOL_HANDLERS = {
       ctx.reportData,
       ctx.pboLookup,
       ctx.costRecorder,
+      // Follow the routed chat model so upgrading chat also upgrades briefs.
+      ctx.resolvedModel ?? chatModel(),
     ),
   list_sources: (_toolName, input, ctx) => handleListSources(input, ctx),
   get_source: (_toolName, input, ctx) => handleGetSource(input, ctx),
@@ -575,7 +576,7 @@ export async function handleChatToolCall(toolName, input, ctx) {
   const compressed = compressChatToolResult(toolName, raw, {
     enabled: chatCompressToolsEnabled(),
     economyOverride: ctx.economyOverride,
-    strongModel: chatModel() !== HAIKU_MODEL,
+    strongModel: (ctx.resolvedModel ?? chatModel()) !== HAIKU_MODEL,
   });
   return wrapToolResultIfUntrusted(toolName, compressed);
 }

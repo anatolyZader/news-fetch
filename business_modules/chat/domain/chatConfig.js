@@ -37,6 +37,16 @@ export function chatDeterministicFallbackEnabled() {
   return process.env.CHAT_DETERMINISTIC_FALLBACK !== '0';
 }
 
+/** Model-suggested follow-up questions after each answer (CHAT_FOLLOWUP_SUGGESTIONS=0 to disable). */
+export function chatFollowupSuggestionsEnabled() {
+  return process.env.CHAT_FOLLOWUP_SUGGESTIONS !== '0';
+}
+
+/** Rolling summarization of older turns instead of hard history truncation (CHAT_HISTORY_SUMMARY=0 to disable). */
+export function chatHistorySummaryEnabled() {
+  return process.env.CHAT_HISTORY_SUMMARY !== '0';
+}
+
 export const PENDING_ACTION_TTL_MS = 15 * 60 * 1000;
 
 export const PROPOSE_TOOL_NAMES = new Set([

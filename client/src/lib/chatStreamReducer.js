@@ -7,6 +7,7 @@ export function initialChatStreamState() {
   return {
     phase: null,
     toolName: null,
+    toolDetail: null,
     round: null,
     maxRounds: null,
     startedAt: null,
@@ -20,6 +21,32 @@ function accumulateCitations(accRef, citations) {
       acc.push(c);
     }
   }
+}
+
+/** Events that only mutate the turn accumulator (no state/terminal change). */
+function applyAccumulatorEvent(event, accRef) {
+  if (event.type === 'text') {
+    accRef.value += event.text ?? '';
+    return true;
+  }
+  if (event.type === 'citation') {
+    accumulateCitations(accRef, event.citations);
+    return true;
+  }
+  if (event.type === 'citations_final') {
+    // Server-grounded set (used/consulted flags) replaces the streamed one.
+    if (Array.isArray(event.citations)) {
+      accRef.citations = event.citations.filter((c) => c?.source_id);
+    }
+    return true;
+  }
+  if (event.type === 'suggestions') {
+    if (Array.isArray(event.items)) {
+      accRef.suggestions = event.items.filter((s) => typeof s === 'string' && s.trim());
+    }
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -47,6 +74,7 @@ export function reduceChatStreamEvent(state, event, accRef) {
         ...state,
         phase: 'tool',
         toolName: String(event.name ?? ''),
+        toolDetail: event.detail ? String(event.detail) : null,
         round: Number.isFinite(event.round) ? event.round : null,
         maxRounds: Number.isFinite(event.maxRounds) ? event.maxRounds : null,
       },
@@ -55,13 +83,7 @@ export function reduceChatStreamEvent(state, event, accRef) {
     };
   }
 
-  if (event.type === 'text') {
-    accRef.value += event.text ?? '';
-    return { state, terminal: null, event: null };
-  }
-
-  if (event.type === 'citation') {
-    accumulateCitations(accRef, event.citations);
+  if (applyAccumulatorEvent(event, accRef)) {
     return { state, terminal: null, event: null };
   }
 

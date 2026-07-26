@@ -23,7 +23,10 @@ export function resolveChatStreamLabel(state, t) {
     const toolKey = TOOL_LABEL_KEYS.has(state.toolName)
       ? `chat.status.tool.${state.toolName}`
       : 'chat.status.tool.generic';
-    const label = t(toolKey);
+    let label = t(toolKey);
+    if (state.toolDetail) {
+      label = `${label} — ${state.toolDetail}`;
+    }
     if (state.round != null && state.maxRounds != null) {
       return `${label} ${t('chat.status.toolProgress', { round: state.round, maxRounds: state.maxRounds })}`;
     }

@@ -16,23 +16,88 @@ import { getSource } from '../index.js';
 import { OPERATOR_PROPOSE_TOOL_NAMES } from '../app/chatConfig.js';
 import { METRIC } from '../../../cross-cut-modules/monitoring/domain/metricNames.js';
 
-function collectTurnMetaEvent(event, citations, toolsUsed) {
-  if (event?.type === 'citation') {
-    for (const c of event.citations ?? []) {
-      if (c?.source_id && !citations.some((x) => x.source_id === c.source_id)) {
-        citations.push(c);
+/**
+ * Observes the SSE event stream and builds the assistant message meta that
+ * survives reload: citations (grounded used/consulted when citations_final
+ * arrives), tool trail, follow-up suggestions, and banner/stopped flags.
+ */
+export function createTurnMetaCollector() {
+  const citations = [];
+  const toolsUsed = [];
+  let suggestions = null;
+  let banner = null;
+  let stopped = false;
+
+  const handlers = {
+    citation(event) {
+      for (const c of event.citations ?? []) {
+        if (c?.source_id && !citations.some((x) => x.source_id === c.source_id)) {
+          citations.push(c);
+        }
       }
-    }
-  }
-  if (event?.type === 'tool_start' && event.name) toolsUsed.push(event.name);
+    },
+    citations_final(event) {
+      if (!Array.isArray(event.citations)) return;
+      citations.length = 0;
+      citations.push(...event.citations);
+    },
+    tool_start(event) {
+      if (event.name) toolsUsed.push(event.name);
+    },
+    suggestions(event) {
+      if (Array.isArray(event.items) && event.items.length) suggestions = event.items;
+    },
+    error() {
+      banner = 'error';
+    },
+    done(event) {
+      if (event.error) banner = 'error';
+      else if (event.mode === 'deterministic_fallback') banner = 'deterministic_fallback';
+      else if (event.loop_exhausted) banner = 'loop_exhausted';
+    },
+  };
+
+  return {
+    onEvent(event) {
+      if (!event?.type) return;
+      handlers[event.type]?.(event);
+    },
+    markStopped() { stopped = true; },
+    markError() { banner = 'error'; },
+    buildMeta() {
+      if (!citations.length && !toolsUsed.length && !suggestions && !banner && !stopped) return null;
+      return {
+        ...(citations.length ? { citations } : {}),
+        ...(toolsUsed.length ? { tools: toolsUsed } : {}),
+        ...(suggestions ? { suggestions } : {}),
+        ...(banner ? { banner } : {}),
+        ...(stopped ? { stopped: true } : {}),
+      };
+    },
+  };
 }
 
-function buildTurnMeta(citations, toolsUsed) {
-  if (!citations.length && !toolsUsed.length) return null;
-  return {
-    ...(citations.length ? { citations } : {}),
-    ...(toolsUsed.length ? { tools: toolsUsed } : {}),
-  };
+/**
+ * Failure tail of a chat turn: emit terminal SSE events, then persist any
+ * partial answer (labeled stopped/error) so the transcript never keeps an
+ * orphan user turn.
+ */
+async function handleFailedChatTurn(err, { reply, aborted, assistantText, turnMeta, finalizeTurn }) {
+  const message = err?.message ?? 'Chat failed';
+  if (!aborted) console.error('chat turn error:', message);
+  try {
+    if (!reply.raw.writableEnded && !reply.raw.destroyed) {
+      reply.raw.write(`data: ${JSON.stringify({ type: 'error', message })}\n\n`);
+      reply.raw.write(`data: ${JSON.stringify({ type: 'done', error: true })}\n\n`);
+    }
+  } catch { /* client gone */ }
+
+  if (!assistantText) return;
+  if (aborted) turnMeta.markStopped();
+  else turnMeta.markError();
+  try {
+    await finalizeTurn(turnMeta.buildMeta());
+  } catch { /* persistence best-effort on failed turns */ }
 }
 
 function chatRequestTimeoutMs() {
@@ -219,7 +284,7 @@ export async function chatRoutes(app, opts) {
       return reply.code(prepared.code).send({ error: prepared.error });
     }
 
-    const { history, systemHint, display_view, userMessage, geoScope } = prepared;
+    const { history, historySummary, systemHint, display_view, userMessage, geoScope } = prepared;
 
     reply.hijack();
     reply.raw.writeHead(200, {
@@ -229,8 +294,7 @@ export async function chatRoutes(app, opts) {
     });
 
     let assistantText = '';
-    const citations = [];
-    const toolsUsed = [];
+    const turnMeta = createTurnMetaCollector();
     const costRecorder = createHttpCostRecorder({
       script: request.useCrisisChatBudget ? 'http:chat:crisis' : 'http:chat',
       ownerUid: uid,
@@ -271,6 +335,7 @@ export async function chatRoutes(app, opts) {
           vectorIndexStore,
           retrievalService,
           systemHint,
+          historySummary,
           reportGeoScope: geoScope,
           userEmail: request.user?.email ?? '',
           ownerUid: uid,
@@ -292,7 +357,7 @@ export async function chatRoutes(app, opts) {
           uiLang: String(body.lang ?? body.uiLang ?? 'en').trim().toLowerCase() || 'en',
           onSend: (event) => {
             if (event?.type === 'text' && typeof event.text === 'string') assistantText += event.text;
-            collectTurnMetaEvent(event, citations, toolsUsed);
+            turnMeta.onEvent(event);
           },
         },
       );
@@ -302,17 +367,23 @@ export async function chatRoutes(app, opts) {
         assistantText,
         userMessage,
         costRecorder,
-        meta: buildTurnMeta(citations, toolsUsed),
+        meta: turnMeta.buildMeta(),
       });
       } catch (err) {
-        const message = err?.message ?? 'Chat failed';
-        console.error('chat turn error:', message);
-        try {
-          if (!reply.raw.writableEnded && !reply.raw.destroyed) {
-            reply.raw.write(`data: ${JSON.stringify({ type: 'error', message })}\n\n`);
-            reply.raw.write(`data: ${JSON.stringify({ type: 'done', error: true })}\n\n`);
-          }
-        } catch { /* client gone */ }
+        await handleFailedChatTurn(err, {
+          reply,
+          aborted: abortController.signal.aborted || err?.name === 'AbortError',
+          assistantText,
+          turnMeta,
+          finalizeTurn: (meta) => chatSessionService.finalizeTurn({
+            ownerUid: uid,
+            sessionId: sid,
+            assistantText,
+            userMessage,
+            costRecorder,
+            meta,
+          }),
+        });
       }
     };
 

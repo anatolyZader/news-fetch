@@ -87,6 +87,43 @@ describe('citation events', () => {
     assert.equal(terminal, null);
     assert.deepEqual(accRef.citations, []);
   });
+
+  it('citations_final replaces the streamed set with the grounded one', () => {
+    const accRef = { value: '', citations: [{ source_id: 'db:1' }, { source_id: 'db:2' }] };
+    const { terminal } = reduceChatStreamEvent(initialChatStreamState(), {
+      type: 'citations_final',
+      citations: [{ source_id: 'db:2', used: true }, { source_id: 'db:1', used: false }, { title: 'no id' }],
+    }, accRef);
+    assert.equal(terminal, null);
+    assert.deepEqual(accRef.citations, [
+      { source_id: 'db:2', used: true },
+      { source_id: 'db:1', used: false },
+    ]);
+  });
+});
+
+describe('suggestions and tool detail', () => {
+  it('stores suggestion items on accRef', () => {
+    const accRef = { value: '' };
+    const { terminal } = reduceChatStreamEvent(initialChatStreamState(), {
+      type: 'suggestions',
+      items: ['Follow up A?', '  ', 42, 'Follow up B?'],
+    }, accRef);
+    assert.equal(terminal, null);
+    assert.deepEqual(accRef.suggestions, ['Follow up A?', 'Follow up B?']);
+  });
+
+  it('captures tool_start detail into stream state', () => {
+    const { state } = reduceChatStreamEvent(initialChatStreamState(), {
+      type: 'tool_start',
+      name: 'lookup_signals',
+      detail: 'coping · 2026-07-20',
+      round: 2,
+      maxRounds: 6,
+    }, { value: '' });
+    assert.equal(state.toolDetail, 'coping · 2026-07-20');
+    assert.equal(state.toolName, 'lookup_signals');
+  });
 });
 
 describe('resolveAssistantErrorContent', () => {

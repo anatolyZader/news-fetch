@@ -43,6 +43,10 @@ export function createChatStore(dbPath) {
   db.exec(DDL);
   try { db.exec('PRAGMA journal_mode = WAL;'); } catch { /* ignore */ }
   try { db.exec('PRAGMA foreign_keys = ON;'); } catch { /* ignore */ }
+  // Additive migration: rolling conversation summary (fails silently when the
+  // columns already exist — same pattern as other node:sqlite stores).
+  try { db.exec("ALTER TABLE chat_sessions ADD COLUMN summary TEXT NOT NULL DEFAULT ''"); } catch { /* exists */ }
+  try { db.exec("ALTER TABLE chat_sessions ADD COLUMN summary_through_id TEXT NOT NULL DEFAULT ''"); } catch { /* exists */ }
 
   const listSessionsStmt = db.prepare(`
     SELECT
@@ -80,10 +84,16 @@ export function createChatStore(dbPath) {
   `);
 
   const getSessionStmt = db.prepare(`
-    SELECT id, owner_uid, report_date, title, created_at, updated_at
+    SELECT id, owner_uid, report_date, title, created_at, updated_at, summary, summary_through_id
     FROM chat_sessions
     WHERE id = ?
     LIMIT 1
+  `);
+
+  const updateSessionSummaryStmt = db.prepare(`
+    UPDATE chat_sessions
+    SET summary = ?, summary_through_id = ?
+    WHERE id = ? AND owner_uid = ?
   `);
 
   const createSessionStmt = db.prepare(`
@@ -147,6 +157,17 @@ export function createChatStore(dbPath) {
       touchSessionStmt.run(sessionId, ownerUid);
     },
 
+    /** Persist the rolling summary and the id of the last message it covers. */
+    updateSessionSummary({ ownerUid, sessionId, summary, throughId }) {
+      const result = updateSessionSummaryStmt.run(
+        String(summary ?? ''),
+        String(throughId ?? ''),
+        sessionId,
+        ownerUid,
+      );
+      return (result.changes ?? 0) > 0;
+    },
+
     deleteSession({ ownerUid, sessionId }) {
       const result = deleteSessionStmt.run(sessionId, ownerUid);
       return (result.changes ?? 0) > 0;
@@ -172,6 +193,24 @@ export function createChatStore(dbPath) {
         meta ? JSON.stringify(meta) : null,
       );
       return id;
+    },
+
+    /**
+     * Soft-delete a message and everything after it (edit-and-resubmit).
+     * Returns the number of messages hidden; 0 when the id is unknown.
+     */
+    hideMessagesFrom({ sessionId, messageId }) {
+      // rowid keeps insertion order; created_at only has second resolution and
+      // a user+assistant pair regularly lands in the same second.
+      const result = db.prepare(`
+        UPDATE chat_messages SET hidden = 1
+        WHERE session_id = ? AND hidden = 0
+          AND rowid >= (
+            SELECT rowid FROM chat_messages
+            WHERE id = ? AND session_id = ? AND hidden = 0
+          )
+      `).run(sessionId, messageId, sessionId);
+      return result.changes ?? 0;
     },
 
     getFirstUserMessage({ sessionId }) {

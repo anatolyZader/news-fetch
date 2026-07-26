@@ -112,12 +112,19 @@ components:
         relativePath: { type: string }
     ChatRequest:
       type: object
-      required: [message]
+      required: [sessionId]
       properties:
-        message: { type: string }
-        history:
-          type: array
-          items: { type: object, additionalProperties: true }
+        sessionId: { type: string, description: "Chat session id; server rebuilds history from the store" }
+        message: { type: string, description: "Required for action=send|continue|edit_resend" }
+        action: { type: string, enum: [send, continue, edit_resend, regenerate], default: send }
+        messageId: { type: string, description: "edit_resend only: user message to rewrite from (it and everything after are hidden)" }
+        reportGeoScope: { type: string, enum: [national, north], default: national }
+        scope: { type: string, nullable: true, description: "Component focus hint (component id)" }
+        toolProfile: { type: string, enum: [default, sources], default: default }
+        economy: { type: string, enum: [default, full], default: default }
+        view: { type: string }
+        lang: { type: string, description: "UI language (en|he|ru); forces answer language for he/ru" }
+        systemHint: { type: string }
     ChatSseEventStatus:
       type: object
       required: [type, phase]
@@ -130,6 +137,7 @@ components:
       properties:
         type: { type: string, enum: [tool_start] }
         name: { type: string }
+        detail: { type: string, description: "Whitelisted human-readable summary of the tool input" }
         round: { type: integer }
         maxRounds: { type: integer }
     ChatSseEventText:
@@ -138,6 +146,45 @@ components:
       properties:
         type: { type: string, enum: [text] }
         text: { type: string }
+    ChatSseEventCitation:
+      type: object
+      required: [type, citations]
+      properties:
+        type: { type: string, enum: [citation] }
+        tool: { type: string }
+        citations:
+          type: array
+          items:
+            type: object
+            required: [source_id]
+            properties:
+              source_id: { type: string }
+              title: { type: string }
+              url: { type: string }
+    ChatSseEventCitationsFinal:
+      type: object
+      required: [type, citations]
+      properties:
+        type: { type: string, enum: [citations_final] }
+        citations:
+          type: array
+          description: "Grounded turn citations, used-first; used=false means consulted but not cited in the answer"
+          items:
+            type: object
+            required: [source_id, used]
+            properties:
+              source_id: { type: string }
+              title: { type: string }
+              url: { type: string }
+              used: { type: boolean }
+    ChatSseEventSuggestions:
+      type: object
+      required: [type, items]
+      properties:
+        type: { type: string, enum: [suggestions] }
+        items:
+          type: array
+          items: { type: string }
     ChatSseEventDone:
       type: object
       required: [type]
@@ -147,12 +194,17 @@ components:
         message: { type: string }
         loop_exhausted: { type: boolean }
         mode: { type: string }
+        budget_degraded: { type: boolean }
+        llm_circuit_open: { type: boolean }
         chat_economy: { type: object, additionalProperties: true }
     ChatSseEvent:
       oneOf:
         - { $ref: "#/components/schemas/ChatSseEventStatus" }
         - { $ref: "#/components/schemas/ChatSseEventToolStart" }
         - { $ref: "#/components/schemas/ChatSseEventText" }
+        - { $ref: "#/components/schemas/ChatSseEventCitation" }
+        - { $ref: "#/components/schemas/ChatSseEventCitationsFinal" }
+        - { $ref: "#/components/schemas/ChatSseEventSuggestions" }
         - { $ref: "#/components/schemas/ChatSseEventDone" }
         - type: object
           required: [type]

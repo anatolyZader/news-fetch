@@ -1,6 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { extractCitationsFromToolResult } from '../../../../business_modules/chat/domain/chatCitations.js';
+import {
+  extractCitationsFromToolResult,
+  collectCitationEvent,
+  partitionCitationsByUse,
+} from '../../../../business_modules/chat/domain/chatCitations.js';
 
 describe('extractCitationsFromToolResult', () => {
   it('extracts from formatSignals output (indented source_id + bare url)', () => {
@@ -66,5 +70,67 @@ describe('extractCitationsFromToolResult', () => {
     assert.deepEqual(extractCitationsFromToolResult('lookup_pbo', 'source_id=db:1'), []);
     assert.deepEqual(extractCitationsFromToolResult('get_source', ''), []);
     assert.deepEqual(extractCitationsFromToolResult('lookup_signals', 'No matching signals found.'), []);
+  });
+});
+
+describe('collectCitationEvent', () => {
+  it('dedupes by source_id and remembers the producing tool', () => {
+    const list = [];
+    collectCitationEvent(list, {
+      type: 'citation',
+      tool: 'lookup_signals',
+      citations: [{ source_id: 'db:1', title: 'A' }, { source_id: 'db:2' }],
+    });
+    collectCitationEvent(list, {
+      type: 'citation',
+      tool: 'search_sources',
+      citations: [{ source_id: 'db:1', title: 'dup' }],
+    });
+    assert.equal(list.length, 2);
+    assert.equal(list[0].title, 'A');
+    assert.equal(list[0].tool, 'lookup_signals');
+  });
+
+  it('upgrades a duplicate to get_source (model actually read it)', () => {
+    const list = [];
+    collectCitationEvent(list, { type: 'citation', tool: 'search_sources', citations: [{ source_id: 'db:1' }] });
+    collectCitationEvent(list, { type: 'citation', tool: 'get_source', citations: [{ source_id: 'db:1' }] });
+    assert.equal(list[0].tool, 'get_source');
+  });
+
+  it('ignores non-citation events and blank ids', () => {
+    const list = [];
+    collectCitationEvent(list, { type: 'text', text: 'x' });
+    collectCitationEvent(list, { type: 'citation', tool: 't', citations: [{ source_id: '' }, {}] });
+    assert.deepEqual(list, []);
+  });
+});
+
+describe('partitionCitationsByUse', () => {
+  it('flags citations mentioned in the answer or read via get_source as used', () => {
+    const flagged = partitionCitationsByUse([
+      { source_id: 'db:1', tool: 'lookup_signals' },
+      { source_id: 'db:2', tool: 'get_source' },
+      { source_id: 'md:x.md#3', tool: 'search_sources', title: 'T' },
+    ], 'The answer cites md:x.md#3 explicitly.');
+    assert.deepEqual(flagged.map((c) => [c.source_id, c.used]), [
+      ['db:2', true],
+      ['md:x.md#3', true],
+      ['db:1', false],
+    ]);
+    assert.equal(flagged.every((c) => c.tool === undefined), true, 'tool is internal, not persisted');
+  });
+
+  it('orders used first and caps at 8', () => {
+    const citations = Array.from({ length: 12 }, (_, i) => ({ source_id: `db:${i}` }));
+    const flagged = partitionCitationsByUse(citations, 'uses db:11 only');
+    assert.equal(flagged.length, 8);
+    assert.equal(flagged[0].source_id, 'db:11');
+    assert.equal(flagged[0].used, true);
+  });
+
+  it('handles empty inputs', () => {
+    assert.deepEqual(partitionCitationsByUse([], 'text'), []);
+    assert.deepEqual(partitionCitationsByUse(null, 'text'), []);
   });
 });

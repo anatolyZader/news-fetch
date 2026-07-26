@@ -55,6 +55,7 @@ export function createChatToolContext(deps = {}) {
     onCitation: deps.onCitation ?? null,
     economyOverride: deps.economyOverride ?? 'default',
     uiLang: deps.uiLang ?? 'en',
+    resolvedModel: deps.resolvedModel ?? null,
     tools: buildChatToolList({
       analystToolsEnabled,
       isAnalyst,

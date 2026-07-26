@@ -2,7 +2,7 @@
 
 **Purpose:** Distinguish **report-grounded chat** (operator drill-down) from the **assessment agent** (batch assess pipeline). Both use tool loops and RAG; only chat is interactive HTTP.
 
-**Sources:** `business_modules/chat/`, `business_modules/specialist_agents/`, `cross-cut-modules/agent/`, `cross-cut-modules/llm/`, `business_modules/chat/domain/proposedActionCommands.js`.
+**Sources:** `business_modules/chat/`, `business_modules/specialist_agents/`, `cross-cut-modules/agent/`, `cross-cut-modules/llm/`.
 
 ---
 
@@ -121,7 +121,7 @@ Uses same cached report path as `GET /api/report/today` — `business_modules/re
 
 **Operator tier:** report payload redacted before context build when applicable (`redactReportPayload`).
 
-**Provider:** `business_modules/chat/app/chatLlmOrchestrator.js` — Anthropic Claude Haiku (`claude-haiku-4-5-20251001` via `HAIKU_MODEL`), `max_tokens: 4000`. (`infrastructure/claudeChat.js` is a deprecated re-export shim.)
+**Provider:** `business_modules/chat/app/chatLlmOrchestrator.js` — hybrid model router (`resolveChatModel` in `cross-cut-modules/agent/agentConfig.js`): deep-dive context slices (`temporal`, `compare`, `component`, `full`) run on `CHAT_MODEL_STRONG` (default Sonnet), the rest on `CHAT_MODEL` (default Haiku `claude-haiku-4-5-20251001`); `CHAT_MODEL_ROUTER=0` pins everything to `CHAT_MODEL`. `max_tokens: 4000`. Title, follow-up-suggestion, and rolling-summary side-calls stay on Haiku; `generate_brief` follows the routed model.
 
 ---
 
@@ -131,9 +131,11 @@ Uses same cached report path as `GET /api/report/today` — `business_modules/re
 
 **Chat entry:** `chatService.streamChat` → `chatLlmOrchestrator.streamChatResponse` → `agentKernel.run({ profile: 'chat' })` with:
 
-- `maxRounds`: `CHAT_MAX_TOOL_ROUNDS` (default **3**)
+- `maxRounds`: `CHAT_MAX_TOOL_ROUNDS` (default **6**, cap 12; temporal slice uses `CHAT_TEMPORAL_MAX_TOOL_ROUNDS`, default 8)
 - Tools from `chatToolHandlers.js` / `createChatToolContext`
 - Optional injected `agentKernel` from composition (shared singleton)
+- Transient 429/5xx model-call failures retry twice with short backoff (`retryModelCall` → `withLlmRetry`), only before any token has streamed
+- Multi-tool rounds execute concurrently (`CHAT_PARALLEL_TOOLS=0` for sequential)
 
 **Assessment agent:** same kernel with per-stage `agentKind` values (`planner`, `specialist:{componentId}`, `synthesizer`).
 
@@ -155,7 +157,7 @@ When `CHAT_CONFIRM_ACTIONS_ENABLED` (default on):
 - Client calls `POST /api/chat/confirm-action` to approve/reject
 - Prevents silent side effects
 
-**Command registry (staging):** `business_modules/chat/domain/proposedActionCommands.js` defines `PROPOSED_ACTION_SUMMARIES` — target registry for propose tools. **Not wired yet:** `chatToolHandlers.handleProposeTool` and `executePendingAction.js` still inline validation/summaries. When adding propose tools, update the registry first, then wire handlers to import it; execution logic stays in `executePendingAction.js` (`PENDING_EXECUTORS`).
+Propose-tool validation/summaries live inline in `chatToolHandlers.handleProposeTool`; execution logic in `executePendingAction.js` (`PENDING_EXECUTORS`). (The earlier `proposedActionCommands.js` staging registry was deleted in the chat overhaul.)
 
 Env: `CHAT_ANALYST_TOOLS_ENABLED` gates analyst read tools.
 
@@ -197,7 +199,12 @@ Env: `CHAT_ANALYST_TOOLS_ENABLED` gates analyst read tools.
 | `RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC` | `1` skips agent LLM (deterministic degrade) |
 | `RESILIENCE_ASSESSMENT_AGENT` | `0` **deprecated** — forces deterministic degrade (no legacy narratives) |
 | `ANTHROPIC_API_KEY` | Required for chat and agent assess |
-| `CHAT_MAX_TOOL_ROUNDS` | Chat tool loop cap (default 3) |
+| `CHAT_MAX_TOOL_ROUNDS` | Chat tool loop cap (default 6, hard cap 12) |
+| `CHAT_TEMPORAL_MAX_TOOL_ROUNDS` | Rounds for temporal-slice turns (default 8, cap 12) |
+| `CHAT_MODEL` / `CHAT_MODEL_STRONG` / `CHAT_MODEL_ROUTER` | Hybrid model router: base model, deep-dive escalation model, `0` to disable routing |
+| `CHAT_HISTORY_SUMMARY` | Rolling summarization of older turns (default on) |
+| `CHAT_FOLLOWUP_SUGGESTIONS` | Post-answer follow-up suggestion chips (default on) |
+| `CHAT_PARALLEL_TOOLS` | Concurrent tool execution within a round (default on) |
 | `CHAT_CONFIRM_ACTIONS_ENABLED` | HITL propose/confirm |
 | `CHAT_ANALYST_TOOLS_ENABLED` | Analyst tools |
 | `CHAT_DETERMINISTIC_FALLBACK` | Non-LLM tool fallback when both daily and crisis chat pools exhausted (default on) |

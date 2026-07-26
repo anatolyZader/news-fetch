@@ -4,6 +4,38 @@
 
 import { buildChatSystemHint } from '../../evidence_submission/index.js';
 import { resolveDisplayView } from '../../resilience_scorer/index.js';
+import { chatHistorySummaryEnabled } from '../domain/chatConfig.js';
+
+// Rolling summarization: once more than TRIGGER un-summarized messages exist,
+// fold all but the last KEEP_TAIL into the stored session summary.
+const SUMMARY_TRIGGER_MESSAGES = 16;
+const SUMMARY_KEEP_TAIL = 12;
+
+function formatTurnForSummary(m) {
+  const cites = (m.meta?.citations ?? [])
+    .map((c) => c?.source_id)
+    .filter(Boolean);
+  const content = String(m.content ?? '').slice(0, 500);
+  const citesPart = cites.length ? ` [cited: ${cites.join(', ')}]` : '';
+  return `${m.role}: ${content}${citesPart}`;
+}
+
+/**
+ * Split stored messages into (summary, verbatim tail). A missing cursor means
+ * the covered messages were edited away — the summary is stale and ignored.
+ */
+function splitHistoryAtSummaryCursor(session, existing) {
+  if (!chatHistorySummaryEnabled() || !String(session.summary ?? '').trim()) {
+    return { visible: existing, historySummary: '' };
+  }
+  const throughId = String(session.summary_through_id ?? '');
+  const cursorIdx = throughId ? existing.findIndex((m) => m.id === throughId) : -1;
+  if (cursorIdx < 0) return { visible: existing, historySummary: '' };
+  return {
+    visible: existing.slice(cursorIdx + 1),
+    historySummary: String(session.summary).trim(),
+  };
+}
 
 /**
  * @param {object} opts
@@ -23,7 +55,7 @@ export function createChatSessionService(opts) {
    * @param {string} args.sessionId
    * @param {object} [args.body]
    * @param {string} [args.userEmail]
-   * @returns {{ error: string, code: number } | { history: object[], systemHint: string, display_view: string, userMessage: string, geoScope: string, act: string }}
+   * @returns {{ error: string, code: number } | { history: object[], historySummary: string, systemHint: string, display_view: string, userMessage: string, geoScope: string, act: string }}
    */
   function prepareTurn({ ownerUid, sessionId, body = {}, userEmail = '' }) {
     const sid = String(sessionId ?? '').trim();
@@ -35,8 +67,21 @@ export function createChatSessionService(opts) {
       return { error: 'session not found', code: 404 };
     }
 
+    const act = String(body.action ?? 'send');
+
+    // True edit-and-resubmit: hide the edited user message and everything
+    // after it, then persist the edited text as the new tail (linear rewrite,
+    // no branch tree). Unknown ids hide nothing and degrade to a plain send.
+    if (act === 'edit_resend') {
+      const editMessageId = String(body.messageId ?? '').trim();
+      if (editMessageId && typeof chatStore.hideMessagesFrom === 'function') {
+        chatStore.hideMessagesFrom({ sessionId: sid, messageId: editMessageId });
+      }
+    }
+
     const existing = chatStore.listMessages({ sessionId: sid });
-    let history = existing.map((m) => ({ role: m.role, content: m.content }));
+    const { visible, historySummary } = splitHistoryAtSummaryCursor(session, existing);
+    let history = visible.map((m) => ({ role: m.role, content: m.content }));
     const scopeHint = buildChatSystemHint(body.scope);
     const extraHint = String(body.systemHint ?? '').trim();
     const systemHint = extraHint ? `${scopeHint}\n\n${extraHint}` : scopeHint;
@@ -46,7 +91,6 @@ export function createChatSessionService(opts) {
       canViewAnalyst: Boolean(opts.canViewAnalyst?.(userEmail)),
     });
 
-    const act = String(body.action ?? 'send');
     let userMessage = String(body.message ?? '').trim();
     const shouldPersistUser =
       act === 'send' || act === 'continue' || act === 'edit_resend';
@@ -76,12 +120,46 @@ export function createChatSessionService(opts) {
 
     return {
       history,
+      historySummary,
       systemHint,
       display_view,
       userMessage,
       geoScope,
       act,
     };
+  }
+
+  /** Fold older turns into the rolling session summary (non-fatal, post-stream). */
+  async function maybeSummarizeHistory({ ownerUid, sessionId, costRecorder }) {
+    if (!chatHistorySummaryEnabled()) return;
+    const generateSummary = chatLlmPort?.generateChatSummary;
+    if (!generateSummary) return;
+
+    const session = chatStore.getSession(sessionId);
+    if (!session || session.owner_uid !== ownerUid) return;
+
+    const messages = chatStore.listMessages({ sessionId });
+    const throughId = String(session.summary_through_id ?? '');
+    const cursorIdx = throughId ? messages.findIndex((m) => m.id === throughId) : -1;
+    const pending = messages.slice(cursorIdx + 1);
+    if (pending.length <= SUMMARY_TRIGGER_MESSAGES) return;
+
+    const fold = pending.slice(0, pending.length - SUMMARY_KEEP_TAIL);
+    if (!fold.length) return;
+
+    const summary = await generateSummary({
+      // A stale cursor (edited-away prefix) restarts the summary from scratch.
+      previousSummary: cursorIdx >= 0 ? String(session.summary ?? '') : '',
+      transcript: fold.map(formatTurnForSummary).join('\n'),
+    }, { costRecorder });
+    if (!summary) return;
+
+    chatStore.updateSessionSummary({
+      ownerUid,
+      sessionId,
+      summary,
+      throughId: fold[fold.length - 1].id,
+    });
   }
 
   /**
@@ -112,6 +190,12 @@ export function createChatSessionService(opts) {
       }
     } catch {
       // Ignore title generation failures; chat still works.
+    }
+
+    try {
+      await maybeSummarizeHistory({ ownerUid, sessionId: sid, costRecorder });
+    } catch {
+      // Summarization failures must not break the turn; retried next turn.
     }
   }
 
