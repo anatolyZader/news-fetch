@@ -5,6 +5,7 @@ import {
   createClaudeCliLlmPort,
   normalizeSystemText,
   normalizeMessagesToPrompt,
+  parseLimitResetEpochMs,
 } from '../../../cross-cut-modules/llm/claudeCliLlmAdapter.js';
 
 const RESULT_JSON = {
@@ -181,7 +182,25 @@ describe('claudeCliLlmAdapter prompt normalization', () => {
   });
 });
 
-describe('claudeCliLlmAdapter subscription-limit fallback', () => {
+/** Set env vars for one test, restoring previous values afterwards. */
+async function withEnv(vars, fn) {
+  const saved = {};
+  for (const [k, v] of Object.entries(vars)) {
+    saved[k] = process.env[k];
+    if (v == null) delete process.env[k];
+    else process.env[k] = v;
+  }
+  try {
+    return await fn();
+  } finally {
+    for (const [k, v] of Object.entries(saved)) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
+  }
+}
+
+describe('claudeCliLlmAdapter subscription-limit policy', () => {
   const API_MESSAGE = {
     content: [{ type: 'text', text: 'api-rescue' }],
     usage: { input_tokens: 5, output_tokens: 5 },
@@ -189,40 +208,75 @@ describe('claudeCliLlmAdapter subscription-limit fallback', () => {
     model: OPTS.model,
   };
 
-  it('falls back to the API port on a usage-limit error and stays there (sticky)', async () => {
-    const { calls, spawnImpl } = makeSpawnRecorder(() =>
-      fakeChild({ stderr: 'Claude usage limit reached — resets at 14:00', exitCode: 1 }));
-    const apiCalls = [];
-    const port = createClaudeCliLlmPort({
-      spawnImpl,
-      anthropicPort: { createMessage: async (o) => { apiCalls.push(o); return API_MESSAGE; } },
-    });
-
-    assert.equal(port.transport, 'claude-cli');
-    const first = await port.createMessage(OPTS);
-    assert.equal(first.content[0].text, 'api-rescue');
-    assert.equal(port.transport, undefined); // billing flag flipped
-
-    const second = await port.createMessage(OPTS);
-    assert.equal(second.content[0].text, 'api-rescue');
-    assert.equal(calls.length, 1);     // CLI tried once, never again
-    assert.equal(apiCalls.length, 2);  // both served by the API port
-  });
-
-  it('stream finalMessage is rescued by the fallback too', async () => {
+  it('surfaces stdout error text when stderr is empty (exit != 0)', async () => {
     const { spawnImpl } = makeSpawnRecorder(() =>
-      fakeChild({ stderr: 'rate limit exceeded', exitCode: 1 }));
-    const port = createClaudeCliLlmPort({
-      spawnImpl,
-      anthropicPort: { createMessage: async () => API_MESSAGE },
-    });
-    const stream = port.stream(OPTS);
-    for await (const ev of stream) assert.fail(`unexpected event ${ev}`);
-    const message = await stream.finalMessage();
-    assert.equal(message.content[0].text, 'api-rescue');
+      fakeChild({ stdout: 'unexpected engine failure', exitCode: 1 }));
+    const port = createClaudeCliLlmPort({ spawnImpl });
+    await assert.rejects(() => port.createMessage(OPTS), /exited with code 1.*unexpected engine failure/s);
   });
 
-  it('does not fall back on non-limit errors', async () => {
+  it('parses the reset epoch from CLI limit messages', () => {
+    assert.equal(parseLimitResetEpochMs('Claude AI usage limit reached|1753567200'), 1753567200000);
+    assert.equal(parseLimitResetEpochMs('usage limit reached|1753567200000'), 1753567200000);
+    assert.equal(parseLimitResetEpochMs('no epoch here'), null);
+  });
+
+  it('LLM_CLI_LIMIT_STRATEGY=api: sticky switch to the API port on a limit error', () =>
+    withEnv({ LLM_CLI_LIMIT_STRATEGY: 'api' }, async () => {
+      const { calls, spawnImpl } = makeSpawnRecorder(() =>
+        fakeChild({ stderr: 'Claude usage limit reached — resets at 14:00', exitCode: 1 }));
+      const apiCalls = [];
+      const port = createClaudeCliLlmPort({
+        spawnImpl,
+        anthropicPort: { createMessage: async (o) => { apiCalls.push(o); return API_MESSAGE; } },
+      });
+
+      assert.equal(port.transport, 'claude-cli');
+      const first = await port.createMessage(OPTS);
+      assert.equal(first.content[0].text, 'api-rescue');
+      assert.equal(port.transport, undefined); // billing flag flipped
+
+      const second = await port.createMessage(OPTS);
+      assert.equal(second.content[0].text, 'api-rescue');
+      assert.equal(calls.length, 1);     // CLI tried once, never again
+      assert.equal(apiCalls.length, 2);  // both served by the API port
+    }));
+
+  it('stream finalMessage is rescued under strategy=api too', () =>
+    withEnv({ LLM_CLI_LIMIT_STRATEGY: 'api' }, async () => {
+      const { spawnImpl } = makeSpawnRecorder(() =>
+        fakeChild({ stderr: 'rate limit exceeded', exitCode: 1 }));
+      const port = createClaudeCliLlmPort({
+        spawnImpl,
+        anthropicPort: { createMessage: async () => API_MESSAGE },
+      });
+      const stream = port.stream(OPTS);
+      for await (const ev of stream) assert.fail(`unexpected event ${ev}`);
+      const message = await stream.finalMessage();
+      assert.equal(message.content[0].text, 'api-rescue');
+    }));
+
+  it('default strategy waits for the reset and continues on subscription', () =>
+    withEnv({ LLM_CLI_LIMIT_STRATEGY: 'wait', LLM_CLI_RESET_BUFFER_MS: '1' }, async () => {
+      let n = 0;
+      const { calls, spawnImpl } = makeSpawnRecorder(() => (n++ === 0
+        // Limit text on STDOUT with a reset epoch in the past → ~1s wait, then retry.
+        ? fakeChild({ stdout: 'Claude AI usage limit reached|1700000000', exitCode: 1 })
+        : fakeChild({ stdout: JSON.stringify(RESULT_JSON) })));
+      const apiCalls = [];
+      const port = createClaudeCliLlmPort({
+        spawnImpl,
+        anthropicPort: { createMessage: async (o) => { apiCalls.push(o); return API_MESSAGE; } },
+      });
+
+      const message = await port.createMessage(OPTS);
+      assert.equal(message.content[0].text, '[{"ok":true}]');
+      assert.equal(port.transport, 'claude-cli'); // never left the subscription
+      assert.equal(calls.length, 2);              // failed once, retried after the wait
+      assert.equal(apiCalls.length, 0);           // API credits untouched
+    }));
+
+  it('does not engage the policy on non-limit errors', async () => {
     const { spawnImpl } = makeSpawnRecorder(() => fakeChild({ stderr: 'segfault', exitCode: 1 }));
     const port = createClaudeCliLlmPort({
       spawnImpl,
@@ -232,22 +286,24 @@ describe('claudeCliLlmAdapter subscription-limit fallback', () => {
     assert.equal(port.transport, 'claude-cli');
   });
 
-  it('respects LLM_CLI_FALLBACK=0', async () => {
-    const prev = process.env.LLM_CLI_FALLBACK;
-    process.env.LLM_CLI_FALLBACK = '0';
-    try {
-      const { spawnImpl } = makeSpawnRecorder(() =>
+  it('LLM_CLI_FALLBACK=0 forbids API credits even under strategy=api (waits, capped)', () =>
+    withEnv({
+      LLM_CLI_FALLBACK: '0',
+      LLM_CLI_LIMIT_STRATEGY: 'api',
+      LLM_CLI_WAIT_MAX_MS: '5', // below the 1s wait floor → cap error before sleeping
+    }, async () => {
+      const { calls, spawnImpl } = makeSpawnRecorder(() =>
         fakeChild({ stderr: 'usage limit reached', exitCode: 1 }));
+      const apiCalls = [];
       const port = createClaudeCliLlmPort({
         spawnImpl,
-        anthropicPort: { createMessage: async () => API_MESSAGE },
+        anthropicPort: { createMessage: async (o) => { apiCalls.push(o); return API_MESSAGE; } },
       });
       await assert.rejects(() => port.createMessage(OPTS), /usage limit/);
-    } finally {
-      if (prev == null) delete process.env.LLM_CLI_FALLBACK;
-      else process.env.LLM_CLI_FALLBACK = prev;
-    }
-  });
+      assert.equal(calls.length, 1);
+      assert.equal(apiCalls.length, 0);
+      assert.equal(port.transport, 'claude-cli');
+    }));
 });
 
 describe('getDefaultLlmPort LLM_FORCE_API override', () => {

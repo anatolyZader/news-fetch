@@ -7,6 +7,18 @@
  * cannot run inside `claude -p` and delegates to the Anthropic SDK adapter,
  * which still requires ANTHROPIC_API_KEY.
  *
+ * Subscription-limit policy (LLM_CLI_LIMIT_STRATEGY):
+ *  - 'ask'  (default): on a TTY, prompt the operator — [w]ait for the limit
+ *    to reset (default, stays $0) or [a] switch to metered API credits.
+ *    Off-TTY it degrades to 'wait'. The choice is remembered for the process.
+ *  - 'wait': sleep until the CLI-reported reset time (or poll every
+ *    LLM_CLI_LIMIT_POLL_MS), then continue on subscription. Total waiting is
+ *    capped by LLM_CLI_WAIT_MAX_MS. During an interactive wait, pressing "a"
+ *    switches to API credits immediately.
+ *  - 'api':  sticky switch to API credits on the first limit error.
+ *  - 'fail': surface the error to the caller.
+ * LLM_CLI_FALLBACK=0 forbids API credits entirely (forces waiting).
+ *
  * Selected via LLM_TRANSPORT=claude-cli in getDefaultLlmPort(). Intended for
  * pipeline CLI runs launched from an interactive Claude Code session (the
  * spawned CLI inherits the subscription login); never set it in the server
@@ -17,26 +29,49 @@ import { createAnthropicLlmPort } from './anthropicLlmAdapter.js';
 
 const STRIPPED_ENV_KEYS = ['ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL'];
 
-function cliTimeoutMs() {
-  const n = Number.parseInt(process.env.LLM_CLI_TIMEOUT_MS ?? '', 10);
-  return Number.isFinite(n) && n > 0 ? n : 900_000;
+const ASK_TIMEOUT_MS = 60_000;
+const WAIT_SLICE_MS = 300_000; // heartbeat interval while waiting
+const MIN_WAIT_MS = 1_000;     // floor so a stale reset timestamp can't spin-loop
+
+function envInt(name, fallback) {
+  const n = Number.parseInt(process.env[name] ?? '', 10);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
-function cliMaxConcurrency() {
-  const n = Number.parseInt(process.env.LLM_CLI_MAX_CONCURRENCY ?? '', 10);
-  return Number.isFinite(n) && n > 0 ? n : 2;
-}
+function cliTimeoutMs() { return envInt('LLM_CLI_TIMEOUT_MS', 900_000); }
+function cliMaxConcurrency() { return envInt('LLM_CLI_MAX_CONCURRENCY', 2); }
+function limitPollMs() { return envInt('LLM_CLI_LIMIT_POLL_MS', 600_000); }
+function limitWaitMaxMs() { return envInt('LLM_CLI_WAIT_MAX_MS', 6 * 3_600_000); }
+function limitResetBufferMs() { return envInt('LLM_CLI_RESET_BUFFER_MS', 60_000); }
 
-/** Automatic API fallback on subscription limits — on unless LLM_CLI_FALLBACK=0. */
-function cliFallbackEnabled() {
+/** API credits may be used on subscription limits — off when LLM_CLI_FALLBACK=0. */
+function apiOnLimitAllowed() {
   const v = process.env.LLM_CLI_FALLBACK?.trim().toLowerCase();
   return v !== '0' && v !== 'false';
+}
+
+/** See the header comment for the four strategies. */
+function limitStrategy() {
+  const v = process.env.LLM_CLI_LIMIT_STRATEGY?.trim().toLowerCase();
+  return ['ask', 'wait', 'api', 'fail'].includes(v) ? v : 'ask';
+}
+
+function isInteractive() {
+  return Boolean(process.stdin.isTTY && process.stderr.isTTY);
 }
 
 /** Errors that mean the Max subscription quota is exhausted (not a transient blip). */
 export function isSubscriptionLimitError(err) {
   const msg = String(err?.message ?? '');
   return /usage limit|limit reached|weekly limit|5-hour|rate.?limit|too many requests|\b429\b|quota/i.test(msg);
+}
+
+/** Pull the reset epoch out of CLI limit errors ("…usage limit reached|1753567200"). */
+export function parseLimitResetEpochMs(text) {
+  const m = /\|\s*(\d{10,13})\b/.exec(String(text ?? ''));
+  if (!m) return null;
+  const n = Number(m[1]);
+  return m[1].length >= 13 ? n : n * 1000;
 }
 
 /** Join text blocks; reject content the CLI transport cannot carry (images, tool blocks). */
@@ -84,6 +119,96 @@ function tail(text, n = 400) {
   return s.length > n ? s.slice(-n) : s;
 }
 
+/**
+ * Best error text for a failed CLI run. The CLI writes most errors — including
+ * "usage limit reached|<epoch>" — to STDOUT (often as a JSON result envelope),
+ * so stderr alone is frequently empty.
+ */
+function cliFailureText(stdout, stderr) {
+  const errOut = tail(stderr);
+  if (errOut) return errOut;
+  try {
+    const json = JSON.parse(stdout);
+    return tail(json?.result ?? json?.error?.message ?? stdout);
+  } catch {
+    return tail(stdout);
+  }
+}
+
+function fmtClock(epochMs) {
+  return new Date(epochMs).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
+
+function fmtDuration(ms) {
+  const m = Math.round(ms / 60_000);
+  if (m < 1) return '<1m';
+  if (m < 60) return `${m}m`;
+  return `${Math.floor(m / 60)}h ${m % 60}m`;
+}
+
+function sleep(ms) {
+  return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
+}
+
+/** Read one keypress from a raw TTY; resolves null on timeout. Ctrl+C still interrupts. */
+function readKeypress(timeoutMs) {
+  return new Promise((resolvePromise) => {
+    const { stdin } = process;
+    if (!stdin.isTTY) { resolvePromise(null); return; }
+    let settled = false;
+    const timer = setTimeout(() => finish(null), timeoutMs);
+    function finish(ch) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      stdin.off('data', onData);
+      stdin.setRawMode(false);
+      stdin.pause();
+      resolvePromise(ch);
+    }
+    function onData(buf) {
+      const ch = buf.toString('utf8');
+      if (ch === '\u0003') { finish(null); process.kill(process.pid, 'SIGINT'); return; }
+      finish(ch.toLowerCase());
+    }
+    stdin.setRawMode(true);
+    stdin.resume();
+    stdin.on('data', onData);
+  });
+}
+
+/** Terminal prompt: wait for reset (default after 60s) or switch to API credits. */
+async function promptLimitChoice(resetEpochMs) {
+  const resetNote = resetEpochMs
+    ? `resets ~${fmtClock(resetEpochMs)} (in ${fmtDuration(resetEpochMs - Date.now())})`
+    : 'reset time unknown';
+  console.error(`\n⏸ Max subscription limit reached — ${resetNote}.`);
+  console.error('  [w] wait for the reset and continue on subscription (default)');
+  console.error('  [a] continue now on metered API credits');
+  console.error(`  choice? (auto-wait in ${ASK_TIMEOUT_MS / 1000}s)`);
+  const key = await readKeypress(ASK_TIMEOUT_MS);
+  return key === 'a' ? 'api' : 'wait';
+}
+
+/** Sleep until deadline; on an interactive wait, an "a" keypress aborts with 'api'. */
+async function waitUntil(deadlineMs, apiAllowed) {
+  for (;;) {
+    const remaining = deadlineMs - Date.now();
+    if (remaining <= 0) return 'reset';
+    const slice = Math.min(remaining, WAIT_SLICE_MS);
+    if (apiAllowed && isInteractive()) {
+      const key = await readKeypress(slice);
+      if (key === 'a') return 'api';
+    } else {
+      await sleep(slice);
+    }
+    const left = deadlineMs - Date.now();
+    if (left > 0) {
+      console.error(`  … still waiting for subscription reset (~${fmtDuration(left)} left)`);
+    }
+  }
+}
+
 /** Map a successful `claude -p --output-format json` result to an Anthropic-shaped message. */
 function mapCliResult(json, model) {
   return {
@@ -128,12 +253,21 @@ function spawnCliJsonMessage({ spawnImpl, cliPath, args, env, prompt, model }) {
       else resolvePromise(message);
     }
 
+    function failWithReset(message, resetSource) {
+      const err = new Error(message);
+      err.limitResetEpochMs = parseLimitResetEpochMs(resetSource);
+      finish(err);
+    }
+
     child.on('error', (err) => finish(new Error(`claude-cli spawn failed: ${err.message}`)));
     child.stdout.on('data', (d) => { stdout += d; });
     child.stderr.on('data', (d) => { stderr += d; });
     child.on('close', (code) => {
       if (code !== 0) {
-        finish(new Error(`claude-cli exited with code ${code} (model=${model}): ${tail(stderr)}`));
+        failWithReset(
+          `claude-cli exited with code ${code} (model=${model}): ${cliFailureText(stdout, stderr)}`,
+          `${stdout}\n${stderr}`,
+        );
         return;
       }
       let json;
@@ -144,9 +278,10 @@ function spawnCliJsonMessage({ spawnImpl, cliPath, args, env, prompt, model }) {
         return;
       }
       if (json?.type !== 'result' || json.is_error || json.subtype !== 'success') {
-        finish(new Error(
+        failWithReset(
           `claude-cli result error (subtype=${json?.subtype ?? 'unknown'}): ${tail(json?.result ?? stderr)}`,
-        ));
+          String(json?.result ?? ''),
+        );
         return;
       }
       finish(null, mapCliResult(json, model));
@@ -182,17 +317,23 @@ export function createClaudeCliLlmPort(cfg = {}) {
   const spawnImpl = cfg.spawnImpl ?? nodeSpawn;
   const cliPath = cfg.cliPath ?? process.env.CLAUDE_CLI_PATH ?? 'claude';
   let anthropicPort = cfg.anthropicPort ?? null;
-  // Sticky: once the subscription limit is hit, the rest of this process
-  // bills to API credits so urgent runs are never stranded mid-pipeline.
-  let fallbackToApi = false;
+  let mode = 'cli';        // 'cli' | 'api' — sticky once switched to API credits
+  let stickyChoice = null; // operator's ask-prompt decision, asked at most once per process
+  let limitGate = null;    // shared promise while one limit event is being resolved
+  let waitedTotalMs = 0;   // cumulative limit waiting, reset on the next successful call
 
   function getAnthropicPort() {
     anthropicPort ??= createAnthropicLlmPort(cfg);
     return anthropicPort;
   }
 
-  function canFallBack() {
-    return cliFallbackEnabled() && (Boolean(process.env.ANTHROPIC_API_KEY) || cfg.anthropicPort != null);
+  function apiAvailable() {
+    return apiOnLimitAllowed() && (Boolean(process.env.ANTHROPIC_API_KEY) || cfg.anthropicPort != null);
+  }
+
+  function switchToApi(why) {
+    mode = 'api';
+    console.error(`  ⚠ claude-cli transport → API credits (${why}); remaining calls bill at metered prices.`);
   }
 
   // Small semaphore: subscription rate limits are shared with the interactive session.
@@ -236,36 +377,73 @@ export function createClaudeCliLlmPort(cfg = {}) {
     }));
   }
 
-  /** createMessage via the API SDK — used after a sticky limit fallback. */
-  async function apiMessage(opts) {
-    return getAnthropicPort().createMessage(opts);
+  /** Block until the reported reset time (waiting is capped), or switch on "a". */
+  async function waitOutLimit(err) {
+    const resetMs = err.limitResetEpochMs ?? null;
+    const deadline = resetMs
+      ? resetMs + limitResetBufferMs()
+      : Date.now() + limitPollMs();
+    const waitMs = Math.max(deadline - Date.now(), MIN_WAIT_MS);
+    if (waitedTotalMs + waitMs > limitWaitMaxMs()) {
+      throw new Error(
+        `claude-cli subscription limit: waited ${fmtDuration(waitedTotalMs)} ` +
+        `(LLM_CLI_WAIT_MAX_MS cap) — ${err.message}`,
+      );
+    }
+    waitedTotalMs += waitMs;
+    const until = Date.now() + waitMs;
+    console.error(
+      `  ⏸ subscription limit — waiting until ${fmtClock(until)} (${fmtDuration(waitMs)}) ` +
+      'to continue on subscription' +
+      (apiAvailable() && isInteractive() ? ' (press "a" to continue now on API credits)' : ''),
+    );
+    const outcome = await waitUntil(until, apiAvailable());
+    if (outcome === 'api') switchToApi('operator keypress during wait');
   }
 
-  /** runCli with automatic sticky fallback to API credits on subscription limits. */
-  async function runWithFallback(opts) {
-    if (fallbackToApi) return apiMessage(opts);
-    try {
-      return await runCli(opts);
-    } catch (err) {
-      if (!isSubscriptionLimitError(err) || !canFallBack()) throw err;
-      fallbackToApi = true;
-      console.error(
-        `  ⚠ claude-cli subscription limit hit (${String(err.message).slice(0, 120)}) — ` +
-        'falling back to API credits for the remainder of this run.',
-      );
-      return apiMessage(opts);
+  /**
+   * Decide what to do about a subscription-limit error. Runs once per limit
+   * event (concurrent calls share the gate). Resolving means "retry on CLI or
+   * mode is now 'api'"; throwing propagates to every blocked call.
+   */
+  async function resolveLimitEvent(err) {
+    let strategy = limitStrategy();
+    if ((strategy === 'api' || strategy === 'ask') && !apiAvailable()) strategy = 'wait';
+    if (strategy === 'fail') throw err;
+    if (strategy === 'api') { switchToApi('LLM_CLI_LIMIT_STRATEGY=api'); return; }
+    if (strategy === 'ask' && stickyChoice == null && isInteractive()) {
+      stickyChoice = await promptLimitChoice(err.limitResetEpochMs ?? null);
+    }
+    if (stickyChoice === 'api') { switchToApi('operator choice'); return; }
+    await waitOutLimit(err);
+  }
+
+  /** runCli under the subscription-limit policy (wait / ask / api / fail). */
+  async function runWithLimitPolicy(opts) {
+    for (;;) {
+      if (mode === 'api') return getAnthropicPort().createMessage(opts);
+      if (limitGate) { await limitGate; continue; }
+      try {
+        const message = await runCli(opts);
+        waitedTotalMs = 0;
+        return message;
+      } catch (err) {
+        if (mode !== 'cli' || !isSubscriptionLimitError(err)) throw err;
+        limitGate ??= resolveLimitEvent(err).finally(() => { limitGate = null; });
+        await limitGate;
+      }
     }
   }
 
   return {
-    // Dynamic: after a limit fallback the port stops reporting claude-cli so
-    // the gateway and cost trackers bill the remaining calls at real prices.
+    // Dynamic: after a switch to API credits the port stops reporting claude-cli
+    // so the gateway and cost trackers bill the remaining calls at real prices.
     get transport() {
-      return fallbackToApi ? undefined : 'claude-cli';
+      return mode === 'api' ? undefined : 'claude-cli';
     },
-    createMessage: (opts) => runWithFallback(opts),
+    createMessage: (opts) => runWithLimitPolicy(opts),
     stream: (opts) => {
-      const resultPromise = runWithFallback(opts);
+      const resultPromise = runWithLimitPolicy(opts);
       // streamWithProgress does `for await` and only reads delta events; zero
       // events is legal. Errors surface from finalMessage(), inside withLlmRetry.
       return {
