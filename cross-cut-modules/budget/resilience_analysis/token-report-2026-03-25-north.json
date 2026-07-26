@@ -1,0 +1,164 @@
+{
+  "runId": "93e2de2b-65fc-4691-b77e-f4eeed05b4e8",
+  "date": "2026-03-25",
+  "scope": "north",
+  "days": 1,
+  "runStartedAt": "2026-07-26T11:28:20.000Z",
+  "runCompletedAt": "2026-07-26T11:36:35.992Z",
+  "durationMs": 495992,
+  "pipeline": {
+    "totalCostUsd": 0,
+    "llmCostUsd": 0,
+    "byScript": {
+      "assess-signals": 0
+    },
+    "costLogEntries": 1
+  },
+  "summary": {
+    "invocations": 7,
+    "inputTokens": 3790,
+    "outputTokens": 25790,
+    "cachedInputTokens": 7616,
+    "cacheCreationTokens": 87178,
+    "effectiveInputTokens": -3826,
+    "cacheHitRatePct": 200.9,
+    "costUsd": 0
+  },
+  "byFeature": {
+    "extract": {
+      "invocations": 1,
+      "inputTokens": 10,
+      "outputTokens": 9564,
+      "cachedInputTokens": 7616,
+      "cacheCreationTokens": 47987,
+      "costUsd": 0
+    },
+    "evidence_entailment": {
+      "invocations": 1,
+      "inputTokens": 3730,
+      "outputTokens": 1286,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0
+    },
+    "extract_self_check": {
+      "invocations": 1,
+      "inputTokens": 10,
+      "outputTokens": 3578,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 7234,
+      "costUsd": 0
+    },
+    "open_extraction": {
+      "invocations": 4,
+      "inputTokens": 40,
+      "outputTokens": 11362,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 31957,
+      "costUsd": 0
+    }
+  },
+  "byModel": {
+    "claude-haiku-4-5-20251001": {
+      "invocations": 7,
+      "inputTokens": 3790,
+      "outputTokens": 25790,
+      "cachedInputTokens": 7616,
+      "cacheCreationTokens": 87178,
+      "costUsd": 0
+    }
+  },
+  "calls": [
+    {
+      "timestamp": "2026-07-26T11:30:40.934Z",
+      "feature": "extract",
+      "purpose": "[Step 1 — batch 1/2]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 10,
+      "outputTokens": 9564,
+      "cachedInputTokens": 7616,
+      "cacheCreationTokens": 47987,
+      "costUsd": 0,
+      "latencyMs": 114584,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-07-26T11:31:02.583Z",
+      "feature": "evidence_entailment",
+      "purpose": "[Step 1 — batch 1/2] entailment",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 3730,
+      "outputTokens": 1286,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0,
+      "latencyMs": 16370,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-07-26T11:31:43.604Z",
+      "feature": "extract_self_check",
+      "purpose": "[Step 1 — batch 1/2] self-check",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 10,
+      "outputTokens": 3578,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 7234,
+      "costUsd": 0,
+      "latencyMs": 41019,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-07-26T11:32:23.320Z",
+      "feature": "open_extraction",
+      "purpose": "[Step 1 — batch 1/2] 1-8/31",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 10,
+      "outputTokens": 3155,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 6159,
+      "costUsd": 0,
+      "latencyMs": 39710,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-07-26T11:32:52.810Z",
+      "feature": "open_extraction",
+      "purpose": "[Step 1 — batch 1/2] 9-16/31",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 10,
+      "outputTokens": 2421,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 7071,
+      "costUsd": 0,
+      "latencyMs": 29488,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-07-26T11:33:36.963Z",
+      "feature": "open_extraction",
+      "purpose": "[Step 1 — batch 1/2] 17-24/31",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 10,
+      "outputTokens": 3641,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 8560,
+      "costUsd": 0,
+      "latencyMs": 44153,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-07-26T11:34:03.361Z",
+      "feature": "open_extraction",
+      "purpose": "[Step 1 — batch 1/2] 25-31/31",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 10,
+      "outputTokens": 2145,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 10167,
+      "costUsd": 0,
+      "latencyMs": 26397,
+      "stopReason": "end_turn"
+    }
+  ]
+}
