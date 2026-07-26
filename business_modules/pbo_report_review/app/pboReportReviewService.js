@@ -1,7 +1,7 @@
 /**
  * Orchestrates municipal PBO completeness review, email follow-ups, and reply ingestion.
  */
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -15,8 +15,15 @@ import {
   collectSupplementalTextsFromReplies,
   pboCompletenessLabel,
 } from '../domain/services/reviewSupplementalTexts.js';
+import {
+  buildBatchDocument,
+  defaultBatchPath,
+  defaultSendLogPath,
+  selectMunicipalitiesToSend,
+} from '../domain/services/pboReviewBatch.js';
 
 const MODULE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const DEFAULT_REPO_ROOT = resolve(MODULE_ROOT, '../..');
 
 function isReviewEnabled() {
   return process.env.PBO_REVIEW_ENABLED !== 'false';
@@ -140,10 +147,18 @@ export function createPboReportReviewService(deps) {
     });
   }
 
-  async function sendFollowUpEmail(municipality, review, stored) {
-    const officer = officerDirectory.lookup(municipality.name);
+  /**
+   * @param {object} review
+   * @param {object} stored
+   * @param {{ email: string, language?: string }} officer
+   * @param {Array<object>} [questions]
+   */
+  async function sendFollowUpEmail(review, stored, officer, questions) {
+    if (!mailPort) {
+      return { emailSent: false, emailSkipped: true, emailError: 'mail not configured', stored };
+    }
     if (!officer?.email) {
-      console.error(`[pbo-review] No officer email for ${municipality.name}, skipping send`);
+      console.error(`[pbo-review] No officer email for ${review.municipality}, skipping send`);
       return { emailSent: false, emailSkipped: true, emailError: null, stored };
     }
 
@@ -154,11 +169,12 @@ export function createPboReportReviewService(deps) {
         language: officer.language ?? review.language,
         date: review.date,
         municipality: review.municipality,
-        questions: review.questions,
+        questions: questions ?? review.questions,
         reviewToken: stored.reviewToken,
       });
       const updated = await reviewStore.upsertReview({
         ...review,
+        questions: questions ?? review.questions,
         reviewToken: stored.reviewToken,
         emailSentAt: new Date().toISOString(),
         emailMessageId: sendResult?.id ?? null,
@@ -174,7 +190,7 @@ export function createPboReportReviewService(deps) {
       return { emailSent: true, emailSkipped: false, emailError: null, stored: updated };
     } catch (err) {
       const emailError = err?.message ?? String(err);
-      console.error(`[pbo-review] Email failed for ${municipality.name}:`, emailError);
+      console.error(`[pbo-review] Email failed for ${review.municipality}:`, emailError);
       return { emailSent: false, emailSkipped: false, emailError, stored };
     }
   }
@@ -199,7 +215,8 @@ export function createPboReportReviewService(deps) {
     let emailError = null;
 
     if (shouldSend) {
-      const sendOutcome = await sendFollowUpEmail(municipality, review, stored);
+      const officer = officerDirectory.lookup(municipality.name);
+      const sendOutcome = await sendFollowUpEmail(review, stored, officer, review.questions);
       emailSent = sendOutcome.emailSent;
       emailSkipped = sendOutcome.emailSkipped;
       emailError = sendOutcome.emailError;
@@ -336,6 +353,149 @@ export function createPboReportReviewService(deps) {
         date,
         incomplete_count: municipalities.filter((m) => m.pbo_completeness === 'incomplete').length,
         municipalities,
+      };
+    },
+
+    /**
+     * Review all munis for a date (no mail) and write an operator-revisable batch JSON.
+     * @param {string} date YYYY-MM-DD
+     * @param {{ outPath?: string, repoRoot?: string }} [opts]
+     */
+    async exportDayBatch(date, { outPath, repoRoot = DEFAULT_REPO_ROOT } = {}) {
+      const reviewResult = await this.reviewDay(date, { dryRun: true });
+      if (reviewResult.skipped) {
+        return { skipped: true, reason: reviewResult.reason, date };
+      }
+
+      const reviews = await reviewStore.listReviewsForDate(date);
+      const batch = buildBatchDocument({
+        date,
+        reviews,
+        lookupOfficer: (name) => officerDirectory.lookup(name),
+      });
+      const path = outPath || defaultBatchPath(repoRoot, date);
+      mkdirSync(dirname(path), { recursive: true });
+      writeFileSync(path, `${JSON.stringify(batch, null, 2)}\n`, 'utf8');
+      return {
+        date,
+        path,
+        summary: batch.summary,
+        results: reviewResult.results,
+        batch,
+      };
+    },
+
+    /**
+     * Send feedback emails from an operator-revised batch (does not recompute gaps).
+     * @param {string} date YYYY-MM-DD
+     * @param {{ batchPath?: string, repoRoot?: string, force?: boolean, dryRun?: boolean }} [opts]
+     */
+    async sendDayFeedback(date, {
+      batchPath,
+      repoRoot = DEFAULT_REPO_ROOT,
+      force = false,
+      dryRun = false,
+    } = {}) {
+      const path = batchPath || defaultBatchPath(repoRoot, date);
+      let batch;
+      try {
+        batch = JSON.parse(readFileSync(path, 'utf8'));
+      } catch (err) {
+        throw new Error(`failed to read batch ${path}: ${err?.message ?? err}`);
+      }
+      if (batch.date && batch.date !== date) {
+        throw new Error(`batch date ${batch.date} does not match requested ${date}`);
+      }
+
+      if (!dryRun && (!mailingConfigured || !mailPort)) {
+        throw new Error('mailing not configured (need RESEND_API_KEY + MAIL_FROM); use --dry-run to preview');
+      }
+
+      const selected = selectMunicipalitiesToSend(batch);
+      const outcomes = [];
+
+      for (const row of selected) {
+        const stored = await reviewStore.getReview(date, row.municipality);
+        if (!stored) {
+          outcomes.push({
+            municipality: row.municipality,
+            emailSent: false,
+            emailSkipped: true,
+            emailError: 'review not found in store — run pbo:review-muni first',
+          });
+          continue;
+        }
+        if (!force && stored.gapsHash && row.gapsHash && stored.gapsHash !== row.gapsHash) {
+          outcomes.push({
+            municipality: row.municipality,
+            emailSent: false,
+            emailSkipped: true,
+            emailError: `gapsHash mismatch (store=${stored.gapsHash} batch=${row.gapsHash})`,
+          });
+          continue;
+        }
+        if (!force && stored.emailSentAt) {
+          outcomes.push({
+            municipality: row.municipality,
+            emailSent: false,
+            emailSkipped: true,
+            emailError: `already sent at ${stored.emailSentAt}`,
+          });
+          continue;
+        }
+
+        const officer = {
+          email: String(row.officer?.email ?? '').trim(),
+          language: row.officer?.language ?? row.language ?? stored.language ?? 'he',
+        };
+        const review = {
+          ...stored,
+          questions: Array.isArray(row.questions) ? row.questions : stored.questions,
+          language: officer.language,
+        };
+
+        if (dryRun) {
+          outcomes.push({
+            municipality: row.municipality,
+            emailSent: false,
+            emailSkipped: false,
+            dryRun: true,
+            to: resolvePboReviewRecipient(officer.email),
+            questionCount: review.questions?.length ?? 0,
+          });
+          continue;
+        }
+
+        const sendOutcome = await sendFollowUpEmail(review, stored, officer, review.questions);
+        outcomes.push({
+          municipality: row.municipality,
+          emailSent: sendOutcome.emailSent,
+          emailSkipped: sendOutcome.emailSkipped,
+          emailError: sendOutcome.emailError,
+          to: resolvePboReviewRecipient(officer.email),
+        });
+      }
+
+      const logPath = defaultSendLogPath(path);
+      const logDoc = {
+        date,
+        batchPath: path,
+        dryRun,
+        force,
+        at: new Date().toISOString(),
+        selected: selected.length,
+        outcomes,
+      };
+      mkdirSync(dirname(logPath), { recursive: true });
+      writeFileSync(logPath, `${JSON.stringify(logDoc, null, 2)}\n`, 'utf8');
+
+      return {
+        date,
+        batchPath: path,
+        logPath,
+        dryRun,
+        selected: selected.length,
+        outcomes,
       };
     },
 

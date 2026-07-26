@@ -349,7 +349,7 @@ async function executeIngestStep(step, ctx) {
     case 'pbo_review':
       await runNodeScript(
         'business_modules/pbo_report_review/input/runMunicipalPboReview.js',
-        ['--date', step.date],
+        ['--date', step.date, '--export-batch'],
         { allowFail: true, rootDir },
       );
       return;

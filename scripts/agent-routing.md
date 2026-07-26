@@ -20,6 +20,8 @@ Companion to `AGENTS.md` task routing. Start at the listed `input/` file or comp
 | `radio:setup` | `business_modules/radio/input/setup-tzafon.js` |
 | `mail:digest` | `business_modules/mailing/input/runDailyDigest.js` |
 | `analyze-event-log` | `business_modules/pbo_report_muni/input/analyze-event-log.js` |
+| `pbo:review-muni` | `business_modules/pbo_report_review/input/runMunicipalPboReview.js` → `app/runMunicipalPboReviewCli.js` |
+| `pbo:send-muni-feedback` | `composition/runSendMunicipalPboFeedback.js` → `pbo_report_review/app/sendMunicipalPboFeedbackCli.js` |
 
 Ingest services are wired in `composition/registerIngestion.js`.
 
