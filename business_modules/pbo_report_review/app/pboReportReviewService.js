@@ -47,6 +47,45 @@ function applyEmailBodyToOpenGaps(supplementalTexts, openGaps) {
   return next;
 }
 
+function loadBatchDocument(path) {
+  try {
+    return JSON.parse(readFileSync(path, 'utf8'));
+  } catch (err) {
+    throw new Error(`failed to read batch ${path}: ${err?.message ?? err}`, { cause: err });
+  }
+}
+
+/**
+ * @returns {object|null} skip outcome, or null if the row may proceed
+ */
+function skipReasonForBatchSend(row, stored, force) {
+  if (!stored) {
+    return {
+      municipality: row.municipality,
+      emailSent: false,
+      emailSkipped: true,
+      emailError: 'review not found in store — run pbo:review-muni first',
+    };
+  }
+  if (!force && stored.gapsHash && row.gapsHash && stored.gapsHash !== row.gapsHash) {
+    return {
+      municipality: row.municipality,
+      emailSent: false,
+      emailSkipped: true,
+      emailError: `gapsHash mismatch (store=${stored.gapsHash} batch=${row.gapsHash})`,
+    };
+  }
+  if (!force && stored.emailSentAt) {
+    return {
+      municipality: row.municipality,
+      emailSent: false,
+      emailSkipped: true,
+      emailError: `already sent at ${stored.emailSentAt}`,
+    };
+  }
+  return null;
+}
+
 /**
  * @param {object} deps
  * @param {import('../domain/ports/IPboReviewStorePort.js').IPboReviewStorePort} deps.reviewStore
@@ -397,12 +436,7 @@ export function createPboReportReviewService(deps) {
       dryRun = false,
     } = {}) {
       const path = batchPath || defaultBatchPath(repoRoot, date);
-      let batch;
-      try {
-        batch = JSON.parse(readFileSync(path, 'utf8'));
-      } catch (err) {
-        throw new Error(`failed to read batch ${path}: ${err?.message ?? err}`);
-      }
+      const batch = loadBatchDocument(path);
       if (batch.date && batch.date !== date) {
         throw new Error(`batch date ${batch.date} does not match requested ${date}`);
       }
@@ -416,31 +450,9 @@ export function createPboReportReviewService(deps) {
 
       for (const row of selected) {
         const stored = await reviewStore.getReview(date, row.municipality);
-        if (!stored) {
-          outcomes.push({
-            municipality: row.municipality,
-            emailSent: false,
-            emailSkipped: true,
-            emailError: 'review not found in store — run pbo:review-muni first',
-          });
-          continue;
-        }
-        if (!force && stored.gapsHash && row.gapsHash && stored.gapsHash !== row.gapsHash) {
-          outcomes.push({
-            municipality: row.municipality,
-            emailSent: false,
-            emailSkipped: true,
-            emailError: `gapsHash mismatch (store=${stored.gapsHash} batch=${row.gapsHash})`,
-          });
-          continue;
-        }
-        if (!force && stored.emailSentAt) {
-          outcomes.push({
-            municipality: row.municipality,
-            emailSent: false,
-            emailSkipped: true,
-            emailError: `already sent at ${stored.emailSentAt}`,
-          });
+        const skip = skipReasonForBatchSend(row, stored, force);
+        if (skip) {
+          outcomes.push(skip);
           continue;
         }
 

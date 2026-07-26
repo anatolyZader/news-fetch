@@ -15,7 +15,7 @@ function fullComponents(overrides = {}) {
       avg: 0.5,
       scores: [{ value: 0.5 }, { value: 0.5 }, { value: 0.5 }],
       texts: ['ok'],
-      ...(overrides[cid] ?? {}),
+      ...overrides[cid],
     };
   }
   return components;
