@@ -562,6 +562,7 @@ function extractUserLabelForSignals(contentKind) {
 }
 async function fetchHaikuSignalsOnce(batchLabel, modelId, system, userContent, usageCallback, callContextExtra = {}) {
   const llmPort = getDefaultLlmPort();
+  const cliMeta = llmPort.transport === 'claude-cli' ? { transport: 'claude-cli' } : {};
   const maxTokens = extractMaxTokens();
   const stream = await Promise.resolve(llmPort.stream({
     model: modelId,
@@ -578,7 +579,7 @@ async function fetchHaikuSignalsOnce(batchLabel, modelId, system, userContent, u
       ...callContextExtra,
     },
     onUsage: usageCallback
-      ? (p) => usageCallback({ label: batchLabel, model: modelId, usage: p.usage })
+      ? (p) => usageCallback({ label: batchLabel, model: modelId, usage: p.usage, ...cliMeta })
       : undefined,
   }));
   await streamWithProgress(stream, batchLabel);
@@ -587,7 +588,7 @@ async function fetchHaikuSignalsOnce(batchLabel, modelId, system, userContent, u
     console.error('  ⚠ batch hit max_tokens — attempting partial recovery');
   }
   console.error(`  → stop_reason: ${message.stop_reason}`);
-  if (usageCallback) usageCallback({ label: batchLabel, model: modelId, usage: message.usage });
+  if (usageCallback) usageCallback({ label: batchLabel, model: modelId, usage: message.usage, ...cliMeta });
   const textBlock = message.content.find((b) => b.type === 'text');
   if (!textBlock) throw new Error(`${batchLabel}: no text block`);
   const signals = extractJsonArray(textBlock.text);
@@ -733,6 +734,7 @@ async function runSelfCheck(signals, batchLabel, usageCallback) {
     const selfLabel = `${batchLabel} self-check`;
     const selfCheckMax = Math.min(selfCheckMaxTokensCap(), 60 + indices.length * 30);
     const llmPort = getDefaultLlmPort();
+    const cliMeta = llmPort.transport === 'claude-cli' ? { transport: 'claude-cli' } : {};
     const stream = await Promise.resolve(llmPort.stream({
       model: DEFAULT_SELF_CHECK_MODEL,
       max_tokens: selfCheckMax,
@@ -747,12 +749,12 @@ async function runSelfCheck(signals, batchLabel, usageCallback) {
         maxOutputTokens: selfCheckMax,
       },
       onUsage: usageCallback
-        ? (p) => usageCallback({ label: selfLabel, model: DEFAULT_SELF_CHECK_MODEL, usage: p.usage })
+        ? (p) => usageCallback({ label: selfLabel, model: DEFAULT_SELF_CHECK_MODEL, usage: p.usage, ...cliMeta })
         : undefined,
     }));
     await streamWithProgress(stream, selfLabel);
     const message = await stream.finalMessage();
-    if (usageCallback) usageCallback({ label: selfLabel, model: DEFAULT_SELF_CHECK_MODEL, usage: message.usage });
+    if (usageCallback) usageCallback({ label: selfLabel, model: DEFAULT_SELF_CHECK_MODEL, usage: message.usage, ...cliMeta });
     const textBlock = message.content.find((b) => b.type === 'text');
     if (!textBlock) return signals;
     const verdicts = extractJsonArray(textBlock.text);
@@ -879,7 +881,9 @@ async function extractMultipassRaw(articles, batchLabel, retries, usageCallback,
     articles, batchLabel, retries, usageCallback, contentKind, extractModel, extractOpts, groupKeys,
   };
 
-  if (extractBatchEnabled() && groupKeys.length > 0) {
+  // The Batch API adapter bypasses the LLM port, so the claude-cli transport
+  // cannot intercept it — force the sequential path under that transport.
+  if (extractBatchEnabled() && groupKeys.length > 0 && process.env.LLM_TRANSPORT !== 'claude-cli') {
     return extractMultipassViaBatch({ ...passCtx, modelId });
   }
 

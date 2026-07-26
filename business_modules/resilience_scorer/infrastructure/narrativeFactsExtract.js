@@ -2,7 +2,7 @@
  * Haiku facts-pass: extract narrative_claims from signals before Sonnet polish.
  */
 
-import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
+import { resolveLlmPort, transportMeta } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { COMPONENT_IDS } from '../domain/contracts/componentIds.js';
@@ -121,7 +121,7 @@ async function extractFactsForShard(registry, componentIds, opts, shardLabel) {
     },
   }, { label: shardLabel ?? '[Step 2 — Facts]' });
   if (onUsage) {
-    onUsage({ label: shardLabel ?? '[Step 2 — Facts]', model: DEFAULT_FACTS_MODEL, usage: message.usage });
+    onUsage({ label: shardLabel ?? '[Step 2 — Facts]', model: DEFAULT_FACTS_MODEL, usage: message.usage, ...transportMeta(port) });
   }
   const textBlock = message.content.find((b) => b.type === 'text');
   if (!textBlock) throw new Error('Facts pass: no text block');
@@ -180,7 +180,7 @@ export async function extractNarrativeFacts(scoredComponents, opts = {}) {
     callContext: { feature: 'narrative_facts', purpose: '[Step 2 — Facts]' },
   }, { label: '[Step 2 — Facts]' });
   if (onUsage) {
-    onUsage({ label: '[Step 2 — Facts]', model: DEFAULT_FACTS_MODEL, usage: message.usage });
+    onUsage({ label: '[Step 2 — Facts]', model: DEFAULT_FACTS_MODEL, usage: message.usage, ...transportMeta(port) });
   }
   const textBlock = message.content.find((b) => b.type === 'text');
   if (!textBlock) throw new Error('Facts pass: no text block');

@@ -5,6 +5,9 @@ description: Run 8-component resilience analysis on today's radio broadcast tran
 
 ## Your task
 
+**Billing switch:** If the arguments include `--api`, strip that token and use the plain script names without the `:cli` suffix (e.g. `npm run pipeline:run` instead of `npm run pipeline:run:cli`, `npm run extract-signals` instead of `npm run extract-signals:cli`). `:cli` bills LLM calls to the Max subscription; `--api` forces metered API credits — use it when subscription limits must not interrupt the run.
+
+
 Run the 8-component resilience analysis on today's radio broadcast transcripts. Do NOT ask for confirmation — just go.
 
 **Step 1 — Find today's audio transcript files**
@@ -20,12 +23,12 @@ If no files are found for today, report that transcription hasn't run yet and st
 
 **Step 2 — Extract signals**
 ```
-npm run extract-signals -- --source-type radio --files <comma-separated file list> --date <today's date>
+npm run extract-signals:cli -- --source-type radio --files <comma-separated file list> --date <today's date>
 ```
 
 **Step 3 — Assess**
 ```
-npm run assess-signals -- --date <today's date> --days 1 --scope national
+npm run assess-signals:cli -- --date <today's date> --days 1 --scope national
 ```
 
 After all steps complete, report:

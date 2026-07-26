@@ -1,9 +1,12 @@
 ---
-allowed-tools: Bash(node business_modules/resilience_scorer/input/extract-signals.js*), Bash(ls articles-visits-reports-*), Bash(ls articles-field-reports-*)
+allowed-tools: Bash(node business_modules/resilience_scorer/input/extract-signals.js*), Bash(npm run extract-signals:*), Bash(ls articles-visits-reports-*), Bash(ls articles-field-reports-*)
 description: Extract resilience signals from the most recent visits reports file and save under business_modules/visits/data/signals/
 ---
 
 ## Your task
+
+**Billing switch:** If the arguments include `--api`, strip that token and use the plain script names without the `:cli` suffix (e.g. `npm run pipeline:run` instead of `npm run pipeline:run:cli`, `npm run extract-signals` instead of `npm run extract-signals:cli`). `:cli` bills LLM calls to the Max subscription; `--api` forces metered API credits — use it when subscription limits must not interrupt the run.
+
 
 Extract behavioral signals from the most recent visits reports file. Do NOT ask for confirmation — just go.
 
@@ -25,7 +28,7 @@ If no file is found, report that no visits reports are available and stop.
 
 Run:
 ```
-node business_modules/resilience_scorer/input/extract-signals.js --source-type visits --files <file from step 1> --date <date from filename YYYY-MM-DD>
+npm run extract-signals:cli -- --source-type visits --files <file from step 1> --date <date from filename YYYY-MM-DD>
 ```
 
 Extract the date from the filename (e.g. `articles-visits-reports-2026-03-24.md` → date `2026-03-24`).

@@ -3,6 +3,7 @@
  */
 import { ragQueryRewriteEnabled } from './ragConfig.js';
 import { getDefaultLlmPort } from '../llm/anthropicLlmAdapter.js';
+import { transportMeta } from '../llm/resolveLlmPort.js';
 import { HAIKU_MODEL } from '../llm/modelIds.js';
 
 /**
@@ -51,6 +52,7 @@ export async function rewriteQueryForRetrieval(input, deps = {}) {
         label: 'rag:query-rewrite',
         model,
         usage: response.usage,
+        ...transportMeta(llmPort),
       });
     }
     const text = response.content?.find((b) => b.type === 'text')?.text ?? '';

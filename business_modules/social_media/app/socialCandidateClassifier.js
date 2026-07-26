@@ -1,4 +1,5 @@
 import { getDefaultLlmPort, createAnthropicLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { transportMeta } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { createLlmGateway } from '../../../cross-cut-modules/llm/llmGateway.js';
 import { jsonrepair } from 'jsonrepair';
@@ -146,9 +147,10 @@ export async function classifySocialCandidates(candidates, opts = {}) {
       callContext: { feature: 'social_classify', purpose: `classify batch ${offset / BATCH_SIZE + 1}` },
     });
 
-    const cost = calcInvocationCostUsd(MODEL, message.usage);
-    tracker.onUsage({ label: `classify batch ${offset / BATCH_SIZE + 1}`, model: MODEL, usage: message.usage });
-    opts.onUsage?.({ model: MODEL, usage: message.usage, cost });
+    const cliMeta = transportMeta(llmPort);
+    const cost = cliMeta.transport ? 0 : calcInvocationCostUsd(MODEL, message.usage);
+    tracker.onUsage({ label: `classify batch ${offset / BATCH_SIZE + 1}`, model: MODEL, usage: message.usage, ...cliMeta });
+    opts.onUsage?.({ model: MODEL, usage: message.usage, cost, ...cliMeta });
 
     const text = message.content.find((b) => b.type === 'text')?.text ?? '';
     applyClassifierRows(parseClassifierJson(text), batch, findings, rejected, rejected_examples);

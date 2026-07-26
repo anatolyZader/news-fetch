@@ -7,6 +7,9 @@ description: Full 3-day north pipeline — always-reextract via preset 8comp-3-n
 
 ## Your task
 
+**Billing switch:** If the arguments include `--api`, strip that token and use the plain script names without the `:cli` suffix (e.g. `npm run pipeline:run` instead of `npm run pipeline:run:cli`, `npm run extract-signals` instead of `npm run extract-signals:cli`). `:cli` bills LLM calls to the Max subscription; `--api` forces metered API credits — use it when subscription limits must not interrupt the run.
+
+
 Run the 3-day **north-focused** pipeline (national comparison context in assess). Do NOT ask for confirmation — just go.
 
 ### Argument parsing
@@ -25,7 +28,7 @@ mkdir -p logs && echo "=== Pipeline run: north <target date> | preset: 8comp-3-n
 Unified orchestrator (`--always-reextract` is set by preset):
 
 ```
-npm run pipeline:run -- --preset 8comp-3-north [--force] [--date YYYY-MM-DD] 2>> logs/pipeline-run-north-<target date>.log
+npm run pipeline:run:cli -- --preset 8comp-3-north [--force] [--date YYYY-MM-DD] 2>> logs/pipeline-run-north-<target date>.log
 tail -5 logs/pipeline-run-north-<target date>.log
 ```
 

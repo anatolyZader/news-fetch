@@ -13,6 +13,7 @@ import { existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { relative } from 'node:path';
 
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { transportMeta } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { preFilterByRelevance, homefrontPrefilterMode } from './homefrontRelevanceFilter.js';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
@@ -165,6 +166,7 @@ async function createAnthropicMessageWithRetry({ model, label, batch, titleList 
         temperature: 0,
         system: FETCH_PREFILTER_SYSTEM_PROMPT,
         messages: [{ role: 'user', content: `Classify these ${batch.length} article titles:\n\n${titleList}` }],
+        callContext: { feature: 'homefront_filter', purpose: label },
       });
     } catch (err) {
       if (attempt === retries) throw err;
@@ -204,7 +206,7 @@ async function preFilterBatch(batch, batchOffset, batchNum, totalBatches, onUsag
     throw new Error(`${label} output truncated (max_tokens) — increase max_tokens`);
   }
 
-  onUsage({ label, model, usage: message.usage });
+  onUsage({ label, model, usage: message.usage, ...transportMeta(getDefaultLlmPort()) });
 
   const text = message.content.find((b) => b.type === 'text')?.text ?? '';
   return parsePrefilterIndices(text, label);

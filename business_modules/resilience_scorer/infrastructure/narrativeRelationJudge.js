@@ -3,7 +3,7 @@
  * Default: one batched call per component (RESILIENCE_NARRATIVE_JUDGE_BATCH=0 for per-claim).
  */
 
-import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
+import { resolveLlmPort, transportMeta } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamMessageWithRetry } from './llmStreamCall.js';
@@ -116,6 +116,7 @@ async function judgeComponentClaimsBatch(claims, comp, registry, opts = {}) {
       label: `[Step 2 — Judge batch ${comp.component_id}]`,
       model: DEFAULT_JUDGE_MODEL,
       usage: message.usage,
+      ...transportMeta(port),
     });
   }
   const textBlock = message.content.find((b) => b.type === 'text');
@@ -157,7 +158,7 @@ async function judgeOneNarrativeClaim(claim, comp, registry, opts = {}) {
     callContext: { feature: 'narrative_judge', purpose: '[Step 2 — Judge]' },
   }, { label: '[Step 2 — Judge]', skipProgress: opts.skipProgress });
   if (opts.onUsage) {
-    opts.onUsage({ label: '[Step 2 — Judge]', model: DEFAULT_JUDGE_MODEL, usage: message.usage });
+    opts.onUsage({ label: '[Step 2 — Judge]', model: DEFAULT_JUDGE_MODEL, usage: message.usage, ...transportMeta(port) });
   }
   const textBlock = message.content.find((b) => b.type === 'text');
   if (!textBlock) return null;

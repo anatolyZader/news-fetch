@@ -1,5 +1,5 @@
 import { SONNET_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
-import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
+import { resolveLlmPort, transportMeta } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { summarizeConfidence } from '../domain/services/signals/confidenceLabels.js';
 import {
@@ -576,7 +576,7 @@ async function fetchNarrativeJson(systemPrompt, date, totalArticles, feedback, a
     messages: [{ role: 'user', content: userContent }],
     callContext: { feature: 'narrative_generation', purpose: label },
   }, { label });
-  if (onUsage) onUsage({ label: '[Step 2 — Narratives]', model: DEFAULT_NARRATIVE_MODEL, usage: message.usage });
+  if (onUsage) onUsage({ label: '[Step 2 — Narratives]', model: DEFAULT_NARRATIVE_MODEL, usage: message.usage, ...transportMeta(port) });
   const textBlock = message.content.find((b) => b.type === 'text');
   if (!textBlock) throw new Error('Step 2: no text block');
   let narratives = extractJson(textBlock.text);

@@ -18,3 +18,13 @@ export function resolveLlmPort(opts = {}) {
   }
   return getDefaultLlmPort();
 }
+
+/**
+ * Spread into self-built onUsage payloads so subscription-billed (claude-cli)
+ * calls are logged at $0 by the cost tracker instead of nominal API prices.
+ * @param {import('./ILlmPort.js').LlmPort} port
+ * @returns {{ transport?: 'claude-cli' }}
+ */
+export function transportMeta(port) {
+  return port?.transport === 'claude-cli' ? { transport: 'claude-cli' } : {};
+}

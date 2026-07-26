@@ -1,7 +1,7 @@
 /**
  * Single-shot LLM generation for operator decision brief JSON.
  */
-import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
+import { resolveLlmPort, transportMeta } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { withLlmRetry } from '../../../cross-cut-modules/llm/withLlmRetry.js';
 import { extractJson } from './claudeJsonHelpers.js';
@@ -93,7 +93,7 @@ export async function generateDecisionBrief(assessment, opts = {}) {
   });
 
   if (opts.onUsage && response.usage) {
-    opts.onUsage({ label: 'decision-brief', model, usage: response.usage });
+    opts.onUsage({ label: 'decision-brief', model, usage: response.usage, ...transportMeta(port) });
   }
 
   const text = response.content

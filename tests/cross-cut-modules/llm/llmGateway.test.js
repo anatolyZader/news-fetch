@@ -158,3 +158,124 @@ describe('createLlmGateway', () => {
     }
   });
 });
+
+describe('createLlmGateway claude-cli transport', () => {
+  function cliInnerPort() {
+    const message = {
+      content: [{ type: 'text', text: 'cli-ok' }],
+      usage: { input_tokens: 200, output_tokens: 30 },
+      stop_reason: 'end_turn',
+    };
+    return {
+      transport: 'claude-cli',
+      createMessage: async () => message,
+      stream: async () => ({ finalMessage: () => Promise.resolve(message) }),
+      runToolLoop: async () => ({ lastAssistantText: 'x' }),
+    };
+  }
+
+  it('records $0 + transport on createMessage invocations and onUsage payloads', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'llm-gw-cli-'));
+    const prev = process.env.LLM_INVOCATIONS_PATH;
+    process.env.LLM_INVOCATIONS_PATH = join(dir, 'invocations.jsonl');
+
+    try {
+      const port = createLlmGateway(cliInnerPort());
+      assert.equal(port.transport, 'claude-cli');
+
+      const payloads = [];
+      await port.createMessage({
+        model: 'claude-haiku-4-5-20251001',
+        messages: [{ role: 'user', content: 'hi' }],
+        callContext: { feature: 'extract', purpose: 'cli-call' },
+        onUsage: (p) => payloads.push(p),
+      });
+
+      const rows = [...readJsonlRecords(resolveLlmInvocationsPath())];
+      assert.equal(rows.length, 1);
+      assert.equal(rows[0].costUsd, 0);
+      assert.equal(rows[0].transport, 'claude-cli');
+      assert.equal(rows[0].inputTokens, 200);
+
+      assert.equal(payloads.length, 1);
+      assert.equal(payloads[0].costUsd, 0);
+      assert.equal(payloads[0].transport, 'claude-cli');
+    } finally {
+      if (prev == null) delete process.env.LLM_INVOCATIONS_PATH;
+      else process.env.LLM_INVOCATIONS_PATH = prev;
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('records $0 + transport on the stream finalMessage path', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'llm-gw-cli-stream-'));
+    const prev = process.env.LLM_INVOCATIONS_PATH;
+    process.env.LLM_INVOCATIONS_PATH = join(dir, 'invocations.jsonl');
+
+    try {
+      const port = createLlmGateway(cliInnerPort());
+      const payloads = [];
+      const stream = await port.stream({
+        model: 'claude-haiku-4-5-20251001',
+        messages: [{ role: 'user', content: 'hi' }],
+        callContext: { feature: 'extract', purpose: 'cli-stream' },
+        onUsage: (p) => payloads.push(p),
+      });
+      await stream.finalMessage();
+
+      const rows = [...readJsonlRecords(resolveLlmInvocationsPath())];
+      assert.equal(rows.length, 1);
+      assert.equal(rows[0].costUsd, 0);
+      assert.equal(rows[0].transport, 'claude-cli');
+      assert.equal(payloads[0].costUsd, 0);
+      assert.equal(payloads[0].transport, 'claude-cli');
+    } finally {
+      if (prev == null) delete process.env.LLM_INVOCATIONS_PATH;
+      else process.env.LLM_INVOCATIONS_PATH = prev;
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('createLlmGateway dynamic transport (limit fallback)', () => {
+  it('bills at real prices once the inner port stops reporting claude-cli', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'llm-gw-flip-'));
+    const prev = process.env.LLM_INVOCATIONS_PATH;
+    process.env.LLM_INVOCATIONS_PATH = join(dir, 'invocations.jsonl');
+
+    try {
+      let onCli = true;
+      const message = {
+        content: [{ type: 'text', text: 'ok' }],
+        usage: { input_tokens: 1000, output_tokens: 100 },
+        stop_reason: 'end_turn',
+      };
+      const inner = {
+        get transport() { return onCli ? 'claude-cli' : undefined; },
+        createMessage: async () => message,
+      };
+      const port = createLlmGateway(inner);
+      const payloads = [];
+      const req = {
+        model: 'claude-haiku-4-5-20251001',
+        messages: [{ role: 'user', content: 'hi' }],
+        callContext: { feature: 'extract', purpose: 'flip' },
+        onUsage: (p) => payloads.push(p),
+      };
+
+      await port.createMessage(req);       // subscription-billed
+      onCli = false;                       // simulate sticky API fallback
+      await port.createMessage(req);       // metered
+
+      assert.equal(payloads[0].costUsd, 0);
+      assert.equal(payloads[0].transport, 'claude-cli');
+      assert.ok(payloads[1].costUsd > 0);
+      assert.equal(payloads[1].transport, undefined);
+      assert.equal(port.transport, undefined); // getter follows the inner port
+    } finally {
+      if (prev == null) delete process.env.LLM_INVOCATIONS_PATH;
+      else process.env.LLM_INVOCATIONS_PATH = prev;
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});

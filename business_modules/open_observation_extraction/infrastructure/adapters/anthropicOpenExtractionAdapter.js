@@ -2,7 +2,7 @@
  * Haiku open-vocabulary observation extraction.
  */
 import { jsonrepair } from 'jsonrepair';
-import { resolveLlmPort } from '../../../../cross-cut-modules/llm/resolveLlmPort.js';
+import { resolveLlmPort, transportMeta } from '../../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { HAIKU_MODEL } from '../../../../cross-cut-modules/llm/modelIds.js';
 import { IOpenExtractionPort } from '../../domain/ports/IOpenExtractionPort.js';
 import {
@@ -82,7 +82,7 @@ export class AnthropicOpenExtractionAdapter extends IOpenExtractionPort {
     });
 
     if (onUsage) {
-      onUsage({ label: batchLabel, model: this.model, usage: response.usage });
+      onUsage({ label: batchLabel, model: this.model, usage: response.usage, ...transportMeta(this.llmPort) });
     }
 
     const textBlock = response.content.find((b) => b.type === 'text');

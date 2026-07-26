@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { transportMeta } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { SONNET_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { jsonrepair } from 'jsonrepair';
 import { readFile, writeFile } from 'node:fs/promises';
@@ -404,12 +405,13 @@ export async function getTranslatedReport(report, lang) {
   );
 
   const translationModel = SONNET_MODEL;
-  const costUsd = calcInvocationCostUsd(translationModel, totalUsage);
+  const cliMeta = transportMeta(getDefaultLlmPort());
+  const costUsd = cliMeta.transport ? 0 : calcInvocationCostUsd(translationModel, totalUsage);
   appendCostLog({
     script: `translation-${lang}`,
     date: report.date,
     totalCostUsd: costUsd,
-    usageLog: [{ label: `translate-${lang}`, model: translationModel, usage: totalUsage, cost: costUsd }],
+    usageLog: [{ label: `translate-${lang}`, model: translationModel, usage: totalUsage, cost: costUsd, ...cliMeta }],
   });
 
   const translatedReport = {

@@ -1,7 +1,7 @@
 /**
  * Sonnet polish pass: turn validated narrative_claims into operator-readable prose.
  */
-import { resolveLlmPort } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
+import { resolveLlmPort, transportMeta } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { SONNET_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { RESILIENCE_COMPONENTS } from '../domain/resilienceComponents.js';
 import { extractJson } from './claudeJsonHelpers.js';
@@ -281,6 +281,7 @@ async function invokePolishStream(params) {
       label: progressLabel ?? '[Step 3 — Polish]',
       model: DEFAULT_POLISH_MODEL,
       usage: message.usage,
+      ...transportMeta(port),
     });
   }
   const textBlock = message.content.find((b) => b.type === 'text');

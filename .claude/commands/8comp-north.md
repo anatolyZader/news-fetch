@@ -7,6 +7,9 @@ description: 1-day north pipeline for a specific past date — reuse-first repla
 
 ## Your task
 
+**Billing switch:** If the arguments include `--api`, strip that token and use the plain script names without the `:cli` suffix (e.g. `npm run pipeline:run` instead of `npm run pipeline:run:cli`, `npm run extract-signals` instead of `npm run extract-signals:cli`). `:cli` bills LLM calls to the Max subscription; `--api` forces metered API credits — use it when subscription limits must not interrupt the run.
+
+
 Run the 1-day **north-focused** pipeline for a specific past date (national comparison context in assess). Do NOT ask for confirmation — just go.
 
 **Do NOT** start a Monitor task, `tail -f` loop, or poll every few seconds. Launch the pipeline once in background if needed; summarize from artifacts when it finishes.
@@ -46,13 +49,13 @@ mkdir -p logs && echo "=== Pipeline run: north <target date> | preset: <preset> 
 ### Run (default: reuse-first replay)
 
 ```
-npm run pipeline:run -- --preset 8comp-north-replay [--force] --date YYYY-MM-DD 2>> logs/pipeline-run-north-<target date>.log
+npm run pipeline:run:cli -- --preset 8comp-north-replay [--force] --date YYYY-MM-DD 2>> logs/pipeline-run-north-<target date>.log
 ```
 
 Full re-extract (expensive — only when bundles stale or `--reextract`):
 
 ```
-npm run pipeline:run -- --preset 8comp-north [--force] --date YYYY-MM-DD 2>> logs/pipeline-run-north-<target date>.log
+npm run pipeline:run:cli -- --preset 8comp-north [--force] --date YYYY-MM-DD 2>> logs/pipeline-run-north-<target date>.log
 ```
 
 ### Assess-only (narrative/polish fixes — skip ingest)
@@ -60,7 +63,7 @@ npm run pipeline:run -- --preset 8comp-north [--force] --date YYYY-MM-DD 2>> log
 Use when signal bundles already exist and you only need a new report. Pass `--force` if a normal report already exists.
 
 ```
-npm run pipeline:run -- --preset 8comp-north-replay --assess-only [--force] --date YYYY-MM-DD 2>> logs/pipeline-run-north-<target date>.log
+npm run pipeline:run:cli -- --preset 8comp-north-replay --assess-only [--force] --date YYYY-MM-DD 2>> logs/pipeline-run-north-<target date>.log
 ```
 
 ### Historical QA with assessment agent (optional)
@@ -70,7 +73,7 @@ Default closed-core assess skips the specialist agent (faster, cheaper). For Jun
 ```
 export RESILIENCE_CLOSED_CORE_ASSESS=0
 export RESILIENCE_ASSESSMENT_AGENT_MAX_USD=2.50
-npm run pipeline:run -- --preset 8comp-north-replay --assess-only --force --date YYYY-MM-DD 2>> logs/pipeline-run-north-<target date>.log
+npm run pipeline:run:cli -- --preset 8comp-north-replay --assess-only --force --date YYYY-MM-DD 2>> logs/pipeline-run-north-<target date>.log
 ```
 
 Unset `RESILIENCE_CLOSED_CORE_ASSESS` (or `=1`) for daily/cron. Narrative strict mode (analyst replays only): `RESILIENCE_NARRATIVE_GROUNDING_BLOCK=1`.

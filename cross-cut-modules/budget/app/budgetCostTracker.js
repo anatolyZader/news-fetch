@@ -156,13 +156,30 @@ export function createCostTracker({ maxCostUsd, label: _label = 'run' } = {}) {
    * }} payload
    */
   function onUsage(payload) {
-    const { label: callLabel, model, usage, costUsd, stage, stats } = payload;
+    const { label: callLabel, model, usage, costUsd, stage, stats, transport } = payload;
 
     if (stage) {
       stageEvents.push({ label: callLabel, stage, stats: stats ?? {} });
       const dropped = stats?.dropped ?? 0;
       const input = stats?.input ?? 0;
       console.error(`  🔎 ${callLabel.padEnd(38)} stage=${stage}  dropped: ${dropped}/${input}`);
+      return;
+    }
+
+    // Subscription-billed transport (claude -p): tokens are logged, dollars are
+    // $0, and the call never counts toward cost caps or the daily budget.
+    if (transport === 'claude-cli') {
+      usageLog.push({
+        label: callLabel,
+        model,
+        usage: usage ?? { input_tokens: 0, output_tokens: 0 },
+        cost: 0,
+        transport,
+      });
+      const u = usage ?? { input_tokens: 0, output_tokens: 0 };
+      console.error(
+        `  💰 ${callLabel.padEnd(38)} in: ${String(u.input_tokens ?? 0).padStart(6)}  out: ${String(u.output_tokens ?? 0).padStart(6)}  $0.0000 (subscription)`,
+      );
       return;
     }
 

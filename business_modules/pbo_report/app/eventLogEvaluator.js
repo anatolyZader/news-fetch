@@ -8,6 +8,7 @@
  */
 
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { transportMeta } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { RESILIENCE_COMPONENTS } from '../../resilience_scorer/index.js';
 import { formatEventsAsTable, CATEGORY_COMPONENT_HINTS } from '../domain/services/eventLogLoader.js';
@@ -136,17 +137,18 @@ export async function classifyEvents(parsedLog, options = {}) {
     `EVENT TABLE:\n${table}\n\n` +
     `Classify every event against the 8 resilience components.`;
 
-  const stream = getDefaultLlmPort().stream({
+  const llmPort = getDefaultLlmPort();
+  const stream = await Promise.resolve(llmPort.stream({
     model: MODEL_CLASSIFY,
     max_tokens: 16000,
     system: systemPrompt,
     messages: [{ role: 'user', content: userContent }],
-  });
+  }));
 
   await streamWithProgress(stream, '[Step 1 — Event classification]');
   const message = await stream.finalMessage();
   if (onUsage) {
-    onUsage({ label: '[Step 1 — Event classification]', model: MODEL_CLASSIFY, usage: message.usage });
+    onUsage({ label: '[Step 1 — Event classification]', model: MODEL_CLASSIFY, usage: message.usage, ...transportMeta(llmPort) });
   }
   if (message.stop_reason === 'max_tokens') {
     console.error('  ⚠ Step 1 hit max_tokens — attempting partial recovery');
@@ -209,18 +211,19 @@ export async function synthesizeFromEvents(parsedLog, classifications, date, opt
     `CLASSIFIED EVENTS:\n${JSON.stringify(classifications)}\n\n` +
     `Produce a complete 8-component resilience assessment.`;
 
-  const stream = getDefaultLlmPort().stream({
+  const llmPort = getDefaultLlmPort();
+  const stream = await Promise.resolve(llmPort.stream({
     model: MODEL_SYNTHESIZE,
     max_tokens: 16000,
     thinking: { type: 'adaptive' },
     system: systemPrompt,
     messages: [{ role: 'user', content: userContent }],
-  });
+  }));
 
   await streamWithProgress(stream, '[Step 2 — Synthesis & scoring]');
   const message = await stream.finalMessage();
   if (onUsage) {
-    onUsage({ label: '[Step 2 — Synthesis & scoring]', model: MODEL_SYNTHESIZE, usage: message.usage });
+    onUsage({ label: '[Step 2 — Synthesis & scoring]', model: MODEL_SYNTHESIZE, usage: message.usage, ...transportMeta(llmPort) });
   }
 
   const textBlock = message.content.find((b) => b.type === 'text');

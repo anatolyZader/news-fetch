@@ -1,4 +1,5 @@
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
+import { transportMeta } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { SONNET_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { jsonrepair } from 'jsonrepair';
 import { calcInvocationCostUsd } from '../../../cross-cut-modules/budget/index.js';
@@ -65,12 +66,13 @@ export async function translateGenericJson(payload, lang, opts = {}) {
   }
 
   if (opts.costLabel) {
-    const costUsd = calcInvocationCostUsd(MODEL, message.usage);
+    const cliMeta = transportMeta(getDefaultLlmPort());
+    const costUsd = cliMeta.transport ? 0 : calcInvocationCostUsd(MODEL, message.usage);
     appendCostLog({
       script: opts.costLabel,
       date: opts.costDate ?? new Date().toISOString().slice(0, 10),
       totalCostUsd: costUsd,
-      usageLog: [{ label: opts.costLabel, model: MODEL, usage: message.usage, cost: costUsd }],
+      usageLog: [{ label: opts.costLabel, model: MODEL, usage: message.usage, cost: costUsd, ...cliMeta }],
     });
   }
 

@@ -39,6 +39,11 @@ function emitUsage(onUsage, payload) {
  */
 export function createLlmGateway(innerPort, cfg = {}) {
   const defaultCtx = cfg.defaultCallContext ?? {};
+  // Subscription-billed transport: single-shot calls cost $0 (tokens still logged).
+  // runToolLoop always rides the metered SDK, so its costing stays untouched.
+  // Read at call time — the CLI adapter flips to API billing after a sticky
+  // subscription-limit fallback, and later calls must then bill at real prices.
+  const cliTransport = () => innerPort.transport === 'claude-cli';
   const breakerThreshold = Number.parseInt(process.env.LLM_BREAKER_THRESHOLD ?? '5', 10);
   const breakerCooldownMs = Number.parseInt(process.env.LLM_BREAKER_COOLDOWN_MS ?? '60000', 10);
   const consecutiveFailureLimit = Number.isFinite(breakerThreshold) && breakerThreshold > 0 ? breakerThreshold : 5;
@@ -103,6 +108,7 @@ export function createLlmGateway(innerPort, cfg = {}) {
       latencyMs,
       stopReason: response?.stop_reason ?? null,
       label: callContext.purpose,
+      ...(cliTransport() ? { costUsd: 0, transport: 'claude-cli' } : {}),
     });
 
     if (opts?.onUsage && response?.usage) {
@@ -110,8 +116,9 @@ export function createLlmGateway(innerPort, cfg = {}) {
         label: callContext.purpose ?? callContext.feature,
         model: opts.model,
         usage: response.usage,
-        costUsd: calcLlmCostUsd(opts.model, response.usage),
+        costUsd: cliTransport() ? 0 : calcLlmCostUsd(opts.model, response.usage),
         feature: callContext.feature,
+        ...(cliTransport() ? { transport: 'claude-cli' } : {}),
       });
     }
 
@@ -136,14 +143,16 @@ export function createLlmGateway(innerPort, cfg = {}) {
           latencyMs,
           stopReason: message?.stop_reason ?? null,
           label: callContext.purpose,
+          ...(cliTransport() ? { costUsd: 0, transport: 'claude-cli' } : {}),
         });
         if (opts?.onUsage && message?.usage) {
           emitUsage(opts.onUsage, {
             label: callContext.purpose ?? callContext.feature,
             model: opts.model,
             usage: message.usage,
-            costUsd: calcLlmCostUsd(opts.model, message.usage),
+            costUsd: cliTransport() ? 0 : calcLlmCostUsd(opts.model, message.usage),
             feature: callContext.feature,
+            ...(cliTransport() ? { transport: 'claude-cli' } : {}),
           });
         }
         return message;
@@ -188,6 +197,9 @@ export function createLlmGateway(innerPort, cfg = {}) {
     stream,
     runToolLoop,
     defaultModel: innerPort.defaultModel,
+    get transport() {
+      return innerPort.transport;
+    },
   };
 }
 

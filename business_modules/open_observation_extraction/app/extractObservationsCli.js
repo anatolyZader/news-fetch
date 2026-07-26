@@ -34,8 +34,8 @@ export async function runExtractObservationsCli() {
     console.error('Error: --files is required');
     process.exit(1);
   }
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error('Error: ANTHROPIC_API_KEY is not set');
+  if (!process.env.ANTHROPIC_API_KEY && process.env.LLM_TRANSPORT !== 'claude-cli') {
+    console.error('Error: ANTHROPIC_API_KEY is not set (or use LLM_TRANSPORT=claude-cli)');
     process.exit(1);
   }
 

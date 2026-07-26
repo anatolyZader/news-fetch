@@ -60,6 +60,7 @@ export function logLlmInvocation(payload) {
     cachedInputTokens: tokens.cachedInputTokens,
     cacheCreationTokens: tokens.cacheCreationTokens,
     costUsd: Math.round(costUsd * 1e8) / 1e8,
+    transport: payload.transport ?? null,
     latencyMs: payload.latencyMs ?? null,
     stopReason: payload.stopReason ?? null,
     maxOutputTokens: ctx.maxOutputTokens ?? null,
