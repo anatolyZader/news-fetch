@@ -175,7 +175,7 @@ function formatDashboardMunicipality(dashboard, day, muni) {
   const lines = [];
   for (const cid of order) {
     const comp = muni.components?.[cid];
-    if (!comp || comp.avg == null) continue;
+    if (comp?.avg == null) continue;
     const pct = Math.round(comp.avg * 100);
     const texts = (comp.texts ?? []).slice(0, 2).join(' | ');
     const textPart = texts ? ` — ${texts}` : '';

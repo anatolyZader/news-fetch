@@ -1,5 +1,5 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
-import assert from 'node:assert/strict';
+import { strict as assert } from 'node:assert';
 import { mkdtempSync, rmSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -11,12 +11,12 @@ import { COMPONENTS_ORDER } from '../../../../business_modules/pbo_report/app/pb
 function fullComponents(overrides = {}) {
   const components = {};
   for (const cid of COMPONENTS_ORDER) {
-    components[cid] = {
+    const base = {
       avg: 0.5,
       scores: [{ value: 0.5 }, { value: 0.5 }, { value: 0.5 }],
       texts: ['ok'],
-      ...overrides[cid],
     };
+    components[cid] = overrides[cid] ? { ...base, ...overrides[cid] } : base;
   }
   return components;
 }

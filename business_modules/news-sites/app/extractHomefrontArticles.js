@@ -8,9 +8,8 @@
  */
 import { config } from 'dotenv';
 import { fileURLToPath } from 'node:url';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, relative } from 'node:path';
 import { existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
-import { relative } from 'node:path';
 
 import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { transportMeta } from '../../../cross-cut-modules/llm/resolveLlmPort.js';

@@ -158,7 +158,7 @@ export function createChatSessionService(opts) {
       ownerUid,
       sessionId,
       summary,
-      throughId: fold[fold.length - 1].id,
+      throughId: fold.at(-1).id,
     });
   }
 
