@@ -346,7 +346,7 @@ The sections below are **auto-synced** from code. Do not edit between markers; r
 
 <!-- docs-sync:BEGIN components-at-a-glance -->
 
-> **Auto-synced** from `business_modules/resilience_scorer/domain/resilienceComponents.js` on 2026-07-25. Do not edit between sync markers.
+> **Auto-synced** from `business_modules/resilience_scorer/domain/resilienceComponents.js` on 2026-07-26. Do not edit between sync markers.
 
 | # | ID | English | Hebrew | What it measures (in one line) |
 |---|---|---|---|---|
@@ -365,7 +365,7 @@ The sections below are **auto-synced** from code. Do not edit between markers; r
 
 <!-- docs-sync:BEGIN component-facets -->
 
-> **Auto-synced** from `min-math (componentFacets.js removed)` on 2026-07-25. Do not edit between sync markers.
+> **Auto-synced** from `min-math (componentFacets.js removed)` on 2026-07-26. Do not edit between sync markers.
 
 **Sub-facets retired.** Per-component assessment is count-based `evidence_basis`
 (sufficiency / balance / concentration) plus critical flags and narrative — not
@@ -378,7 +378,7 @@ facet-level tanh scores. Signal → component edges live in
 
 <!-- docs-sync:BEGIN components-detail -->
 
-> **Auto-synced** from `resilienceComponents.js` on 2026-07-25. Do not edit between sync markers.
+> **Auto-synced** from `resilienceComponents.js` on 2026-07-26. Do not edit between sync markers.
 
 
 Per-component reference below is regenerated from code. Extended narrative, signal-routing notes, and boundary rules in earlier manual sections may appear in pipeline stages §3+.
@@ -553,7 +553,7 @@ Signal types that route into each component are defined in `SIGNAL_TO_COMPONENTS
 
 <!-- docs-sync:BEGIN appendix-ui-labels -->
 
-> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-07-25. Do not edit between sync markers.
+> **Auto-synced** from `client/src/i18n/translations.js (en + he)` on 2026-07-26. Do not edit between sync markers.
 
 | ID | English UI label | Hebrew UI label |
 |---|---|---|
