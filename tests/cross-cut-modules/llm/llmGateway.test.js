@@ -28,6 +28,20 @@ function fakeClient() {
   };
 }
 
+function cliInnerPort() {
+  const message = {
+    content: [{ type: 'text', text: 'cli-ok' }],
+    usage: { input_tokens: 200, output_tokens: 30 },
+    stop_reason: 'end_turn',
+  };
+  return {
+    transport: 'claude-cli',
+    createMessage: async () => message,
+    stream: async () => ({ finalMessage: () => Promise.resolve(message) }),
+    runToolLoop: async () => ({ lastAssistantText: 'x' }),
+  };
+}
+
 describe('createLlmGateway', () => {
   it('logs invocation on createMessage with feature context', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'llm-gw-'));
@@ -160,20 +174,6 @@ describe('createLlmGateway', () => {
 });
 
 describe('createLlmGateway claude-cli transport', () => {
-  function cliInnerPort() {
-    const message = {
-      content: [{ type: 'text', text: 'cli-ok' }],
-      usage: { input_tokens: 200, output_tokens: 30 },
-      stop_reason: 'end_turn',
-    };
-    return {
-      transport: 'claude-cli',
-      createMessage: async () => message,
-      stream: async () => ({ finalMessage: () => Promise.resolve(message) }),
-      runToolLoop: async () => ({ lastAssistantText: 'x' }),
-    };
-  }
-
   it('records $0 + transport on createMessage invocations and onUsage payloads', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'llm-gw-cli-'));
     const prev = process.env.LLM_INVOCATIONS_PATH;

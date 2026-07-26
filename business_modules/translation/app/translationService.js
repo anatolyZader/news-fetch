@@ -325,6 +325,32 @@ function translatedEvidenceFields(c, useEvidenceField, translatedStructured) {
 }
 
 /**
+ * Return a usable disk-cache hit, or null when the entry is stale / incomplete.
+ * @param {object} fromDisk
+ * @param {object} report
+ * @param {string} lang
+ * @returns {object|null}
+ */
+function cleanDiskCacheHit(fromDisk, report, lang) {
+  const meta = fromDisk?._translation_meta;
+  const isCurrentSchema = meta?.schema === 'v6'
+    && meta?.fields?.components_evidence === true;
+  const metaSaysSynthesisTranslated = meta?.fields?.cross_component_synthesis === true;
+  const synthesisHead = String(fromDisk?.cross_component_synthesis ?? '').trim();
+  const looksLikeEnglish = synthesisHead.length > 0 && (synthesisHead.codePointAt(0) ?? 0) <= 0x7f;
+  const needsSynthesisUpgrade = !metaSaysSynthesisTranslated && looksLikeEnglish && (lang === 'he' || lang === 'ru');
+  const needsStructuredEvidenceUpgrade = !meta?.fields?.evidence_operator_structured
+    && (report.components ?? []).some((c) => c.evidence_operator_structured?.length > 0);
+
+  if (!isCurrentSchema || needsSynthesisUpgrade || needsStructuredEvidenceUpgrade) {
+    return null;
+  }
+  const clean = { ...fromDisk };
+  delete clean._translation_meta;
+  return clean;
+}
+
+/**
  * Translate the narrative fields of a report into the target language.
  *
  * @param {object} report – assessment object (report.components, report.cross_component_synthesis, …)
@@ -341,27 +367,8 @@ export async function getTranslatedReport(report, lang) {
 
   const fromDisk = await readDiskCache(report, lang);
   if (fromDisk) {
-    const meta = fromDisk?._translation_meta;
-    const isCurrentSchema = meta?.schema === 'v6'
-      && meta?.fields?.components_evidence === true;
-    const metaSaysSynthesisTranslated = meta?.fields?.cross_component_synthesis === true;
-    const synthesisHead = String(fromDisk?.cross_component_synthesis ?? '').trim();
-    const looksLikeEnglish = synthesisHead.length > 0 && (synthesisHead.codePointAt(0) ?? 0) <= 0x7f;
-    const needsSynthesisUpgrade = !metaSaysSynthesisTranslated && looksLikeEnglish && (lang === 'he' || lang === 'ru');
-    const needsStructuredEvidenceUpgrade = !meta?.fields?.evidence_operator_structured
-      && (report.components ?? []).some((c) => c.evidence_operator_structured?.length > 0);
-
-    if (!isCurrentSchema || needsSynthesisUpgrade || needsStructuredEvidenceUpgrade) {
-      // Fall through to full re-translate when cache is stale or missing fields.
-      if (isCurrentSchema && !needsSynthesisUpgrade && !needsStructuredEvidenceUpgrade) {
-        const clean = { ...fromDisk };
-        delete clean._translation_meta;
-        memCache.set(key, clean);
-        return clean;
-      }
-    } else {
-      const clean = { ...fromDisk };
-      delete clean._translation_meta;
+    const clean = cleanDiskCacheHit(fromDisk, report, lang);
+    if (clean) {
       memCache.set(key, clean);
       return clean;
     }

@@ -95,6 +95,86 @@ function mapCliResult(json, model) {
 }
 
 /**
+ * Spawn one `claude -p` process and resolve to an Anthropic-shaped message.
+ * Kept at module scope so Sonar nesting limits stay under the Promise handlers.
+ * @param {{
+ *   spawnImpl: Function,
+ *   cliPath: string,
+ *   args: string[],
+ *   env: NodeJS.ProcessEnv,
+ *   prompt: string,
+ *   model: string,
+ * }} opts
+ * @returns {Promise<object>}
+ */
+function spawnCliJsonMessage({ spawnImpl, cliPath, args, env, prompt, model }) {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const child = spawnImpl(cliPath, args, { env, stdio: ['pipe', 'pipe', 'pipe'] });
+    let stdout = '';
+    let stderr = '';
+    let settled = false;
+
+    const timeoutMs = cliTimeoutMs();
+    const timer = setTimeout(() => {
+      finish(new Error(`claude-cli timeout after ${timeoutMs}ms (model=${model})`));
+      child.kill('SIGKILL');
+    }, timeoutMs);
+
+    function finish(err, message) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (err) rejectPromise(err);
+      else resolvePromise(message);
+    }
+
+    child.on('error', (err) => finish(new Error(`claude-cli spawn failed: ${err.message}`)));
+    child.stdout.on('data', (d) => { stdout += d; });
+    child.stderr.on('data', (d) => { stderr += d; });
+    child.on('close', (code) => {
+      if (code !== 0) {
+        finish(new Error(`claude-cli exited with code ${code} (model=${model}): ${tail(stderr)}`));
+        return;
+      }
+      let json;
+      try {
+        json = JSON.parse(stdout);
+      } catch {
+        finish(new Error(`claude-cli returned non-JSON output: ${tail(stdout, 200)}`));
+        return;
+      }
+      if (json?.type !== 'result' || json.is_error || json.subtype !== 'success') {
+        finish(new Error(
+          `claude-cli result error (subtype=${json?.subtype ?? 'unknown'}): ${tail(json?.result ?? stderr)}`,
+        ));
+        return;
+      }
+      finish(null, mapCliResult(json, model));
+    });
+
+    child.stdin.on('error', () => {}); // EPIPE if the child dies early; surfaced via close
+    child.stdin.end(prompt);
+  });
+}
+
+/** Async iterable that emits no deltas (awaits settle so for-await completes after the call). */
+function noDeltaStream(settlePromise) {
+  return {
+    [Symbol.asyncIterator]() {
+      let done = false;
+      return {
+        async next() {
+          if (done) return { done: true, value: undefined };
+          done = true;
+          await settlePromise.catch(() => {});
+          return { done: true, value: undefined };
+        },
+      };
+    },
+  };
+}
+
+/**
  * @param {{ defaultModel?: string, cliPath?: string, spawnImpl?: Function, anthropicPort?: object, apiKey?: string }} [cfg]
  * @returns {import('./ILlmPort.js').LlmPort & { transport: 'claude-cli' }}
  */
@@ -151,52 +231,8 @@ export function createClaudeCliLlmPort(cfg = {}) {
     const env = { ...process.env };
     for (const k of STRIPPED_ENV_KEYS) delete env[k];
 
-    return withSlot(() => new Promise((resolvePromise, rejectPromise) => {
-      const child = spawnImpl(cliPath, args, { env, stdio: ['pipe', 'pipe', 'pipe'] });
-      let stdout = '';
-      let stderr = '';
-      let settled = false;
-
-      const timeoutMs = cliTimeoutMs();
-      const timer = setTimeout(() => {
-        finish(new Error(`claude-cli timeout after ${timeoutMs}ms (model=${model})`));
-        child.kill('SIGKILL');
-      }, timeoutMs);
-
-      function finish(err, message) {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        if (err) rejectPromise(err);
-        else resolvePromise(message);
-      }
-
-      child.on('error', (err) => finish(new Error(`claude-cli spawn failed: ${err.message}`)));
-      child.stdout.on('data', (d) => { stdout += d; });
-      child.stderr.on('data', (d) => { stderr += d; });
-      child.on('close', (code) => {
-        if (code !== 0) {
-          finish(new Error(`claude-cli exited with code ${code} (model=${model}): ${tail(stderr)}`));
-          return;
-        }
-        let json;
-        try {
-          json = JSON.parse(stdout);
-        } catch {
-          finish(new Error(`claude-cli returned non-JSON output: ${tail(stdout, 200)}`));
-          return;
-        }
-        if (json?.type !== 'result' || json.is_error || json.subtype !== 'success') {
-          finish(new Error(
-            `claude-cli result error (subtype=${json?.subtype ?? 'unknown'}): ${tail(json?.result ?? stderr)}`,
-          ));
-          return;
-        }
-        finish(null, mapCliResult(json, model));
-      });
-
-      child.stdin.on('error', () => {}); // EPIPE if the child dies early; surfaced via close
-      child.stdin.end(prompt);
+    return withSlot(() => spawnCliJsonMessage({
+      spawnImpl, cliPath, args, env, prompt, model,
     }));
   }
 
@@ -230,12 +266,10 @@ export function createClaudeCliLlmPort(cfg = {}) {
     createMessage: (opts) => runWithFallback(opts),
     stream: (opts) => {
       const resultPromise = runWithFallback(opts);
+      // streamWithProgress does `for await` and only reads delta events; zero
+      // events is legal. Errors surface from finalMessage(), inside withLlmRetry.
       return {
-        // streamWithProgress does `for await` and only reads delta events; zero
-        // events is legal. Errors surface from finalMessage(), inside withLlmRetry.
-        async *[Symbol.asyncIterator]() {
-          await resultPromise.catch(() => {});
-        },
+        ...noDeltaStream(resultPromise),
         finalMessage: () => resultPromise,
       };
     },
