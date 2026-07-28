@@ -28,7 +28,7 @@ const OPENALEX = 'https://api.openalex.org';
 const args = process.argv.slice(2);
 const argVal = (flag, dflt) => {
   const i = args.indexOf(flag);
-  return i !== -1 ? args[i + 1] : dflt;
+  return i === -1 ? dflt : args[i + 1];
 };
 const outPath = argVal('--out', null);
 const maxTotal = Number(argVal('--max', 40));

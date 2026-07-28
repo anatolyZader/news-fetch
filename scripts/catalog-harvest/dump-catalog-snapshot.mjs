@@ -22,7 +22,7 @@ import { COMPONENT_IDS } from '../../business_modules/resilience_scorer/domain/c
 
 const args = process.argv.slice(2);
 const outIdx = args.indexOf('--out');
-const outPath = outIdx !== -1 ? args[outIdx + 1] : null;
+const outPath = outIdx === -1 ? null : args[outIdx + 1];
 const compact = args.includes('--compact');
 
 const toCompactLine = (e) =>
