@@ -103,6 +103,7 @@
     "radio:jobs": "npm run capture:jobs",
     "whatsapp-to-md": "node business_modules/whatsapp/input/whatsapp-to-md.js",
     "mail:digest": "node business_modules/mailing/input/runDailyDigest.js",
+    "mail:digest:cli": "LLM_TRANSPORT=claude-cli node business_modules/mailing/input/runDailyDigest.js",
     "archive:purge": "node db/input/purgeSourceArchive.js",
     "archive:backfill": "node db/input/backfillSourceArchive.js",
     "rag:reindex": "node db/input/reindexRag.js",

@@ -8,6 +8,8 @@ import { createNewsSitesFsAdapter } from '../business_modules/news-sites/index.j
 import { createRadioFsAdapter } from '../business_modules/audio/index.js';
 import { createVisitsFsAdapter, createVisitsService } from '../business_modules/visits/index.js';
 import { getEducationDashboard, getNaftaliDashboard } from '../business_modules/pool/index.js';
+import { createSocialMediaFsAdapter } from '../business_modules/social_media/index.js';
+import { createSocialMediaDailyFeedService } from '../business_modules/social_media/app/socialMediaDailyFeedService.js';
 
 const ROOT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -58,6 +60,14 @@ export async function warmDailyLocaleResources(date, lang) {
   await warm('naftali', async () => {
     const data = await getNaftaliDashboard();
     await localizePayload(data, 'naftali.pool', lang, { fingerprintExtra: date, costDate: date });
+  });
+
+  const socialFeed = createSocialMediaDailyFeedService({
+    persistencePort: createSocialMediaFsAdapter({}),
+  });
+  await warm('social', async () => {
+    // getDailyFeed with lang writes the same translation cache keys the server routes read
+    await socialFeed.getDailyFeed(date, { lang });
   });
 
   return errors;

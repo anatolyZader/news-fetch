@@ -166,5 +166,19 @@
     "en": "validation review",
     "ru": "проверка валидации",
     "aliases": ["validation review", "אימות"]
+  },
+  {
+    "id": "field_visit",
+    "he": "ביקור שטח",
+    "en": "Field visit",
+    "ru": "полевое наблюдение",
+    "aliases": ["Field visit", "field observation", "ביקור שטח", "תצפית שטח"]
+  },
+  {
+    "id": "protective_outcome",
+    "he": "תוצאת מיגון",
+    "en": "protective outcome",
+    "ru": "защитный результат",
+    "aliases": ["protective outcome", "protection outcome"]
   }
 ]

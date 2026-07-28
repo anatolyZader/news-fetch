@@ -9,12 +9,12 @@ import { fileURLToPath } from 'node:url';
 import { calcInvocationCostUsd } from '../../../cross-cut-modules/budget/index.js';
 import { appendCostLog } from '../../../cross-cut-modules/log/index.js';
 import {
-  getErrStatus,
   isTransientTranslateError,
   runWithConcurrencyLimit,
   sleep,
 } from './translationTranslateUtils.js';
-import { translateGenericJsonWithRetry, LANG_NAMES } from './translateGenericJson.js';
+import { translateGenericJsonWithRetry, translateProseWithRetry, LANG_NAMES } from './translateGenericJson.js';
+import { detectSourceLang, shouldSkipTranslation } from './detectSourceLang.js';
 import { translationLocaleDir } from '../domain/services/artifactPaths.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -75,13 +75,14 @@ async function readDiskCache(report, lang) {
   }
 }
 
-async function writeDiskCache(report, lang, translatedReport) {
+async function writeDiskCache(report, lang, translatedReport, coverage = null) {
   try {
     const withMeta = {
       ...translatedReport,
       _translation_meta: {
-        schema: 'v6',
+        schema: 'v7',
         model: SONNET_MODEL,
+        coverage,
         fields: {
           cross_component_synthesis: true,
           components_narrative: true,
@@ -89,6 +90,7 @@ async function writeDiskCache(report, lang, translatedReport) {
           components_interpretive: true,
           evidence: false,
           evidence_operator_structured: true,
+          operator_investigation_pool: true,
           score_by_source_signals_evidence: false,
         },
         updatedAt: new Date().toISOString(),
@@ -156,37 +158,198 @@ async function writeSocialDiskCache(cacheKey, posts) {
   }
 }
 
+/** Rows per strings-translation call — keeps each response well under max_tokens. */
+const EVIDENCE_CHUNK_SIZE = 15;
+const CONCURRENCY_COMPONENTS = 3;
+
+const TARGET_SCRIPT_RE = { he: /[֐-׿]/g, ru: /[Ѐ-ӿ]/g };
+
 /**
- * Send one small JSON payload to Claude and return the parsed result + usage.
+ * Heuristic: is this string written (mostly) in the target language's script?
+ * Short / numeric / URL-only strings are exempt — nothing to judge.
+ * @param {string} s
+ * @param {'he' | 'ru'} lang
  */
-async function translateChunk(payload, lang, langName, queryHint = '') {
-  const { result, usage } = await translateGenericJsonWithRetry(payload, lang, {
-    useReportPrompt: true,
-    queryHint: queryHint || JSON.stringify(payload).slice(0, 500),
-    costLabel: `translation-chunk-${lang}`,
-    costDate: queryHint?.slice?.(0, 10),
-  });
-  return { result, usage };
+export function isInTargetScript(s, lang) {
+  const re = TARGET_SCRIPT_RE[lang];
+  if (!re) return true;
+  const str = String(s ?? '');
+  const letters = str.match(/[A-Za-z֐-׿Ѐ-ӿ]/g) ?? [];
+  if (letters.length < 15) return true;
+  const target = str.match(re)?.length ?? 0;
+  return target * 2 > letters.length;
 }
 
-async function translateChunkWithRetry(payload, lang, langName, queryHint = '') {
-  const MAX_ATTEMPTS = 3;
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+function bulletStrip(raw) {
+  return String(raw ?? '').replace(/^\s*-\s+/, '').slice(0, 2000);
+}
+
+/**
+ * Unique translatable strings across every evidence surface of the report:
+ * curated evidence, investigation pool (flat + by-source), and the short
+ * per-component summary fields. Deduped by exact (bullet-stripped) text so
+ * each string is translated once and fanned back out to all carriers.
+ * @param {object[]} components
+ * @returns {string[]}
+ */
+function collectReportStrings(components) {
+  const seen = new Set();
+  const out = [];
+  const add = (raw) => {
+    const text = bulletStrip(raw);
+    if (text.trim() && !seen.has(text)) {
+      seen.add(text);
+      out.push(text);
+    }
+  };
+  for (const c of components) {
+    const { evidenceSource } = componentEvidenceSource(c);
+    for (const e of evidenceSource) add(e.textOriginal ?? e.text ?? '');
+    for (const e of c.operator_investigation_pool ?? []) add(e.textOriginal ?? e.evidence ?? '');
+    for (const g of c.operator_investigation_pool_by_source ?? []) {
+      for (const e of g.items ?? []) add(e.textOriginal ?? e.evidence ?? '');
+    }
+    add(c.interpretive_summary ?? '');
+    add(c.data_quality_caveat ?? '');
+  }
+  return out;
+}
+
+/**
+ * Translate a batch of strings in EVIDENCE_CHUNK_SIZE chunks.
+ * Failed chunks leave their rows out of the returned map — the caller's
+ * repair/coverage pass deals with them.
+ * @param {string[]} texts
+ * @param {{ lang: 'he'|'ru', queryHint: string, costDate?: string, usages: object[] }} ctx
+ * @returns {Promise<Map<string, string>>} source text → translated text
+ */
+async function translateStringBatches(texts, ctx) {
+  const out = new Map();
+  const chunks = [];
+  for (let i = 0; i < texts.length; i += EVIDENCE_CHUNK_SIZE) {
+    chunks.push(texts.slice(i, i + EVIDENCE_CHUNK_SIZE));
+  }
+  const tasks = chunks.map((batch) => async () => {
+    const srcLangs = new Set(batch.map((t) => detectSourceLang(t)));
+    const sourceLang = srcLangs.size === 1 ? [...srcLangs][0] : 'mixed';
     try {
-      return await translateChunk(payload, lang, langName, queryHint);
+      const { result, usage } = await translateGenericJsonWithRetry(
+        { strings: batch.map((text, j) => ({ id: String(j), text })) },
+        ctx.lang,
+        {
+          useReportPrompt: true,
+          sourceLang,
+          queryHint: ctx.queryHint,
+          costLabel: `translation-strings-${ctx.lang}`,
+          costDate: ctx.costDate,
+        },
+      );
+      ctx.usages.push(usage);
+      const byId = new Map((result.strings ?? []).map((r) => [String(r.id), r.text]));
+      batch.forEach((text, j) => {
+        const tr = byId.get(String(j));
+        if (typeof tr === 'string' && tr.trim()) out.set(text, tr);
+      });
     } catch (err) {
-      const status = getErrStatus(err);
-      const transient = isTransientTranslateError(err);
-      if (!transient || attempt === MAX_ATTEMPTS) {
-        const detail = status ? `HTTP ${status}` : (err?.message ?? 'unknown error');
-        throw new Error(`Translation provider error (${detail})`, { cause: err });
-      }
-      const base = 750 * (2 ** (attempt - 1));
-      const jitter = Math.floor(Math.random() * 250);
-      await sleep(base + jitter);
+      console.warn(`[translation] strings chunk failed (${ctx.lang}): ${err?.message ?? err}`);
+    }
+  });
+  await runWithConcurrencyLimit(tasks, CONCURRENCY_COMPONENTS);
+  return out;
+}
+
+/**
+ * First pass + one targeted repair pass over rows that came back missing or
+ * still in the wrong script. Rows that fail both passes keep their source
+ * text and are counted in coverage.failed instead of silently shipping.
+ * @param {string[]} allStrings
+ * @param {{ lang: 'he'|'ru', coverage: object }} ctx
+ * @returns {Promise<Map<string, string>>}
+ */
+async function translateReportStrings(allStrings, ctx) {
+  const map = new Map();
+  const rows = [];
+  for (const text of allStrings) {
+    ctx.coverage.total += 1;
+    if (shouldSkipTranslation(detectSourceLang(text), ctx.lang)) {
+      ctx.coverage.translated += 1;
+      map.set(text, text);
+    } else {
+      rows.push(text);
     }
   }
-  throw new Error('Translation provider error (exhausted retries)');
+  if (!rows.length) return map;
+
+  const firstPass = await translateStringBatches(rows, ctx);
+  for (const [k, v] of firstPass) map.set(k, v);
+
+  const failedRows = rows.filter((t) => {
+    const tr = map.get(t);
+    return tr == null || !isInTargetScript(tr, ctx.lang);
+  });
+  ctx.coverage.translated += rows.length - failedRows.length;
+  if (!failedRows.length) return map;
+
+  const repairPass = await translateStringBatches(failedRows, ctx);
+  let repaired = 0;
+  for (const t of failedRows) {
+    const tr = repairPass.get(t);
+    if (tr != null && isInTargetScript(tr, ctx.lang)) {
+      map.set(t, tr);
+      repaired += 1;
+    } else if (!map.has(t)) {
+      map.set(t, t);
+    }
+  }
+  ctx.coverage.repaired += repaired;
+  ctx.coverage.failed += failedRows.length - repaired;
+  return map;
+}
+
+/**
+ * Translate one long prose field (synthesis / component narrative) as plain
+ * text. One in-place repair attempt when the output isn't in the target
+ * script; keeps the source text (and counts a failure) otherwise.
+ * @param {string | null | undefined} source
+ * @param {{ lang: 'he'|'ru', coverage: object, usages: object[] }} ctx
+ */
+async function translateProseField(source, ctx) {
+  const text = String(source ?? '').trim();
+  if (!text) return source;
+  ctx.coverage.total += 1;
+  const srcLang = detectSourceLang(text);
+  if (shouldSkipTranslation(srcLang, ctx.lang)) {
+    ctx.coverage.translated += 1;
+    return text;
+  }
+  const opts = {
+    queryHint: ctx.queryHint,
+    costLabel: `translation-prose-${ctx.lang}`,
+    costDate: ctx.costDate,
+    sourceLang: srcLang,
+  };
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const { result, usage } = await translateProseWithRetry(text, ctx.lang, opts);
+      ctx.usages.push(usage);
+      if (isInTargetScript(result, ctx.lang)) {
+        ctx.coverage[attempt === 0 ? 'translated' : 'repaired'] += 1;
+        return result;
+      }
+    } catch (err) {
+      console.warn(`[translation] prose field failed (${ctx.lang}, attempt ${attempt + 1}): ${err?.message ?? err}`);
+    }
+  }
+  ctx.coverage.failed += 1;
+  return text;
+}
+
+/** @param {object[] | undefined} items @param {(raw: string) => string | null} lookup */
+function translatePoolItems(items, lookup) {
+  return (items ?? []).map((e) => {
+    const original = String(e.textOriginal ?? e.evidence ?? '');
+    return { ...e, textOriginal: original, text: lookup(original) ?? original };
+  });
 }
 
 async function translateSocialChunk(payload, lang, langName) {
@@ -333,7 +496,7 @@ function translatedEvidenceFields(c, useEvidenceField, translatedStructured) {
  */
 function cleanDiskCacheHit(fromDisk, report, lang) {
   const meta = fromDisk?._translation_meta;
-  const isCurrentSchema = meta?.schema === 'v6'
+  const isCurrentSchema = meta?.schema === 'v7'
     && meta?.fields?.components_evidence === true;
   const metaSaysSynthesisTranslated = meta?.fields?.cross_component_synthesis === true;
   const synthesisHead = String(fromDisk?.cross_component_synthesis ?? '').trim();
@@ -374,94 +537,99 @@ export async function getTranslatedReport(report, lang) {
     }
   }
 
-  const langName = LANG_NAMES[lang] ?? lang;
   const components = report.components ?? [];
   const synthesisSource = report.cross_component_synthesis_operator ?? report.cross_component_synthesis ?? '';
-  const translationQueryHint = String(synthesisSource).slice(0, 600);
-  const CONCURRENCY_COMPONENTS = 3;
+  const ctx = {
+    lang,
+    queryHint: String(synthesisSource).slice(0, 600),
+    costDate: report.date,
+    usages: [],
+    coverage: { total: 0, translated: 0, repaired: 0, failed: 0 },
+  };
 
-  const synthesisChunk = await translateChunkWithRetry({
-    cross_component_synthesis: synthesisSource,
-  }, lang, langName, translationQueryHint);
-
-  const componentChunks = await runWithConcurrencyLimit(
-    components.map((c) => () => {
-      const narrativeSource = c.narrative_operator ?? c.narrative ?? '';
-      const { evidenceSource } = componentEvidenceSource(c);
-      const structuredItems = evidenceSource.map((e, j) => ({
-        id: String(j),
-        text: String(e.textOriginal ?? e.text ?? '').replace(/^\s*-\s+/, '').slice(0, 2000),
-      })).filter((row) => row.text.trim());
-      return translateChunkWithRetry({
-        narrative: narrativeSource,
-        interpretive_summary: c.interpretive_summary ?? '',
-        data_quality_caveat: c.data_quality_caveat ?? '',
-        ...(structuredItems.length ? { evidence_structured: structuredItems } : {}),
-      }, lang, langName, `${translationQueryHint} ${c.component_id ?? ''} ${narrativeSource}`.slice(0, 600));
-    }),
+  const translatedSynthesis = await translateProseField(synthesisSource, ctx);
+  const translatedNarratives = await runWithConcurrencyLimit(
+    components.map((c) => () => translateProseField(c.narrative_operator ?? c.narrative, ctx)),
     CONCURRENCY_COMPONENTS,
   );
+  const stringMap = await translateReportStrings(collectReportStrings(components), ctx);
+  const lookup = (raw) => stringMap.get(bulletStrip(raw)) ?? null;
 
-  const allChunks = [synthesisChunk, ...componentChunks];
-  const totalUsage = allChunks.reduce(
-    (acc, { usage }) => ({
+  const totalUsage = ctx.usages.reduce(
+    (acc, usage) => ({
       input_tokens: acc.input_tokens + (usage.input_tokens ?? 0),
       output_tokens: acc.output_tokens + (usage.output_tokens ?? 0),
     }),
     { input_tokens: 0, output_tokens: 0 },
   );
-
-  const translationModel = SONNET_MODEL;
   const cliMeta = transportMeta(getDefaultLlmPort());
-  const costUsd = cliMeta.transport ? 0 : calcInvocationCostUsd(translationModel, totalUsage);
+  const costUsd = cliMeta.transport ? 0 : calcInvocationCostUsd(SONNET_MODEL, totalUsage);
   appendCostLog({
     script: `translation-${lang}`,
     date: report.date,
     totalCostUsd: costUsd,
-    usageLog: [{ label: `translate-${lang}`, model: translationModel, usage: totalUsage, cost: costUsd, ...cliMeta }],
+    usageLog: [{ label: `translate-${lang}`, model: SONNET_MODEL, usage: totalUsage, cost: costUsd, ...cliMeta }],
   });
 
   const translatedReport = {
     ...report,
-    cross_component_synthesis: synthesisChunk.result.cross_component_synthesis ?? synthesisSource,
+    cross_component_synthesis: translatedSynthesis ?? synthesisSource,
     ...(report.cross_component_synthesis_operator == null
       ? {}
-      : {
-        cross_component_synthesis_operator:
-          synthesisChunk.result.cross_component_synthesis ?? report.cross_component_synthesis_operator,
-      }),
-    components: components.map((c, i) => {
-      const chunk = componentChunks[i].result;
-      const narrativeSource = c.narrative_operator ?? c.narrative;
-      const { useEvidenceField, evidenceSource } = componentEvidenceSource(c);
-      const translatedStructured = evidenceSource.map((e, j) => {
-        const row = (chunk.evidence_structured ?? []).find((r) => String(r.id) === String(j)) ?? chunk.evidence_structured?.[j];
-        const originalText = e.textOriginal ?? e.text ?? '';
-        const translatedText = row?.text || originalText;
-        const url = e.url ?? null;
-        const base = url ? `- ${translatedText} [source](${url})` : `- ${translatedText}`;
-        const markdown = `${base}${routingLabelSuffix(e)}`;
-        return { ...e, textOriginal: originalText, text: translatedText, markdown };
-      });
-      const translatedNarrative = chunk.narrative ?? narrativeSource;
-      return {
-        ...c,
-        ...(c.narrative_operator == null
-          ? { narrative: translatedNarrative }
-          : {
-            narrative: c.narrative,
-            narrative_operator: translatedNarrative,
-          }),
-        interpretive_summary: chunk.interpretive_summary ?? c.interpretive_summary,
-        data_quality_caveat: chunk.data_quality_caveat ?? c.data_quality_caveat,
-        ...translatedEvidenceFields(c, useEvidenceField, translatedStructured),
-      };
-    }),
+      : { cross_component_synthesis_operator: translatedSynthesis ?? report.cross_component_synthesis_operator }),
+    components: components.map((c, i) => mergeTranslatedComponent(c, lookup, translatedNarratives[i])),
   };
 
+  const cov = ctx.coverage;
+  console.error(`[translation] ${report.date} ${lang} coverage: total=${cov.total} translated=${cov.translated} repaired=${cov.repaired} failed=${cov.failed}`);
+  // A mostly-failed result (e.g. transport outage) must not become a durable
+  // cache serving English forever — skip caching so the next request retries.
+  const tooManyFailures = cov.failed * 4 > cov.total;
+  if (tooManyFailures) {
+    console.warn(`[translation] ${report.date} ${lang}: ${cov.failed}/${cov.total} units failed — result NOT cached`);
+    return translatedReport;
+  }
+  if (cov.failed > 0) {
+    console.warn(`[translation] ${report.date} ${lang}: ${cov.failed}/${cov.total} units kept source text (see _translation_meta.coverage)`);
+  }
   memCache.set(key, translatedReport);
-  await writeDiskCache(report, lang, translatedReport);
+  await writeDiskCache(report, lang, translatedReport, cov);
   return translatedReport;
+}
+
+/**
+ * @param {object} c
+ * @param {(raw: string) => string | null} lookup
+ * @param {string | null | undefined} translatedNarrative
+ */
+function mergeTranslatedComponent(c, lookup, translatedNarrative) {
+  const { useEvidenceField, evidenceSource } = componentEvidenceSource(c);
+  const translatedStructured = evidenceSource.map((e) => {
+    const originalText = e.textOriginal ?? e.text ?? '';
+    const translatedText = lookup(originalText) ?? bulletStrip(originalText);
+    const url = e.url ?? null;
+    const base = url ? `- ${translatedText} [source](${url})` : `- ${translatedText}`;
+    return { ...e, textOriginal: originalText, text: translatedText, markdown: `${base}${routingLabelSuffix(e)}` };
+  });
+  return {
+    ...c,
+    ...(c.narrative_operator == null
+      ? { narrative: translatedNarrative }
+      : { narrative: c.narrative, narrative_operator: translatedNarrative }),
+    interpretive_summary: lookup(c.interpretive_summary) ?? c.interpretive_summary,
+    data_quality_caveat: lookup(c.data_quality_caveat) ?? c.data_quality_caveat,
+    ...translatedEvidenceFields(c, useEvidenceField, translatedStructured),
+    ...(c.operator_investigation_pool
+      ? { operator_investigation_pool: translatePoolItems(c.operator_investigation_pool, lookup) }
+      : {}),
+    ...(c.operator_investigation_pool_by_source
+      ? {
+        operator_investigation_pool_by_source: c.operator_investigation_pool_by_source.map(
+          (g) => ({ ...g, items: translatePoolItems(g.items, lookup) }),
+        ),
+      }
+      : {}),
+  };
 }
 
 /**

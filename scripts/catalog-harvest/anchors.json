@@ -1,0 +1,66 @@
+{
+  "comment": "Seed anchors for catalog-harvest Stage 1 literature discovery. Each anchor is resolved by title search on OpenAlex, then expanded via its citation graph. recent_searches are direct keyword searches for literature the anchors predate.",
+  "anchors": [
+    {
+      "key": "ccram",
+      "query": "Conjoint Community Resiliency Assessment Measure",
+      "note": "CCRAM — the Israeli community resilience instrument (Leykin, Lahad, Cohen et al.); item structure maps ~1:1 onto catalog domains"
+    },
+    {
+      "key": "norris2008",
+      "query": "Community resilience as a metaphor theory set of capacities and strategy for disaster readiness",
+      "note": "Norris et al. 2008 — community resilience as networked capacities"
+    },
+    {
+      "key": "bric",
+      "query": "Disaster Resilience Indicators for Benchmarking Baseline Conditions",
+      "note": "Cutter BRIC — baseline resilience indicators for communities"
+    },
+    {
+      "key": "cart",
+      "query": "The Communities Advancing Resilience Toolkit CART an intervention to build community resilience to disasters",
+      "note": "Pfefferbaum CART framework"
+    },
+    {
+      "key": "cor",
+      "query": "Conservation of resources: A new attempt at conceptualizing stress",
+      "note": "Hobfoll COR theory — resource loss/gain spirals (resources/wellbeing domains)"
+    }
+  ],
+  "recent_searches": [
+    {
+      "key": "post_oct7",
+      "query": "community resilience Israel war civilians October 7",
+      "from": "2023-10-01"
+    },
+    {
+      "key": "homefront_behavior",
+      "query": "home front civilian population behavior wartime resilience coping",
+      "from": "2020-01-01"
+    },
+    {
+      "key": "il_evacuees",
+      "query": "Israel evacuees displaced communities north resilience",
+      "from": "2023-10-01"
+    }
+  ],
+  "relevance_terms": [
+    "resilien",
+    "communit",
+    "civil",
+    "war",
+    "conflict",
+    "disaster",
+    "emergency",
+    "home front",
+    "homefront",
+    "israel",
+    "population",
+    "coping",
+    "preparedness",
+    "cohesion",
+    "evacu",
+    "shelter",
+    "trauma"
+  ]
+}

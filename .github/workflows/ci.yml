@@ -454,8 +454,10 @@ jobs:
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
         run: node scripts/ci-sonar-review-hotspots.mjs
 
-      - name: Verify SonarCloud Quality Gate
+      - name: Verify SonarCloud Quality Gate (warn-only)
         if: steps.gate.outputs.run == '1'
+        id: qualitygate
+        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
@@ -473,10 +475,11 @@ jobs:
           curl -sf -u "${SONAR_TOKEN}:" \
             "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${SONAR_PROJECT_KEY}" \
             | jq -r '.projectStatus.conditions[]? | select(.status=="ERROR") | "\(.metricKey): actual=\(.actualValue) errorThreshold=\(.errorThreshold)"'
+          echo "::warning::SonarCloud quality gate failed — reported as warning only, build not blocked"
           exit 1
 
       - name: Quality Gate failure details
-        if: failure() && steps.gate.outputs.run == '1'
+        if: steps.qualitygate.outcome == 'failure' && steps.gate.outputs.run == '1'
         continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

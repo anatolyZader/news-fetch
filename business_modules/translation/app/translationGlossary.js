@@ -62,6 +62,10 @@ Style requirements:
 - Use formal, analytical modern Israeli Hebrew (not biblical or archaic forms)
 - Use established Israeli military/civilian defense terminology
 - Maintain the analytical, evidence-based register of the original
+- Split long run-on sentences into shorter natural Hebrew sentences; do NOT mirror English sentence length or clause order
+- Avoid calqued connectives: never open successive sentences with the same literal translation of "Separately," ("בנפרד") — vary or drop connectives as natural Hebrew requires
+- The analytical term "register" means a mode/tone of response (סגנון תגובה, אופן ביטוי) — never רישום
+- Use Hebrew quotation conventions (״…״ or '…'), not English curly quotes
 - Gender: default to masculine plural for general population references unless context specifies otherwise
 - Preserve all proper nouns (place names, organization names) as they appear`,
 
@@ -70,11 +74,18 @@ Style requirements:
 Style requirements:
 - Use formal, analytical Russian appropriate for official government/defense reporting
 - Maintain the evidence-based, analytical register of the original
+- Split long run-on sentences into shorter natural Russian sentences; do NOT mirror English sentence length or clause order
+- Avoid calqued connectives: never open successive sentences with the same literal translation of "Separately," ("Отдельно") — vary or drop connectives as natural Russian requires
+- The analytical term "register" means a mode/tone of response (тональность, характер реакции) — never запись/регистр в бюрократическом смысле
 - Use established Russian civil defense and emergency management terminology
 - Transliterate Israeli place names phonetically where no established Russian form exists`,
 };
 
-const JSON_RULES = `Return ONLY valid JSON with the exact same structure as the input. Do NOT translate field names or component_id values. Do NOT translate or alter URLs. Do NOT translate markdown link text — keep ([source](url)) and ([label](url)) patterns unchanged. Do NOT alter parenthetical citation text such as (Source Name, 20 Jun 2026).`;
+const CITATION_RULES = `Parenthetical citations such as (Field visit, 2026-03-24) or (ynet.co.il, 25 Mar 2026): translate the label words (e.g. "Field visit") into the target language, but keep date tokens (e.g. "25 Mar 2026", "2026-03-24") and domain names (e.g. "ynet.co.il") EXACTLY as they appear — byte-identical.`;
+
+const JSON_RULES = `Return ONLY valid JSON with the exact same structure as the input. Do NOT translate field names or component_id values. Do NOT translate or alter URLs. Do NOT translate markdown link text — keep ([source](url)) and ([label](url)) patterns unchanged. ${CITATION_RULES}`;
+
+const PROSE_RULES = `Return ONLY the translated text — no preamble, no commentary, no quotes around the output. Do NOT translate or alter URLs; keep markdown link syntax ([label](url)) unchanged. ${CITATION_RULES}`;
 
 /**
  * @returns {Promise<Array<{ id: string, en: string, he: string, ru: string, aliases?: string[] }>>}
@@ -93,6 +104,14 @@ export async function buildReportSystemPrompt(lang) {
   const glossary = buildGlossaryBlock(terms, lang);
   const style = STYLE_REQUIREMENTS[lang] ?? STYLE_REQUIREMENTS.ru;
   return `${style}\n\n${glossary}\n${JSON_RULES}`;
+}
+
+/** Same style + glossary, but for plain-text prose output (no JSON wrapper). @param {'he' | 'ru'} lang */
+export async function buildProseSystemPrompt(lang) {
+  const terms = await loadGlossaryTerms();
+  const glossary = buildGlossaryBlock(terms, lang);
+  const style = STYLE_REQUIREMENTS[lang] ?? STYLE_REQUIREMENTS.ru;
+  return `${style}\n\n${glossary}\n${PROSE_RULES}`;
 }
 
 /** Test helper — reload glossary from disk. */
