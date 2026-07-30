@@ -97,7 +97,9 @@ function compressCompareDates(text) {
 function compressToolOutput(toolName, raw, caps = DEFAULT_CAPS) {
   switch (toolName) {
     case 'get_source':
-      if (!raw.startsWith('get_source:') && !raw.startsWith('No source')) {
+      // formatFullSource output always starts with a source_id= line;
+      // everything else (error/guidance strings) must pass through intact.
+      if (raw.startsWith('source_id=')) {
         return JSON.stringify(parseKeyValueSource(raw));
       }
       return raw;
@@ -128,6 +130,11 @@ function compressToolOutput(toolName, raw, caps = DEFAULT_CAPS) {
       }
     case 'search_pbo_history':
       return truncateLongText(raw, 2500);
+    case 'get_signal':
+      // Full-evidence fetch is the tool's purpose — don't clip at the default 4k.
+      return truncateLongText(raw, 8000);
+    case 'get_municipality_profile':
+      return truncateLongText(raw, 6000);
     default:
       if (raw.length > 4000) {
         return `${raw.slice(0, 3960)}…\n{"truncated":true}`;

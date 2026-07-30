@@ -10,7 +10,7 @@ describe('assessmentEvidenceTools', () => {
       limit: 5,
     }, {
       signals: [{
-        signal_type: 'shelter_compliance',
+        signal_type: 'compliance_enter_shelter',
         source_type: 'visits',
         evidence: 'Residents used shelter during alert',
         component: 'leadership',

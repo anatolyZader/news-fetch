@@ -141,11 +141,21 @@ export function listSources(input, sourceArchive) {
   return formatCandidates(result.out);
 }
 
-function tryCachedSearchHits(q, date, retrievalCache) {
+/** Cache key must cover every filter that changes the hit set, not just the query text. */
+function searchCacheKeyQuery(input, q) {
+  return [
+    q,
+    normalize(input?.source_type),
+    normalize(input?.date_to),
+    Math.min(Number(input?.limit ?? 7) || 7, 25),
+  ].join('|');
+}
+
+function tryCachedSearchHits(input, q, date, retrievalCache) {
   if (!q || !retrievalCache) return null;
   const cacheKey = chatRetrievalCacheKey(
     retrievalCache.sessionId ?? '',
-    q,
+    searchCacheKeyQuery(input, q),
     'national',
     date,
   );
@@ -154,11 +164,11 @@ function tryCachedSearchHits(q, date, retrievalCache) {
   return formatCandidates(cached.searchHits);
 }
 
-function cacheSearchHits(retrievalCache, q, date, ragHits) {
+function cacheSearchHits(retrievalCache, input, q, date, ragHits) {
   if (!retrievalCache) return;
   const cacheKey = chatRetrievalCacheKey(
     retrievalCache.sessionId ?? '',
-    q,
+    searchCacheKeyQuery(input, q),
     'national',
     date,
   );
@@ -179,7 +189,7 @@ async function tryRagSearch(input, q, date, retrievalService, retrievalCache) {
       snippet_chars: input?.snippet_chars,
     });
     if (!ragHits?.length) return null;
-    cacheSearchHits(retrievalCache, q, date, ragHits);
+    cacheSearchHits(retrievalCache, input, q, date, ragHits);
     return formatCandidates(ragHits);
   } catch (err) {
     console.error('searchSources RAG:', err.message);
@@ -201,7 +211,7 @@ export async function searchSources(input, sourceArchive, retrievalService = nul
   const q = normalize(input?.query);
   const retrievalCache = opts?.retrievalCache ?? null;
 
-  const cachedResult = tryCachedSearchHits(q, date, retrievalCache);
+  const cachedResult = tryCachedSearchHits(input, q, date, retrievalCache);
   if (cachedResult) return cachedResult;
 
   const ragResult = await tryRagSearch(input, q, date, retrievalService, retrievalCache);

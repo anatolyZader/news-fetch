@@ -1,7 +1,7 @@
 /**
  * Build chat tool execution context from injected services.
  */
-import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
+import { canUseRichChatTools } from '../../../cross-cut-modules/auth/userAccess.js';
 import { chatAnalystToolsEnabled, chatConfirmActionsEnabled } from '../domain/chatConfig.js';
 import { buildChatToolList } from '../domain/tools/chatToolSchemas.js';
 
@@ -27,13 +27,13 @@ import { buildChatToolList } from '../domain/tools/chatToolSchemas.js';
  */
 export function createChatToolContext(deps = {}) {
   const userEmail = deps.userEmail ?? '';
-  const isAnalyst = canViewAnalystDisplay(userEmail);
+  const richTools = canUseRichChatTools(userEmail);
   const analystToolsEnabled = chatAnalystToolsEnabled();
   const confirmActionsEnabled = chatConfirmActionsEnabled();
 
   return {
     userEmail,
-    isAnalyst,
+    richTools,
     analystToolsEnabled,
     confirmActionsEnabled,
     reportData: deps.reportData ?? null,
@@ -58,7 +58,7 @@ export function createChatToolContext(deps = {}) {
     resolvedModel: deps.resolvedModel ?? null,
     tools: buildChatToolList({
       analystToolsEnabled,
-      isAnalyst,
+      richTools,
       confirmActionsEnabled,
       toolProfile: deps.toolProfile ?? 'default',
     }),
@@ -66,12 +66,15 @@ export function createChatToolContext(deps = {}) {
   };
 }
 
-export function requireAnalyst(ctx, toolName) {
-  if (!ctx.isAnalyst) {
-    return `Tool "${toolName}" requires analyst access.`;
+export function requireRichTools(ctx, toolName) {
+  if (!ctx.richTools) {
+    return `Tool "${toolName}" requires a listed account.`;
   }
   if (!ctx.analystToolsEnabled) {
-    return `Analyst chat tools are disabled (CHAT_ANALYST_TOOLS_ENABLED=0).`;
+    return `Extended chat tools are disabled (CHAT_ANALYST_TOOLS_ENABLED=0).`;
   }
   return null;
 }
+
+/** @deprecated use {@link requireRichTools} — kept as alias. */
+export const requireAnalyst = requireRichTools;

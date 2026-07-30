@@ -11,10 +11,16 @@ import {
   compareReports,
   loadReport,
   listReportDates,
+  listReportDatesByScope,
+  listSignalDatesBySourceType,
   listPboDates,
   loadObservations,
   signalStats,
+  getSignalById,
+  formatFullSignal,
 } from '../domain/signalLookup.js';
+import { describeSignalType } from '../domain/signalTypeInfo.js';
+import { searchReports } from '../domain/reportSearch.js';
 import {
   buildReportContext,
   formatHeader,
@@ -29,10 +35,11 @@ import {
 } from '../../resilience_scorer/index.js';
 import { searchSources, getSource, listSources } from '../domain/sourceArchiveQuery.js';
 import { pboReviewRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
-import { requireAnalyst } from './createChatToolContext.js';
+import { requireRichTools } from './createChatToolContext.js';
 import {
   PROPOSE_TOOL_NAMES,
   OPERATOR_PROPOSE_TOOL_NAMES,
+  SIGNAL_FLAG_REASONS,
   chatCompressToolsEnabled,
 } from '../domain/chatConfig.js';
 import { compressChatToolResult } from '../domain/chatToolCompress.js';
@@ -50,7 +57,7 @@ function inferredDate(input, reportData) {
 async function handleProposeTool(toolName, input, ctx) {
   const isOperatorPropose = OPERATOR_PROPOSE_TOOL_NAMES.has(toolName);
   if (!isOperatorPropose) {
-    const gate = requireAnalyst(ctx, toolName);
+    const gate = requireRichTools(ctx, toolName);
     if (gate) return gate;
   }
   if (!ctx.confirmActionsEnabled) {
@@ -69,6 +76,14 @@ async function handleProposeTool(toolName, input, ctx) {
       return 'Invalid action. Use acknowledge or dismiss.';
     }
     summary = `Operator recommendation ${input.recommendation_id}: ${action}`;
+  } else if (toolName === 'propose_signal_flag') {
+    const reason = String(input?.reason ?? '');
+    if (!SIGNAL_FLAG_REASONS.has(reason)) {
+      return `Invalid reason. Use one of: ${[...SIGNAL_FLAG_REASONS].join(', ')}.`;
+    }
+    const ref = String(input?.signal_id ?? input?.source_ref ?? '').trim();
+    if (!ref) return 'Provide signal_id (from lookup_signals) or source_ref.';
+    summary = `Flag signal ${ref}: ${reason}`;
   }
 
   const { id, expiresAt } = ctx.pendingActionStore.createPending({
@@ -297,7 +312,7 @@ async function handleTraceComponentTimeline(_toolName, input, ctx) {
   const includeScores = ctx.reportData?.display_view === DISPLAY_VIEWS.analyst;
   const result = await buildComponentTimeline(input, {
     includeScores,
-    isAnalyst: ctx.isAnalyst,
+    richTools: ctx.richTools,
     getMunicipalityDashboard: ctx.getMunicipalityDashboard ?? null,
     pboReportReviewService: ctx.pboReportReviewService ?? null,
   });
@@ -338,7 +353,7 @@ function handleSearchSources(input, ctx) {
 }
 
 async function handleSearchPboHistory(toolName, input, ctx) {
-  const gate = requireAnalyst(ctx, toolName);
+  const gate = requireRichTools(ctx, toolName);
   if (gate) return gate;
   if (!pboReviewRagEnabled()) return 'PBO historical search RAG is disabled.';
   const svc = ctx.pboHistoricalSearchService;
@@ -353,7 +368,7 @@ async function handleSearchPboHistory(toolName, input, ctx) {
 }
 
 async function handleListPboReviews(toolName, input, ctx) {
-  const gate = requireAnalyst(ctx, toolName);
+  const gate = requireRichTools(ctx, toolName);
   if (gate) return gate;
   const svc = ctx.pboReportReviewService;
   if (!svc?.listReviewsForDate) return 'PBO review service unavailable.';
@@ -365,7 +380,7 @@ async function handleListPboReviews(toolName, input, ctx) {
 }
 
 async function handleGetPboReview(toolName, input, ctx) {
-  const gate = requireAnalyst(ctx, toolName);
+  const gate = requireRichTools(ctx, toolName);
   if (gate) return gate;
   const svc = ctx.pboReportReviewService;
   if (!svc?.getReviewDetail) return 'PBO review service unavailable.';
@@ -375,7 +390,7 @@ async function handleGetPboReview(toolName, input, ctx) {
 }
 
 function handleListGeoUnknown(toolName, input, ctx) {
-  const gate = requireAnalyst(ctx, toolName);
+  const gate = requireRichTools(ctx, toolName);
   if (gate) return gate;
   const svc = ctx.geoUnknownReviewService;
   if (!svc?.list) return 'Geo unknown review unavailable (GEO_UNKNOWN_REVIEW_SQLITE=1 required).';
@@ -438,7 +453,9 @@ function handleGetDecisionBrief(_toolName, _input, ctx) {
 
 function handleGetReport(_toolName, input, ctx) {
   const date = String(input?.date ?? '').trim();
-  const scope = normalizeReportScope(String(input?.scope ?? 'national'));
+  const scope = normalizeReportScope(
+    String(input?.scope ?? ctx.reportData?.assessment?.report_scope?.id ?? 'national'),
+  );
   const report = loadReport(date, scope);
   if (!report?.assessment) {
     return `No report found for ${date} (scope=${scope}). Available dates: ${listReportDates().join(', ')}`;
@@ -497,7 +514,7 @@ function handleGetReportContext(_toolName, input, ctx) {
 }
 
 function handleListObservations(toolName, input, ctx) {
-  const gate = requireAnalyst(ctx, toolName);
+  const gate = requireRichTools(ctx, toolName);
   if (gate) return gate;
   const rows = loadObservations({
     date: input?.date,
@@ -521,6 +538,152 @@ function handleGetComponentEvidenceBundle(_toolName, input, ctx) {
     role: input?.role ?? null,
     limit: input?.limit ?? 50,
   });
+}
+
+function nextDay(d) {
+  const t = new Date(`${d}T00:00:00Z`);
+  t.setUTCDate(t.getUTCDate() + 1);
+  return t.toISOString().slice(0, 10);
+}
+
+/** Collapse a sorted date list into compact runs: "2026-06-01…2026-06-14 (14)". */
+function collapseDateRuns(dates) {
+  if (!dates?.length) return '(none)';
+  const runs = [];
+  let runStart = dates[0];
+  let prev = dates[0];
+  let count = 1;
+  const flush = () => {
+    runs.push(runStart === prev ? runStart : `${runStart}…${prev} (${count})`);
+  };
+  for (const d of dates.slice(1)) {
+    if (d === nextDay(prev)) {
+      prev = d;
+      count += 1;
+      continue;
+    }
+    flush();
+    runStart = d;
+    prev = d;
+    count = 1;
+  }
+  flush();
+  return runs.join(', ');
+}
+
+function formatCoverageRows(byKey, emptyLabel) {
+  const keys = Object.keys(byKey).sort((a, b) => a.localeCompare(b));
+  if (keys.length === 0) return [emptyLabel];
+  return keys.map((k) => `- ${k}: ${collapseDateRuns(byKey[k])}`);
+}
+
+function handleGetDataCoverage(_toolName, _input, ctx) {
+  const dashboard = getCachedDashboard(ctx.getMunicipalityDashboard);
+  const dashboardDates = [...new Set((dashboard?.days ?? []).map((d) => d.date).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b));
+  const sections = [
+    'Report dates by scope:',
+    ...formatCoverageRows(listReportDatesByScope(), '- (no reports on disk)'),
+    '',
+    'Signal dates by source type:',
+    ...formatCoverageRows(listSignalDatesBySourceType(), '- (no signal bundles on disk)'),
+    '',
+    'PBO collections:',
+    `- signal bundles: ${collapseDateRuns(listPboDates())}`,
+    `- dashboard days: ${collapseDateRuns(dashboardDates)}`,
+  ];
+  return sections.join('\n');
+}
+
+function topCountRows(items, keyFn, cap = 15) {
+  const counts = new Map();
+  for (const item of items) {
+    const key = keyFn(item);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, cap)
+    .map(([k, n]) => `- ${k}: ${n}`);
+}
+
+function buildMunicipalityPboSection(dashboard, resolved, ctx) {
+  const days = dashboard?.days ?? [];
+  const coveredDates = [];
+  let latestDay = null;
+  let latestMuni = null;
+  for (const day of days) {
+    const muni = findMunicipalityInDay(day, resolved);
+    if (!muni) continue;
+    if (day.date) coveredDates.push(day.date);
+    latestDay = day;
+    latestMuni = muni;
+  }
+  if (latestDay && latestMuni) {
+    return (
+      `PBO data for "${latestMuni.name}" — last collected ${latestDay.date}, NOT current; state this date when answering:\n` +
+      `${formatDashboardMunicipality(dashboard, latestDay, latestMuni)}\n` +
+      `PBO dates covered: ${coveredDates.sort((a, b) => a.localeCompare(b)).join(', ')}`
+    );
+  }
+  const indexHit = lookupInPboIndex(ctx.pboLookup ?? {}, resolved);
+  return indexHit ?? '(no PBO data for this municipality)';
+}
+
+async function handleGetMunicipalityProfile(input, ctx) {
+  const raw = String(input?.municipality ?? '').trim();
+  if (!raw) return 'municipality is required';
+
+  const dashboard = getCachedDashboard(ctx.getMunicipalityDashboard);
+  const resolved = resolveMunicipalityName(raw, {
+    pboLookupKeys: dashboard?.municipalities ?? Object.keys(ctx.pboLookup ?? {}),
+  }) ?? raw;
+
+  const pboSection = buildMunicipalityPboSection(dashboard, resolved, ctx);
+
+  const signals = loadSignals({ dateFrom: input?.date_from, dateTo: input?.date_to });
+  const matches = searchSignals(signals, { municipality: raw, limit: Number.MAX_SAFE_INTEGER });
+
+  const noPbo = pboSection.startsWith('(no PBO data');
+  if (noPbo && matches.length === 0) {
+    return (
+      `No PBO data or signals found for "${raw}". ` +
+      `Known municipalities: ${(dashboard?.municipalities ?? []).slice(0, 40).join(', ')}`
+    );
+  }
+
+  const resolvedNote = resolved === raw ? '' : ` (resolved from "${raw}")`;
+  const sections = [`Municipality profile: ${resolved}${resolvedNote}`, '', pboSection];
+  if (matches.length === 0) {
+    sections.push('', 'Signals: none matched for this municipality (in the requested date range).');
+  } else {
+    const recentLimit = Math.min(Math.max(Number(input?.limit ?? 5) || 5, 1), 10);
+    sections.push(
+      '',
+      `Signal counts by type (${matches.length} total):`,
+      ...topCountRows(matches, (s) => String(s.signal_type ?? 'unknown')),
+      '',
+      'Signal counts by source:',
+      ...topCountRows(matches, (s) => String(s.source_type ?? 'unknown')),
+      '',
+      `Latest ${Math.min(recentLimit, matches.length)} signals:`,
+      formatSignals(matches.slice(0, recentLimit)),
+    );
+  }
+  return sections.join('\n');
+}
+
+function handleSearchReports(_toolName, input, ctx) {
+  const redact = ctx.reportData?.display_view !== DISPLAY_VIEWS.analyst && ctx.redactReportPayload
+    ? (report) => ctx.redactReportPayload(report, DISPLAY_VIEWS.operator)
+    : undefined;
+  return searchReports(input ?? {}, { redact });
+}
+
+function handleGetSignal(_toolName, input) {
+  const { signal, error } = getSignalById(String(input?.signal_id ?? '').trim());
+  if (error) return `${error} Use lookup_signals to find valid signal ids.`;
+  return formatFullSignal(signal);
 }
 
 const CHAT_TOOL_HANDLERS = {
@@ -552,6 +715,11 @@ const CHAT_TOOL_HANDLERS = {
   list_attention_items: handleListAttentionItems,
   list_operator_recommendations: handleListOperatorRecommendations,
   get_decision_brief: handleGetDecisionBrief,
+  get_data_coverage: handleGetDataCoverage,
+  describe_signal_type: (_toolName, input) => describeSignalType(input?.signal_type ?? ''),
+  get_municipality_profile: (_toolName, input, ctx) => handleGetMunicipalityProfile(input, ctx),
+  search_reports: handleSearchReports,
+  get_signal: handleGetSignal,
 };
 
 /**

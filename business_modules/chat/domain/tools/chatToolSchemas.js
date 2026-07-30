@@ -3,6 +3,7 @@
  */
 import { operatorEpistemicOverlayEnabled, SIGNAL_TYPES } from '../../../resilience_scorer/index.js';
 import { pboReviewRagEnabled } from '../../../../cross-cut-modules/retrieval/ragConfig.js';
+import { SIGNAL_FLAG_REASONS } from '../chatConfig.js';
 
 export const SOURCE_TYPE_ENUM = [
   'news', 'radio', 'visits', 'pbo', 'pbo_regional', 'naftali', 'whatsapp',
@@ -190,7 +191,7 @@ export const CORE_CHAT_TOOLS = [
       type: 'object',
       properties: {
         date: { type: 'string', description: 'YYYY-MM-DD (see Report dates in context).' },
-        scope: { type: 'string', enum: ['national', 'north'], description: 'Report scope (default national).' },
+        scope: { type: 'string', enum: ['national', 'north'], description: 'Report scope (defaults to the loaded report\'s scope).' },
       },
       required: ['date'],
     },
@@ -259,6 +260,76 @@ export const CORE_CHAT_TOOLS = [
     description:
       'Get the batch-generated operator decision brief (summary and priority items) for the loaded assessment.',
     input_schema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'get_data_coverage',
+    description:
+      'One-call inventory of what data exists: report dates per scope, signal dates per source type, ' +
+      'and PBO collection dates. Use FIRST when unsure whether data exists for a date or source.',
+    input_schema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'describe_signal_type',
+    description:
+      'Explain a catalog signal type: label, domain, class, default polarity, construct role, ' +
+      'component routing edges (primary/inferred + polarity), mirror and related types, disambiguation. ' +
+      'Use before interpreting counts from signal_stats or lookup_signals.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        signal_type: { type: 'string', description: 'Signal type id or alias (free text; canonicalized, close matches suggested).' },
+      },
+      required: ['signal_type'],
+    },
+  },
+  {
+    name: 'get_municipality_profile',
+    description:
+      'One-call municipality profile: latest PBO component state (with true collection date), ' +
+      'PBO dates covered, signal counts by type and source, and the latest signals. ' +
+      'Prefer over separate lookup_pbo + lookup_signals + signal_stats calls for "tell me about <municipality>".',
+    input_schema: {
+      type: 'object',
+      properties: {
+        municipality: { type: 'string', description: 'Municipality name (Hebrew or English).' },
+        date_from: { type: 'string', description: 'Limit signals: start date YYYY-MM-DD (optional).' },
+        date_to: { type: 'string', description: 'Limit signals: end date YYYY-MM-DD (optional).' },
+        limit: { type: 'number', description: 'Max recent signals shown (default 5, max 10).' },
+      },
+      required: ['municipality'],
+    },
+  },
+  {
+    name: 'search_reports',
+    description:
+      'Free-text search across past assessment report narratives (syntheses, component narratives, ' +
+      'evidence, claims). Returns date/scope/component/field + snippet per hit, newest first. ' +
+      'Use to find when a theme was previously discussed; then get_report_context for the full text.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Free-text search term.' },
+        scope: { type: 'string', enum: ['national', 'north'], description: 'Limit to one report scope (optional).' },
+        date_from: { type: 'string', description: 'Start date YYYY-MM-DD (optional).' },
+        date_to: { type: 'string', description: 'End date YYYY-MM-DD (optional).' },
+        component: { type: 'string', enum: COMPONENT_ENUM, description: 'Limit to one component (optional).' },
+        limit: { type: 'number', description: 'Max hits (default 10, max 25).' },
+      },
+      required: ['query'],
+    },
+  },
+  {
+    name: 'get_signal',
+    description:
+      'Retrieve ONE full signal by signal_id from lookup_signals output (<file>#<index>) — ' +
+      'complete untruncated evidence and all fields. Use when a lookup_signals excerpt is not enough.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        signal_id: { type: 'string', description: 'From lookup_signals output, e.g. signals-news-2026-07-12.json#3.' },
+      },
+      required: ['signal_id'],
+    },
   },
 ];
 
@@ -362,6 +433,23 @@ export const OPERATOR_PROPOSE_TOOLS = [
       required: ['recommendation_id', 'action'],
     },
   },
+  {
+    name: 'propose_signal_flag',
+    description:
+      'Propose flagging a signal or evidence item as wrong, misrouted, or noteworthy ' +
+      '(requires user confirmation in UI). Does NOT execute immediately. ' +
+      'Confirmed flags land in the review queue mined by the catalog-harvest workflow.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        signal_id: { type: 'string', description: 'From lookup_signals/get_signal output (<file>#<index>). Preferred.' },
+        source_ref: { type: 'string', description: 'Free reference when no signal_id exists (url, quote, source_id).' },
+        reason: { type: 'string', enum: [...SIGNAL_FLAG_REASONS] },
+        note: { type: 'string', description: 'What is wrong / noteworthy — required detail for reason=other.' },
+      },
+      required: ['reason'],
+    },
+  },
 ];
 
 /** Guidance tools suppressed when RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY=0 (narrative-first operator UI). */
@@ -373,7 +461,7 @@ export const GUIDANCE_CHAT_TOOL_NAMES = new Set([
 ]);
 
 function excludeGuidanceTools(tools, opts = {}) {
-  if (operatorEpistemicOverlayEnabled() || opts.isAnalyst) return tools;
+  if (operatorEpistemicOverlayEnabled() || opts.richTools) return tools;
   return tools.filter((t) => !GUIDANCE_CHAT_TOOL_NAMES.has(t.name));
 }
 
@@ -385,7 +473,7 @@ function excludeGuidanceTools(tools, opts = {}) {
 const TOOL_DETAIL_FIELDS = [
   'component', 'municipality', 'district', 'scope',
   'date', 'date_a', 'date_b', 'date_from', 'date_to', 'days',
-  'query', 'source_id', 'signal_type', 'source_type',
+  'query', 'source_id', 'signal_type', 'source_type', 'signal_id', 'reason',
   'audience', 'language', 'slice', 'role', 'group_by',
 ];
 
@@ -428,7 +516,7 @@ export function buildChatToolList(opts = {}) {
   if (opts.confirmActionsEnabled) {
     tools.push(...OPERATOR_PROPOSE_TOOLS);
   }
-  if (opts.analystToolsEnabled && opts.isAnalyst) {
+  if (opts.analystToolsEnabled && opts.richTools) {
     tools.push(...ANALYST_READ_TOOLS);
     if (opts.confirmActionsEnabled) {
       tools.push(...PROPOSE_TOOLS);
@@ -458,8 +546,13 @@ export function buildSystemTemplateToolList(opts = {}) {
     '- get_report_context: fetch a fuller slice of the loaded report (or a past date) when context is thin',
     '- generate_brief: formatted brief for an audience',
     '- list_sources / search_sources / get_source: original archive documents',
+    '- get_data_coverage: what data exists (report dates per scope, signal dates per source, PBO dates) — check before assuming a gap',
+    '- describe_signal_type: catalog definition + component routing for a signal type',
+    '- get_municipality_profile: one-call municipality overview (PBO state + signal mix + latest signals)',
+    '- search_reports: free-text search across past report narratives',
+    '- get_signal: full untruncated signal by id from lookup_signals',
   ];
-  if (operatorEpistemicOverlayEnabled() || opts.isAnalyst) {
+  if (operatorEpistemicOverlayEnabled() || opts.richTools) {
     core.push(
       '- list_attention_items: ranked what-needs-attention queue',
       '- list_operator_recommendations: pending suggested actions',
@@ -470,12 +563,17 @@ export function buildSystemTemplateToolList(opts = {}) {
       '- Default to evidence-first answers: cite component narratives and lookup_signals / get_source quotes.',
     );
   }
-  if (opts.confirmActionsEnabled && (operatorEpistemicOverlayEnabled() || opts.isAnalyst)) {
+  if (opts.confirmActionsEnabled && (operatorEpistemicOverlayEnabled() || opts.richTools)) {
     core.push(
       '- propose_operator_recommendation: acknowledge/dismiss pending operator recommendations (user must confirm)',
     );
   }
-  if (opts.analystToolsEnabled && opts.isAnalyst) {
+  if (opts.confirmActionsEnabled) {
+    core.push(
+      '- propose_signal_flag: flag a wrong/misrouted/noteworthy signal for review (user must confirm; never claim it was applied)',
+    );
+  }
+  if (opts.analystToolsEnabled && opts.richTools) {
     const pboLines = [
       '- list_pbo_reviews / get_pbo_review: PBO analyst tools',
     ];

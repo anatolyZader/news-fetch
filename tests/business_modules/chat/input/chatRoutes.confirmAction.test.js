@@ -8,6 +8,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { chatRoutes } from '../../../../business_modules/chat/input/chatRoutes.js';
 import { createChatStore } from '../../../../business_modules/chat/infrastructure/chatStore.js';
 import { createChatPendingActionStore } from '../../../../business_modules/chat/infrastructure/chatPendingActionStore.js';
+import { createSignalFlagStore } from '../../../../business_modules/chat/infrastructure/signalFlagStore.js';
 
 const REPO_ROOT = resolve(import.meta.dirname, '../../../..');
 const TEST_REPORTS_DIR = join(REPO_ROOT, 'business_modules/resilience_scorer/data/daily_reports');
@@ -34,6 +35,7 @@ describe('chatRoutes confirm-action', () => {
   let prevAnalystEmails;
   let geoUpdated;
   let geoUpdateCalls;
+  let signalFlagStore;
 
   beforeEach(async () => {
     prevAnalystEmails = process.env.RESILIENCE_ANALYST_EMAILS;
@@ -43,6 +45,7 @@ describe('chatRoutes confirm-action', () => {
     dir = mkdtempSync(join(tmpdir(), 'chat-confirm-routes-'));
     chatStore = createChatStore(join(dir, 'chat.sqlite'));
     pendingActionStore = createChatPendingActionStore(join(dir, 'pending.sqlite'));
+    signalFlagStore = createSignalFlagStore(join(dir, 'flags'));
     sessionId = chatStore.createSession({
       ownerUid: 'u1',
       reportDate: '2026-05-30',
@@ -61,6 +64,7 @@ describe('chatRoutes confirm-action', () => {
       vectorIndexStore: null,
       retrievalService: null,
       pendingActionStore,
+      signalFlagStore,
       pboHistoricalSearchService: null,
       pboReportReviewService: null,
       geoUnknownReviewService: {
@@ -224,5 +228,27 @@ describe('chatRoutes confirm-action', () => {
     });
     assert.equal(res.statusCode, 200);
     assert.match(res.json().result.message, /acknowledge/i);
+  });
+
+  it('confirms signal flag for non-analyst operator and writes the JSONL entry', async () => {
+    const { id } = createPendingAction({
+      toolName: 'propose_signal_flag',
+      params: { source_ref: 'https://example.com/article', reason: 'not_a_signal', note: 'ad, not behavior' },
+      summary: 'Flag signal https://example.com/article: not_a_signal',
+    });
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/chat/confirm-action',
+      headers: { 'x-test-email': 'operator@test.com' },
+      payload: { sessionId, actionId: id, confirmed: true },
+    });
+    assert.equal(res.statusCode, 200);
+    assert.match(res.json().result.message, /Signal flag recorded/);
+    const day = new Date().toISOString().slice(0, 10);
+    const flags = signalFlagStore.listForDate(day);
+    assert.equal(flags.length, 1);
+    assert.equal(flags[0].reason, 'not_a_signal');
+    assert.equal(flags[0].user, 'operator@test.com');
+    assert.equal(flags[0].session_id, sessionId);
   });
 });

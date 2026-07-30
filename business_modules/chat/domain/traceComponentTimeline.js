@@ -187,7 +187,7 @@ function enrichRowFromSignals(row, daySignals, report, componentId, municipality
 }
 
 async function enrichRowFromPboReview(row, deps, date, municipality, componentId, gaps) {
-  if (!municipality || !deps.isAnalyst || !deps.pboReportReviewService?.getReviewDetail) return;
+  if (!municipality || !deps.richTools || !deps.pboReportReviewService?.getReviewDetail) return;
 
   try {
     const detail = await deps.pboReportReviewService.getReviewDetail(date, municipality);
@@ -220,7 +220,7 @@ function createTimelineRow(date) {
  * @param {string} [input.date_to]
  * @param {object} deps
  * @param {boolean} [deps.includeScores]
- * @param {boolean} [deps.isAnalyst]
+ * @param {boolean} [deps.richTools]
  * @param {() => object} [deps.getMunicipalityDashboard]
  * @param {object} [deps.pboReportReviewService]
  * @returns {Promise<object>}

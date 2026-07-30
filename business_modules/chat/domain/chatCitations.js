@@ -10,6 +10,8 @@ const CITATION_TOOLS = new Set([
   'search_sources',
   'list_sources',
   'lookup_signals',
+  'get_signal',
+  'get_municipality_profile',
 ]);
 
 const MAX_CITATIONS = 8;

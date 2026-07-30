@@ -99,7 +99,11 @@ export {
   isBareHazardTickerEvidence,
   NATIONAL_CONTEXT_EXCLUDED_SIGNAL_TYPES,
 } from './domain/services/signals/hygiene/signalTypeHygiene.js';
-export { SIGNAL_TYPES } from './domain/contracts/signalCatalog.js';
+export {
+  SIGNAL_TYPES,
+  getSignalCatalogEntry,
+  canonicalizeSignalType,
+} from './domain/contracts/signalCatalog.js';
 export {
   splitBundledHarmInfrastructure,
   splitEvidenceClauses,
@@ -191,7 +195,11 @@ export {
   buildDeterministicNarrativeFromClaims,
   assignOperatorEpistemicRole,
 } from './domain/services/operator/operatorInvestigationSurface.js';
-export { SIGNAL_TO_COMPONENTS } from './domain/services/signals/routing/signalRouter.js';
+export {
+  SIGNAL_TO_COMPONENTS,
+  NON_SCORING_FALLBACK_TYPES,
+  getRoutingRole,
+} from './domain/services/signals/routing/signalRouter.js';
 
 export {
   runExtractionStage,

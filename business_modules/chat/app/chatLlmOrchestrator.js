@@ -16,18 +16,19 @@ import { handleChatToolCall } from './chatToolHandlers.js';
 import { createChatToolContext } from './createChatToolContext.js';
 import { buildSystemTemplateToolList, describeChatToolCall } from '../domain/tools/chatToolSchemas.js';
 import { chatAnalystToolsEnabled, chatConfirmActionsEnabled, chatStreamDeltasEnabled } from '../domain/chatConfig.js';
-import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
+import { canUseRichChatTools } from '../../../cross-cut-modules/auth/userAccess.js';
 import { UNTRUSTED_CONTENT_INSTRUCTION } from '../../../cross-cut-modules/security/index.js';
 import { operatorEpistemicOverlayEnabled } from '../../resilience_scorer/index.js';
 import { semanticOutputGate } from '../../../cross-cut-modules/security/domain/services/semanticOutputGate.js';
 
 function buildSystemTemplate(ctx) {
-  const isAnalyst = canViewAnalystDisplay(ctx.userEmail ?? '');
-  const narrativeFocus = !operatorEpistemicOverlayEnabled() && !isAnalyst;
+  // Every listed user gets the full experience: hub mode + extended tools (operator decision, 2026-07-30).
+  const richTools = canUseRichChatTools(ctx.userEmail ?? '');
+  const narrativeFocus = !operatorEpistemicOverlayEnabled() && !richTools;
   const uiLang = String(ctx.uiLang ?? 'en').trim().toLowerCase();
   const toolList = buildSystemTemplateToolList({
     analystToolsEnabled: chatAnalystToolsEnabled(),
-    isAnalyst,
+    richTools,
     confirmActionsEnabled: chatConfirmActionsEnabled(),
     toolProfile: ctx.toolProfile ?? 'default',
   });

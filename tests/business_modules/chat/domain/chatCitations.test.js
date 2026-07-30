@@ -134,3 +134,12 @@ describe('partitionCitationsByUse', () => {
     assert.deepEqual(partitionCitationsByUse(null, 'text'), []);
   });
 });
+
+describe('get_signal citations', () => {
+  it('extracts source_id lines from get_signal output', () => {
+    const raw = 'id=signals-news-2026-07-12.json#3 — rumor_spread (news, 2026-07-12)\nsource_id=md:x.md#3\n\nevidence: text';
+    const citations = extractCitationsFromToolResult('get_signal', raw);
+    assert.equal(citations.length, 1);
+    assert.equal(citations[0].source_id, 'md:x.md#3');
+  });
+});

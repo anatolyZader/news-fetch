@@ -11,7 +11,7 @@ describe('chatToolHandlers', () => {
   it('lookup_pbo returns data from pboLookup', async () => {
     const result = await handleChatToolCall('lookup_pbo', { municipality: 'Haifa' }, {
       pboLookup: { Haifa: 'scores here' },
-      isAnalyst: false,
+      richTools: false,
       analystToolsEnabled: true,
       confirmActionsEnabled: true,
       reportData: {},
@@ -22,11 +22,11 @@ describe('chatToolHandlers', () => {
 
   it('blocks analyst tools for non-analyst', async () => {
     const result = await handleChatToolCall('list_geo_unknown', {}, {
-      isAnalyst: false,
+      richTools: false,
       analystToolsEnabled: true,
       confirmActionsEnabled: true,
     });
-    assert.match(result, /analyst access/i);
+    assert.match(result, /listed account/i);
   });
 
   it('list_attention_items returns ranked items from assessment', async () => {
@@ -79,7 +79,7 @@ describe('chatToolHandlers', () => {
       'propose_operator_recommendation',
       { recommendation_id: 'rec:test', action: 'acknowledge', rationale: 'done' },
       {
-        isAnalyst: false,
+        richTools: false,
         analystToolsEnabled: true,
         confirmActionsEnabled: true,
         pendingActionStore: store,
@@ -118,7 +118,7 @@ describe('lookup_pbo dashboard source', () => {
     pboLookup: {},
     reportData: { assessment: { date: '2026-05-23' } },
     getMunicipalityDashboard: () => dashboard,
-    isAnalyst: false,
+    richTools: false,
     analystToolsEnabled: true,
     confirmActionsEnabled: true,
   };
@@ -146,7 +146,7 @@ describe('lookup_pbo date awareness', () => {
   const baseCtx = {
     pboLookup: {},
     reportData: { assessment: { date: '2026-05-23' } },
-    isAnalyst: false,
+    richTools: false,
     analystToolsEnabled: true,
     confirmActionsEnabled: true,
   };
@@ -167,7 +167,7 @@ describe('lookup_pbo date awareness', () => {
 });
 
 describe('empty-layer honesty', () => {
-  const gates = { isAnalyst: false, analystToolsEnabled: true, confirmActionsEnabled: true, pboLookup: {} };
+  const gates = { richTools: false, analystToolsEnabled: true, confirmActionsEnabled: true, pboLookup: {} };
 
   it('attention items: empty list says the layer ran', async () => {
     const result = await handleChatToolCall('list_attention_items', {}, {
@@ -196,7 +196,7 @@ describe('new deterministic tools', () => {
   it('get_report reports not-found with available dates', async () => {
     const result = await handleChatToolCall('get_report', { date: '1999-01-01' }, {
       reportData: {},
-      isAnalyst: false,
+      richTools: false,
       analystToolsEnabled: true,
       confirmActionsEnabled: true,
     });
@@ -206,7 +206,7 @@ describe('new deterministic tools', () => {
   it('get_report_context with an unknown past date lists available dates', async () => {
     const result = await handleChatToolCall('get_report_context', { slice: 'full', date: '1999-01-01' }, {
       reportData: { display_view: 'operator', assessment: { report_scope: { id: 'north' } } },
-      isAnalyst: false,
+      richTools: false,
       analystToolsEnabled: true,
       confirmActionsEnabled: true,
     });
@@ -220,7 +220,7 @@ describe('new deterministic tools', () => {
       { component: 'leadership', date: '1999-01-01' },
       {
         reportData: { display_view: 'operator', assessment: {} },
-        isAnalyst: false,
+        richTools: false,
         analystToolsEnabled: true,
         confirmActionsEnabled: true,
       },
@@ -233,7 +233,7 @@ describe('new deterministic tools', () => {
     const result = await handleChatToolCall('get_report_context', { slice: 'full', date: '1999-01-01' }, {
       reportData: { display_view: 'operator', assessment: {} },
       redactReportPayload: (raw, view) => { redactedWith = view; return raw; },
-      isAnalyst: false,
+      richTools: false,
       analystToolsEnabled: true,
       confirmActionsEnabled: true,
     });
@@ -253,7 +253,7 @@ describe('new deterministic tools', () => {
           ],
         },
       },
-      isAnalyst: false,
+      richTools: false,
       analystToolsEnabled: true,
       confirmActionsEnabled: true,
     });
@@ -264,7 +264,7 @@ describe('new deterministic tools', () => {
   it('signal_stats returns a no-match message for impossible filters', async () => {
     const result = await handleChatToolCall('signal_stats', { group_by: 'signal_type', date_from: '1999-01-01', date_to: '1999-01-02' }, {
       reportData: {},
-      isAnalyst: false,
+      richTools: false,
       analystToolsEnabled: true,
       confirmActionsEnabled: true,
     });
@@ -273,11 +273,11 @@ describe('new deterministic tools', () => {
 
   it('list_observations is analyst-gated', async () => {
     const result = await handleChatToolCall('list_observations', {}, {
-      isAnalyst: false,
+      richTools: false,
       analystToolsEnabled: true,
       confirmActionsEnabled: true,
     });
-    assert.match(result, /analyst access/i);
+    assert.match(result, /listed account/i);
   });
 
   it('onCitation fires for citation-bearing tools and a throwing callback is contained', async () => {
@@ -285,7 +285,7 @@ describe('new deterministic tools', () => {
     const ctx = {
       pboLookup: {},
       reportData: { assessment: { date: '2026-07-01' } },
-      isAnalyst: false,
+      richTools: false,
       analystToolsEnabled: true,
       confirmActionsEnabled: true,
       sourceArchive: {
@@ -383,5 +383,170 @@ describe('executePendingAction', () => {
       if (prev === undefined) delete process.env.CHAT_COMPRESS_TOOLS;
       else process.env.CHAT_COMPRESS_TOOLS = prev;
     }
+  });
+});
+
+describe('coverage / catalog / profile / search tools', () => {
+  const gates = { richTools: false, analystToolsEnabled: true, confirmActionsEnabled: true, pboLookup: {} };
+  const dashboard = {
+    componentsOrder: ['narrative', 'leadership'],
+    componentNames: { en: {}, he: {} },
+    municipalities: ['חורפיש', 'כרמיאל'],
+    days: [
+      {
+        date: '2026-04-10',
+        municipalities: [
+          { name: 'חורפיש', components: { narrative: { avg: 0.5, texts: ['old note'] } } },
+        ],
+      },
+      {
+        date: '2026-04-18',
+        municipalities: [
+          { name: 'חורפיש', components: { narrative: { avg: 0.81, texts: ['מתמודדים'] } } },
+        ],
+      },
+    ],
+  };
+
+  it('get_data_coverage renders all three sections', async () => {
+    const result = await handleChatToolCall('get_data_coverage', {}, {
+      ...gates,
+      reportData: {},
+      getMunicipalityDashboard: () => dashboard,
+    });
+    assert.match(result, /Report dates by scope:/);
+    assert.match(result, /Signal dates by source type:/);
+    assert.match(result, /PBO collections:/);
+    assert.match(result, /dashboard days: 2026-04-10, 2026-04-18/);
+  });
+
+  it('describe_signal_type includes routing edges', async () => {
+    const result = await handleChatToolCall('describe_signal_type', { signal_type: 'compliance_enter_shelter' }, {
+      ...gates,
+      reportData: {},
+    });
+    assert.match(result, /type: compliance_enter_shelter/);
+    assert.match(result, /- lifesaving_behavior: role=primary polarity=\+/);
+  });
+
+  it('get_municipality_profile serves the latest PBO state with an honest date label', async () => {
+    const result = await handleChatToolCall(
+      'get_municipality_profile',
+      { municipality: 'חורפיש', date_from: '1999-01-01', date_to: '1999-01-02' },
+      { ...gates, reportData: {}, getMunicipalityDashboard: () => dashboard },
+    );
+    assert.match(result, /Municipality profile: חורפיש/);
+    assert.match(result, /last collected 2026-04-18, NOT current/);
+    assert.match(result, /PBO dates covered: 2026-04-10, 2026-04-18/);
+    assert.match(result, /Signals: none matched/);
+  });
+
+  it('get_municipality_profile total miss lists known municipalities', async () => {
+    const result = await handleChatToolCall(
+      'get_municipality_profile',
+      { municipality: 'Nowhereville', date_from: '1999-01-01', date_to: '1999-01-02' },
+      { ...gates, reportData: {}, getMunicipalityDashboard: () => dashboard },
+    );
+    assert.match(result, /No PBO data or signals found for "Nowhereville"/);
+    assert.match(result, /חורפיש/);
+  });
+
+  it('search_reports requires a query and reports misses', async () => {
+    const missing = await handleChatToolCall('search_reports', {}, { ...gates, reportData: {} });
+    assert.match(missing, /query is required/);
+    const noHit = await handleChatToolCall('search_reports', { query: 'zzz-nothing-zzz', limit: 2 }, {
+      ...gates,
+      reportData: {},
+    });
+    assert.match(noHit, /No report text matches "zzz-nothing-zzz"/);
+  });
+
+  it('search_reports redacts for non-analyst sessions', async () => {
+    let redactedWith = null;
+    await handleChatToolCall('search_reports', { query: 'zzz-nothing-zzz', limit: 1 }, {
+      ...gates,
+      reportData: { display_view: 'operator' },
+      redactReportPayload: (raw, view) => { redactedWith = view; return { assessment: { components: [] } }; },
+    });
+    assert.equal(redactedWith, 'operator');
+  });
+
+  it('get_signal rejects unknown ids with guidance', async () => {
+    const result = await handleChatToolCall('get_signal', { signal_id: 'bogus' }, { ...gates, reportData: {} });
+    assert.match(result, /Invalid signal_id format/);
+    assert.match(result, /Use lookup_signals to find valid signal ids/);
+  });
+
+  it('get_report defaults to the loaded report scope', async () => {
+    const result = await handleChatToolCall('get_report', { date: '1999-01-01' }, {
+      ...gates,
+      reportData: { assessment: { report_scope: { id: 'north' } } },
+    });
+    assert.match(result, /No report found for 1999-01-01 \(scope=north\)/);
+  });
+});
+
+describe('propose_signal_flag', () => {
+  const gates = { richTools: false, analystToolsEnabled: true, confirmActionsEnabled: true };
+
+  it('proposes a pending action for operators (non-analyst)', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'chat-pending-flag-'));
+    const store = createChatPendingActionStore(join(dir, 'test.sqlite'));
+    const proposed = [];
+    const result = await handleChatToolCall(
+      'propose_signal_flag',
+      { signal_id: 'signals-news-2026-07-12.json#3', reason: 'wrong_type', note: 'looks off' },
+      { ...gates, pendingActionStore: store, ownerUid: 'u1', sessionId: 's1', onActionProposed: (p) => proposed.push(p) },
+    );
+    assert.match(result, /Action proposed/);
+    assert.match(result, /Do not claim the action was executed/);
+    assert.equal(proposed.length, 1);
+    assert.match(proposed[0].summary, /Flag signal signals-news-2026-07-12\.json#3: wrong_type/);
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('rejects an invalid reason and missing references', async () => {
+    const ctx = { ...gates, pendingActionStore: { createPending: () => ({ id: 'x' }) }, ownerUid: 'u1', sessionId: 's1' };
+    const bad = await handleChatToolCall('propose_signal_flag', { signal_id: 'a.json#1', reason: 'meh' }, ctx);
+    assert.match(bad, /Invalid reason/);
+    const noRef = await handleChatToolCall('propose_signal_flag', { reason: 'other' }, ctx);
+    assert.match(noRef, /Provide signal_id .* or source_ref/);
+  });
+
+  it('executePendingAction appends to the flag store for a non-analyst operator', async () => {
+    const appended = [];
+    const result = await executePendingAction(
+      {
+        toolName: 'propose_signal_flag',
+        params: { source_ref: 'https://example.com/a', reason: 'not_a_signal', note: 'ad, not behavior' },
+        sessionId: 's9',
+      },
+      {
+        userEmail: 'operator@test.com',
+        sessionId: 's9',
+        signalFlagStore: {
+          append(record) {
+            appended.push(record);
+            return { ...record, flag_id: 'sf_test_1', flagged_at: '2026-07-30T00:00:00.000Z' };
+          },
+        },
+      },
+    );
+    assert.equal(result.ok, true);
+    assert.equal(result.flag_id, 'sf_test_1');
+    assert.equal(appended.length, 1);
+    assert.equal(appended[0].reason, 'not_a_signal');
+    assert.equal(appended[0].user, 'operator@test.com');
+    assert.equal(appended[0].session_id, 's9');
+  });
+
+  it('executePendingAction rejects an invalid stored reason', async () => {
+    await assert.rejects(
+      executePendingAction(
+        { toolName: 'propose_signal_flag', params: { source_ref: 'x', reason: 'nope' } },
+        { userEmail: 'operator@test.com', signalFlagStore: { append: () => ({}) } },
+      ),
+      /Invalid flag reason/,
+    );
   });
 });

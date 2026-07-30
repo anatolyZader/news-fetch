@@ -14,6 +14,8 @@ import {
   resilienceReportsDir,
   listReportJsonFilenamesForDate,
   parseReportFilename,
+  SIGNAL_TO_COMPONENTS,
+  canonicalizeSignalType,
 } from '../../resilience_scorer/index.js';
 import {
   resolveMunicipalityName,
@@ -151,7 +153,30 @@ export function loadObservations({ date, profile, limit = 50 } = {}) {
 }
 
 /**
+ * Signal types with any routing edge (primary or inferred) to a component,
+ * derived from the canonical catalog routing so it never drifts across epochs.
+ */
+let componentTypesCache = null;
+function signalTypesForComponent(component) {
+  if (!componentTypesCache) {
+    componentTypesCache = new Map();
+    for (const [type, edges] of Object.entries(SIGNAL_TO_COMPONENTS)) {
+      for (const componentId of Object.keys(edges ?? {})) {
+        if (!componentTypesCache.has(componentId)) componentTypesCache.set(componentId, new Set());
+        componentTypesCache.get(componentId).add(type);
+      }
+    }
+  }
+  return componentTypesCache.get(component) ?? null;
+}
+
+function signalRecencyKey(s) {
+  return String(s.extracted_at ?? s.date ?? '');
+}
+
+/**
  * Search signals by text query and/or structured filters.
+ * Results are ordered newest-first before the limit is applied.
  * @param {Array} signals - flat signal array from loadSignals()
  * @param {{ query?: string, component?: string, sourceType?: string, municipality?: string, limit?: number }} opts
  * @returns {Array} matching signals, capped at limit
@@ -168,20 +193,9 @@ export function searchSignals(signals, { query, component, signalType, sourceTyp
   }
 
   if (component) {
-    // Map component IDs to their signal_type prefixes
-    const componentSignalMap = {
-      narrative: ['coping_narrative', 'victimhood_narrative', 'helplessness_narrative', 'empowerment_narrative'],
-      information_communication: ['information_seeking', 'information_sharing', 'information_confusion', 'rumor_spread', 'information_trust', 'information_distrust'],
-      lifesaving_behavior: ['shelter_compliance', 'shelter_noncompliance', 'evacuation_compliance', 'evacuation_refusal', 'emergency_preparedness', 'preparedness_gap'],
-      functional_continuity: ['routine_maintenance', 'routine_disruption', 'service_continuity', 'service_gap', 'economic_continuity', 'economic_disruption', 'education_continuity', 'education_disruption', 'coordination_success', 'coordination_failure'],
-      community_capital: ['mutual_aid', 'volunteer_action', 'community_initiative', 'social_cohesion', 'social_fragmentation', 'community_organization'],
-      leadership: ['leadership_visible_presence', 'leadership_absence', 'leadership_trust', 'leadership_distrust', 'leadership_action', 'leadership_inaction'],
-      belonging_solidarity: ['solidarity_expression', 'solidarity_action', 'belonging_expression', 'alienation_expression', 'national_solidarity', 'inter_group_tension'],
-      wellbeing_at_risk: ['fear_expression', 'calm_confidence', 'stress_indicator', 'trauma_indicator', 'mental_health_concern', 'welfare_need', 'welfare_response', 'welfare_gap', 'vulnerable_population_concern'],
-    };
-    const types = componentSignalMap[component];
+    const types = signalTypesForComponent(component);
     if (types) {
-      filtered = filtered.filter((s) => types.includes(s.signal_type));
+      filtered = filtered.filter((s) => types.has(canonicalizeSignalType(s.signal_type ?? '')));
     }
   }
 
@@ -199,7 +213,9 @@ export function searchSignals(signals, { query, component, signalType, sourceTyp
     );
   }
 
-  return filtered.slice(0, limit);
+  return [...filtered]
+    .sort((a, b) => signalRecencyKey(b).localeCompare(signalRecencyKey(a)))
+    .slice(0, limit);
 }
 
 function formatSignalLine(s, i) {
@@ -280,6 +296,115 @@ export function listReportDates() {
     if (parsed) dates.add(parsed.reportDate);
   }
   return [...dates].sort((a, b) => a.localeCompare(b));
+}
+
+/**
+ * Report dates grouped by report scope id.
+ * @returns {Record<string, string[]>} scopeId → sorted YYYY-MM-DD dates
+ */
+export function listReportDatesByScope() {
+  let files;
+  try {
+    files = getStore().readdirSync(REPORTS_DIR).filter((f) => f.endsWith('.json'));
+  } catch {
+    return {};
+  }
+  const byScope = new Map();
+  for (const f of files) {
+    const parsed = parseReportFilename(f);
+    if (!parsed) continue;
+    if (!byScope.has(parsed.scopeId)) byScope.set(parsed.scopeId, new Set());
+    byScope.get(parsed.scopeId).add(parsed.reportDate);
+  }
+  const out = {};
+  for (const [scope, dates] of byScope) {
+    out[scope] = [...dates].sort((a, b) => a.localeCompare(b));
+  }
+  return out;
+}
+
+/**
+ * Signal bundle dates grouped by source type (from bundle filenames).
+ * @returns {Record<string, string[]>} sourceType → sorted YYYY-MM-DD dates
+ */
+export function listSignalDatesBySourceType() {
+  const byType = new Map();
+  for (const { name } of listSignalJsonFiles()) {
+    const m = SIGNAL_FILE_RE.exec(name);
+    if (!m) continue;
+    if (!byType.has(m[1])) byType.set(m[1], new Set());
+    byType.get(m[1]).add(m[2]);
+  }
+  const out = {};
+  for (const [type, dates] of byType) {
+    out[type] = [...dates].sort((a, b) => a.localeCompare(b));
+  }
+  return out;
+}
+
+const SIGNAL_ID_RE = /^(.+\.json)#(\d+)$/;
+
+/**
+ * Load one full signal by its id ("<file>#<idx1>" as emitted by loadSignals).
+ * @param {string} signalId
+ * @returns {{ signal?: object, error?: string }}
+ */
+export function getSignalById(signalId) {
+  const m = SIGNAL_ID_RE.exec(String(signalId ?? '').trim());
+  if (!m) {
+    return { error: 'Invalid signal_id format — expected <file>#<index> from lookup_signals.' };
+  }
+  const [, file, idxStr] = m;
+  const idx1 = Number(idxStr);
+  for (const dir of SIGNALS_DIRS) {
+    let raw;
+    try {
+      raw = JSON.parse(getStore().readFileSync(join(dir, file), 'utf-8'));
+    } catch {
+      continue;
+    }
+    const sigs = raw.signals ?? [];
+    if (idx1 < 1 || idx1 > sigs.length) {
+      return { error: `File ${file} has only ${sigs.length} signals (asked for #${idx1}).` };
+    }
+    return {
+      signal: {
+        source_type: raw.source_type ?? (file.startsWith('signals-social-') ? 'social' : undefined),
+        date: raw.date,
+        extracted_at: raw.extracted_at ?? null,
+        file,
+        signal_dir: dir,
+        signal_id: `${file}#${idx1}`,
+        ...sigs[idx1 - 1],
+      },
+    };
+  }
+  return { error: `No signal bundle named ${file} on disk.` };
+}
+
+const FULL_SIGNAL_SKIP_KEYS = new Set([
+  'signal_id', 'signal_type', 'source_type', 'evidence', 'date', 'extracted_at',
+  'article_source', 'article_url', 'source_id', 'signal_dir',
+]);
+
+/**
+ * Full untruncated formatting of one signal (all fields; source_id= line kept
+ * on its own line for the citation contract).
+ * @param {object} s merged signal from getSignalById / loadSignals
+ */
+export function formatFullSignal(s) {
+  const when = formatAnalysisDateTime(s.extracted_at ?? s.date) ?? s.date ?? 'unknown';
+  const lines = [`id=${s.signal_id ?? 'unknown'} — ${s.signal_type} (${s.source_type}, ${when})`];
+  if (s.article_source) lines.push(`article_source: ${s.article_source}`);
+  if (s.source_id) lines.push(`source_id=${s.source_id}`);
+  if (s.article_url) lines.push(`url: ${s.article_url}`);
+  lines.push('', `evidence: ${s.evidence ?? '(none)'}`, '');
+  for (const [key, value] of Object.entries(s)) {
+    if (FULL_SIGNAL_SKIP_KEYS.has(key) || value == null || value === '') continue;
+    const rendered = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    lines.push(`${key}: ${rendered}`);
+  }
+  return lines.join('\n');
 }
 
 /**

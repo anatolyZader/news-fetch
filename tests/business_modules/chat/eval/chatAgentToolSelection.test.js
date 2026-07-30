@@ -17,7 +17,7 @@ describe('chatAgentToolSelection (offline eval)', () => {
   it('sources profile only exposes source tools', () => {
     const tools = buildChatToolList({
       analystToolsEnabled: true,
-      isAnalyst: true,
+      richTools: true,
       confirmActionsEnabled: true,
       toolProfile: 'sources',
     });
@@ -34,7 +34,7 @@ describe('chatAgentToolSelection (offline eval)', () => {
     for (const c of golden.cases) {
       const tools = buildChatToolList({
         analystToolsEnabled: true,
-        isAnalyst: true,
+        richTools: true,
         confirmActionsEnabled: true,
         toolProfile: c.toolProfile ?? 'default',
       });
@@ -50,7 +50,7 @@ describe('chatAgentToolSelection (offline eval)', () => {
     try {
       const tools = buildChatToolList({
         analystToolsEnabled: true,
-        isAnalyst: false,
+        richTools: false,
         confirmActionsEnabled: true,
         toolProfile: 'default',
       });
@@ -73,7 +73,7 @@ describe('chatAgentToolSelection (offline eval)', () => {
     try {
       const tools = buildChatToolList({
         analystToolsEnabled: true,
-        isAnalyst: true,
+        richTools: true,
         confirmActionsEnabled: true,
         toolProfile: 'default',
       });

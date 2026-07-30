@@ -52,8 +52,16 @@ export const PENDING_ACTION_TTL_MS = 15 * 60 * 1000;
 export const PROPOSE_TOOL_NAMES = new Set([
   'propose_geo_unknown_update',
   'propose_operator_recommendation',
+  'propose_signal_flag',
 ]);
 
 export const OPERATOR_PROPOSE_TOOL_NAMES = new Set([
   'propose_operator_recommendation',
+  'propose_signal_flag',
+]);
+
+/** Valid propose_signal_flag reasons (schema enum, propose gate, and executor). */
+export const SIGNAL_FLAG_REASONS = new Set([
+  'wrong_type', 'wrong_polarity', 'wrong_municipality',
+  'not_a_signal', 'duplicate', 'noteworthy', 'other',
 ]);

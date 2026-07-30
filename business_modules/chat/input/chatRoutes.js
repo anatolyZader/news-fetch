@@ -9,7 +9,13 @@ import { requireMaintainerAccess } from '../../../cross-cut-modules/auth/maintai
 import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
 import { authPreHandlerList } from '../../../cross-cut-modules/auth/buildAuthHooks.js';
-import { createHttpCostRecorder, createHttpChatBudgetPreHandler } from '../../../cross-cut-modules/budget/index.js';
+import {
+  createHttpCostRecorder,
+  createHttpChatBudgetPreHandler,
+  getDailyBudgetStatus,
+  getUserDailyBudgetStatus,
+  isUserBudgetExempt,
+} from '../../../cross-cut-modules/budget/index.js';
 import { createChatRetrievalCache } from '../../../cross-cut-modules/retrieval/chatRetrievalCache.js';
 import { executePendingAction } from '../app/executePendingAction.js';
 import { getSource } from '../index.js';
@@ -120,6 +126,7 @@ export async function chatRoutes(app, opts) {
     vectorIndexStore,
     retrievalService,
     pendingActionStore,
+    signalFlagStore,
     pboHistoricalSearchService,
     pboReportReviewService,
     getMunicipalityDashboard,
@@ -140,6 +147,16 @@ export async function chatRoutes(app, opts) {
     chatLlmPort,
     timezone,
     canViewAnalyst: canViewAnalystDisplay,
+  });
+
+  app.get('/api/chat/budget', authHook, async (request, reply) => {
+    const exempt = isUserBudgetExempt(request.user?.email);
+    return reply.send({
+      user: exempt
+        ? { exempt: true }
+        : { exempt: false, ...getUserDailyBudgetStatus(chatOwnerUid(request)) },
+      global: getDailyBudgetStatus(),
+    });
   });
 
   app.get('/api/chat/sessions', authHook, async (request, reply) => {
@@ -256,6 +273,8 @@ export async function chatRoutes(app, opts) {
       const result = await executePendingAction(pending, {
         userEmail: request.user?.email ?? '',
         geoUnknownReviewService,
+        signalFlagStore: signalFlagStore ?? null,
+        sessionId: pending.sessionId ?? null,
       });
       return reply.send({ ok: true, result });
     } catch (err) {

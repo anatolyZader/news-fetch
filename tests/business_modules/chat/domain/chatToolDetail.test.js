@@ -30,3 +30,14 @@ describe('describeChatToolCall', () => {
     assert.equal(describeChatToolCall({ query: 'line1\nline2' }), 'line1 line2');
   });
 });
+
+describe('signal flag detail fields', () => {
+  it('renders signal_id and reason', () => {
+    const detail = describeChatToolCall({ signal_id: 'signals-news-2026-07-12.json#3', reason: 'wrong_type' });
+    assert.equal(detail, 'signals-news-2026-07-12.json#3 · wrong_type');
+  });
+
+  it('keeps note and source_ref server-side', () => {
+    assert.equal(describeChatToolCall({ note: 'secret prose', source_ref: 'http://x' }), '');
+  });
+});

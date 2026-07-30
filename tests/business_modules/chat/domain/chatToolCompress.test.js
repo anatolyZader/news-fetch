@@ -50,3 +50,24 @@ describe('chatToolCompress', () => {
     assert.match(out, /truncated/);
   });
 });
+
+describe('new tool compression', () => {
+  it('get_signal keeps up to 8k chars instead of the 4k default', () => {
+    const raw = 'S'.repeat(6000);
+    assert.equal(compressChatToolResult('get_signal', raw, { enabled: true }), raw);
+    const big = 'S'.repeat(12_000);
+    const out = compressChatToolResult('get_signal', big, { enabled: true });
+    assert.ok(out.length < 12_000);
+    assert.ok(out.length >= 7000, `should truncate near 8k, got ${out.length}`);
+  });
+
+  it('get_source error strings pass through unmangled', () => {
+    for (const err of [
+      'Markdown file missing for source_id=md:a.md#1.',
+      'No article found for source_id=md:a.md#2.',
+      'No source found for source_id=db:9. Try search_sources or list_sources first.',
+    ]) {
+      assert.equal(compressChatToolResult('get_source', err, { enabled: true }), err);
+    }
+  });
+});
