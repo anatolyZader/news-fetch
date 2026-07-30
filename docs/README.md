@@ -1,5 +1,7 @@
 # Repository documentation (`/docs`)
 
+> Full generated file index: [INDEX.md](./INDEX.md) (regenerate with `/compile-docs`)
+
 **Rule:** Everything under **`docs/`** is optional engineering and reference material. You can remove this tree without breaking server startup or core API behavior.
 
 Runtime content the app **does** depend on lives elsewhere:
