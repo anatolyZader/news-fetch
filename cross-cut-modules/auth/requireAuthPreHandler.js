@@ -2,7 +2,7 @@ import { getDefaultAuthPort } from './infrastructure/firebaseAuthAdapter.js';
 import { attachRequestUser } from './attachRequestUser.js';
 import { auditFromRequest } from '../security/input/auditLog.js';
 
-const ERROR_STATUS = {
+export const ERROR_STATUS = {
   missing_token: 401,
   invalid_token: 401,
   token_revoked: 401,
@@ -14,6 +14,9 @@ const ERROR_STATUS = {
  * Fastify preHandler: require valid Firebase ID token, verified email (password), and listed user.
  */
 export async function requireAuthPreHandler(request, reply) {
+  if (request.authVerified && request.user?.uid) {
+    return;
+  }
   const result = await getDefaultAuthPort().verifyToken(request.headers.authorization);
   if (!result.decoded) {
     const code = result.error ?? 'invalid_token';

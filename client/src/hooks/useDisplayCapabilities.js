@@ -7,6 +7,8 @@ import { useAuth } from '../context/AuthContext.jsx';
 export function useDisplayCapabilities() {
   const { getIdToken, apiReady, user } = useAuth();
   const [canViewAnalyst, setCanViewAnalyst] = useState(false);
+  const [showBudgetPanel, setShowBudgetPanel] = useState(false);
+  const [canControlBudget, setCanControlBudget] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -22,12 +24,22 @@ export function useDisplayCapabilities() {
         const res = await fetch('/api/resilience/display-capabilities', { headers });
         if (res.ok) {
           const body = await res.json();
-          if (!cancelled) setCanViewAnalyst(body.canViewAnalyst === true);
+          if (!cancelled) {
+            setCanViewAnalyst(body.canViewAnalyst === true);
+            setShowBudgetPanel(body.showBudgetPanel === true || body.canViewAnalyst === true);
+            setCanControlBudget(body.canControlBudget === true || body.canViewAnalyst === true);
+          }
         } else if (!cancelled) {
           setCanViewAnalyst(false);
+          setShowBudgetPanel(false);
+          setCanControlBudget(false);
         }
       } catch {
-        if (!cancelled) setCanViewAnalyst(false);
+        if (!cancelled) {
+          setCanViewAnalyst(false);
+          setShowBudgetPanel(false);
+          setCanControlBudget(false);
+        }
       } finally {
         if (!cancelled) setReady(true);
       }
@@ -35,5 +47,5 @@ export function useDisplayCapabilities() {
     return () => { cancelled = true; };
   }, [apiReady, getIdToken, user?.email]);
 
-  return { canViewAnalyst, ready };
+  return { canViewAnalyst, showBudgetPanel, canControlBudget, ready };
 }

@@ -26,21 +26,14 @@ export function initFirebaseAdminForAuth(projectId) {
 }
 
 /**
- * @param {import('firebase-admin/auth').DecodedIdToken} decoded
- * @returns {string | undefined}
- */
-function signInProviderFromDecoded(decoded) {
-  return decoded.firebase?.sign_in_provider ?? null;
-}
-
-/**
- * Password sign-in requires verified email before API access.
+ * Any token carrying an email must have it verified — authorization is email-based,
+ * so an unverified email from any provider must never match a listed user.
+ * Tokens without an email pass here and fail the listed-user check instead.
  * @param {import('firebase-admin/auth').DecodedIdToken} decoded
  * @returns {boolean}
  */
 export function isEmailVerificationSatisfied(decoded) {
-  const provider = signInProviderFromDecoded(decoded);
-  if (provider !== 'password') return true;
+  if (!decoded.email) return true;
   return decoded.email_verified === true;
 }
 

@@ -114,6 +114,23 @@ describe('validateProductionSecurity', () => {
     );
   });
 
+  it('requires RESEND_WEBHOOK_SECRET when RESEND_API_KEY is set', () => {
+    assert.throws(
+      () =>
+        validateProductionSecurity({
+          ...validProdEnv,
+          RESEND_API_KEY: 'key',
+        }),
+      /RESEND_WEBHOOK_SECRET/,
+    );
+    assert.doesNotThrow(() =>
+      validateProductionSecurity({
+        ...validProdEnv,
+        RESEND_API_KEY: 'key',
+        RESEND_WEBHOOK_SECRET: 'whsec_abc',
+      }));
+  });
+
   it('rejects ENABLE_SWAGGER in production', () => {
     assert.throws(
       () =>

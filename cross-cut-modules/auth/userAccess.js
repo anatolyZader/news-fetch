@@ -3,7 +3,7 @@
  * Source of truth: config/userAccess.json (+ optional env overrides).
  */
 
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isOperatorDistrictEnforcementForced } from './authPolicy.js';
@@ -21,8 +21,14 @@ const DEFAULT_CONFIG_PATH = resolve(
 
 /** @typedef {'operator' | 'analyst' | 'maintainer'} AccessLevel */
 
-/** @type {{ operatorDistrictEnforcementEnabled?: boolean, users?: Array<{ email?: string, level?: string, districtIds?: string[], allDistricts?: boolean }> } | null} */
-let cachedConfig = null;
+/** @typedef {{ operatorDistrictEnforcementEnabled?: boolean, users?: Array<{ email?: string, level?: string, districtIds?: string[], allDistricts?: boolean }> }} UserAccessConfig */
+
+/** Per-path cache, invalidated when the file's mtime changes. @type {Map<string, { cfg: UserAccessConfig, mtimeMs: number | null }>} */
+const configCache = new Map();
+/** Config pinned by setUserAccessConfigForTests for the default path (skips file reads). @type {UserAccessConfig | null} */
+let pinnedConfig = null;
+/** @type {Set<string>} */
+const warnedKeys = new Set();
 
 /**
  * @param {string} [email]
@@ -48,35 +54,52 @@ function normalizeAccessLevel(raw) {
  * @param {string} [configPath]
  */
 function loadConfig(configPath = DEFAULT_CONFIG_PATH) {
-  if (cachedConfig && configPath === DEFAULT_CONFIG_PATH) return cachedConfig;
+  if (pinnedConfig && configPath === DEFAULT_CONFIG_PATH) return pinnedConfig;
   if (!existsSync(configPath)) {
-    const empty = { operatorDistrictEnforcementEnabled: false, users: [] };
-    if (configPath === DEFAULT_CONFIG_PATH) cachedConfig = empty;
-    return empty;
+    configCache.delete(configPath);
+    return { operatorDistrictEnforcementEnabled: false, users: [] };
   }
+
+  let mtimeMs;
+  try {
+    mtimeMs = statSync(configPath).mtimeMs;
+  } catch {
+    mtimeMs = null;
+  }
+  const cached = configCache.get(configPath);
+  if (cached && mtimeMs !== null && mtimeMs === cached.mtimeMs) return cached.cfg;
+
+  let cfg;
   try {
     const parsed = JSON.parse(readFileSync(configPath, 'utf8'));
-    const cfg = {
+    cfg = {
       operatorDistrictEnforcementEnabled: parsed?.operatorDistrictEnforcementEnabled === true,
       users: Array.isArray(parsed?.users) ? parsed.users : [],
     };
-    if (configPath === DEFAULT_CONFIG_PATH) cachedConfig = cfg;
-    return cfg;
-  } catch {
-    const empty = { operatorDistrictEnforcementEnabled: false, users: [] };
-    if (configPath === DEFAULT_CONFIG_PATH) cachedConfig = empty;
-    return empty;
+  } catch (err) {
+    const warnKey = `${configPath}:${mtimeMs}`;
+    if (!warnedKeys.has(warnKey)) {
+      console.warn(
+        `[auth] ${configPath} is invalid JSON — treating as empty (all access denied): ${err?.message ?? err}`,
+      );
+      warnedKeys.add(warnKey);
+    }
+    cfg = { operatorDistrictEnforcementEnabled: false, users: [] };
   }
+  configCache.set(configPath, { cfg, mtimeMs });
+  return cfg;
 }
 
 /** Reset cached config (tests). */
 export function resetUserAccessCache() {
-  cachedConfig = null;
+  configCache.clear();
+  pinnedConfig = null;
+  warnedKeys.clear();
 }
 
 /** @param {object | null} cfg */
 export function setUserAccessConfigForTests(cfg) {
-  cachedConfig = cfg;
+  pinnedConfig = cfg;
 }
 
 /**
@@ -159,6 +182,16 @@ export function canViewAnalystDisplay(email) {
  */
 export function canRunAnalysisDisplay(email) {
   return resolveUserAccessLevel(email) === ACCESS_LEVELS.maintainer;
+}
+
+/**
+ * Rich/extended chat tools are open to every listed user (any level).
+ * Spend is controlled by the per-user daily budget, not by role.
+ * @param {string | null | undefined} email
+ * @returns {boolean}
+ */
+export function canUseRichChatTools(email) {
+  return resolveUserAccessLevel(email) !== null;
 }
 
 /**

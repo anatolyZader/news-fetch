@@ -254,6 +254,7 @@ async function registerApplicationRoutes(app, ctx) {
     vectorIndexStore: w.vectorIndexStore,
     retrievalService: w.retrievalService,
     pendingActionStore: w.chatPendingActionStore,
+    signalFlagStore: w.signalFlagStore,
     pboHistoricalSearchService: w.pboHistoricalSearchService,
     pboReportReviewService: w.pboReportReviewService,
     getMunicipalityDashboard,

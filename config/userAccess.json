@@ -6,19 +6,16 @@
       "level": "analyst"
     },
     {
-      "email": "example.north@example.com",
-      "level": "operator",
-      "districtIds": ["north"]
+      "email": "naji22eyal11@gmail.com",
+      "level": "operator"
     },
     {
-      "email": "example.multi@example.com",
-      "level": "operator",
-      "districtIds": ["north", "south"]
+      "email": "razheyman@gmail.com",
+      "level": "operator"
     },
     {
-      "email": "example.admin@example.com",
-      "level": "operator",
-      "allDistricts": true
+      "email": "amirs456@gmail.com",
+      "level": "operator"
     }
   ]
 }

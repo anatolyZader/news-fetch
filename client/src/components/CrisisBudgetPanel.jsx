@@ -10,9 +10,10 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
 /**
- * Analyst HITL control for crisis chat budget pool.
+ * Crisis chat budget pool panel — status for every listed user; activate/deactivate
+ * controls only when `canControl` (analyst+).
  */
-export function CrisisBudgetPanel({ budgetStatus, suggestCrisisBudget, onUpdated }) {
+export function CrisisBudgetPanel({ budgetStatus, suggestCrisisBudget, canControl = true, onUpdated }) {
   const { t } = useLanguage();
   const { getIdToken } = useAuth();
   const [reason, setReason] = useState('');
@@ -65,7 +66,7 @@ export function CrisisBudgetPanel({ budgetStatus, suggestCrisisBudget, onUpdated
             {t('crisisBudget.activeUntil', { expires: budgetStatus.session?.expires_at ?? '—' })}
           </Typography>
         )}
-        {!crisisActive && (
+        {!crisisActive && canControl && (
           <>
             <TextField
               size="small"
@@ -85,7 +86,7 @@ export function CrisisBudgetPanel({ budgetStatus, suggestCrisisBudget, onUpdated
             </Button>
           </>
         )}
-        {crisisActive && (
+        {crisisActive && canControl && (
           <Button
             size="small"
             variant="outlined"
@@ -107,5 +108,6 @@ export function CrisisBudgetPanel({ budgetStatus, suggestCrisisBudget, onUpdated
 CrisisBudgetPanel.propTypes = {
   budgetStatus: PropTypes.object,
   suggestCrisisBudget: PropTypes.bool,
+  canControl: PropTypes.bool,
   onUpdated: PropTypes.func,
 };

@@ -21,6 +21,7 @@ export {
   summariseStageEvents,
   summarizeStageDropRates,
   readTodayCostSpend,
+  readTodayCostSpendForOwner,
   readTodayCostSpendForScripts,
 } from './app/costLog.js';
 

@@ -16,6 +16,11 @@ export {
   httpDailyBudgetPreHandler,
 } from './app/httpDailyBudget.js';
 export {
+  getUserDailyBudgetStatus,
+  isUserBudgetExempt,
+  userDailyBudgetLimitUsd,
+} from './app/userDailyBudget.js';
+export {
   httpChatBudgetPreHandler,
   createHttpChatBudgetPreHandler,
 } from './app/httpChatBudgetPreHandler.js';

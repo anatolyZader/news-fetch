@@ -140,6 +140,12 @@ export async function registerSecurityPlugins(app, _opts = {}) {
       max: envInt('RATE_LIMIT_WEBHOOK_MAX', 120),
       key: 'ip',
     },
+    {
+      method: 'POST',
+      url: '/api/pbo/review/inbound-email',
+      max: envInt('RATE_LIMIT_INBOUND_EMAIL_MAX', 30),
+      key: 'ip',
+    },
   ];
 
   for (const route of routeLimits) {
@@ -184,14 +190,20 @@ export async function registerSecurityPlugins(app, _opts = {}) {
   });
 }
 
+/** Webhook paths whose signatures are computed over the exact payload bytes. */
+const RAW_BODY_PATHS = new Set([
+  '/api/webhooks/whatsapp',
+  '/api/pbo/review/inbound-email',
+]);
+
 /**
- * Capture raw body for WhatsApp webhook signature verification.
+ * Capture raw body for webhook signature verification (WhatsApp, Resend inbound email).
  * @param {import('fastify').FastifyInstance} app
  */
 export function registerWhatsappRawBodyHook(app) {
   app.addHook('preParsing', async (request, _reply, payload) => {
     const path = request.url.split('?')[0];
-    if (request.method !== 'POST' || path !== '/api/webhooks/whatsapp') {
+    if (request.method !== 'POST' || !RAW_BODY_PATHS.has(path)) {
       return payload;
     }
 

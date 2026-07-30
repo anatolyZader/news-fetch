@@ -586,7 +586,7 @@ function useDeepLinkRouting({
 function AppShell() {
   const { logout, authRequired, user, accessToken } = useAuth();
   const { t, lang, setLang } = useLanguage();
-  const { canViewAnalyst } = useDisplayCapabilities();
+  const { showBudgetPanel, canControlBudget } = useDisplayCapabilities();
   const [reportScope, setReportScope] = useState(() => readReportScope());
   const [selectedReportEdition, setSelectedReportEdition] = useState(
     () => readStoredReportEdition(readReportScope()),
@@ -1139,10 +1139,11 @@ function AppShell() {
                       ...mobileFlatReportShellSx(theme),
                     })}
                   >
-                    {canViewAnalyst && (
+                    {showBudgetPanel && (
                       <CrisisBudgetPanel
                         budgetStatus={budgetStatus}
                         suggestCrisisBudget={suggestCrisisBudget}
+                        canControl={canControlBudget}
                         onUpdated={() => refreshReport()}
                       />
                     )}

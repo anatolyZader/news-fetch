@@ -6,6 +6,7 @@ import { createSourceArchive } from '../db/source_archive/createSourceArchive.js
 import { createRetrievalService } from '../cross-cut-modules/retrieval/index.js';
 import { createChatStore } from '../business_modules/chat/infrastructure/chatStore.js';
 import { createChatPendingActionStore } from '../business_modules/chat/infrastructure/chatPendingActionStore.js';
+import { createSignalFlagStore } from '../business_modules/chat/infrastructure/signalFlagStore.js';
 import { createVectorIndexStore } from '../cross-cut-modules/vector_index/index.js';
 import { createMailingPreferencesStore } from '../business_modules/mailing/infrastructure/mailingPreferencesStore.js';
 import { setTranslationRetrievalService } from '../business_modules/translation/app/translationTermRag.js';
@@ -40,6 +41,7 @@ export function registerPersistence(opts) {
   });
   const chatStore = createChatStore(sqlitePath);
   const chatPendingActionStore = createChatPendingActionStore(sqlitePath);
+  const signalFlagStore = createSignalFlagStore();
   const vectorIndexStore = createVectorIndexStore(sqlitePath);
   const mailingPrefsStore = createMailingPreferencesStore(sqlitePath);
   const outboxStore = createOutboxStore(sqlitePath);
@@ -57,6 +59,7 @@ export function registerPersistence(opts) {
     sourceArchive,
     chatStore,
     chatPendingActionStore,
+    signalFlagStore,
     vectorIndexStore,
     mailingPrefsStore,
     outboxStore,

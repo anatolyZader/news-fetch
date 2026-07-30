@@ -55,8 +55,10 @@ export function summariseStageEvents(stageEvents = []) {
  * @param {Array} [entry.stageEvents]
  * @param {number} [entry.articles]
  * @param {string} [entry.pipelineRunId]
+ * @param {string} [entry.owner_uid]  Request owner for per-user budget attribution
+ * @param {string} [entry.route]
  */
-export function appendCostLog({ script, date, totalCostUsd, usageLog, stageEvents, articles, pipelineRunId }) {
+export function appendCostLog({ script, date, totalCostUsd, usageLog, stageEvents, articles, pipelineRunId, owner_uid: ownerUid, route }) {
   const { haiku, sonnet, opus, other } = breakdownFromUsageLog(usageLog ?? []);
   const runId = pipelineRunId ?? process.env.PIPELINE_RUN_ID?.trim() ?? null;
 
@@ -67,6 +69,12 @@ export function appendCostLog({ script, date, totalCostUsd, usageLog, stageEvent
     totalCostUsd,
     breakdown: { haiku, sonnet, opus, other },
   };
+  if (ownerUid) {
+    record.owner_uid = ownerUid;
+  }
+  if (route) {
+    record.route = route;
+  }
   if (runId) {
     record.pipelineRunId = runId;
   }
@@ -204,6 +212,24 @@ export function readTodayCostSpend(rootDir) {
     }
   }
   return todaySpend;
+}
+
+/**
+ * Today's spend attributed to one request owner (cost-log rows carry `owner_uid`).
+ * @param {string} ownerUid
+ * @param {string} [rootDir]
+ * @returns {number}
+ */
+export function readTodayCostSpendForOwner(ownerUid, rootDir) {
+  if (!ownerUid) return 0;
+  const today = new Date().toISOString().slice(0, 10);
+  let total = 0;
+  for (const entry of readJsonlRecords(resolveCostLogPath(rootDir))) {
+    if (!entry.timestamp?.startsWith(today)) continue;
+    if (entry.owner_uid !== ownerUid) continue;
+    total += entry.totalCostUsd ?? 0;
+  }
+  return total;
 }
 
 /**

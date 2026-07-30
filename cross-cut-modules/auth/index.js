@@ -1,4 +1,4 @@
-export { ACCESS_LEVELS, normalizeUserEmail, listConfiguredUsers, resolveUserAccessLevel, canViewAnalystDisplay, canRunAnalysisDisplay, hasPrivilegedUserAccessConfigured, userAccessForApi, resetUserAccessCache, setUserAccessConfigForTests } from './userAccess.js';
+export { ACCESS_LEVELS, normalizeUserEmail, listConfiguredUsers, resolveUserAccessLevel, canViewAnalystDisplay, canRunAnalysisDisplay, canUseRichChatTools, hasPrivilegedUserAccessConfigured, userAccessForApi, resetUserAccessCache, setUserAccessConfigForTests } from './userAccess.js';
 export { initFirebaseAdminForAuth, verifyIdTokenFromAuthorizationHeader, isEmailVerificationSatisfied } from './firebaseAdmin.js';
 export { requireAuthPreHandler } from './requireAuthPreHandler.js';
 export { tryAuthPreHandler } from './tryAuthPreHandler.js';

@@ -24,6 +24,9 @@ export function registerEarlyAuthForRateLimit(app, opts = {}) {
     if (!result.decoded) {
       return;
     }
-    attachRequestUser(request, result.decoded, { requireListed: true });
+    const attached = attachRequestUser(request, result.decoded, { requireListed: true });
+    if (attached.ok) {
+      request.authVerified = true;
+    }
   });
 }

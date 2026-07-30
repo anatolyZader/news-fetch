@@ -1,19 +1,8 @@
 /**
  * HTTP routes for municipal PBO completeness reviews.
  */
-import { createHmac, timingSafeEqual } from 'node:crypto';
 import { maybeLocalize } from '../../translation/index.js';
-
-function verifyResendWebhook(rawBody, signature, secret) {
-  if (!secret) return false;
-  const expected = createHmac('sha256', secret).update(rawBody).digest('hex');
-  const sig = String(signature ?? '').replace(/^sha256=/, '');
-  try {
-    return timingSafeEqual(Buffer.from(expected), Buffer.from(sig));
-  } catch {
-    return false;
-  }
-}
+import { verifySvixSignature } from '../../../cross-cut-modules/security/infrastructure/svixSignature.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -97,17 +86,23 @@ export async function pboReviewRoutes(app, opts) {
 
   app.post('/api/pbo/review/inbound-email', async (request, reply) => {
     const secret = process.env.RESEND_WEBHOOK_SECRET?.trim();
-    const rawBody = request.rawBody ?? JSON.stringify(request.body ?? {});
-    const signature = request.headers['svix-signature']
-      ?? request.headers['resend-signature']
-      ?? request.headers['x-resend-signature'];
-
-    if (secret && signature) {
-      if (!verifyResendWebhook(rawBody, signature, secret)) {
-        return reply.code(401).send({ error: 'invalid webhook signature' });
+    if (secret) {
+      const verified = verifySvixSignature(
+        request.rawBody ?? JSON.stringify(request.body ?? {}),
+        request.headers,
+        secret,
+      );
+      if (!verified.ok) {
+        return reply.code(401).send({
+          error: 'Unauthorized',
+          code: verified.reason ?? 'invalid_webhook_signature',
+        });
       }
-    } else if (secret && !signature) {
-      return reply.code(401).send({ error: 'missing webhook signature' });
+    } else if (process.env.NODE_ENV === 'production') {
+      return reply.code(401).send({
+        error: 'Unauthorized',
+        code: 'webhook_not_configured',
+      });
     }
 
     try {

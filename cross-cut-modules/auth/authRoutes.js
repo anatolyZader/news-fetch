@@ -3,9 +3,10 @@
  */
 
 import { tryAuthPreHandler } from './tryAuthPreHandler.js';
+import { ERROR_STATUS } from './requireAuthPreHandler.js';
 import { requireAnalystView } from './requireAnalystAccess.js';
 import { requireMaintainerAccess } from './maintainerAccess.js';
-import { listConfiguredUsers, userAccessForApi } from './userAccess.js';
+import { listConfiguredUsers, userAccessForApi, canUseRichChatTools } from './userAccess.js';
 import { operatorDistrictAccessForApi } from './operatorDistrictAccess.js';
 import { auditFromRequest } from '../security/input/auditLog.js';
 import {
@@ -39,10 +40,17 @@ export async function authRoutes(app, opts = {}) {
     if (!request.user) {
       const hasBearer = Boolean(request.headers.authorization?.startsWith?.('Bearer '));
       if (authRequired && hasBearer) {
-        return reply.code(403).send({
+        const code = request.authTokenError ?? 'forbidden_not_invited';
+        const status = ERROR_STATUS[code] ?? 403;
+        if (status === 401) {
+          return reply.code(401).send({ error: 'Unauthorized', code });
+        }
+        return reply.code(status).send({
           error: 'Forbidden',
-          code: 'forbidden_not_invited',
-          message: 'Account is not authorized for this application.',
+          code,
+          message: code === 'email_not_verified'
+            ? 'Email address must be verified before using this application.'
+            : 'Account is not authorized for this application.',
         });
       }
       return reply.send({
@@ -89,6 +97,9 @@ export async function authRoutes(app, opts = {}) {
       canViewAnalyst: access.canViewAnalyst,
       accessLevel: access.level,
       canRunAnalysis: access.canRunAnalysis,
+      // Budget panel is visible to every listed user; activating crisis spend stays analyst+.
+      showBudgetPanel: canUseRichChatTools(request.user?.email ?? null),
+      canControlBudget: access.canViewAnalyst,
       ...getLocaleStatus(),
     });
   });

@@ -27,6 +27,9 @@ export const TOOLS_RETURNING_UNTRUSTED_CONTENT = new Set([
   'get_component_evidence_bundle',
   'get_report',
   'list_observations',
+  'get_signal',
+  'get_municipality_profile',
+  'search_reports',
 ]);
 
 /**

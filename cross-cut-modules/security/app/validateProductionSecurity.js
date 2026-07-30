@@ -37,6 +37,13 @@ function validateWhatsappSecret(env, errors) {
   }
 }
 
+function validateResendWebhookSecret(env, errors) {
+  const resendEnabled = !!(env.RESEND_API_KEY ?? '').trim();
+  if (resendEnabled && !(env.RESEND_WEBHOOK_SECRET ?? '').trim()) {
+    errors.push('RESEND_WEBHOOK_SECRET is required when RESEND_API_KEY is set in production');
+  }
+}
+
 function validateProbeHmac(env, errors) {
   const probeRequire =
     env.RESILIENCE_PROBE_REQUIRE_HMAC === 'true' || (env.NODE_ENV ?? '').trim() === 'production';
@@ -71,6 +78,7 @@ export function validateProductionSecurity(env = process.env) {
   const errors = collectProductionSecurityErrors(env);
   validateContactEmail(env, errors);
   validateWhatsappSecret(env, errors);
+  validateResendWebhookSecret(env, errors);
   validateProbeHmac(env, errors);
   validateProductionCredentials(env, errors);
 
@@ -96,7 +104,7 @@ export function productionSecurityWarnings(env = process.env) {
   }
 
   warnings.push(
-    'Ensure Firebase MFA is enforced for all operator accounts in the Firebase console (Identity Platform → Authentication → Settings).',
+    'MFA posture: Identity Platform MFA is intentionally disabled (no client resolver UI). Ensure every account uses Google sign-in with Google 2-Step Verification enabled.',
   );
 
   if ((env.RESILIENCE_PROBE_HMAC_SECRET ?? '').trim() && !(env.RESILIENCE_PROBE_HMAC_ROTATED_AT ?? '').trim()) {

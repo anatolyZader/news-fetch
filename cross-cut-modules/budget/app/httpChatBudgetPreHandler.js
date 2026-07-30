@@ -3,6 +3,7 @@
  */
 import { chatDeterministicFallbackEnabled } from '../../../business_modules/chat/index.js';
 import { getDailyBudgetStatus } from './httpDailyBudget.js';
+import { getUserDailyBudgetStatus, isUserBudgetExempt } from './userDailyBudget.js';
 import { resolveChatBudgetGate } from './crisisBudgetService.js';
 
 /**
@@ -12,6 +13,21 @@ export function createHttpChatBudgetPreHandler(deps = {}) {
   const crisisBudgetService = deps.crisisBudgetService ?? null;
 
   return async function httpChatBudgetPreHandler(request, reply) {
+    if (!isUserBudgetExempt(request.user?.email)) {
+      const userStatus = getUserDailyBudgetStatus(request.user?.uid);
+      request.userBudgetStatus = userStatus;
+      if (userStatus.metered && userStatus.exceeded) {
+        return reply.code(429).send({
+          error: 'Too Many Requests',
+          code: 'user_budget_exceeded',
+          message: `Your daily chat budget $${userStatus.limit.toFixed(2)} is used up — it renews at 00:00 UTC (~02:00 Israel time)`,
+          spent: userStatus.spent,
+          limit: userStatus.limit,
+          resets_at: userStatus.resetsAtUtc,
+        });
+      }
+    }
+
     const gate = resolveChatBudgetGate({ crisisBudgetService });
     request.chatBudgetStatus = gate.chatStatus;
 

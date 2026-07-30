@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, utimesSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -72,6 +72,30 @@ describe('userAccess', () => {
       canRunAnalysis: false,
       isListed: true,
     });
+  });
+
+  it('reloads the config file when its mtime changes', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'user-access-'));
+    const configPath = join(dir, 'userAccess.json');
+    writeFileSync(configPath, JSON.stringify({
+      users: [{ email: 'first@example.com', level: 'operator' }],
+    }));
+    utimesSync(configPath, new Date(1_700_000_000_000), new Date(1_700_000_000_000));
+    assert.equal(listConfiguredUsers(configPath)[0].email, 'first@example.com');
+
+    writeFileSync(configPath, JSON.stringify({
+      users: [{ email: 'second@example.com', level: 'analyst' }],
+    }));
+    utimesSync(configPath, new Date(1_700_000_100_000), new Date(1_700_000_100_000));
+    assert.equal(listConfiguredUsers(configPath)[0].email, 'second@example.com');
+  });
+
+  it('treats invalid JSON as an empty config without throwing', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'user-access-'));
+    const configPath = join(dir, 'userAccess.json');
+    writeFileSync(configPath, '{ not json');
+    assert.deepEqual(listConfiguredUsers(configPath), []);
+    assert.equal(resolveUserAccessLevel('anyone@example.com', configPath), null);
   });
 
   it('resolveDisplayView grants analyst when canViewAnalyst is true', () => {

@@ -346,7 +346,12 @@ export function useChat() {
 
       if (!res.ok) {
         const errText = await res.text().catch(() => res.statusText);
-        setHistory((h) => [...h, { role: 'assistant', content: errText || 'Request failed', error: true, meta: { banner: 'error' } }]);
+        let message = errText || 'Request failed';
+        try {
+          const parsed = JSON.parse(errText);
+          message = parsed?.message || parsed?.error || message;
+        } catch { /* plain-text error body */ }
+        setHistory((h) => [...h, { role: 'assistant', content: message, error: true, meta: { banner: 'error' } }]);
         finishStreaming();
         return;
       }
