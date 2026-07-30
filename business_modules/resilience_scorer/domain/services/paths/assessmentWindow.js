@@ -22,6 +22,15 @@ import { normalizeVisitsSourceType } from '../signals/visitsSourceType.js';
 /** Maximum assessment window length in days (CLI and metadata cap). */
 export const MAX_ASSESSMENT_DAYS = 14;
 
+/** Visits carry-forward horizon: a field visit feeds assessments up to this many days after the visit date. */
+export const VISITS_MAX_CARRY_DAYS = 14;
+
+/** Daily geometric decay ratio applied after day 2 (temporal weighting epoch 2026-07-30). */
+export const TEMPORAL_DECAY_RATIO = 0.9;
+
+/** Minimum temporal weight (replaces the pre-epoch 0.5 flat floor). */
+export const TEMPORAL_WEIGHT_FLOOR = 0.05;
+
 /** Placeholder bundle dates that must not enter the assessment window. */
 export const INVALID_SIGNAL_BUNDLE_DATES = new Set(['1970-01-01']);
 
@@ -66,6 +75,11 @@ export function parseSignalBundleFilename(filename) {
 
 /**
  * Temporal decay weight by day offset from target date (0 = target day).
+ *
+ * Head 1 / 0.85 / 0.7 for days 0–2, then ×TEMPORAL_DECAY_RATIO per day down to
+ * TEMPORAL_WEIGHT_FLOOR (day 7 ≈ 0.41, day 14 ≈ 0.20). Scoring-epoch change
+ * 2026-07-30: the old 0.5 flat floor (reached by day 4) is gone — weights in
+ * multi-day windows and visits carry-forward are not comparable pre/post.
  * @param {number} dayOffset days before `--date` (0 = target day)
  * @returns {number}
  */
@@ -73,8 +87,8 @@ export function temporalWeightForOffset(dayOffset) {
   if (dayOffset <= 0) return 1;
   if (dayOffset === 1) return 0.85;
   if (dayOffset === 2) return 0.7;
-  const decay = 0.7 * Math.pow(0.7 / 0.85, dayOffset - 2);
-  return Math.max(0.5, decay);
+  const decay = 0.7 * Math.pow(TEMPORAL_DECAY_RATIO, dayOffset - 2);
+  return Math.max(TEMPORAL_WEIGHT_FLOOR, decay);
 }
 
 /**

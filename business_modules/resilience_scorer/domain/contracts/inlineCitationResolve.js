@@ -103,6 +103,7 @@ function apaForSources(sources, reportDate, opts = {}) {
     .map((s) => ({
       author: s.author,
       url: s.url ?? null,
+      dateLabel: s.sourceDate ? formatApaCitationDate(s.sourceDate) : null,
       evidenceHref: linkMode === 'evidence'
         ? evidenceHrefForSource(s, componentId)
         : null,

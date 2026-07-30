@@ -104,15 +104,19 @@ const STALE_FIELD_VISIT_DAYS = 7;
  * @param {string | undefined} reportDate YYYY-MM-DD
  * @returns {string}
  */
-function labelStaleFieldVisits(md, reportDate) {
+export function labelStaleFieldVisits(md, reportDate) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(reportDate ?? ''))) return md;
   const reportMs = Date.parse(reportDate);
-  return md.replaceAll(/\(Field visit, (\d{4}-\d{2}-\d{2})\)/g, (match, visitDate) => {
-    const days = Math.round((reportMs - Date.parse(visitDate)) / 86_400_000);
-    return days >= STALE_FIELD_VISIT_DAYS
-      ? `(Field visit, ${visitDate} — ${days} days old)`
-      : match;
-  });
+  // APA-rendered citations: `Field visit, 17 Mar 2026` (plain) or `[Field visit](#evidence-…), 17 Mar 2026` (linked).
+  return md.replaceAll(
+    /Field visit(\]\([^)]+\))?, (\d{1,2} [A-Za-z]{3} \d{4})(?! —)/g,
+    (match, link, visitDateLabel) => {
+      const visitMs = Date.parse(visitDateLabel);
+      if (!Number.isFinite(visitMs)) return match;
+      const days = Math.round((reportMs - visitMs) / 86_400_000);
+      return days >= STALE_FIELD_VISIT_DAYS ? `${match} — ${days} days old` : match;
+    },
+  );
 }
 
 /**

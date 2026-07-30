@@ -22,6 +22,7 @@ function getStore(deps = {}) {
 
 import {
   INVALID_SIGNAL_BUNDLE_DATES,
+  VISITS_MAX_CARRY_DAYS,
   buildTargetDates,
   dateOffset,
   parseSignalBundleFilename,
@@ -50,20 +51,24 @@ function buildRecencySource(sortedFiles, sourceType, targetDate, targetDates, re
   return new Set(pick);
 }
 
-/** All bundles for sourceType with basename date on or before targetDate (field visits: full history). */
-function buildAllHistoricalSource(sortedFiles, sourceType, targetDate) {
+/**
+ * Bundles for sourceType with basename date on or before targetDate, within the
+ * visits carry horizon (field visits: 14-day carry, not full history).
+ */
+function buildVisitsCarrySource(sortedFiles, sourceType, targetDate) {
   const out = [];
   for (const f of sortedFiles) {
     const parsed = parseSignalBundleFilename(f);
     if (!parsed || parsed.sourceType !== sourceType) continue;
     if (parsed.fileDate > targetDate) continue;
+    if (dateOffset(parsed.fileDate, targetDate) > VISITS_MAX_CARRY_DAYS) continue;
     out.push(f);
   }
   return new Set(out);
 }
 
 function buildRecencySources(sortedVisits, sortedRoot, sortedSocial, targetDate, targetDates, bundleCap) {
-  const visitBundles = buildAllHistoricalSource(sortedVisits, 'visits', targetDate);
+  const visitBundles = buildVisitsCarrySource(sortedVisits, 'visits', targetDate);
   return {
     visits: visitBundles,
     pbo: buildRecencySource(sortedRoot, 'pbo', targetDate, targetDates, bundleCap),
@@ -274,12 +279,29 @@ function resolveBundleDistrictId(data, fileDistrictId) {
     : null;
 }
 
+/** Visit date for a visits-family signal: per-signal article_date, falling back to the bundle date. */
+function visitDateOf(signal, fileDate) {
+  const visitDate = String(signal.article_date ?? fileDate).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(visitDate) ? visitDate : null;
+}
+
 /** Visits sources re-weight by visit date when a target date is set; others keep the file weight. */
 function signalTemporalWeight(signal, weight, sourceType, fileDate, targetDate) {
   if (!(targetDate && isVisitsSourceType(sourceType))) return weight;
-  const visitDate = String(signal.article_date ?? fileDate).slice(0, 10);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(visitDate)) return weight;
+  const visitDate = visitDateOf(signal, fileDate);
+  if (!visitDate) return weight;
   return temporalWeightForOffset(dateOffset(visitDate, targetDate));
+}
+
+/**
+ * Whole-day age of a visits-family signal relative to targetDate, or null when
+ * not a visits signal / no target / unparsable date.
+ */
+function visitAgeDays(signal, sourceType, fileDate, targetDate) {
+  if (!(targetDate && isVisitsSourceType(sourceType))) return null;
+  const visitDate = visitDateOf(signal, fileDate);
+  if (!visitDate) return null;
+  return dateOffset(visitDate, targetDate);
 }
 
 /**
@@ -289,11 +311,13 @@ function signalTemporalWeight(signal, weight, sourceType, fileDate, targetDate) 
 function enrichLoadedSignal(signal, {
   weight, sourceType, fileDate, targetDate, canonicalType, bundleDistrictId, applyHygiene,
 }) {
+  const ageDays = visitAgeDays(signal, sourceType, fileDate, targetDate);
   const enriched = {
     ...signal,
     temporal_weight: signalTemporalWeight(signal, weight, sourceType, fileDate, targetDate),
     source_type: canonicalType,
     signal_file_date: fileDate,
+    ...(ageDays == null ? {} : { visit_date: visitDateOf(signal, fileDate), signal_age_days: ageDays }),
     ...(signal.district_id == null && bundleDistrictId ? { district_id: bundleDistrictId } : {}),
   };
   if (!applyHygiene) return enriched;
@@ -313,9 +337,12 @@ function recordHygieneDrop(hygieneDrops, canonicalType) {
  * are routinely reused (reuse-first replay), so extract-time hygiene alone
  * leaves stale bundles carrying avg=% blobs and contentless "no change" rows
  * that would count as supporting evidence.
+ * Visits-family signals whose visit date is older than VISITS_MAX_CARRY_DAYS
+ * relative to targetDate are dropped here (counted in temporalExpiryDrops,
+ * separate from hygieneDrops so methodology metadata stays honest).
  * @param {Array<object>} loadedFiles
  * @param {{ targetDate?: string }} [opts]
- * @returns {{ allSignals: Array<object>, totalArticles: number, sourceFiles: string[], sourceTypesSeen: Set<string>, hygieneDrops: { total: number, by_source: Record<string, number> } }}
+ * @returns {{ allSignals: Array<object>, totalArticles: number, sourceFiles: string[], sourceTypesSeen: Set<string>, hygieneDrops: { total: number, by_source: Record<string, number> }, temporalExpiryDrops: { total: number, by_source: Record<string, number> } }}
  */
 export function mergeLoadedSignalFiles(loadedFiles, { targetDate } = {}) {
   let allSignals = [];
@@ -323,6 +350,7 @@ export function mergeLoadedSignalFiles(loadedFiles, { targetDate } = {}) {
   const sourceFiles = [];
   const sourceTypesSeen = new Set();
   const hygieneDrops = { total: 0, by_source: {} };
+  const temporalExpiryDrops = { total: 0, by_source: {} };
 
   for (const { weight, data, sourceType, fileDate, fileDistrictId } of loadedFiles) {
     const bundleDistrictId = resolveBundleDistrictId(data, fileDistrictId);
@@ -330,6 +358,12 @@ export function mergeLoadedSignalFiles(loadedFiles, { targetDate } = {}) {
     const applyHygiene = needsFieldHygieneAtLoad(sourceType);
     const weighted = [];
     for (const s of data.signals ?? []) {
+      const ageDays = visitAgeDays(s, sourceType, fileDate, targetDate);
+      if (ageDays != null && ageDays > VISITS_MAX_CARRY_DAYS) {
+        temporalExpiryDrops.total += 1;
+        temporalExpiryDrops.by_source[canonicalType] = (temporalExpiryDrops.by_source[canonicalType] ?? 0) + 1;
+        continue;
+      }
       const enriched = enrichLoadedSignal(s, {
         weight, sourceType, fileDate, targetDate, canonicalType, bundleDistrictId, applyHygiene,
       });
@@ -350,5 +384,10 @@ export function mergeLoadedSignalFiles(loadedFiles, { targetDate } = {}) {
     console.log(`  ℹ Load-time hygiene dropped ${hygieneDrops.total} contentless field/PBO rows (${parts.join(', ')})`);
   }
 
-  return { allSignals, totalArticles, sourceFiles, sourceTypesSeen, hygieneDrops };
+  if (temporalExpiryDrops.total > 0) {
+    const parts = Object.entries(temporalExpiryDrops.by_source).map(([k, n]) => `${k}: ${n}`);
+    console.log(`  ℹ Temporal expiry dropped ${temporalExpiryDrops.total} visits signals older than ${VISITS_MAX_CARRY_DAYS} days (${parts.join(', ')})`);
+  }
+
+  return { allSignals, totalArticles, sourceFiles, sourceTypesSeen, hygieneDrops, temporalExpiryDrops };
 }

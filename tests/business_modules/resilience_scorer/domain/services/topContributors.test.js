@@ -78,6 +78,62 @@ describe('topContributorsFromScored', () => {
     assert.equal(top[2].intensity, 'severe');
   });
 
+  it('ranks a fresh signal above an equally-graded stale one', () => {
+    const scored = {
+      signals: [
+        {
+          signal_type: 'leadership_visible_presence',
+          evidence: 'stale visit',
+          evidence_type: 'observational_reported_fact',
+          intensity: 'moderate',
+          temporal_weight: 0.2,
+        },
+        {
+          signal_type: 'leadership_visible_presence',
+          evidence: 'fresh visit',
+          evidence_type: 'observational_reported_fact',
+          intensity: 'moderate',
+          temporal_weight: 1,
+        },
+        {
+          signal_type: 'leadership_clear_guidance',
+          evidence: 'third strong link',
+        },
+      ],
+    };
+    const top = topContributorsFromScored(scored, 'leadership');
+    const freshIdx = top.findIndex((t) => t.evidence === 'fresh visit');
+    const staleIdx = top.findIndex((t) => t.evidence === 'stale visit');
+    assert.ok(freshIdx >= 0 && staleIdx >= 0);
+    assert.ok(freshIdx < staleIdx, 'fresh signal must outrank the equally-graded stale one');
+  });
+
+  it('never lets freshness outrank grounding or a higher evidence class', () => {
+    const scored = {
+      signals: [
+        {
+          signal_type: 'leadership_visible_presence',
+          evidence: 'fresh weak',
+          evidence_type: 'observational_reported_fact',
+          temporal_weight: 1,
+        },
+        {
+          signal_type: 'leadership_visible_presence',
+          evidence: 'stale grounded quote',
+          evidence_type: 'direct_quote_named_person',
+          grounding_tier: 'grounded',
+          temporal_weight: 0.2,
+        },
+        {
+          signal_type: 'leadership_clear_guidance',
+          evidence: 'third strong link',
+        },
+      ],
+    };
+    const top = topContributorsFromScored(scored, 'leadership');
+    assert.equal(top[0].evidence, 'stale grounded quote');
+  });
+
   it('emits display fields without contribution numbers', () => {
     const scored = {
       signals: [{

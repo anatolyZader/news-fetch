@@ -30,6 +30,10 @@ const INTENSITY_RANK = { severe: 2, moderate: 1, light: 0 };
 /**
  * Composite sort key for count-based contributor ranking (higher = more salient).
  *
+ * Temporal term spans ~0.15–3 (temporal_weight × 3): a fresh signal outranks an
+ * equally-graded stale one and can outrank an intensity step (2) + primary edge (1),
+ * but never an evidence-class step (10), grounding (100), or a severe→light gap (4).
+ *
  * @param {object} signal
  * @param {string} componentId
  * @returns {number}
@@ -40,7 +44,8 @@ export function contributorRankKey(signal, componentId) {
   const grounded = signal.grounding_tier === GROUNDING_TIER.grounded ? 1 : 0;
   const evidenceClass = EVIDENCE_CLASS_RANK[signal.evidence_type ?? signal.evidence_class] ?? 2;
   const intensity = INTENSITY_RANK[signal.intensity] ?? 1;
-  return grounded * 100 + evidenceClass * 10 + intensity * 2 + primaryEdge;
+  const temporal = (signal.temporal_weight ?? 1) * 3;
+  return grounded * 100 + evidenceClass * 10 + intensity * 2 + primaryEdge + temporal;
 }
 
 function hasStrongCatalogLink(signal, componentId) {

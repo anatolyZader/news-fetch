@@ -402,12 +402,17 @@ export async function runOperatorNarrativePipeline(params) {
   let registry = plan.registry ?? buildSignalRefRegistry(narrativeScored);
   if (registry.refCount === 0) return null;
 
-  const epistemicBlock = formatDigitalQuarantineNarrativeBlock({
+  const quarantineBlock = formatDigitalQuarantineNarrativeBlock({
     quarantinedDigital,
     scoringPartition,
     narrativeScopeSignalCount: narrativeScopeSignals.length,
     signalsScoringUsed: signalsScoringUsed ?? scoringPartition?.scoringSignals?.length ?? 0,
   });
+  const anchorBlock = reportDate
+    ? `Assessment anchor date: ${reportDate}. Field-visit evidence lines show the visit date and its age; `
+      + 'weight older field evidence progressively less and state the visit date when citing it.'
+    : '';
+  const epistemicBlock = [anchorBlock, quarantineBlock].filter(Boolean).join('\n\n');
 
   const llmOpts = { onUsage, llmPort };
   const pipelineParams = { ...params, narrativeScoringContext: scoringContext };
@@ -548,6 +553,7 @@ function applyNarrativePipelineMetadata(assessment, pipelineResult, mode) {
         article_source: entry.signal?.article_source ?? null,
         article_url: entry.signal?.article_url ?? null,
         source_type: entry.signal?.source_type ?? null,
+        signal_date: entry.signal?.visit_date ?? null,
       })),
     };
   }

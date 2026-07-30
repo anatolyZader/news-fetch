@@ -62,16 +62,18 @@ export function citationAuthorForSignal(signal) {
 }
 
 /**
- * Build { author, url } APA source from a stored citation registry entry.
+ * Build { author, url, sourceDate } APA source from a stored citation registry entry.
+ * sourceDate is the per-source date (visit date for field visits, ISO YYYY-MM-DD);
+ * null means the citation falls back to the report date.
  * @param {object} entry
- * @returns {{ author: string, url: string|null }|null}
+ * @returns {{ author: string, url: string|null, sourceDate: string|null }|null}
  */
 export function apaSourceFromSignalEntry(entry) {
   const signal = entry?.signal ?? entry;
   const author = citationAuthorForSignal(signal);
   if (!author) return null;
   const url = cleanArticleUrl(signal?.article_url);
-  return { author, url };
+  return { author, url, sourceDate: signal?.visit_date ?? null };
 }
 
 /**
@@ -91,6 +93,7 @@ export function buildCitationRegistryFromStored(entries) {
       article_source: entry.article_source ?? null,
       article_url: entry.article_url ?? null,
       source_type: entry.source_type ?? null,
+      visit_date: entry.signal_date ?? null,
     };
     const wrapped = {
       label: entry.label,

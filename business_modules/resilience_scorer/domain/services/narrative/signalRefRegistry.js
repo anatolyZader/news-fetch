@@ -110,13 +110,25 @@ export function formatSignalWithRef(signal, entry) {
   const type = signal?.signal_type ?? signal?.type ?? 'unknown';
   const evType = signal?.evidence_type ?? 'unknown';
   const attribution = evidenceAttributionLabel(evType);
-  const fd = signal.signal_file_date ? `  Source bundle date: ${signal.signal_file_date}\n` : '';
+  const fd = formatSignalDateLine(signal);
   const urlLine = signal.article_url ? `\n  URL: ${signal.article_url}` : '';
   const geoTags = geoAuditTagsForSignal(signal);
   return (
     `[${entry.label}] ref=${entry.ref} type=${type} ev:${evType} attribution:${attribution}\n` +
     `${fd}  Evidence: "${signal.evidence ?? ''}"${urlLine}${geoTags}`
   );
+}
+
+/** Visit-dated line with age for field visits (stamped at bundle load); bundle-date line otherwise. */
+function formatSignalDateLine(signal) {
+  if (signal?.signal_age_days != null && signal?.visit_date) {
+    const age = signal.signal_age_days;
+    let ageLabel = `${age} days before report`;
+    if (age <= 0) ageLabel = 'report day';
+    else if (age === 1) ageLabel = '1 day before report';
+    return `  Field visit date: ${signal.visit_date} (${ageLabel})\n`;
+  }
+  return signal?.signal_file_date ? `  Source bundle date: ${signal.signal_file_date}\n` : '';
 }
 
 function geoAuditTagsForSignal(s) {

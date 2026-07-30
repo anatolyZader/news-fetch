@@ -126,6 +126,74 @@ describe('inlineCitationResolver', () => {
     assert.doesNotMatch(out, /@idx:/);
   });
 
+  it('uses the visit date, not the report date, for field-visit citations', () => {
+    const registry = buildSignalRefRegistry({
+      narrative: {
+        signals: [{
+          signal_type: 'resilience_narrative_positive',
+          source_type: 'visits',
+          article_index: 7,
+          evidence: 'Routine returning.',
+          visit_date: '2026-03-17',
+          signal_age_days: 12,
+        }],
+      },
+    });
+    const ref = registry.byComponent.narrative[0].ref;
+    const out = resolveInlineSignalCitations(
+      `Routine is evident [${ref}].`,
+      registry,
+      '2026-03-29',
+    );
+    assert.equal(out, 'Routine is evident (Field visit, 17 Mar 2026).');
+  });
+
+  it('mixes per-source visit dates with report-dated press in one group', () => {
+    const registry = buildSignalRefRegistry({
+      narrative: {
+        signals: [
+          {
+            signal_type: 'fear_expression',
+            article_url: 'https://www.ynet.co.il/news/1',
+            article_source: 'ynet.co.il',
+            evidence: 'Residents report fear.',
+          },
+          {
+            signal_type: 'resilience_narrative_positive',
+            source_type: 'visits',
+            article_index: 3,
+            evidence: 'Routine returning.',
+            visit_date: '2026-04-01',
+            signal_age_days: 11,
+          },
+        ],
+      },
+    });
+    const out = resolveInlineSignalCitations(
+      'Mixed picture ([S1], [S2]).',
+      registry,
+      reportDate,
+    );
+    assert.match(out, /ynet\.co\.il, 12 Apr 2026/);
+    assert.match(out, /Field visit, 01 Apr 2026/);
+  });
+
+  it('round-trips visit dates through the stored citation registry', async () => {
+    const { buildCitationRegistryFromStored } = await import(
+      '../../../../../../business_modules/resilience_scorer/domain/contracts/citationDisplay.js'
+    );
+    const stored = buildCitationRegistryFromStored([{
+      label: 'S1',
+      ref: 'resilience_narrative_positive@idx:3',
+      article_source: 'field-team-2',
+      article_url: null,
+      source_type: 'visits',
+      signal_date: '2026-04-01',
+    }]);
+    const out = resolveInlineSignalCitations('Routine noted [S1].', stored, reportDate);
+    assert.equal(out, 'Routine noted (Field visit, 01 Apr 2026).');
+  });
+
   it('drops refs without URLs', () => {
     const registry = buildSignalRefRegistry({
       narrative: {

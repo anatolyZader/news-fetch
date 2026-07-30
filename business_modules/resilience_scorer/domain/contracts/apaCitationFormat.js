@@ -91,7 +91,8 @@ export function formatApaCitationPart(author, dateLabel, opts = {}) {
 
 /**
  * Join multiple APA citation parts into one parenthetical (Author, Date; Author2, Date).
- * @param {Array<{ author: string, url?: string|null, evidenceHref?: string|null }>} sources
+ * A source's own `dateLabel` (e.g. a field-visit date) overrides the group label.
+ * @param {Array<{ author: string, url?: string|null, evidenceHref?: string|null, dateLabel?: string|null }>} sources
  * @param {string} dateLabel
  * @param {{ linked?: boolean, linkMode?: 'none'|'external'|'evidence' }} [opts]
  * @returns {string}
@@ -99,7 +100,7 @@ export function formatApaCitationPart(author, dateLabel, opts = {}) {
 export function formatApaParenthetical(sources, dateLabel, opts = {}) {
   const { linked = false, linkMode = 'external' } = opts;
   const parts = sources
-    .map(({ author, url, evidenceHref }) => formatApaCitationPart(author, dateLabel, {
+    .map(({ author, url, evidenceHref, dateLabel: sourceDateLabel }) => formatApaCitationPart(author, sourceDateLabel || dateLabel, {
       url,
       linked,
       linkMode,

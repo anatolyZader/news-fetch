@@ -201,6 +201,52 @@ describe('mergeLoadedSignalFiles', () => {
     assert.equal(allSignals[0].source_type, 'visits');
   });
 
+  it('drops visits older than the 14-day carry per signal, counting them as temporal expiry not hygiene', () => {
+    const targetDate = '2026-06-10';
+    const { allSignals, hygieneDrops, temporalExpiryDrops } = mergeLoadedSignalFiles([
+      {
+        weight: 1,
+        sourceType: 'visits',
+        fileDate: '2026-06-09',
+        fileDistrictId: 'north',
+        data: {
+          signals: [
+            { evidence: 'fresh visit', article_date: '2026-06-09' },
+            { evidence: 'expired visit', article_date: '2026-05-21' },
+          ],
+        },
+      },
+    ], { targetDate });
+    assert.equal(allSignals.length, 1);
+    assert.equal(allSignals[0].evidence, 'fresh visit');
+    assert.deepEqual(temporalExpiryDrops, { total: 1, by_source: { visits: 1 } });
+    assert.equal(hygieneDrops.total, 0, 'expiry must not be miscounted as hygiene');
+  });
+
+  it('stamps visit_date and signal_age_days on visits signals', () => {
+    const targetDate = '2026-06-10';
+    const { allSignals } = mergeLoadedSignalFiles([
+      {
+        weight: 1,
+        sourceType: 'visits',
+        fileDate: '2026-06-10',
+        fileDistrictId: 'north',
+        data: { signals: [{ evidence: 'older visit', article_date: '2026-05-29' }] },
+      },
+      {
+        weight: 1,
+        sourceType: 'news',
+        fileDate: '2026-06-10',
+        fileDistrictId: null,
+        data: { signals: [{ evidence: 'news item' }] },
+      },
+    ], { targetDate });
+    assert.equal(allSignals[0].visit_date, '2026-05-29');
+    assert.equal(allSignals[0].signal_age_days, 12);
+    assert.equal(allSignals[1].visit_date, undefined);
+    assert.equal(allSignals[1].signal_age_days, undefined);
+  });
+
   it('copies bundle district_id onto signals when missing', () => {
     const { allSignals } = mergeLoadedSignalFiles([
       {
@@ -254,7 +300,7 @@ describe('mergeLoadedSignalFiles', () => {
 });
 
 describe('discoverSignalBundles field history', () => {
-  it('loads all field bundles on or before target date, not only the assess window', () => {
+  it('loads field bundles within the 14-day carry horizon, beyond the assess window but not older', () => {
     const root = mkdtempSync(join(tmpdir(), 'field-hist-'));
     try {
       const signalsDir = join(root, 'business_modules/resilience_scorer/data/signals');
@@ -264,10 +310,12 @@ describe('discoverSignalBundles field history', () => {
       mkdirSync(visitsSignalsDir, { recursive: true });
       mkdirSync(socialSignalsDir, { recursive: true });
 
-      const oldField = 'signals-visits-2026-05-01.json';
+      const expiredField = 'signals-visits-2026-05-01.json'; // 40 days before target
+      const carryField = 'signals-visits-2026-06-01.json'; // 9 days: outside 3-day window, inside carry
       const inWindowField = 'signals-visits-2026-06-10.json';
       const oldNews = 'signals-news-2026-05-01.json';
-      writeFileSync(join(visitsSignalsDir, oldField), JSON.stringify({ signals: [{ evidence: 'old visit' }] }));
+      writeFileSync(join(visitsSignalsDir, expiredField), JSON.stringify({ signals: [{ evidence: 'expired visit' }] }));
+      writeFileSync(join(visitsSignalsDir, carryField), JSON.stringify({ signals: [{ evidence: 'carried visit' }] }));
       writeFileSync(join(visitsSignalsDir, inWindowField), JSON.stringify({ signals: [{ evidence: 'recent visit' }] }));
       writeFileSync(join(signalsDir, oldNews), JSON.stringify({ signals: [{ evidence: 'old news' }] }));
 
@@ -290,7 +338,9 @@ describe('discoverSignalBundles field history', () => {
 
       const fieldFiles = loaded.filter((f) => f.sourceType === 'visits').map((f) => f.file);
       const newsFiles = loaded.filter((f) => f.sourceType === 'news').map((f) => f.file);
-      assert.ok(fieldFiles.includes(oldField));
+      assert.equal(fieldFiles.includes(expiredField), false,
+        'visits bundles older than 14 days must not load');
+      assert.ok(fieldFiles.includes(carryField));
       assert.ok(fieldFiles.includes(inWindowField));
       assert.equal(newsFiles.includes(oldNews), false);
     } finally {
