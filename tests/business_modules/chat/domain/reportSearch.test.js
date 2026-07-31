@@ -1,5 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 
 import { collectReportHits, searchReports } from '../../../../business_modules/chat/domain/reportSearch.js';
 
@@ -23,6 +26,13 @@ const FIXTURE_REPORT = {
     ],
   },
 };
+
+/** Compact report basename parseable by parseReportFilename (gitignored daily_reports/ absent in CI). */
+function writeFixtureReportsDir(report = FIXTURE_REPORT) {
+  const dir = mkdtempSync(join(tmpdir(), 'report-search-'));
+  writeFileSync(join(dir, 'national-1-150726-1200.json'), JSON.stringify(report));
+  return dir;
+}
 
 describe('collectReportHits', () => {
   it('finds hits in synthesis and component fields, case-insensitive', () => {
@@ -73,14 +83,22 @@ describe('searchReports', () => {
   });
 
   it('applies the redact hook before searching', () => {
-    let calls = 0;
-    const redact = (_report) => {
-      calls += 1;
-      // Strip every text field — a correct implementation then finds nothing.
-      return { assessment: { components: [] } };
-    };
-    const text = searchReports({ query: 'the', limit: 2 }, { redact });
-    assert.ok(calls > 0, 'redact hook was never invoked');
-    assert.match(text, /No report text matches/);
+    const dir = writeFixtureReportsDir();
+    try {
+      let calls = 0;
+      const redact = (_report) => {
+        calls += 1;
+        // Strip every text field — a correct implementation then finds nothing.
+        return { assessment: { components: [] } };
+      };
+      const text = searchReports(
+        { query: 'generator', limit: 2 },
+        { redact, reportsDir: dir },
+      );
+      assert.ok(calls > 0, 'redact hook was never invoked');
+      assert.match(text, /No report text matches/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

@@ -17,7 +17,11 @@ function getStore(deps = {}) {
 }
 
 const REPO_ROOT = join(import.meta.dirname, '..', '..', '..');
-const REPORTS_DIR = resilienceReportsDir(REPO_ROOT);
+const DEFAULT_REPORTS_DIR = resilienceReportsDir(REPO_ROOT);
+
+function resolveReportsDir(deps = {}) {
+  return deps.reportsDir ?? DEFAULT_REPORTS_DIR;
+}
 
 const SNIPPET_CHARS = 200;
 const DEFAULT_LIMIT = 10;
@@ -95,10 +99,11 @@ export function collectReportHits(report, { query, component }) {
   return hits;
 }
 
-function listSearchableReportFiles(scope, dateFrom, dateTo) {
+function listSearchableReportFiles(scope, dateFrom, dateTo, deps = {}) {
+  const reportsDir = resolveReportsDir(deps);
   let files;
   try {
-    files = getStore().readdirSync(REPORTS_DIR).filter((f) => f.endsWith('.json'));
+    files = getStore(deps).readdirSync(reportsDir).filter((f) => f.endsWith('.json'));
   } catch {
     return [];
   }
@@ -125,7 +130,9 @@ function listSearchableReportFiles(scope, dateFrom, dateTo) {
  * Search past reports on disk for free text.
  * @param {{ query?: string, scope?: string, date_from?: string, date_to?: string,
  *   component?: string, limit?: number }} input
- * @param {{ redact?: (report: object) => object }} [deps] applied before searching
+ * @param {{ redact?: (report: object) => object, reportsDir?: string,
+ *   stateStore?: object }} [deps] redact runs before searching; reportsDir/stateStore
+ *   are injectable for tests (daily_reports/ is gitignored and absent in CI)
  * @returns {string}
  */
 export function searchReports(input = {}, deps = {}) {
@@ -137,9 +144,9 @@ export function searchReports(input = {}, deps = {}) {
   const component = String(input.component ?? '').trim() || null;
   const limit = Math.min(Math.max(Number(input.limit ?? DEFAULT_LIMIT) || DEFAULT_LIMIT, 1), MAX_LIMIT);
 
-  const entries = listSearchableReportFiles(scope, input.date_from, input.date_to);
+  const entries = listSearchableReportFiles(scope, input.date_from, input.date_to, deps);
   const { hits, scanned } = scanReportsForHits(entries, {
-    q: query.toLowerCase(), component, limit, redact: deps.redact,
+    q: query.toLowerCase(), component, limit, redact: deps.redact, deps,
   });
 
   if (hits.length === 0) {
@@ -154,14 +161,16 @@ export function searchReports(input = {}, deps = {}) {
   return `Report search "${query}" — ${hits.length} hit(s), newest first:\n${hits.join('\n')}`;
 }
 
-function scanReportsForHits(entries, { q, component, limit, redact }) {
+function scanReportsForHits(entries, { q, component, limit, redact, deps = {} }) {
+  const reportsDir = resolveReportsDir(deps);
+  const store = getStore(deps);
   const hits = [];
   let scanned = 0;
   for (const entry of entries) {
     if (hits.length >= limit) break;
     let report;
     try {
-      report = JSON.parse(getStore().readFileSync(join(REPORTS_DIR, entry.file), 'utf-8'));
+      report = JSON.parse(store.readFileSync(join(reportsDir, entry.file), 'utf-8'));
     } catch {
       continue;
     }

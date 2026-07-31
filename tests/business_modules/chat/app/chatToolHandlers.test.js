@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { handleChatToolCall } from '../../../../business_modules/chat/app/chatToolHandlers.js';
 import { createChatPendingActionStore } from '../../../../business_modules/chat/infrastructure/chatPendingActionStore.js';
 import { executePendingAction } from '../../../../business_modules/chat/app/executePendingAction.js';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -462,13 +462,31 @@ describe('coverage / catalog / profile / search tools', () => {
   });
 
   it('search_reports redacts for non-analyst sessions', async () => {
-    let redactedWith = null;
-    await handleChatToolCall('search_reports', { query: 'zzz-nothing-zzz', limit: 1 }, {
-      ...gates,
-      reportData: { display_view: 'operator' },
-      redactReportPayload: (raw, view) => { redactedWith = view; return { assessment: { components: [] } }; },
-    });
-    assert.equal(redactedWith, 'operator');
+    // daily_reports/ is gitignored — seed a temp fixture so CI invokes redact.
+    const reportsDir = mkdtempSync(join(tmpdir(), 'chat-search-reports-'));
+    writeFileSync(
+      join(reportsDir, 'national-1-150726-1200.json'),
+      JSON.stringify({
+        assessment: {
+          components: [{ component_id: 'leadership', narrative_operator: 'Mayors held briefings.' }],
+        },
+      }),
+    );
+    try {
+      let redactedWith = null;
+      await handleChatToolCall('search_reports', { query: 'briefings', limit: 1 }, {
+        ...gates,
+        reportData: { display_view: 'operator' },
+        reportsDir,
+        redactReportPayload: (raw, view) => {
+          redactedWith = view;
+          return { assessment: { components: [] } };
+        },
+      });
+      assert.equal(redactedWith, 'operator');
+    } finally {
+      rmSync(reportsDir, { recursive: true, force: true });
+    }
   });
 
   it('get_signal rejects unknown ids with guidance', async () => {

@@ -677,7 +677,12 @@ function handleSearchReports(_toolName, input, ctx) {
   const redact = ctx.reportData?.display_view !== DISPLAY_VIEWS.analyst && ctx.redactReportPayload
     ? (report) => ctx.redactReportPayload(report, DISPLAY_VIEWS.operator)
     : undefined;
-  return searchReports(input ?? {}, { redact });
+  return searchReports(input ?? {}, {
+    redact,
+    // Test / composition overrides — production leaves these unset.
+    reportsDir: ctx.reportsDir,
+    stateStore: ctx.stateStore,
+  });
 }
 
 function handleGetSignal(_toolName, input) {
