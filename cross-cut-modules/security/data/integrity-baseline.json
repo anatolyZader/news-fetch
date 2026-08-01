@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "recordedAt": "2026-07-26T08:59:57.187Z",
-  "gitSha": "b02a7fb8eb3a0165b5aea76eace7594b4c512b4e",
+  "recordedAt": "2026-08-01T10:33:44.156Z",
+  "gitSha": "13860597d88efceb71882e7227fce6f7b0db56d9",
   "files": {
-    "package-lock.json": "3a7e448b9ffecd94f51457d99ca3e930e1f32d5a6769457b0287cbc97e1feb72",
+    "package-lock.json": "6648ff04d472ce80ebf495879bef908df944902fac360ce9e9df4a7307edc1d4",
     "client/package-lock.json": "27bb59b51957d3f7956ace2100c710e1db17f695b80c1e458b1b8c30800beffe",
     "docs-site/package-lock.json": "b3f47c18b0bac88a259d11f2f0191964548c3e59ae8bb11036dbb28692111110",
     ".nvmrc": "88029f8a967e9b0a57e49328ab94fa6d74e07946e2b5d33626c82d0dc6e93d81",
@@ -12,7 +12,7 @@
     ".github/actions/setup-npm-ci/action.yml": "2e06fef9447799e304fb8061908ec50be523e55f2d0d46d8ac5e325082d02bc9"
   },
   "clientDist": {
-    "aggregateSha256": "8b30d0e75d6980fd3b8b0517af38e11df43a2f5a163f5e5efaa61160206fa925",
+    "aggregateSha256": "4073fa412e93822989745f8722e54d1859e53f472fc46db0a7e7c28025267906",
     "fileCount": 71
   }
 }
