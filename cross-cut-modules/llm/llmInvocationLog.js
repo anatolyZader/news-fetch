@@ -27,13 +27,13 @@ export function resolveLlmInvocationsPath(rootDir = process.cwd()) {
 export function appendLlmInvocation(record) {
   try {
     const basePath = resolveLlmInvocationsPath();
-    if (process.env.JSONL_ASYNC_APPEND !== 'false') {
+    if (process.env.JSONL_ASYNC_APPEND === 'false') {
+      appendRotatedJsonl(basePath, record);
+    } else {
       const target = jsonlRotationEnabled()
         ? datedJsonlPath(basePath, new Date().toISOString().slice(0, 10))
         : basePath;
       enqueueJsonlAppend(target, JSON.stringify(record));
-    } else {
-      appendRotatedJsonl(basePath, record);
     }
   } catch (err) {
     console.error(`⚠ Could not write LLM invocation log: ${err.message}`);

@@ -131,7 +131,7 @@ async function runScenario(scenario) {
     method: scenario.method,
     duration: DURATION_S,
     connections: scenario.connections,
-    headers: { ...headers, ...(scenario.headers ?? {}) },
+    headers: { ...headers, ...scenario.headers },
     ...(scenario.body ? { body: scenario.body } : {}),
     ...extra,
   });
@@ -174,7 +174,7 @@ async function main() {
 
   const outDir = join(dirname(fileURLToPath(import.meta.url)), 'baselines');
   mkdirSync(outDir, { recursive: true });
-  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const stamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
   const outPath = resolve(outDir, `loadtest-${stamp}.json`);
   writeFileSync(outPath, JSON.stringify(results, null, 2));
   console.log(`Results written to ${outPath}`);

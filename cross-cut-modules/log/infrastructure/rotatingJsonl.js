@@ -48,7 +48,7 @@ export function readRotatedJsonlForDate(basePath, dateUtc) {
   const dated = datedJsonlPath(basePath, dateUtc);
   return [
     ...readJsonlRecords(basePath),
-    ...(dated !== basePath ? readJsonlRecords(dated) : []),
+    ...(dated === basePath ? [] : readJsonlRecords(dated)),
   ];
 }
 

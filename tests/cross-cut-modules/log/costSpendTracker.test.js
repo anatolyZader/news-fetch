@@ -21,7 +21,13 @@ const basePath = join(dir, 'cost-log.jsonl');
 const todayPath = datedJsonlPath(basePath, today);
 
 function row(cost, extra = {}) {
-  return `${JSON.stringify({ timestamp: `${today}T10:00:00.000Z`, script: 'http:chat', totalCostUsd: cost, ...extra })}\n`;
+  const payload = {
+    timestamp: `${today}T10:00:00.000Z`,
+    script: 'http:chat',
+    totalCostUsd: cost,
+    ...extra,
+  };
+  return `${JSON.stringify(payload)}\n`;
 }
 
 beforeEach(() => {

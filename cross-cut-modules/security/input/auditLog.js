@@ -46,10 +46,10 @@ export function appendAuditEvent(entry, logPath = resolveAuditLogPath()) {
   const target = jsonlRotationEnabled()
     ? datedJsonlPath(logPath, row.ts.slice(0, 10))
     : logPath;
-  if (process.env.JSONL_ASYNC_APPEND !== 'false') {
-    enqueueJsonlAppend(target, JSON.stringify(row));
-  } else {
+  if (process.env.JSONL_ASYNC_APPEND === 'false') {
     appendJsonlRecord(target, row);
+  } else {
+    enqueueJsonlAppend(target, JSON.stringify(row));
   }
 }
 

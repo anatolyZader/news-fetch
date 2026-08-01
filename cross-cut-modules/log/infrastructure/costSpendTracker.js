@@ -67,18 +67,46 @@ function foldEntry(state, entry) {
   }
 }
 
+function trackedPaths(basePath, day) {
+  const paths = [basePath];
+  if (jsonlRotationEnabled()) {
+    const dated = datedJsonlPath(basePath, day);
+    if (dated !== basePath) paths.push(dated);
+  }
+  return paths;
+}
+
+/**
+ * Fold newly complete lines from one file into state.
+ * @returns {'ok' | 'missing' | 'rebuild'}
+ */
+function ingestPath(state, path) {
+  const offset = state.offsets.get(path) ?? 0;
+  let size;
+  try {
+    size = statSync(path).size;
+  } catch {
+    return offset > 0 ? 'rebuild' : 'missing';
+  }
+  if (size < offset) return 'rebuild';
+  if (size === offset) return 'ok';
+  try {
+    const { lines, newOffset } = readNewCompleteLines(path, offset, size);
+    for (const line of lines) {
+      try {
+        foldEntry(state, JSON.parse(line));
+      } catch { /* torn/foreign line — skip, like readJsonlRecords does */ }
+    }
+    state.offsets.set(path, newOffset);
+  } catch {
+    /* transient read failure — retry next call */
+  }
+  return 'ok';
+}
+
 function createTracker() {
   /** @type {Map<string, ReturnType<typeof newState>>} independent state per base path */
   const states = new Map();
-
-  function trackedPaths(basePath, day) {
-    const paths = [basePath];
-    if (jsonlRotationEnabled()) {
-      const dated = datedJsonlPath(basePath, day);
-      if (dated !== basePath) paths.push(dated);
-    }
-    return paths;
-  }
 
   /** Sync in-memory totals with whatever landed on disk since the last call. */
   function refresh(rootDir) {
@@ -91,32 +119,9 @@ function createTracker() {
     }
 
     for (const path of trackedPaths(basePath, state.day)) {
-      const offset = state.offsets.get(path) ?? 0;
-      let size;
-      try {
-        size = statSync(path).size;
-      } catch {
-        if (offset > 0) {
-          states.delete(basePath); // file vanished — rebuild next call
-          return refresh(rootDir);
-        }
-        continue;
-      }
-      if (size < offset) {
-        states.delete(basePath); // truncated/replaced — rebuild from scratch
+      if (ingestPath(state, path) === 'rebuild') {
+        states.delete(basePath);
         return refresh(rootDir);
-      }
-      if (size === offset) continue;
-      try {
-        const { lines, newOffset } = readNewCompleteLines(path, offset, size);
-        for (const line of lines) {
-          try {
-            foldEntry(state, JSON.parse(line));
-          } catch { /* torn/foreign line — skip, like readJsonlRecords does */ }
-        }
-        state.offsets.set(path, newOffset);
-      } catch {
-        /* transient read failure — retry next call */
       }
     }
     return state;
