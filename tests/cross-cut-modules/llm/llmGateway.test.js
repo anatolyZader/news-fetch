@@ -6,8 +6,15 @@ import { tmpdir } from 'node:os';
 
 import { createAnthropicLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
 import { createLlmGateway } from '../../../cross-cut-modules/llm/llmGateway.js';
-import { readJsonlRecords } from '../../../cross-cut-modules/log/infrastructure/jsonlLog.js';
+import { flushJsonlQueuesSync } from '../../../cross-cut-modules/log/infrastructure/jsonlAppendQueue.js';
+import { readRotatedJsonlForDate } from '../../../cross-cut-modules/log/infrastructure/rotatingJsonl.js';
 import { resolveLlmInvocationsPath } from '../../../cross-cut-modules/llm/llmInvocationLog.js';
+
+function readInvocationRows() {
+  flushJsonlQueuesSync();
+  const today = new Date().toISOString().slice(0, 10);
+  return readRotatedJsonlForDate(resolveLlmInvocationsPath(), today);
+}
 
 function fakeClient() {
   return {
@@ -57,7 +64,7 @@ describe('createLlmGateway', () => {
         callContext: { feature: 'chat', purpose: 'test-call' },
       });
 
-      const rows = [...readJsonlRecords(resolveLlmInvocationsPath())];
+      const rows = readInvocationRows();
       assert.equal(rows.length, 1);
       assert.equal(rows[0].feature, 'chat');
       assert.equal(rows[0].inputTokens, 100);
@@ -101,7 +108,7 @@ describe('createLlmGateway', () => {
         executeTool: async () => 'unused',
       });
 
-      const rows = [...readJsonlRecords(resolveLlmInvocationsPath())];
+      const rows = readInvocationRows();
       assert.equal(rows.length, 1);
       assert.equal(rows[0].purpose, 'chat:round-0');
       assert.equal(rows[0].promptCacheApplied, true);
@@ -191,7 +198,7 @@ describe('createLlmGateway claude-cli transport', () => {
         onUsage: (p) => payloads.push(p),
       });
 
-      const rows = [...readJsonlRecords(resolveLlmInvocationsPath())];
+      const rows = readInvocationRows();
       assert.equal(rows.length, 1);
       assert.equal(rows[0].costUsd, 0);
       assert.equal(rows[0].transport, 'claude-cli');
@@ -223,7 +230,7 @@ describe('createLlmGateway claude-cli transport', () => {
       });
       await stream.finalMessage();
 
-      const rows = [...readJsonlRecords(resolveLlmInvocationsPath())];
+      const rows = readInvocationRows();
       assert.equal(rows.length, 1);
       assert.equal(rows[0].costUsd, 0);
       assert.equal(rows[0].transport, 'claude-cli');

@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 
 import { translateGenericJson } from '../../../../business_modules/translation/app/translateGenericJson.js';
 import { setSharedLlmPort } from '../../../../cross-cut-modules/llm/anthropicLlmAdapter.js';
-import { readJsonlRecords } from '../../../../cross-cut-modules/log/infrastructure/jsonlLog.js';
+import { readRotatedJsonlForDate } from '../../../../cross-cut-modules/log/infrastructure/rotatingJsonl.js';
 
 function fakePort(transport) {
   return {
@@ -17,6 +17,11 @@ function fakePort(transport) {
       stop_reason: 'end_turn',
     }),
   };
+}
+
+function readCostRows() {
+  const today = new Date().toISOString().slice(0, 10);
+  return readRotatedJsonlForDate(process.env.COST_LOG_PATH, today);
 }
 
 let dir;
@@ -38,7 +43,7 @@ describe('translateGenericJson claude-cli transport', () => {
     setSharedLlmPort(fakePort('claude-cli'));
     await translateGenericJson({ title: 'hello' }, 'he', { costLabel: 'translation-test' });
 
-    const rows = [...readJsonlRecords(process.env.COST_LOG_PATH)];
+    const rows = readCostRows();
     assert.equal(rows.length, 1);
     assert.equal(rows[0].totalCostUsd, 0);
     assert.equal(rows[0].breakdown.sonnet, 0);
@@ -48,7 +53,7 @@ describe('translateGenericJson claude-cli transport', () => {
     setSharedLlmPort(fakePort(null));
     await translateGenericJson({ title: 'hello' }, 'he', { costLabel: 'translation-test' });
 
-    const rows = [...readJsonlRecords(process.env.COST_LOG_PATH)];
+    const rows = readCostRows();
     assert.equal(rows.length, 1);
     assert.ok(rows[0].totalCostUsd > 0);
     assert.ok(rows[0].breakdown.sonnet > 0);

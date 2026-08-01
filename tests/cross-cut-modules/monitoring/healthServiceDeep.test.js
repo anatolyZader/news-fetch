@@ -7,13 +7,21 @@ import { tmpdir } from 'node:os';
 import { createHealthService } from '../../../cross-cut-modules/monitoring/app/healthService.js';
 
 const rootDir = join(tmpdir(), `health-deep-${process.pid}`);
+const costLogPath = join(rootDir, 'cross-cut-modules/log/data/cost-log.jsonl');
 mkdirSync(join(rootDir, 'db'), { recursive: true });
 writeFileSync(join(rootDir, 'db/app.sqlite'), '');
 mkdirSync(join(rootDir, 'business_modules/resilience_scorer/data/daily_reports'), { recursive: true });
 mkdirSync(join(rootDir, 'cross-cut-modules/log/data'), { recursive: true });
-writeFileSync(join(rootDir, 'cross-cut-modules/log/data/cost-log.jsonl'), '');
+writeFileSync(costLogPath, '');
 
-after(() => rmSync(rootDir, { recursive: true, force: true }));
+const prevCostLogPath = process.env.COST_LOG_PATH;
+process.env.COST_LOG_PATH = costLogPath;
+
+after(() => {
+  if (prevCostLogPath == null) delete process.env.COST_LOG_PATH;
+  else process.env.COST_LOG_PATH = prevCostLogPath;
+  rmSync(rootDir, { recursive: true, force: true });
+});
 
 describe('healthService deep checks', () => {
   it('uses injected sqlitePing over file existence', () => {
@@ -59,6 +67,7 @@ describe('healthService deep checks', () => {
     });
     const health = svc.getHealth();
     assert.equal(health.checks.event_loop.ok, true);
+    assert.equal(health.checks.cost_log.ok, true);
     assert.equal(health.status, 'ok');
   });
 });
