@@ -19,6 +19,7 @@ import {
 } from '../domain/services/reviewSupplementalTexts.js';
 import {
   buildBatchDocument,
+  collectBatchRowQuestions,
   defaultBatchPath,
   defaultSendLogPath,
   selectMunicipalitiesToSend,
@@ -47,6 +48,27 @@ function applyEmailBodyToOpenGaps(supplementalTexts, openGaps) {
   }
   delete next._email_body;
   return next;
+}
+
+/**
+ * Original PBO report fields for one municipality, as parsed from the Excel row.
+ * @param {{ file?: string }} day dashboard day entry
+ * @param {{ components?: object }} municipality
+ * @param {string[]} componentsOrder
+ * @param {Record<string, string>} componentNamesHe
+ */
+function rawReportForMunicipality(day, municipality, componentsOrder, componentNamesHe) {
+  const components = {};
+  for (const cid of componentsOrder) {
+    const c = municipality.components?.[cid] ?? { avg: null, scores: [], texts: [] };
+    components[cid] = {
+      name: componentNamesHe?.[cid] ?? cid,
+      avg: c.avg ?? null,
+      scores: (c.scores ?? []).map((s) => ({ field: s.label ?? null, value: s.value })),
+      texts: c.texts ?? [],
+    };
+  }
+  return { sourceFile: day.file ?? null, components };
 }
 
 function loadBatchDocument(path) {
@@ -409,10 +431,18 @@ export function createPboReportReviewService(deps) {
       }
 
       const reviews = await reviewStore.listReviewsForDate(date);
+      const dashboard = getMunicipalityDashboard();
+      const day = dashboard.days.find((d) => d.date === date);
+      const rawByName = new Map((day?.municipalities ?? []).map((m) => [m.name, m]));
       const batch = buildBatchDocument({
         date,
         reviews,
         lookupOfficer: (name) => officerDirectory.lookup(name),
+        lookupRawReport: (name) => {
+          const muni = rawByName.get(name);
+          if (!muni) return null;
+          return rawReportForMunicipality(day, muni, dashboard.componentsOrder, dashboard.componentNames?.he);
+        },
       });
       const path = outPath || defaultBatchPath(repoRoot, date);
       mkdirSync(dirname(path), { recursive: true });
@@ -464,7 +494,7 @@ export function createPboReportReviewService(deps) {
         };
         const review = {
           ...stored,
-          questions: Array.isArray(row.questions) ? row.questions : stored.questions,
+          questions: collectBatchRowQuestions(row) ?? stored.questions,
           language: officer.language,
         };
 

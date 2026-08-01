@@ -3,7 +3,7 @@
   "content_kind": "field_report",
   "district_id": "north",
   "date": "2026-03-17",
-  "extracted_at": "2026-07-31T09:33:25.596Z",
+  "extracted_at": "2026-08-01T14:03:34.826Z",
   "source_files": [
     "articles-visits-reports-2026-03-17.md"
   ],
@@ -44,7 +44,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.391Z"
+          "resolvedAt": "2026-08-01T14:03:34.625Z"
         }
       },
       "district_id": "north",
@@ -86,7 +86,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.394Z"
+          "resolvedAt": "2026-08-01T14:03:34.628Z"
         }
       },
       "district_id": "north",
@@ -128,7 +128,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.395Z"
+          "resolvedAt": "2026-08-01T14:03:34.629Z"
         }
       },
       "district_id": "north",
@@ -170,7 +170,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.396Z"
+          "resolvedAt": "2026-08-01T14:03:34.630Z"
         }
       },
       "district_id": "north",
@@ -212,7 +212,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.398Z"
+          "resolvedAt": "2026-08-01T14:03:34.632Z"
         }
       },
       "district_id": "north",
@@ -254,7 +254,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.400Z"
+          "resolvedAt": "2026-08-01T14:03:34.633Z"
         }
       },
       "district_id": "north",
@@ -269,9 +269,10 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
       "temporal_weight": 1,
       "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
       "municipality": "דוב\"ב",
@@ -295,7 +296,49 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.402Z"
+          "resolvedAt": "2026-08-01T14:03:34.634Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
+      "article_date": "2026-03-17"
+    },
+    {
+      "article_index": 36,
+      "signal_type": "political_distrust",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "טענה לפגיעה בביטחון האישי בל התנהלות הנהגת המושב",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
+      "municipality": "דוב\"ב",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "type": "political_distrust",
+      "source_type": "visits",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Mrom HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Mrom HaGalil",
+          "normalizedInput": "mrom hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-08-01T14:03:34.637Z"
         }
       },
       "district_id": "north",
@@ -337,7 +380,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.404Z"
+          "resolvedAt": "2026-08-01T14:03:34.639Z"
         }
       },
       "district_id": "north",
@@ -379,7 +422,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.407Z"
+          "resolvedAt": "2026-08-01T14:03:34.642Z"
         }
       },
       "district_id": "north",
@@ -421,7 +464,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.410Z"
+          "resolvedAt": "2026-08-01T14:03:34.645Z"
         }
       },
       "district_id": "north",
@@ -463,7 +506,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.412Z"
+          "resolvedAt": "2026-08-01T14:03:34.647Z"
         }
       },
       "district_id": "north",
@@ -505,7 +548,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.415Z"
+          "resolvedAt": "2026-08-01T14:03:34.648Z"
         }
       },
       "district_id": "north",
@@ -547,7 +590,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.417Z"
+          "resolvedAt": "2026-08-01T14:03:34.649Z"
         }
       },
       "district_id": "north",
@@ -589,7 +632,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.417Z"
+          "resolvedAt": "2026-08-01T14:03:34.650Z"
         }
       },
       "district_id": "north",
@@ -631,53 +674,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.418Z"
+          "resolvedAt": "2026-08-01T14:03:34.650Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#9",
-      "article_date": "2026-03-16"
-    },
-    {
-      "article_index": 11,
-      "signal_type": "protective_infrastructure_absent",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "In Horfish, 30% lack fortification (מיגון), though no issues in public institutions and public areas; gap closed",
-      "scope_level": "quantified_or_broad",
-      "confidence": 0.75,
-      "locality": "Horfish",
-      "article_url": "",
-      "article_source": "יואב בן בסט ואילת יוסף",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "חורפיש — ברעם (ביקור שטח)",
-      "municipality": "חורפיש",
-      "grounding_tier": "unverified_critical",
-      "grounding_reason": "verification_failed_critical",
-      "grounding_method": "low_similarity",
-      "type": "protective_infrastructure_absent",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Horfish",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Horfish",
-          "normalizedInput": "horfish",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.419Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#11",
       "article_date": "2026-03-16"
     },
     {
@@ -715,7 +716,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.420Z"
+          "resolvedAt": "2026-08-01T14:03:34.651Z"
         }
       },
       "district_id": "north",
@@ -757,7 +758,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.421Z"
+          "resolvedAt": "2026-08-01T14:03:34.652Z"
         }
       },
       "district_id": "north",
@@ -799,7 +800,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.422Z"
+          "resolvedAt": "2026-08-01T14:03:34.653Z"
         }
       },
       "district_id": "north",
@@ -841,7 +842,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.422Z"
+          "resolvedAt": "2026-08-01T14:03:34.654Z"
         }
       },
       "district_id": "north",
@@ -883,7 +884,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.423Z"
+          "resolvedAt": "2026-08-01T14:03:34.655Z"
         }
       },
       "district_id": "north",
@@ -925,7 +926,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.424Z"
+          "resolvedAt": "2026-08-01T14:03:34.656Z"
         }
       },
       "district_id": "north",
@@ -967,7 +968,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.425Z"
+          "resolvedAt": "2026-08-01T14:03:34.657Z"
         }
       },
       "district_id": "north",
@@ -1009,7 +1010,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.426Z"
+          "resolvedAt": "2026-08-01T14:03:34.657Z"
         }
       },
       "district_id": "north",
@@ -1051,7 +1052,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.427Z"
+          "resolvedAt": "2026-08-01T14:03:34.658Z"
         }
       },
       "district_id": "north",
@@ -1093,7 +1094,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.427Z"
+          "resolvedAt": "2026-08-01T14:03:34.659Z"
         }
       },
       "district_id": "north",
@@ -1135,7 +1136,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.428Z"
+          "resolvedAt": "2026-08-01T14:03:34.660Z"
         }
       },
       "district_id": "north",
@@ -1177,7 +1178,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.430Z"
+          "resolvedAt": "2026-08-01T14:03:34.661Z"
         }
       },
       "district_id": "north",
@@ -1219,7 +1220,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.430Z"
+          "resolvedAt": "2026-08-01T14:03:34.662Z"
         }
       },
       "district_id": "north",
@@ -1261,7 +1262,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.431Z"
+          "resolvedAt": "2026-08-01T14:03:34.663Z"
         }
       },
       "district_id": "north",
@@ -1303,7 +1304,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.432Z"
+          "resolvedAt": "2026-08-01T14:03:34.664Z"
         }
       },
       "district_id": "north",
@@ -1345,7 +1346,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.433Z"
+          "resolvedAt": "2026-08-01T14:03:34.664Z"
         }
       },
       "district_id": "north",
@@ -1387,7 +1388,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.433Z"
+          "resolvedAt": "2026-08-01T14:03:34.665Z"
         }
       },
       "district_id": "north",
@@ -1429,7 +1430,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.434Z"
+          "resolvedAt": "2026-08-01T14:03:34.665Z"
         }
       },
       "district_id": "north",
@@ -1471,7 +1472,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.435Z"
+          "resolvedAt": "2026-08-01T14:03:34.666Z"
         }
       },
       "district_id": "north",
@@ -1513,7 +1514,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.435Z"
+          "resolvedAt": "2026-08-01T14:03:34.667Z"
         }
       },
       "district_id": "north",
@@ -1555,7 +1556,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.436Z"
+          "resolvedAt": "2026-08-01T14:03:34.667Z"
         }
       },
       "district_id": "north",
@@ -1597,7 +1598,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.436Z"
+          "resolvedAt": "2026-08-01T14:03:34.668Z"
         }
       },
       "district_id": "north",
@@ -1639,7 +1640,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.437Z"
+          "resolvedAt": "2026-08-01T14:03:34.668Z"
         }
       },
       "district_id": "north",
@@ -1681,7 +1682,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.438Z"
+          "resolvedAt": "2026-08-01T14:03:34.669Z"
         }
       },
       "district_id": "north",
@@ -1723,7 +1724,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.439Z"
+          "resolvedAt": "2026-08-01T14:03:34.670Z"
         }
       },
       "district_id": "north",
@@ -1765,7 +1766,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.439Z"
+          "resolvedAt": "2026-08-01T14:03:34.671Z"
         }
       },
       "district_id": "north",
@@ -1807,7 +1808,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.440Z"
+          "resolvedAt": "2026-08-01T14:03:34.672Z"
         }
       },
       "district_id": "north",
@@ -1849,7 +1850,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.441Z"
+          "resolvedAt": "2026-08-01T14:03:34.672Z"
         }
       },
       "district_id": "north",
@@ -1891,7 +1892,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.441Z"
+          "resolvedAt": "2026-08-01T14:03:34.673Z"
         }
       },
       "district_id": "north",
@@ -1933,7 +1934,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.442Z"
+          "resolvedAt": "2026-08-01T14:03:34.673Z"
         }
       },
       "district_id": "north",
@@ -1975,7 +1976,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.442Z"
+          "resolvedAt": "2026-08-01T14:03:34.674Z"
         }
       },
       "district_id": "north",
@@ -2017,7 +2018,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.443Z"
+          "resolvedAt": "2026-08-01T14:03:34.675Z"
         }
       },
       "district_id": "north",
@@ -2059,7 +2060,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.443Z"
+          "resolvedAt": "2026-08-01T14:03:34.675Z"
         }
       },
       "district_id": "north",
@@ -2101,7 +2102,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.445Z"
+          "resolvedAt": "2026-08-01T14:03:34.676Z"
         }
       },
       "district_id": "north",
@@ -2143,7 +2144,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.446Z"
+          "resolvedAt": "2026-08-01T14:03:34.677Z"
         }
       },
       "district_id": "north",
@@ -2185,7 +2186,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.447Z"
+          "resolvedAt": "2026-08-01T14:03:34.677Z"
         }
       },
       "district_id": "north",
@@ -2227,7 +2228,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.448Z"
+          "resolvedAt": "2026-08-01T14:03:34.678Z"
         }
       },
       "district_id": "north",
@@ -2269,7 +2270,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.449Z"
+          "resolvedAt": "2026-08-01T14:03:34.679Z"
         }
       },
       "district_id": "north",
@@ -2311,7 +2312,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.451Z"
+          "resolvedAt": "2026-08-01T14:03:34.681Z"
         }
       },
       "district_id": "north",
@@ -2353,7 +2354,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.452Z"
+          "resolvedAt": "2026-08-01T14:03:34.681Z"
         }
       },
       "district_id": "north",
@@ -2395,7 +2396,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.453Z"
+          "resolvedAt": "2026-08-01T14:03:34.683Z"
         }
       },
       "district_id": "north",
@@ -2437,7 +2438,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.455Z"
+          "resolvedAt": "2026-08-01T14:03:34.683Z"
         }
       },
       "district_id": "north",
@@ -2479,7 +2480,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.456Z"
+          "resolvedAt": "2026-08-01T14:03:34.684Z"
         }
       },
       "district_id": "north",
@@ -2521,7 +2522,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.457Z"
+          "resolvedAt": "2026-08-01T14:03:34.685Z"
         }
       },
       "district_id": "north",
@@ -2563,7 +2564,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.458Z"
+          "resolvedAt": "2026-08-01T14:03:34.685Z"
         }
       },
       "district_id": "north",
@@ -2605,7 +2606,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.459Z"
+          "resolvedAt": "2026-08-01T14:03:34.686Z"
         }
       },
       "district_id": "north",
@@ -2647,7 +2648,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.460Z"
+          "resolvedAt": "2026-08-01T14:03:34.687Z"
         }
       },
       "district_id": "north",
@@ -2689,7 +2690,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.460Z"
+          "resolvedAt": "2026-08-01T14:03:34.688Z"
         }
       },
       "district_id": "north",
@@ -2731,7 +2732,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.461Z"
+          "resolvedAt": "2026-08-01T14:03:34.688Z"
         }
       },
       "district_id": "north",
@@ -2773,7 +2774,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.462Z"
+          "resolvedAt": "2026-08-01T14:03:34.689Z"
         }
       },
       "district_id": "north",
@@ -2815,7 +2816,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.463Z"
+          "resolvedAt": "2026-08-01T14:03:34.690Z"
         }
       },
       "district_id": "north",
@@ -2857,7 +2858,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.463Z"
+          "resolvedAt": "2026-08-01T14:03:34.690Z"
         }
       },
       "district_id": "north",
@@ -2899,7 +2900,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.464Z"
+          "resolvedAt": "2026-08-01T14:03:34.691Z"
         }
       },
       "district_id": "north",
@@ -2941,7 +2942,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.465Z"
+          "resolvedAt": "2026-08-01T14:03:34.691Z"
         }
       },
       "district_id": "north",
@@ -2983,7 +2984,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.465Z"
+          "resolvedAt": "2026-08-01T14:03:34.692Z"
         }
       },
       "district_id": "north",
@@ -3025,7 +3026,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.465Z"
+          "resolvedAt": "2026-08-01T14:03:34.692Z"
         }
       },
       "district_id": "north",
@@ -3067,7 +3068,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.466Z"
+          "resolvedAt": "2026-08-01T14:03:34.693Z"
         }
       },
       "district_id": "north",
@@ -3109,7 +3110,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.467Z"
+          "resolvedAt": "2026-08-01T14:03:34.694Z"
         }
       },
       "district_id": "north",
@@ -3151,7 +3152,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.467Z"
+          "resolvedAt": "2026-08-01T14:03:34.694Z"
         }
       },
       "district_id": "north",
@@ -3193,7 +3194,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.468Z"
+          "resolvedAt": "2026-08-01T14:03:34.695Z"
         }
       },
       "district_id": "north",
@@ -3235,7 +3236,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.469Z"
+          "resolvedAt": "2026-08-01T14:03:34.696Z"
         }
       },
       "district_id": "north",
@@ -3277,7 +3278,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.470Z"
+          "resolvedAt": "2026-08-01T14:03:34.697Z"
         }
       },
       "district_id": "north",
@@ -3319,7 +3320,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.471Z"
+          "resolvedAt": "2026-08-01T14:03:34.698Z"
         }
       },
       "district_id": "north",
@@ -3361,7 +3362,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.471Z"
+          "resolvedAt": "2026-08-01T14:03:34.698Z"
         }
       },
       "district_id": "north",
@@ -3403,7 +3404,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.472Z"
+          "resolvedAt": "2026-08-01T14:03:34.699Z"
         }
       },
       "district_id": "north",
@@ -3445,7 +3446,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.473Z"
+          "resolvedAt": "2026-08-01T14:03:34.700Z"
         }
       },
       "district_id": "north",
@@ -3487,7 +3488,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.474Z"
+          "resolvedAt": "2026-08-01T14:03:34.701Z"
         }
       },
       "district_id": "north",
@@ -3529,7 +3530,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.475Z"
+          "resolvedAt": "2026-08-01T14:03:34.701Z"
         }
       },
       "district_id": "north",
@@ -3571,7 +3572,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.476Z"
+          "resolvedAt": "2026-08-01T14:03:34.702Z"
         }
       },
       "district_id": "north",
@@ -3613,7 +3614,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.477Z"
+          "resolvedAt": "2026-08-01T14:03:34.703Z"
         }
       },
       "district_id": "north",
@@ -3655,7 +3656,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.477Z"
+          "resolvedAt": "2026-08-01T14:03:34.703Z"
         }
       },
       "district_id": "north",
@@ -3697,7 +3698,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.478Z"
+          "resolvedAt": "2026-08-01T14:03:34.704Z"
         }
       },
       "district_id": "north",
@@ -3739,7 +3740,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.478Z"
+          "resolvedAt": "2026-08-01T14:03:34.704Z"
         }
       },
       "district_id": "north",
@@ -3781,7 +3782,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.480Z"
+          "resolvedAt": "2026-08-01T14:03:34.706Z"
         }
       },
       "district_id": "north",
@@ -3823,7 +3824,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.480Z"
+          "resolvedAt": "2026-08-01T14:03:34.706Z"
         }
       },
       "district_id": "north",
@@ -3865,7 +3866,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.481Z"
+          "resolvedAt": "2026-08-01T14:03:34.707Z"
         }
       },
       "district_id": "north",
@@ -3907,7 +3908,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.481Z"
+          "resolvedAt": "2026-08-01T14:03:34.708Z"
         }
       },
       "district_id": "north",
@@ -3949,7 +3950,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.482Z"
+          "resolvedAt": "2026-08-01T14:03:34.708Z"
         }
       },
       "district_id": "north",
@@ -3991,7 +3992,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.483Z"
+          "resolvedAt": "2026-08-01T14:03:34.709Z"
         }
       },
       "district_id": "north",
@@ -4033,7 +4034,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.484Z"
+          "resolvedAt": "2026-08-01T14:03:34.710Z"
         }
       },
       "district_id": "north",
@@ -4075,7 +4076,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.484Z"
+          "resolvedAt": "2026-08-01T14:03:34.711Z"
         }
       },
       "district_id": "north",
@@ -4117,7 +4118,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.485Z"
+          "resolvedAt": "2026-08-01T14:03:34.711Z"
         }
       },
       "district_id": "north",
@@ -4159,7 +4160,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.486Z"
+          "resolvedAt": "2026-08-01T14:03:34.712Z"
         }
       },
       "district_id": "north",
@@ -4201,7 +4202,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.486Z"
+          "resolvedAt": "2026-08-01T14:03:34.713Z"
         }
       },
       "district_id": "north",
@@ -4243,7 +4244,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.487Z"
+          "resolvedAt": "2026-08-01T14:03:34.713Z"
         }
       },
       "district_id": "north",
@@ -4285,7 +4286,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.488Z"
+          "resolvedAt": "2026-08-01T14:03:34.714Z"
         }
       },
       "district_id": "north",
@@ -4327,7 +4328,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.489Z"
+          "resolvedAt": "2026-08-01T14:03:34.715Z"
         }
       },
       "district_id": "north",
@@ -4369,7 +4370,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.489Z"
+          "resolvedAt": "2026-08-01T14:03:34.715Z"
         }
       },
       "district_id": "north",
@@ -4411,7 +4412,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.490Z"
+          "resolvedAt": "2026-08-01T14:03:34.716Z"
         }
       },
       "district_id": "north",
@@ -4453,7 +4454,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.490Z"
+          "resolvedAt": "2026-08-01T14:03:34.717Z"
         }
       },
       "district_id": "north",
@@ -4495,7 +4496,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.491Z"
+          "resolvedAt": "2026-08-01T14:03:34.717Z"
         }
       },
       "district_id": "north",
@@ -4537,7 +4538,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.493Z"
+          "resolvedAt": "2026-08-01T14:03:34.719Z"
         }
       },
       "district_id": "north",
@@ -4579,7 +4580,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.493Z"
+          "resolvedAt": "2026-08-01T14:03:34.719Z"
         }
       },
       "district_id": "north",
@@ -4621,7 +4622,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.494Z"
+          "resolvedAt": "2026-08-01T14:03:34.720Z"
         }
       },
       "district_id": "north",
@@ -4663,12 +4664,54 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.494Z"
+          "resolvedAt": "2026-08-01T14:03:34.721Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#32",
       "article_date": "2026-03-15"
+    },
+    {
+      "article_index": 36,
+      "signal_type": "wellbeing_support_gap",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "בקשה ליציאה להתרעננות קהילתית",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.85,
+      "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
+      "municipality": "דוב\"ב",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "type": "wellbeing_support_gap",
+      "source_type": "visits",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Mrom HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Mrom HaGalil",
+          "normalizedInput": "mrom hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-08-01T14:03:34.721Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
+      "article_date": "2026-03-17"
     },
     {
       "article_index": 37,
@@ -4705,7 +4748,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.495Z"
+          "resolvedAt": "2026-08-01T14:03:34.722Z"
         }
       },
       "district_id": "north",
@@ -4747,53 +4790,12 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.496Z"
+          "resolvedAt": "2026-08-01T14:03:34.722Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#41",
       "article_date": "2026-03-15"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "wellbeing_support_gap",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "בקשה ליציאה להתרעננות קהילתית",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "Mrom HaGalil",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "wellbeing_support_gap",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.496Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
-      "article_date": "2026-03-17"
     },
     {
       "article_index": 2,
@@ -4830,7 +4832,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.497Z"
+          "resolvedAt": "2026-08-01T14:03:34.724Z"
         }
       },
       "district_id": "north",
@@ -4872,7 +4874,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.498Z"
+          "resolvedAt": "2026-08-01T14:03:34.724Z"
         }
       },
       "district_id": "north",
@@ -4914,7 +4916,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.499Z"
+          "resolvedAt": "2026-08-01T14:03:34.725Z"
         }
       },
       "district_id": "north",
@@ -4956,53 +4958,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.500Z"
+          "resolvedAt": "2026-08-01T14:03:34.726Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#41",
-      "article_date": "2026-03-15"
-    },
-    {
-      "article_index": 2,
-      "signal_type": "information_actionable_effective",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "In Goren/Maaleh Yosef, need for presence of soldier-teachers (מורות חיילות) for public information and guidance.",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.65,
-      "locality": "Goren/Maaleh Yosef",
-      "article_url": "",
-      "article_source": "איתמר שפר ולדי ליצ'אק",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "גורן/מעלה יוסף — ברעם (ביקור שטח)",
-      "municipality": "גורן",
-      "grounding_tier": "weak",
-      "grounding_reason": "low_similarity",
-      "grounding_method": "containment",
-      "type": "information_actionable_effective",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Goren/Maaleh Yosef",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Goren/Maaleh Yosef",
-          "normalizedInput": "goren/maaleh yosef",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.502Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#2",
       "article_date": "2026-03-15"
     },
     {
@@ -5040,7 +5000,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.503Z"
+          "resolvedAt": "2026-08-01T14:03:34.729Z"
         }
       },
       "district_id": "north",
@@ -5082,7 +5042,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.505Z"
+          "resolvedAt": "2026-08-01T14:03:34.730Z"
         }
       },
       "district_id": "north",
@@ -5124,7 +5084,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.506Z"
+          "resolvedAt": "2026-08-01T14:03:34.731Z"
         }
       },
       "district_id": "north",
@@ -5166,12 +5126,54 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.508Z"
+          "resolvedAt": "2026-08-01T14:03:34.733Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#29",
       "article_date": "2026-03-15"
+    },
+    {
+      "article_index": 36,
+      "signal_type": "resource_mobilization",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "יש מאמצי הקמה",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
+      "municipality": "דוב\"ב",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "type": "resource_mobilization",
+      "source_type": "visits",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Mrom HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Mrom HaGalil",
+          "normalizedInput": "mrom hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-08-01T14:03:34.733Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
+      "article_date": "2026-03-17"
     },
     {
       "article_index": 37,
@@ -5208,7 +5210,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.508Z"
+          "resolvedAt": "2026-08-01T14:03:34.734Z"
         }
       },
       "district_id": "north",
@@ -5250,7 +5252,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.509Z"
+          "resolvedAt": "2026-08-01T14:03:34.735Z"
         }
       },
       "district_id": "north",
@@ -5292,53 +5294,12 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.509Z"
+          "resolvedAt": "2026-08-01T14:03:34.735Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#41",
       "article_date": "2026-03-15"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "resource_mobilization",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "יש מאמצי הקמה",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "Mrom HaGalil",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "resource_mobilization",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.510Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
-      "article_date": "2026-03-17"
     },
     {
       "article_index": 3,
@@ -5375,7 +5336,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.511Z"
+          "resolvedAt": "2026-08-01T14:03:34.736Z"
         }
       },
       "district_id": "north",
@@ -5417,7 +5378,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.512Z"
+          "resolvedAt": "2026-08-01T14:03:34.737Z"
         }
       },
       "district_id": "north",
@@ -5459,7 +5420,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.513Z"
+          "resolvedAt": "2026-08-01T14:03:34.738Z"
         }
       },
       "district_id": "north",
@@ -5501,7 +5462,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.513Z"
+          "resolvedAt": "2026-08-01T14:03:34.739Z"
         }
       },
       "district_id": "north",
@@ -5543,7 +5504,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.514Z"
+          "resolvedAt": "2026-08-01T14:03:34.739Z"
         }
       },
       "district_id": "north",
@@ -5585,7 +5546,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.515Z"
+          "resolvedAt": "2026-08-01T14:03:34.740Z"
         }
       },
       "district_id": "north",
@@ -5627,7 +5588,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.515Z"
+          "resolvedAt": "2026-08-01T14:03:34.740Z"
         }
       },
       "district_id": "north",
@@ -5642,9 +5603,10 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.9,
       "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
       "temporal_weight": 1,
       "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
       "municipality": "דוב\"ב",
@@ -5668,7 +5630,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.516Z"
+          "resolvedAt": "2026-08-01T14:03:34.741Z"
         }
       },
       "district_id": "north",
@@ -5710,7 +5672,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.517Z"
+          "resolvedAt": "2026-08-01T14:03:34.742Z"
         }
       },
       "district_id": "north",
@@ -5752,7 +5714,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.517Z"
+          "resolvedAt": "2026-08-01T14:03:34.742Z"
         }
       },
       "district_id": "north",
@@ -5794,7 +5756,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.518Z"
+          "resolvedAt": "2026-08-01T14:03:34.743Z"
         }
       },
       "district_id": "north",
@@ -5836,7 +5798,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.518Z"
+          "resolvedAt": "2026-08-01T14:03:34.744Z"
         }
       },
       "district_id": "north",
@@ -5878,7 +5840,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.519Z"
+          "resolvedAt": "2026-08-01T14:03:34.744Z"
         }
       },
       "district_id": "north",
@@ -5920,7 +5882,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.520Z"
+          "resolvedAt": "2026-08-01T14:03:34.745Z"
         }
       },
       "district_id": "north",
@@ -5962,7 +5924,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.521Z"
+          "resolvedAt": "2026-08-01T14:03:34.746Z"
         }
       },
       "district_id": "north",
@@ -6004,7 +5966,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.521Z"
+          "resolvedAt": "2026-08-01T14:03:34.746Z"
         }
       },
       "district_id": "north",
@@ -6046,7 +6008,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.522Z"
+          "resolvedAt": "2026-08-01T14:03:34.747Z"
         }
       },
       "district_id": "north",
@@ -6088,7 +6050,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.523Z"
+          "resolvedAt": "2026-08-01T14:03:34.748Z"
         }
       },
       "district_id": "north",
@@ -6130,7 +6092,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.523Z"
+          "resolvedAt": "2026-08-01T14:03:34.748Z"
         }
       },
       "district_id": "north",
@@ -6172,7 +6134,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.524Z"
+          "resolvedAt": "2026-08-01T14:03:34.749Z"
         }
       },
       "district_id": "north",
@@ -6214,7 +6176,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.524Z"
+          "resolvedAt": "2026-08-01T14:03:34.750Z"
         }
       },
       "district_id": "north",
@@ -6256,7 +6218,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.525Z"
+          "resolvedAt": "2026-08-01T14:03:34.750Z"
         }
       },
       "district_id": "north",
@@ -6298,7 +6260,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.526Z"
+          "resolvedAt": "2026-08-01T14:03:34.751Z"
         }
       },
       "district_id": "north",
@@ -6340,7 +6302,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.526Z"
+          "resolvedAt": "2026-08-01T14:03:34.752Z"
         }
       },
       "district_id": "north",
@@ -6382,7 +6344,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.527Z"
+          "resolvedAt": "2026-08-01T14:03:34.752Z"
         }
       },
       "district_id": "north",
@@ -6424,7 +6386,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.527Z"
+          "resolvedAt": "2026-08-01T14:03:34.753Z"
         }
       },
       "district_id": "north",
@@ -6466,7 +6428,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.528Z"
+          "resolvedAt": "2026-08-01T14:03:34.753Z"
         }
       },
       "district_id": "north",
@@ -6481,9 +6443,10 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
       "temporal_weight": 1,
       "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
       "municipality": "דוב\"ב",
@@ -6507,7 +6470,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.528Z"
+          "resolvedAt": "2026-08-01T14:03:34.754Z"
         }
       },
       "district_id": "north",
@@ -6549,7 +6512,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.529Z"
+          "resolvedAt": "2026-08-01T14:03:34.755Z"
         }
       },
       "district_id": "north",
@@ -6591,7 +6554,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.530Z"
+          "resolvedAt": "2026-08-01T14:03:34.755Z"
         }
       },
       "district_id": "north",
@@ -6633,7 +6596,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.531Z"
+          "resolvedAt": "2026-08-01T14:03:34.756Z"
         }
       },
       "district_id": "north",
@@ -6675,7 +6638,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.532Z"
+          "resolvedAt": "2026-08-01T14:03:34.757Z"
         }
       },
       "district_id": "north",
@@ -6717,7 +6680,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.533Z"
+          "resolvedAt": "2026-08-01T14:03:34.758Z"
         }
       },
       "district_id": "north",
@@ -6759,7 +6722,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.533Z"
+          "resolvedAt": "2026-08-01T14:03:34.759Z"
         }
       },
       "district_id": "north",
@@ -6801,7 +6764,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.534Z"
+          "resolvedAt": "2026-08-01T14:03:34.760Z"
         }
       },
       "district_id": "north",
@@ -6843,7 +6806,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.535Z"
+          "resolvedAt": "2026-08-01T14:03:34.760Z"
         }
       },
       "district_id": "north",
@@ -6885,7 +6848,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.535Z"
+          "resolvedAt": "2026-08-01T14:03:34.761Z"
         }
       },
       "district_id": "north",
@@ -6927,7 +6890,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.535Z"
+          "resolvedAt": "2026-08-01T14:03:34.762Z"
         }
       },
       "district_id": "north",
@@ -6969,7 +6932,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.536Z"
+          "resolvedAt": "2026-08-01T14:03:34.762Z"
         }
       },
       "district_id": "north",
@@ -7011,7 +6974,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.537Z"
+          "resolvedAt": "2026-08-01T14:03:34.763Z"
         }
       },
       "district_id": "north",
@@ -7053,7 +7016,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.537Z"
+          "resolvedAt": "2026-08-01T14:03:34.763Z"
         }
       },
       "district_id": "north",
@@ -7095,7 +7058,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.538Z"
+          "resolvedAt": "2026-08-01T14:03:34.764Z"
         }
       },
       "district_id": "north",
@@ -7137,7 +7100,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.538Z"
+          "resolvedAt": "2026-08-01T14:03:34.764Z"
         }
       },
       "district_id": "north",
@@ -7179,7 +7142,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.539Z"
+          "resolvedAt": "2026-08-01T14:03:34.765Z"
         }
       },
       "district_id": "north",
@@ -7221,7 +7184,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.539Z"
+          "resolvedAt": "2026-08-01T14:03:34.765Z"
         }
       },
       "district_id": "north",
@@ -7263,7 +7226,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.540Z"
+          "resolvedAt": "2026-08-01T14:03:34.766Z"
         }
       },
       "district_id": "north",
@@ -7305,7 +7268,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.540Z"
+          "resolvedAt": "2026-08-01T14:03:34.766Z"
         }
       },
       "district_id": "north",
@@ -7347,7 +7310,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.541Z"
+          "resolvedAt": "2026-08-01T14:03:34.767Z"
         }
       },
       "district_id": "north",
@@ -7389,7 +7352,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.541Z"
+          "resolvedAt": "2026-08-01T14:03:34.767Z"
         }
       },
       "district_id": "north",
@@ -7431,7 +7394,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.542Z"
+          "resolvedAt": "2026-08-01T14:03:34.768Z"
         }
       },
       "district_id": "north",
@@ -7473,7 +7436,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.542Z"
+          "resolvedAt": "2026-08-01T14:03:34.768Z"
         }
       },
       "district_id": "north",
@@ -7515,7 +7478,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.543Z"
+          "resolvedAt": "2026-08-01T14:03:34.769Z"
         }
       },
       "district_id": "north",
@@ -7557,7 +7520,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.543Z"
+          "resolvedAt": "2026-08-01T14:03:34.769Z"
         }
       },
       "district_id": "north",
@@ -7599,7 +7562,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.545Z"
+          "resolvedAt": "2026-08-01T14:03:34.770Z"
         }
       },
       "district_id": "north",
@@ -7641,7 +7604,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.545Z"
+          "resolvedAt": "2026-08-01T14:03:34.771Z"
         }
       },
       "district_id": "north",
@@ -7683,7 +7646,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.546Z"
+          "resolvedAt": "2026-08-01T14:03:34.772Z"
         }
       },
       "district_id": "north",
@@ -7725,7 +7688,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.547Z"
+          "resolvedAt": "2026-08-01T14:03:34.773Z"
         }
       },
       "district_id": "north",
@@ -7767,7 +7730,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.547Z"
+          "resolvedAt": "2026-08-01T14:03:34.774Z"
         }
       },
       "district_id": "north",
@@ -7809,7 +7772,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.548Z"
+          "resolvedAt": "2026-08-01T14:03:34.774Z"
         }
       },
       "district_id": "north",
@@ -7851,7 +7814,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.549Z"
+          "resolvedAt": "2026-08-01T14:03:34.775Z"
         }
       },
       "district_id": "north",
@@ -7893,12 +7856,54 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.549Z"
+          "resolvedAt": "2026-08-01T14:03:34.776Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#34",
       "article_date": "2026-03-15"
+    },
+    {
+      "article_index": 36,
+      "signal_type": "evacuation_displacement",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "התושבים עושים אבחנה בין אוורור לבין פינוי. הם התפנו כקהילה",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.95,
+      "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
+      "municipality": "דוב\"ב",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "type": "evacuation_displacement",
+      "source_type": "visits",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Mrom HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Mrom HaGalil",
+          "normalizedInput": "mrom hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-08-01T14:03:34.776Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
+      "article_date": "2026-03-17"
     },
     {
       "article_index": 38,
@@ -7935,7 +7940,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.550Z"
+          "resolvedAt": "2026-08-01T14:03:34.777Z"
         }
       },
       "district_id": "north",
@@ -7977,53 +7982,12 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.551Z"
+          "resolvedAt": "2026-08-01T14:03:34.777Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#40",
       "article_date": "2026-03-15"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "evacuation_displacement",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "התושבים עושים אבחנה בין אוורור לבין פינוי. הם התפנו כקהילה",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.95,
-      "locality": "Mrom HaGalil",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "evacuation_displacement",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.551Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
-      "article_date": "2026-03-17"
     },
     {
       "article_index": 12,
@@ -8060,7 +8024,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.552Z"
+          "resolvedAt": "2026-08-01T14:03:34.778Z"
         }
       },
       "district_id": "north",
@@ -8102,7 +8066,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.553Z"
+          "resolvedAt": "2026-08-01T14:03:34.779Z"
         }
       },
       "district_id": "north",
@@ -8144,7 +8108,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.553Z"
+          "resolvedAt": "2026-08-01T14:03:34.779Z"
         }
       },
       "district_id": "north",
@@ -8186,7 +8150,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.554Z"
+          "resolvedAt": "2026-08-01T14:03:34.780Z"
         }
       },
       "district_id": "north",
@@ -8228,7 +8192,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.554Z"
+          "resolvedAt": "2026-08-01T14:03:34.781Z"
         }
       },
       "district_id": "north",
@@ -8270,7 +8234,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.555Z"
+          "resolvedAt": "2026-08-01T14:03:34.781Z"
         }
       },
       "district_id": "north",
@@ -8312,7 +8276,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.556Z"
+          "resolvedAt": "2026-08-01T14:03:34.782Z"
         }
       },
       "district_id": "north",
@@ -8354,7 +8318,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.556Z"
+          "resolvedAt": "2026-08-01T14:03:34.782Z"
         }
       },
       "district_id": "north",
@@ -8396,7 +8360,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.557Z"
+          "resolvedAt": "2026-08-01T14:03:34.783Z"
         }
       },
       "district_id": "north",
@@ -8438,7 +8402,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.557Z"
+          "resolvedAt": "2026-08-01T14:03:34.783Z"
         }
       },
       "district_id": "north",
@@ -8480,7 +8444,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.558Z"
+          "resolvedAt": "2026-08-01T14:03:34.784Z"
         }
       },
       "district_id": "north",
@@ -8522,7 +8486,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.558Z"
+          "resolvedAt": "2026-08-01T14:03:34.784Z"
         }
       },
       "district_id": "north",
@@ -8537,9 +8501,10 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.9,
       "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
       "temporal_weight": 1,
       "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
       "municipality": "דוב\"ב",
@@ -8563,7 +8528,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.559Z"
+          "resolvedAt": "2026-08-01T14:03:34.785Z"
         }
       },
       "district_id": "north",
@@ -8605,7 +8570,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.560Z"
+          "resolvedAt": "2026-08-01T14:03:34.786Z"
         }
       },
       "district_id": "north",
@@ -8647,7 +8612,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.560Z"
+          "resolvedAt": "2026-08-01T14:03:34.787Z"
         }
       },
       "district_id": "north",
@@ -8689,7 +8654,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.561Z"
+          "resolvedAt": "2026-08-01T14:03:34.787Z"
         }
       },
       "district_id": "north",
@@ -8731,7 +8696,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.562Z"
+          "resolvedAt": "2026-08-01T14:03:34.788Z"
         }
       },
       "district_id": "north",
@@ -8773,7 +8738,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.562Z"
+          "resolvedAt": "2026-08-01T14:03:34.789Z"
         }
       },
       "district_id": "north",
@@ -8815,7 +8780,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.563Z"
+          "resolvedAt": "2026-08-01T14:03:34.789Z"
         }
       },
       "district_id": "north",
@@ -8857,7 +8822,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.564Z"
+          "resolvedAt": "2026-08-01T14:03:34.790Z"
         }
       },
       "district_id": "north",
@@ -8899,7 +8864,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.564Z"
+          "resolvedAt": "2026-08-01T14:03:34.791Z"
         }
       },
       "district_id": "north",
@@ -8914,9 +8879,10 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.9,
       "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
       "temporal_weight": 1,
       "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
       "municipality": "דוב\"ב",
@@ -8940,7 +8906,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.565Z"
+          "resolvedAt": "2026-08-01T14:03:34.792Z"
         }
       },
       "district_id": "north",
@@ -8982,7 +8948,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.566Z"
+          "resolvedAt": "2026-08-01T14:03:34.793Z"
         }
       },
       "district_id": "north",
@@ -9024,7 +8990,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.566Z"
+          "resolvedAt": "2026-08-01T14:03:34.793Z"
         }
       },
       "district_id": "north",
@@ -9066,7 +9032,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.568Z"
+          "resolvedAt": "2026-08-01T14:03:34.795Z"
         }
       },
       "district_id": "north",
@@ -9108,7 +9074,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.568Z"
+          "resolvedAt": "2026-08-01T14:03:34.795Z"
         }
       },
       "district_id": "north",
@@ -9150,7 +9116,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.569Z"
+          "resolvedAt": "2026-08-01T14:03:34.796Z"
         }
       },
       "district_id": "north",
@@ -9192,7 +9158,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.569Z"
+          "resolvedAt": "2026-08-01T14:03:34.796Z"
         }
       },
       "district_id": "north",
@@ -9234,7 +9200,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.570Z"
+          "resolvedAt": "2026-08-01T14:03:34.797Z"
         }
       },
       "district_id": "north",
@@ -9276,7 +9242,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.571Z"
+          "resolvedAt": "2026-08-01T14:03:34.798Z"
         }
       },
       "district_id": "north",
@@ -9318,7 +9284,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.572Z"
+          "resolvedAt": "2026-08-01T14:03:34.799Z"
         }
       },
       "district_id": "north",
@@ -9360,7 +9326,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.572Z"
+          "resolvedAt": "2026-08-01T14:03:34.799Z"
         }
       },
       "district_id": "north",
@@ -9402,7 +9368,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.573Z"
+          "resolvedAt": "2026-08-01T14:03:34.800Z"
         }
       },
       "district_id": "north",
@@ -9444,7 +9410,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.573Z"
+          "resolvedAt": "2026-08-01T14:03:34.801Z"
         }
       },
       "district_id": "north",
@@ -9486,7 +9452,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.574Z"
+          "resolvedAt": "2026-08-01T14:03:34.801Z"
         }
       },
       "district_id": "north",
@@ -9528,7 +9494,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.574Z"
+          "resolvedAt": "2026-08-01T14:03:34.802Z"
         }
       },
       "district_id": "north",
@@ -9570,7 +9536,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.575Z"
+          "resolvedAt": "2026-08-01T14:03:34.803Z"
         }
       },
       "district_id": "north",
@@ -9612,7 +9578,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.576Z"
+          "resolvedAt": "2026-08-01T14:03:34.803Z"
         }
       },
       "district_id": "north",
@@ -9654,12 +9620,306 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.576Z"
+          "resolvedAt": "2026-08-01T14:03:34.804Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#34",
       "article_date": "2026-03-15"
+    },
+    {
+      "article_index": 36,
+      "signal_type": "preparedness_gap_identified",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "חיוניות שילוב מורות חיילות במערך הפעילות הבלתי פורמלית",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
+      "municipality": "דוב\"ב",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "type": "preparedness_gap_identified",
+      "source_type": "visits",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Mrom HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Mrom HaGalil",
+          "normalizedInput": "mrom hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-08-01T14:03:34.805Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
+      "article_date": "2026-03-17"
+    },
+    {
+      "article_index": 36,
+      "signal_type": "preparedness_gap_identified",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "קושי בגיוס חברים לצוות הכוננות",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.85,
+      "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
+      "municipality": "דוב\"ב",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "type": "preparedness_gap_identified",
+      "source_type": "visits",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Mrom HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Mrom HaGalil",
+          "normalizedInput": "mrom hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-08-01T14:03:34.806Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
+      "article_date": "2026-03-17"
+    },
+    {
+      "article_index": 36,
+      "signal_type": "future_orientation_hope",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "ציפייה לשקט ממושך בעקבות המלחמה",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
+      "municipality": "דוב\"ב",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "type": "future_orientation_hope",
+      "source_type": "visits",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Mrom HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Mrom HaGalil",
+          "normalizedInput": "mrom hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-08-01T14:03:34.807Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
+      "article_date": "2026-03-17"
+    },
+    {
+      "article_index": 36,
+      "signal_type": "informal_leadership_emergence",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "פרוייקטורית חדשה הפועלת חודשיים ומסייעת בארגון הקהילה",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.85,
+      "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
+      "municipality": "דוב\"ב",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "type": "informal_leadership_emergence",
+      "source_type": "visits",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Mrom HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Mrom HaGalil",
+          "normalizedInput": "mrom hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-08-01T14:03:34.808Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
+      "article_date": "2026-03-17"
+    },
+    {
+      "article_index": 36,
+      "signal_type": "volunteer_donor_fatigue",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "ההתנדבות היא בעצמה יוצרת שחיקה",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.9,
+      "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
+      "municipality": "דוב\"ב",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "type": "volunteer_donor_fatigue",
+      "source_type": "visits",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Mrom HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Mrom HaGalil",
+          "normalizedInput": "mrom hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-08-01T14:03:34.808Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
+      "article_date": "2026-03-17"
+    },
+    {
+      "article_index": 36,
+      "signal_type": "accountability_demand_constructive",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "ציפייה לפגישה עם מפקדים בכירים",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
+      "municipality": "דוב\"ב",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "type": "accountability_demand_constructive",
+      "source_type": "visits",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Mrom HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Mrom HaGalil",
+          "normalizedInput": "mrom hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-08-01T14:03:34.809Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
+      "article_date": "2026-03-17"
+    },
+    {
+      "article_index": 36,
+      "signal_type": "dissensus_blocks_action",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "עמדות חלוקות לגבי ההנהגה הפנים-יישובית",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.8,
+      "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
+      "municipality": "דוב\"ב",
+      "grounding_tier": "grounded",
+      "grounding_reason": "containment",
+      "grounding_method": "containment",
+      "type": "dissensus_blocks_action",
+      "source_type": "visits",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Mrom HaGalil",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Mrom HaGalil",
+          "normalizedInput": "mrom hagalil",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-08-01T14:03:34.810Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
+      "article_date": "2026-03-17"
     },
     {
       "article_index": 37,
@@ -9696,7 +9956,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.577Z"
+          "resolvedAt": "2026-08-01T14:03:34.810Z"
         }
       },
       "district_id": "north",
@@ -9738,7 +9998,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.577Z"
+          "resolvedAt": "2026-08-01T14:03:34.811Z"
         }
       },
       "district_id": "north",
@@ -9780,7 +10040,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.578Z"
+          "resolvedAt": "2026-08-01T14:03:34.812Z"
         }
       },
       "district_id": "north",
@@ -9822,7 +10082,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.578Z"
+          "resolvedAt": "2026-08-01T14:03:34.812Z"
         }
       },
       "district_id": "north",
@@ -9864,7 +10124,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.579Z"
+          "resolvedAt": "2026-08-01T14:03:34.813Z"
         }
       },
       "district_id": "north",
@@ -9906,299 +10166,12 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.579Z"
+          "resolvedAt": "2026-08-01T14:03:34.814Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#41",
       "article_date": "2026-03-15"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "preparedness_gap_identified",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "חיוניות שילוב מורות חיילות במערך הפעילות הבלתי פורמלית",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "Mrom HaGalil",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "preparedness_gap_identified",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.580Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
-      "article_date": "2026-03-17"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "preparedness_gap_identified",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "קושי בגיוס חברים לצוות הכוננות",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "Mrom HaGalil",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "preparedness_gap_identified",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.581Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
-      "article_date": "2026-03-17"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "future_orientation_hope",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "ציפייה לשקט ממושך בעקבות המלחמה",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "Mrom HaGalil",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "future_orientation_hope",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.581Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
-      "article_date": "2026-03-17"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "informal_leadership_emergence",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "פרוייקטורית חדשה הפועלת חודשיים ומסייעת בארגון הקהילה",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "Mrom HaGalil",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "informal_leadership_emergence",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.582Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
-      "article_date": "2026-03-17"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "volunteer_donor_fatigue",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "ההתנדבות היא בעצמה יוצרת שחיקה",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.9,
-      "locality": "Mrom HaGalil",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "volunteer_donor_fatigue",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.583Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
-      "article_date": "2026-03-17"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "accountability_demand_constructive",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "ציפייה לפגישה עם מפקדים בכירים",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "Mrom HaGalil",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "accountability_demand_constructive",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.584Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
-      "article_date": "2026-03-17"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "dissensus_blocks_action",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "עמדות חלוקות לגבי ההנהגה הפנים-יישובית",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "Mrom HaGalil",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "dissensus_blocks_action",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.584Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-17.md#36",
-      "article_date": "2026-03-17"
     },
     {
       "article_index": 36,
@@ -10208,9 +10181,10 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.95,
       "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
       "temporal_weight": 1,
       "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
       "municipality": "דוב\"ב",
@@ -10234,7 +10208,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.585Z"
+          "resolvedAt": "2026-08-01T14:03:34.814Z"
         }
       },
       "district_id": "north",
@@ -10276,7 +10250,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.585Z"
+          "resolvedAt": "2026-08-01T14:03:34.815Z"
         }
       },
       "district_id": "north",
@@ -10318,7 +10292,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.586Z"
+          "resolvedAt": "2026-08-01T14:03:34.816Z"
         }
       },
       "district_id": "north",
@@ -10360,7 +10334,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.587Z"
+          "resolvedAt": "2026-08-01T14:03:34.816Z"
         }
       },
       "district_id": "north",
@@ -10402,7 +10376,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.587Z"
+          "resolvedAt": "2026-08-01T14:03:34.817Z"
         }
       },
       "district_id": "north",
@@ -10444,7 +10418,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.588Z"
+          "resolvedAt": "2026-08-01T14:03:34.817Z"
         }
       },
       "district_id": "north",
@@ -10486,7 +10460,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.588Z"
+          "resolvedAt": "2026-08-01T14:03:34.818Z"
         }
       },
       "district_id": "north",
@@ -10501,9 +10475,10 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.95,
       "locality": "Mrom HaGalil",
+      "article_url": "",
+      "article_source": "אמיר שמש ופאבל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
-      "article_source": "אמיר שמש ופאבל",
       "temporal_weight": 1,
       "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
       "municipality": "דוב\"ב",
@@ -10527,7 +10502,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-07-31T09:33:25.589Z"
+          "resolvedAt": "2026-08-01T14:03:34.818Z"
         }
       },
       "district_id": "north",

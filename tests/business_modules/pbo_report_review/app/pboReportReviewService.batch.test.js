@@ -95,16 +95,27 @@ describe('pboReportReviewService batch export/send', () => {
     assert.equal(a.send, true);
     assert.equal(a.officer.email, 'a@example.com');
     assert.ok(store.getReview('2026-07-26', 'MuniA')?.reviewToken);
+
+    assert.equal(a.sourceFile, 'day.xlsx');
+    assert.equal(a.components.narrative.avg, null);
+    assert.equal(a.components.narrative.gaps[0].kind, 'missing_score');
+    assert.ok(a.components.narrative.questions.length >= 1);
+    assert.deepEqual(a.components.leadership.gaps, []);
+    const b = batch.municipalities.find((m) => m.municipality === 'MuniB');
+    assert.equal(b.components.leadership.avg, 0.5);
+    assert.equal(b.components.leadership.scores.length, 3);
+    assert.deepEqual(b.components.leadership.texts, ['ok']);
+    assert.deepEqual(b.components.leadership.gaps, []);
+    assert.deepEqual(b.components.leadership.questions, []);
   });
 
   it('sendDayFeedback dry-run selects overrides without sending', async () => {
     const outPath = join(dir, 'batch.json');
     await service.exportDayBatch('2026-07-26', { outPath, repoRoot: dir });
     const batch = JSON.parse(readFileSync(outPath, 'utf8'));
-    batch.municipalities.find((m) => m.municipality === 'MuniA').officer.email = 'override@example.com';
-    batch.municipalities.find((m) => m.municipality === 'MuniA').questions = [
-      { gapId: 'x', text: 'Custom Q' },
-    ];
+    const muniA = batch.municipalities.find((m) => m.municipality === 'MuniA');
+    muniA.officer.email = 'override@example.com';
+    muniA.components.narrative.questions = [{ gapId: 'x', text: 'Custom Q' }];
     writeFileSync(outPath, JSON.stringify(batch));
 
     const result = await service.sendDayFeedback('2026-07-26', {

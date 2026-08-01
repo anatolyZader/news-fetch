@@ -25,4 +25,4 @@ npm run pbo:review-muni -- --date <YYYY-MM-DD>
 - Print the batch file path (default: `business_modules/pbo_report_review/data/reviews/batches/pbo-muni-review-<YYYY-MM-DD>.json`).
 - Print the `summary` object (`total`, `sufficient`, `needsFeedback`, `missingOfficerEmail`).
 - Explicitly state: **no mail was sent**.
-- Tell the operator they may edit the batch (`send`, `questions`, `officer.email`) then run `/send-report-feedback-muni <dd:mm:yyyy>` after confirmation.
+- Tell the operator they may edit the batch (`send`, `officer.email`, and per-component `components.<id>.questions` / `general.questions`) then run `/send-report-feedback-muni <dd:mm:yyyy>` after confirmation.

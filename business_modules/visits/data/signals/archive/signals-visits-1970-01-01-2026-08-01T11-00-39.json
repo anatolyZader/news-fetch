@@ -3,7 +3,7 @@
   "content_kind": "field_report",
   "district_id": "north",
   "date": "1970-01-01",
-  "extracted_at": "2026-08-01T11:00:39.118Z",
+  "extracted_at": "2026-07-31T09:28:46.576Z",
   "source_files": [
     "articles-visits-reports-1970-01-01.md"
   ],
@@ -44,7 +44,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.926Z"
+          "resolvedAt": "2026-07-31T09:28:46.390Z"
         }
       },
       "district_id": "north",
@@ -86,7 +86,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.928Z"
+          "resolvedAt": "2026-07-31T09:28:46.393Z"
         }
       },
       "district_id": "north",
@@ -128,7 +128,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.929Z"
+          "resolvedAt": "2026-07-31T09:28:46.395Z"
         }
       },
       "district_id": "north",
@@ -170,7 +170,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.931Z"
+          "resolvedAt": "2026-07-31T09:28:46.396Z"
         }
       },
       "district_id": "north",
@@ -212,7 +212,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.933Z"
+          "resolvedAt": "2026-07-31T09:28:46.398Z"
         }
       },
       "district_id": "north",
@@ -254,95 +254,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.934Z"
+          "resolvedAt": "2026-07-31T09:28:46.399Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#18",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "political_distrust",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "הבעת אכזבה מצה״ל בשל טענה לכאורה לחוסר שקיפות",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "political_distrust",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.936Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "political_distrust",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "טענה לפגיעה בביטחון האישי בל התנהלות הנהגת המושב",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "political_distrust",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.939Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
       "article_date": "1970-01-01"
     },
     {
@@ -380,7 +296,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.940Z"
+          "resolvedAt": "2026-07-31T09:28:46.400Z"
         }
       },
       "district_id": "north",
@@ -422,7 +338,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.944Z"
+          "resolvedAt": "2026-07-31T09:28:46.402Z"
         }
       },
       "district_id": "north",
@@ -464,7 +380,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.946Z"
+          "resolvedAt": "2026-07-31T09:28:46.403Z"
         }
       },
       "district_id": "north",
@@ -506,7 +422,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.948Z"
+          "resolvedAt": "2026-07-31T09:28:46.405Z"
         }
       },
       "district_id": "north",
@@ -548,7 +464,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.950Z"
+          "resolvedAt": "2026-07-31T09:28:46.406Z"
         }
       },
       "district_id": "north",
@@ -590,7 +506,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.951Z"
+          "resolvedAt": "2026-07-31T09:28:46.408Z"
         }
       },
       "district_id": "north",
@@ -632,7 +548,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.951Z"
+          "resolvedAt": "2026-07-31T09:28:46.409Z"
         }
       },
       "district_id": "north",
@@ -674,7 +590,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.952Z"
+          "resolvedAt": "2026-07-31T09:28:46.410Z"
         }
       },
       "district_id": "north",
@@ -716,7 +632,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.953Z"
+          "resolvedAt": "2026-07-31T09:28:46.412Z"
         }
       },
       "district_id": "north",
@@ -758,7 +674,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.954Z"
+          "resolvedAt": "2026-07-31T09:28:46.412Z"
         }
       },
       "district_id": "north",
@@ -800,7 +716,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.954Z"
+          "resolvedAt": "2026-07-31T09:28:46.413Z"
         }
       },
       "district_id": "north",
@@ -842,7 +758,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.955Z"
+          "resolvedAt": "2026-07-31T09:28:46.414Z"
         }
       },
       "district_id": "north",
@@ -884,7 +800,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.956Z"
+          "resolvedAt": "2026-07-31T09:28:46.415Z"
         }
       },
       "district_id": "north",
@@ -926,7 +842,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.957Z"
+          "resolvedAt": "2026-07-31T09:28:46.417Z"
         }
       },
       "district_id": "north",
@@ -968,7 +884,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.958Z"
+          "resolvedAt": "2026-07-31T09:28:46.417Z"
         }
       },
       "district_id": "north",
@@ -1010,7 +926,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.958Z"
+          "resolvedAt": "2026-07-31T09:28:46.418Z"
         }
       },
       "district_id": "north",
@@ -1052,7 +968,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.959Z"
+          "resolvedAt": "2026-07-31T09:28:46.419Z"
         }
       },
       "district_id": "north",
@@ -1067,10 +983,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.9,
       "locality": "מנרה",
-      "article_url": "",
-      "article_source": "גל+ליאור+אמל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל+ליאור+אמל",
       "temporal_weight": 1,
       "article_title": "מנרה/גליל עליון — חירם (ביקור שטח)",
       "municipality": "מנרה",
@@ -1094,7 +1009,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.960Z"
+          "resolvedAt": "2026-07-31T09:28:46.420Z"
         }
       },
       "district_id": "north",
@@ -1109,10 +1024,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.9,
       "locality": "כרם בן זמרה",
-      "article_url": "",
-      "article_source": "נאג' מנסור+רז הימן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "נאג' מנסור+רז הימן",
       "temporal_weight": 1,
       "article_title": "כרם בן זמרה/מרום הגליל — חירם (ביקור שטח)",
       "municipality": "כרם בן זמרה",
@@ -1136,7 +1050,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.961Z"
+          "resolvedAt": "2026-07-31T09:28:46.421Z"
         }
       },
       "district_id": "north",
@@ -1151,10 +1065,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.9,
       "locality": "כפר גלעדי",
-      "article_url": "",
-      "article_source": "ליאת מזר ומרואן פאלח",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "ליאת מזר ומרואן פאלח",
       "temporal_weight": 1,
       "article_title": "כפר גלעדי/גליל עליון — חירם (ביקור שטח)",
       "municipality": "כפר גלעדי",
@@ -1178,7 +1091,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.962Z"
+          "resolvedAt": "2026-07-31T09:28:46.422Z"
         }
       },
       "district_id": "north",
@@ -1193,10 +1106,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.9,
       "locality": "מבואות חרמון - שאר ישוב",
-      "article_url": "",
-      "article_source": "אבי גרשון ואיציק בן נאור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אבי גרשון ואיציק בן נאור",
       "temporal_weight": 1,
       "article_title": "מבואות חרמון - שאר ישוב — חירם (ביקור שטח)",
       "municipality": "מבואות חרמון - שאר ישוב",
@@ -1220,7 +1132,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.963Z"
+          "resolvedAt": "2026-07-31T09:28:46.423Z"
         }
       },
       "district_id": "north",
@@ -1235,10 +1147,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.9,
       "locality": "מרגליות",
-      "article_url": "",
-      "article_source": "אבי גרשון ואיציק בן נאור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אבי גרשון ואיציק בן נאור",
       "temporal_weight": 1,
       "article_title": "מרגליות/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "מרגליות",
@@ -1262,7 +1173,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.964Z"
+          "resolvedAt": "2026-07-31T09:28:46.424Z"
         }
       },
       "district_id": "north",
@@ -1277,10 +1188,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.9,
       "locality": "יראון",
-      "article_url": "",
-      "article_source": "עלי סרחאן+ חנן ממן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי סרחאן+ חנן ממן",
       "temporal_weight": 1,
       "article_title": "יראון / גליל עליון — חירם (ביקור שטח)",
       "municipality": "יראון",
@@ -1304,7 +1214,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.964Z"
+          "resolvedAt": "2026-07-31T09:28:46.424Z"
         }
       },
       "district_id": "north",
@@ -1319,10 +1229,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.9,
       "locality": "מלכיה",
-      "article_url": "",
-      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "temporal_weight": 1,
       "article_title": "מלכיה — חירם (ביקור שטח)",
       "municipality": "מלכיה",
@@ -1346,7 +1255,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.965Z"
+          "resolvedAt": "2026-07-31T09:28:46.425Z"
         }
       },
       "district_id": "north",
@@ -1361,10 +1270,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "עלמה",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ופאבל",
       "temporal_weight": 1,
       "article_title": "עלמה /מרום הגליל — חירם (ביקור שטח)",
       "municipality": "עלמה",
@@ -1388,7 +1296,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.966Z"
+          "resolvedAt": "2026-07-31T09:28:46.426Z"
         }
       },
       "district_id": "north",
@@ -1430,7 +1338,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.966Z"
+          "resolvedAt": "2026-07-31T09:28:46.426Z"
         }
       },
       "district_id": "north",
@@ -1472,7 +1380,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.967Z"
+          "resolvedAt": "2026-07-31T09:28:46.427Z"
         }
       },
       "district_id": "north",
@@ -1487,10 +1395,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "רמות נפתלי",
-      "article_url": "",
-      "article_source": "מירי בן עמי ואסי כהן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "מירי בן עמי ואסי כהן",
       "temporal_weight": 1,
       "article_title": "רמות נפתלי/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "רמות נפתלי",
@@ -1514,7 +1421,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.968Z"
+          "resolvedAt": "2026-07-31T09:28:46.428Z"
         }
       },
       "district_id": "north",
@@ -1529,10 +1436,9 @@
       "scope_level": "quantified_or_broad",
       "confidence": 0.9,
       "locality": "דישון",
-      "article_url": "",
-      "article_source": "אמיר שמש ונאג'י מנסור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ונאג'י מנסור",
       "temporal_weight": 1,
       "article_title": "דישון/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "דישון",
@@ -1556,7 +1462,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.968Z"
+          "resolvedAt": "2026-07-31T09:28:46.428Z"
         }
       },
       "district_id": "north",
@@ -1598,7 +1504,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.969Z"
+          "resolvedAt": "2026-07-31T09:28:46.429Z"
         }
       },
       "district_id": "north",
@@ -1640,7 +1546,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.969Z"
+          "resolvedAt": "2026-07-31T09:28:46.429Z"
         }
       },
       "district_id": "north",
@@ -1682,7 +1588,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.970Z"
+          "resolvedAt": "2026-07-31T09:28:46.430Z"
         }
       },
       "district_id": "north",
@@ -1724,7 +1630,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.971Z"
+          "resolvedAt": "2026-07-31T09:28:46.431Z"
         }
       },
       "district_id": "north",
@@ -1766,7 +1672,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.972Z"
+          "resolvedAt": "2026-07-31T09:28:46.432Z"
         }
       },
       "district_id": "north",
@@ -1781,10 +1687,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "רמות נפתלי",
-      "article_url": "",
-      "article_source": "מירי בן עמי ואסי כהן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "מירי בן עמי ואסי כהן",
       "temporal_weight": 1,
       "article_title": "רמות נפתלי/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "רמות נפתלי",
@@ -1808,7 +1713,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.972Z"
+          "resolvedAt": "2026-07-31T09:28:46.433Z"
         }
       },
       "district_id": "north",
@@ -1823,10 +1728,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "מרגליות",
-      "article_url": "",
-      "article_source": "אבי גרשון ואיציק בן נאור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אבי גרשון ואיציק בן נאור",
       "temporal_weight": 1,
       "article_title": "מרגליות/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "מרגליות",
@@ -1850,7 +1754,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.973Z"
+          "resolvedAt": "2026-07-31T09:28:46.433Z"
         }
       },
       "district_id": "north",
@@ -1865,10 +1769,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "כפר יובל",
-      "article_url": "",
-      "article_source": "אמיר שמש ונאג'י מנסור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ונאג'י מנסור",
       "temporal_weight": 1,
       "article_title": "כפר יובל/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "כפר יובל",
@@ -1892,7 +1795,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.974Z"
+          "resolvedAt": "2026-07-31T09:28:46.434Z"
         }
       },
       "district_id": "north",
@@ -1907,10 +1810,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "הגושרים",
-      "article_url": "",
-      "article_source": "ליאת לזר+מרואן סאלח",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "ליאת לזר+מרואן סאלח",
       "temporal_weight": 1,
       "article_title": "הגושרים/גליל עליון — חירם (ביקור שטח)",
       "municipality": "הגושרים",
@@ -1934,7 +1836,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.974Z"
+          "resolvedAt": "2026-07-31T09:28:46.435Z"
         }
       },
       "district_id": "north",
@@ -1949,10 +1851,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "צבעון",
-      "article_url": "",
-      "article_source": "נאג' מנסור+רז הימן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "נאג' מנסור+רז הימן",
       "temporal_weight": 1,
       "article_title": "צבעון/גליל עליון — חירם (ביקור שטח)",
       "municipality": "צבעון",
@@ -1976,7 +1877,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.975Z"
+          "resolvedAt": "2026-07-31T09:28:46.435Z"
         }
       },
       "district_id": "north",
@@ -1991,10 +1892,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "יראון",
-      "article_url": "",
-      "article_source": "עלי סרחאן+ חנן ממן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי סרחאן+ חנן ממן",
       "temporal_weight": 1,
       "article_title": "יראון / גליל עליון — חירם (ביקור שטח)",
       "municipality": "יראון",
@@ -2018,7 +1918,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.975Z"
+          "resolvedAt": "2026-07-31T09:28:46.436Z"
         }
       },
       "district_id": "north",
@@ -2033,10 +1933,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "כפר יובל",
-      "article_url": "",
-      "article_source": "אמיר שמש ונאג'י מנסור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ונאג'י מנסור",
       "temporal_weight": 1,
       "article_title": "כפר יובל/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "כפר יובל",
@@ -2060,7 +1959,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.976Z"
+          "resolvedAt": "2026-07-31T09:28:46.437Z"
         }
       },
       "district_id": "north",
@@ -2102,7 +2001,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.977Z"
+          "resolvedAt": "2026-07-31T09:28:46.437Z"
         }
       },
       "district_id": "north",
@@ -2144,7 +2043,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.978Z"
+          "resolvedAt": "2026-07-31T09:28:46.438Z"
         }
       },
       "district_id": "north",
@@ -2186,7 +2085,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.979Z"
+          "resolvedAt": "2026-07-31T09:28:46.439Z"
         }
       },
       "district_id": "north",
@@ -2228,7 +2127,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.980Z"
+          "resolvedAt": "2026-07-31T09:28:46.440Z"
         }
       },
       "district_id": "north",
@@ -2270,7 +2169,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.980Z"
+          "resolvedAt": "2026-07-31T09:28:46.440Z"
         }
       },
       "district_id": "north",
@@ -2312,7 +2211,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.981Z"
+          "resolvedAt": "2026-07-31T09:28:46.441Z"
         }
       },
       "district_id": "north",
@@ -2354,7 +2253,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.982Z"
+          "resolvedAt": "2026-07-31T09:28:46.443Z"
         }
       },
       "district_id": "north",
@@ -2396,7 +2295,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.983Z"
+          "resolvedAt": "2026-07-31T09:28:46.444Z"
         }
       },
       "district_id": "north",
@@ -2438,7 +2337,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.985Z"
+          "resolvedAt": "2026-07-31T09:28:46.446Z"
         }
       },
       "district_id": "north",
@@ -2480,7 +2379,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.986Z"
+          "resolvedAt": "2026-07-31T09:28:46.447Z"
         }
       },
       "district_id": "north",
@@ -2495,10 +2394,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "מנרה",
-      "article_url": "",
-      "article_source": "גל+ליאור+אמל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל+ליאור+אמל",
       "temporal_weight": 1,
       "article_title": "מנרה/גליל עליון — חירם (ביקור שטח)",
       "municipality": "מנרה",
@@ -2522,7 +2420,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.986Z"
+          "resolvedAt": "2026-07-31T09:28:46.448Z"
         }
       },
       "district_id": "north",
@@ -2537,10 +2435,9 @@
       "scope_level": "quantified_or_broad",
       "confidence": 0.85,
       "locality": "רמות נפתלי",
-      "article_url": "",
-      "article_source": "מירי בן עמי ואסי כהן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "מירי בן עמי ואסי כהן",
       "temporal_weight": 1,
       "article_title": "רמות נפתלי/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "רמות נפתלי",
@@ -2564,7 +2461,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.987Z"
+          "resolvedAt": "2026-07-31T09:28:46.450Z"
         }
       },
       "district_id": "north",
@@ -2579,10 +2476,9 @@
       "scope_level": "quantified_or_broad",
       "confidence": 0.9,
       "locality": "עג'ר",
-      "article_url": "",
-      "article_source": "תאיר סלוק",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "תאיר סלוק",
       "temporal_weight": 1,
       "article_title": "ע'ג'ר — חירם (ביקור שטח)",
       "municipality": "ע'ג'ר",
@@ -2606,7 +2502,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.988Z"
+          "resolvedAt": "2026-07-31T09:28:46.451Z"
         }
       },
       "district_id": "north",
@@ -2648,7 +2544,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.989Z"
+          "resolvedAt": "2026-07-31T09:28:46.452Z"
         }
       },
       "district_id": "north",
@@ -2690,7 +2586,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.990Z"
+          "resolvedAt": "2026-07-31T09:28:46.453Z"
         }
       },
       "district_id": "north",
@@ -2732,7 +2628,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.991Z"
+          "resolvedAt": "2026-07-31T09:28:46.453Z"
         }
       },
       "district_id": "north",
@@ -2774,7 +2670,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.991Z"
+          "resolvedAt": "2026-07-31T09:28:46.454Z"
         }
       },
       "district_id": "north",
@@ -2789,10 +2685,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "כרם בן זמרה",
-      "article_url": "",
-      "article_source": "נאג' מנסור+רז הימן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "נאג' מנסור+רז הימן",
       "temporal_weight": 1,
       "article_title": "כרם בן זמרה/מרום הגליל — חירם (ביקור שטח)",
       "municipality": "כרם בן זמרה",
@@ -2816,7 +2711,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.992Z"
+          "resolvedAt": "2026-07-31T09:28:46.455Z"
         }
       },
       "district_id": "north",
@@ -2831,10 +2726,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "כפר גלעדי",
-      "article_url": "",
-      "article_source": "ליאת מזר ומרואן פאלח",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "ליאת מזר ומרואן פאלח",
       "temporal_weight": 1,
       "article_title": "כפר גלעדי/גליל עליון — חירם (ביקור שטח)",
       "municipality": "כפר גלעדי",
@@ -2858,7 +2752,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.993Z"
+          "resolvedAt": "2026-07-31T09:28:46.455Z"
         }
       },
       "district_id": "north",
@@ -2873,10 +2767,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "רמות נפתלי",
-      "article_url": "",
-      "article_source": "מירי בן עמי ואסי כהן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "מירי בן עמי ואסי כהן",
       "temporal_weight": 1,
       "article_title": "רמות נפתלי/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "רמות נפתלי",
@@ -2900,7 +2793,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.994Z"
+          "resolvedAt": "2026-07-31T09:28:46.456Z"
         }
       },
       "district_id": "north",
@@ -2915,10 +2808,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "יראון",
-      "article_url": "",
-      "article_source": "עלי סרחאן+ חנן ממן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי סרחאן+ חנן ממן",
       "temporal_weight": 1,
       "article_title": "יראון / גליל עליון — חירם (ביקור שטח)",
       "municipality": "יראון",
@@ -2942,7 +2834,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.994Z"
+          "resolvedAt": "2026-07-31T09:28:46.457Z"
         }
       },
       "district_id": "north",
@@ -2957,10 +2849,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "עג'ר",
-      "article_url": "",
-      "article_source": "תאיר סלוק",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "תאיר סלוק",
       "temporal_weight": 1,
       "article_title": "ע'ג'ר — חירם (ביקור שטח)",
       "municipality": "ע'ג'ר",
@@ -2984,7 +2875,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.995Z"
+          "resolvedAt": "2026-07-31T09:28:46.457Z"
         }
       },
       "district_id": "north",
@@ -2999,10 +2890,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "סאסא",
-      "article_url": "",
-      "article_source": "גל פוגל וליאור מזומן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל פוגל וליאור מזומן",
       "temporal_weight": 1,
       "article_title": "סאסא /גליל עליון — חירם (ביקור שטח)",
       "municipality": "סאסא",
@@ -3026,7 +2916,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.995Z"
+          "resolvedAt": "2026-07-31T09:28:46.458Z"
         }
       },
       "district_id": "north",
@@ -3041,10 +2931,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "עלמה",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ופאבל",
       "temporal_weight": 1,
       "article_title": "עלמה /מרום הגליל — חירם (ביקור שטח)",
       "municipality": "עלמה",
@@ -3068,7 +2957,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.996Z"
+          "resolvedAt": "2026-07-31T09:28:46.459Z"
         }
       },
       "district_id": "north",
@@ -3083,10 +2972,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "יפתח",
-      "article_url": "",
-      "article_source": "גל יעל פוגל , ליאור מזומן, אמל עמאר",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל יעל פוגל , ליאור מזומן, אמל עמאר",
       "temporal_weight": 1,
       "article_title": "יפתח/גליל עליון — חירם (ביקור שטח)",
       "municipality": "יפתח",
@@ -3110,7 +2998,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.996Z"
+          "resolvedAt": "2026-07-31T09:28:46.459Z"
         }
       },
       "district_id": "north",
@@ -3152,7 +3040,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.997Z"
+          "resolvedAt": "2026-07-31T09:28:46.460Z"
         }
       },
       "district_id": "north",
@@ -3194,7 +3082,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.998Z"
+          "resolvedAt": "2026-07-31T09:28:46.461Z"
         }
       },
       "district_id": "north",
@@ -3236,7 +3124,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.999Z"
+          "resolvedAt": "2026-07-31T09:28:46.462Z"
         }
       },
       "district_id": "north",
@@ -3278,7 +3166,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:38.999Z"
+          "resolvedAt": "2026-07-31T09:28:46.463Z"
         }
       },
       "district_id": "north",
@@ -3320,7 +3208,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.000Z"
+          "resolvedAt": "2026-07-31T09:28:46.464Z"
         }
       },
       "district_id": "north",
@@ -3362,7 +3250,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.001Z"
+          "resolvedAt": "2026-07-31T09:28:46.464Z"
         }
       },
       "district_id": "north",
@@ -3404,7 +3292,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.001Z"
+          "resolvedAt": "2026-07-31T09:28:46.465Z"
         }
       },
       "district_id": "north",
@@ -3446,7 +3334,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.002Z"
+          "resolvedAt": "2026-07-31T09:28:46.465Z"
         }
       },
       "district_id": "north",
@@ -3488,7 +3376,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.003Z"
+          "resolvedAt": "2026-07-31T09:28:46.466Z"
         }
       },
       "district_id": "north",
@@ -3530,7 +3418,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.003Z"
+          "resolvedAt": "2026-07-31T09:28:46.467Z"
         }
       },
       "district_id": "north",
@@ -3572,7 +3460,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.004Z"
+          "resolvedAt": "2026-07-31T09:28:46.467Z"
         }
       },
       "district_id": "north",
@@ -3614,7 +3502,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.005Z"
+          "resolvedAt": "2026-07-31T09:28:46.468Z"
         }
       },
       "district_id": "north",
@@ -3656,7 +3544,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.005Z"
+          "resolvedAt": "2026-07-31T09:28:46.469Z"
         }
       },
       "district_id": "north",
@@ -3671,10 +3559,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "מנרה",
-      "article_url": "",
-      "article_source": "גל+ליאור+אמל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל+ליאור+אמל",
       "temporal_weight": 1,
       "article_title": "מנרה/גליל עליון — חירם (ביקור שטח)",
       "municipality": "מנרה",
@@ -3698,7 +3585,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.006Z"
+          "resolvedAt": "2026-07-31T09:28:46.470Z"
         }
       },
       "district_id": "north",
@@ -3713,10 +3600,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "צבעון",
-      "article_url": "",
-      "article_source": "נאג' מנסור+רז הימן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "נאג' מנסור+רז הימן",
       "temporal_weight": 1,
       "article_title": "צבעון/גליל עליון — חירם (ביקור שטח)",
       "municipality": "צבעון",
@@ -3740,7 +3626,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.006Z"
+          "resolvedAt": "2026-07-31T09:28:46.470Z"
         }
       },
       "district_id": "north",
@@ -3755,10 +3641,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "כפר גלעדי",
-      "article_url": "",
-      "article_source": "ליאת מזר ומרואן פאלח",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "ליאת מזר ומרואן פאלח",
       "temporal_weight": 1,
       "article_title": "כפר גלעדי/גליל עליון — חירם (ביקור שטח)",
       "municipality": "כפר גלעדי",
@@ -3782,7 +3667,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.007Z"
+          "resolvedAt": "2026-07-31T09:28:46.471Z"
         }
       },
       "district_id": "north",
@@ -3797,10 +3682,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "מבואות חרמון - שאר ישוב",
-      "article_url": "",
-      "article_source": "אבי גרשון ואיציק בן נאור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אבי גרשון ואיציק בן נאור",
       "temporal_weight": 1,
       "article_title": "מבואות חרמון - שאר ישוב — חירם (ביקור שטח)",
       "municipality": "מבואות חרמון - שאר ישוב",
@@ -3824,7 +3708,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.009Z"
+          "resolvedAt": "2026-07-31T09:28:46.472Z"
         }
       },
       "district_id": "north",
@@ -3839,10 +3723,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "מרגליות",
-      "article_url": "",
-      "article_source": "אבי גרשון ואיציק בן נאור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אבי גרשון ואיציק בן נאור",
       "temporal_weight": 1,
       "article_title": "מרגליות/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "מרגליות",
@@ -3866,7 +3749,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.010Z"
+          "resolvedAt": "2026-07-31T09:28:46.473Z"
         }
       },
       "district_id": "north",
@@ -3881,10 +3764,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "מלכיה",
-      "article_url": "",
-      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "temporal_weight": 1,
       "article_title": "מלכיה — חירם (ביקור שטח)",
       "municipality": "מלכיה",
@@ -3908,7 +3790,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.010Z"
+          "resolvedAt": "2026-07-31T09:28:46.474Z"
         }
       },
       "district_id": "north",
@@ -3923,10 +3805,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "סאסא",
-      "article_url": "",
-      "article_source": "גל פוגל וליאור מזומן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל פוגל וליאור מזומן",
       "temporal_weight": 1,
       "article_title": "סאסא /גליל עליון — חירם (ביקור שטח)",
       "municipality": "סאסא",
@@ -3950,7 +3831,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.011Z"
+          "resolvedAt": "2026-07-31T09:28:46.474Z"
         }
       },
       "district_id": "north",
@@ -3965,10 +3846,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "יפתח",
-      "article_url": "",
-      "article_source": "גל יעל פוגל , ליאור מזומן, אמל עמאר",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל יעל פוגל , ליאור מזומן, אמל עמאר",
       "temporal_weight": 1,
       "article_title": "יפתח/גליל עליון — חירם (ביקור שטח)",
       "municipality": "יפתח",
@@ -3992,7 +3872,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.011Z"
+          "resolvedAt": "2026-07-31T09:28:46.475Z"
         }
       },
       "district_id": "north",
@@ -4034,7 +3914,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.012Z"
+          "resolvedAt": "2026-07-31T09:28:46.476Z"
         }
       },
       "district_id": "north",
@@ -4076,7 +3956,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.013Z"
+          "resolvedAt": "2026-07-31T09:28:46.476Z"
         }
       },
       "district_id": "north",
@@ -4118,7 +3998,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.014Z"
+          "resolvedAt": "2026-07-31T09:28:46.477Z"
         }
       },
       "district_id": "north",
@@ -4160,7 +4040,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.014Z"
+          "resolvedAt": "2026-07-31T09:28:46.478Z"
         }
       },
       "district_id": "north",
@@ -4202,7 +4082,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.015Z"
+          "resolvedAt": "2026-07-31T09:28:46.479Z"
         }
       },
       "district_id": "north",
@@ -4244,7 +4124,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.016Z"
+          "resolvedAt": "2026-07-31T09:28:46.479Z"
         }
       },
       "district_id": "north",
@@ -4286,7 +4166,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.016Z"
+          "resolvedAt": "2026-07-31T09:28:46.480Z"
         }
       },
       "district_id": "north",
@@ -4328,7 +4208,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.017Z"
+          "resolvedAt": "2026-07-31T09:28:46.481Z"
         }
       },
       "district_id": "north",
@@ -4370,7 +4250,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.018Z"
+          "resolvedAt": "2026-07-31T09:28:46.481Z"
         }
       },
       "district_id": "north",
@@ -4412,7 +4292,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.018Z"
+          "resolvedAt": "2026-07-31T09:28:46.482Z"
         }
       },
       "district_id": "north",
@@ -4427,10 +4307,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "מנרה",
-      "article_url": "",
-      "article_source": "גל+ליאור+אמל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל+ליאור+אמל",
       "temporal_weight": 1,
       "article_title": "מנרה/גליל עליון — חירם (ביקור שטח)",
       "municipality": "מנרה",
@@ -4454,7 +4333,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.019Z"
+          "resolvedAt": "2026-07-31T09:28:46.483Z"
         }
       },
       "district_id": "north",
@@ -4469,10 +4348,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "מנרה",
-      "article_url": "",
-      "article_source": "גל+ליאור+אמל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל+ליאור+אמל",
       "temporal_weight": 1,
       "article_title": "מנרה/גליל עליון — חירם (ביקור שטח)",
       "municipality": "מנרה",
@@ -4496,7 +4374,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.020Z"
+          "resolvedAt": "2026-07-31T09:28:46.483Z"
         }
       },
       "district_id": "north",
@@ -4511,10 +4389,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.9,
       "locality": "כפר גלעדי",
-      "article_url": "",
-      "article_source": "ליאת מזר ומרואן פאלח",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "ליאת מזר ומרואן פאלח",
       "temporal_weight": 1,
       "article_title": "כפר גלעדי/גליל עליון — חירם (ביקור שטח)",
       "municipality": "כפר גלעדי",
@@ -4538,7 +4415,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.021Z"
+          "resolvedAt": "2026-07-31T09:28:46.484Z"
         }
       },
       "district_id": "north",
@@ -4553,10 +4430,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "מבואות חרמון - שאר ישוב",
-      "article_url": "",
-      "article_source": "אבי גרשון ואיציק בן נאור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אבי גרשון ואיציק בן נאור",
       "temporal_weight": 1,
       "article_title": "מבואות חרמון - שאר ישוב — חירם (ביקור שטח)",
       "municipality": "מבואות חרמון - שאר ישוב",
@@ -4580,7 +4456,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.022Z"
+          "resolvedAt": "2026-07-31T09:28:46.485Z"
         }
       },
       "district_id": "north",
@@ -4595,10 +4471,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.9,
       "locality": "רמות נפתלי",
-      "article_url": "",
-      "article_source": "מירי בן עמי ואסי כהן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "מירי בן עמי ואסי כהן",
       "temporal_weight": 1,
       "article_title": "רמות נפתלי/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "רמות נפתלי",
@@ -4622,7 +4497,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.022Z"
+          "resolvedAt": "2026-07-31T09:28:46.486Z"
         }
       },
       "district_id": "north",
@@ -4637,10 +4512,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "מרגליות",
-      "article_url": "",
-      "article_source": "אבי גרשון ואיציק בן נאור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אבי גרשון ואיציק בן נאור",
       "temporal_weight": 1,
       "article_title": "מרגליות/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "מרגליות",
@@ -4664,7 +4538,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.023Z"
+          "resolvedAt": "2026-07-31T09:28:46.487Z"
         }
       },
       "district_id": "north",
@@ -4679,10 +4553,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "יראון",
-      "article_url": "",
-      "article_source": "עלי סרחאן+ חנן ממן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי סרחאן+ חנן ממן",
       "temporal_weight": 1,
       "article_title": "יראון / גליל עליון — חירם (ביקור שטח)",
       "municipality": "יראון",
@@ -4706,53 +4579,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.024Z"
+          "resolvedAt": "2026-07-31T09:28:46.487Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#32",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "wellbeing_support_gap",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "בקשה ליציאה להתרעננות קהילתית",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "wellbeing_support_gap",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.024Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
       "article_date": "1970-01-01"
     },
     {
@@ -4763,10 +4594,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "עלמה",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ופאבל",
       "temporal_weight": 1,
       "article_title": "עלמה /מרום הגליל — חירם (ביקור שטח)",
       "municipality": "עלמה",
@@ -4790,7 +4620,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.025Z"
+          "resolvedAt": "2026-07-31T09:28:46.488Z"
         }
       },
       "district_id": "north",
@@ -4805,10 +4635,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "הגושרים",
-      "article_url": "",
-      "article_source": "ליאת לזר+מרואן סאלח",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "ליאת לזר+מרואן סאלח",
       "temporal_weight": 1,
       "article_title": "הגושרים/גליל עליון — חירם (ביקור שטח)",
       "municipality": "הגושרים",
@@ -4832,7 +4661,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.025Z"
+          "resolvedAt": "2026-07-31T09:28:46.488Z"
         }
       },
       "district_id": "north",
@@ -4874,7 +4703,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.026Z"
+          "resolvedAt": "2026-07-31T09:28:46.489Z"
         }
       },
       "district_id": "north",
@@ -4916,7 +4745,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.027Z"
+          "resolvedAt": "2026-07-31T09:28:46.490Z"
         }
       },
       "district_id": "north",
@@ -4931,10 +4760,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "כפר גלעדי",
-      "article_url": "",
-      "article_source": "ליאת מזר ומרואן פאלח",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "ליאת מזר ומרואן פאלח",
       "temporal_weight": 1,
       "article_title": "כפר גלעדי/גליל עליון — חירם (ביקור שטח)",
       "municipality": "כפר גלעדי",
@@ -4958,7 +4786,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.028Z"
+          "resolvedAt": "2026-07-31T09:28:46.491Z"
         }
       },
       "district_id": "north",
@@ -4973,10 +4801,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "הגושרים",
-      "article_url": "",
-      "article_source": "ליאת לזר+מרואן סאלח",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "ליאת לזר+מרואן סאלח",
       "temporal_weight": 1,
       "article_title": "הגושרים/גליל עליון — חירם (ביקור שטח)",
       "municipality": "הגושרים",
@@ -5000,11 +4827,53 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.028Z"
+          "resolvedAt": "2026-07-31T09:28:46.491Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#41",
+      "article_date": "1970-01-01"
+    },
+    {
+      "article_index": 2,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Goren/Maaleh Yosef, need for presence of soldier-teachers (מורות חיילות) for public information and guidance.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.65,
+      "locality": "Goren/Maaleh Yosef",
+      "article_url": "",
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "גורן/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גורן",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "type": "information_actionable_effective",
+      "source_type": "visits",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Goren/Maaleh Yosef",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Goren/Maaleh Yosef",
+          "normalizedInput": "goren/maaleh yosef",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-07-31T09:28:46.492Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#2",
       "article_date": "1970-01-01"
     },
     {
@@ -5042,7 +4911,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.029Z"
+          "resolvedAt": "2026-07-31T09:28:46.493Z"
         }
       },
       "district_id": "north",
@@ -5084,7 +4953,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.030Z"
+          "resolvedAt": "2026-07-31T09:28:46.494Z"
         }
       },
       "district_id": "north",
@@ -5099,10 +4968,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "צבעון",
-      "article_url": "",
-      "article_source": "נאג' מנסור+רז הימן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "נאג' מנסור+רז הימן",
       "temporal_weight": 1,
       "article_title": "צבעון/גליל עליון — חירם (ביקור שטח)",
       "municipality": "צבעון",
@@ -5126,7 +4994,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.030Z"
+          "resolvedAt": "2026-07-31T09:28:46.495Z"
         }
       },
       "district_id": "north",
@@ -5141,10 +5009,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "מבואות חרמון - שאר ישוב",
-      "article_url": "",
-      "article_source": "אבי גרשון ואיציק בן נאור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אבי גרשון ואיציק בן נאור",
       "temporal_weight": 1,
       "article_title": "מבואות חרמון - שאר ישוב — חירם (ביקור שטח)",
       "municipality": "מבואות חרמון - שאר ישוב",
@@ -5168,53 +5035,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.032Z"
+          "resolvedAt": "2026-07-31T09:28:46.496Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#29",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "resource_mobilization",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "יש מאמצי הקמה",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "resource_mobilization",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.032Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
       "article_date": "1970-01-01"
     },
     {
@@ -5225,10 +5050,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "עלמה",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ופאבל",
       "temporal_weight": 1,
       "article_title": "עלמה /מרום הגליל — חירם (ביקור שטח)",
       "municipality": "עלמה",
@@ -5252,7 +5076,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.033Z"
+          "resolvedAt": "2026-07-31T09:28:46.497Z"
         }
       },
       "district_id": "north",
@@ -5267,10 +5091,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "יפתח",
-      "article_url": "",
-      "article_source": "גל יעל פוגל , ליאור מזומן, אמל עמאר",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל יעל פוגל , ליאור מזומן, אמל עמאר",
       "temporal_weight": 1,
       "article_title": "יפתח/גליל עליון — חירם (ביקור שטח)",
       "municipality": "יפתח",
@@ -5294,7 +5117,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.033Z"
+          "resolvedAt": "2026-07-31T09:28:46.497Z"
         }
       },
       "district_id": "north",
@@ -5309,10 +5132,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "הגושרים",
-      "article_url": "",
-      "article_source": "ליאת לזר+מרואן סאלח",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "ליאת לזר+מרואן סאלח",
       "temporal_weight": 1,
       "article_title": "הגושרים/גליל עליון — חירם (ביקור שטח)",
       "municipality": "הגושרים",
@@ -5336,7 +5158,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.034Z"
+          "resolvedAt": "2026-07-31T09:28:46.498Z"
         }
       },
       "district_id": "north",
@@ -5378,7 +5200,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.035Z"
+          "resolvedAt": "2026-07-31T09:28:46.499Z"
         }
       },
       "district_id": "north",
@@ -5420,7 +5242,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.036Z"
+          "resolvedAt": "2026-07-31T09:28:46.500Z"
         }
       },
       "district_id": "north",
@@ -5462,7 +5284,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.037Z"
+          "resolvedAt": "2026-07-31T09:28:46.501Z"
         }
       },
       "district_id": "north",
@@ -5504,7 +5326,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.037Z"
+          "resolvedAt": "2026-07-31T09:28:46.501Z"
         }
       },
       "district_id": "north",
@@ -5546,7 +5368,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.038Z"
+          "resolvedAt": "2026-07-31T09:28:46.502Z"
         }
       },
       "district_id": "north",
@@ -5561,10 +5383,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "עג'ר",
-      "article_url": "",
-      "article_source": "תאיר סלוק",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "תאיר סלוק",
       "temporal_weight": 1,
       "article_title": "ע'ג'ר — חירם (ביקור שטח)",
       "municipality": "ע'ג'ר",
@@ -5588,7 +5409,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.039Z"
+          "resolvedAt": "2026-07-31T09:28:46.503Z"
         }
       },
       "district_id": "north",
@@ -5603,10 +5424,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "מלכיה",
-      "article_url": "",
-      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "temporal_weight": 1,
       "article_title": "מלכיה — חירם (ביקור שטח)",
       "municipality": "מלכיה",
@@ -5630,53 +5450,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.039Z"
+          "resolvedAt": "2026-07-31T09:28:46.503Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#34",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "service_continuity",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "קיים מערך פעילות לנוער",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.9,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "service_continuity",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.040Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
       "article_date": "1970-01-01"
     },
     {
@@ -5714,7 +5492,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.041Z"
+          "resolvedAt": "2026-07-31T09:28:46.504Z"
         }
       },
       "district_id": "north",
@@ -5756,7 +5534,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.041Z"
+          "resolvedAt": "2026-07-31T09:28:46.504Z"
         }
       },
       "district_id": "north",
@@ -5798,7 +5576,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.042Z"
+          "resolvedAt": "2026-07-31T09:28:46.505Z"
         }
       },
       "district_id": "north",
@@ -5840,7 +5618,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.043Z"
+          "resolvedAt": "2026-07-31T09:28:46.506Z"
         }
       },
       "district_id": "north",
@@ -5855,10 +5633,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "עג'ר",
-      "article_url": "",
-      "article_source": "תאיר סלוק",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "תאיר סלוק",
       "temporal_weight": 1,
       "article_title": "ע'ג'ר — חירם (ביקור שטח)",
       "municipality": "ע'ג'ר",
@@ -5882,7 +5659,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.043Z"
+          "resolvedAt": "2026-07-31T09:28:46.506Z"
         }
       },
       "district_id": "north",
@@ -5924,7 +5701,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.044Z"
+          "resolvedAt": "2026-07-31T09:28:46.507Z"
         }
       },
       "district_id": "north",
@@ -5966,7 +5743,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.045Z"
+          "resolvedAt": "2026-07-31T09:28:46.508Z"
         }
       },
       "district_id": "north",
@@ -6008,7 +5785,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.045Z"
+          "resolvedAt": "2026-07-31T09:28:46.509Z"
         }
       },
       "district_id": "north",
@@ -6023,10 +5800,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "כרם בן זמרה",
-      "article_url": "",
-      "article_source": "נאג' מנסור+רז הימן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "נאג' מנסור+רז הימן",
       "temporal_weight": 1,
       "article_title": "כרם בן זמרה/מרום הגליל — חירם (ביקור שטח)",
       "municipality": "כרם בן זמרה",
@@ -6050,7 +5826,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.046Z"
+          "resolvedAt": "2026-07-31T09:28:46.509Z"
         }
       },
       "district_id": "north",
@@ -6065,10 +5841,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "עג'ר",
-      "article_url": "",
-      "article_source": "תאיר סלוק",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "תאיר סלוק",
       "temporal_weight": 1,
       "article_title": "ע'ג'ר — חירם (ביקור שטח)",
       "municipality": "ע'ג'ר",
@@ -6092,7 +5867,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.047Z"
+          "resolvedAt": "2026-07-31T09:28:46.510Z"
         }
       },
       "district_id": "north",
@@ -6107,10 +5882,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "מלכיה",
-      "article_url": "",
-      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "temporal_weight": 1,
       "article_title": "מלכיה — חירם (ביקור שטח)",
       "municipality": "מלכיה",
@@ -6134,7 +5908,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.047Z"
+          "resolvedAt": "2026-07-31T09:28:46.511Z"
         }
       },
       "district_id": "north",
@@ -6149,10 +5923,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "סאסא",
-      "article_url": "",
-      "article_source": "גל פוגל וליאור מזומן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל פוגל וליאור מזומן",
       "temporal_weight": 1,
       "article_title": "סאסא /גליל עליון — חירם (ביקור שטח)",
       "municipality": "סאסא",
@@ -6176,7 +5949,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.048Z"
+          "resolvedAt": "2026-07-31T09:28:46.511Z"
         }
       },
       "district_id": "north",
@@ -6191,10 +5964,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "הגושרים",
-      "article_url": "",
-      "article_source": "ליאת לזר+מרואן סאלח",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "ליאת לזר+מרואן סאלח",
       "temporal_weight": 1,
       "article_title": "הגושרים/גליל עליון — חירם (ביקור שטח)",
       "municipality": "הגושרים",
@@ -6218,7 +5990,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.048Z"
+          "resolvedAt": "2026-07-31T09:28:46.512Z"
         }
       },
       "district_id": "north",
@@ -6260,7 +6032,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.049Z"
+          "resolvedAt": "2026-07-31T09:28:46.512Z"
         }
       },
       "district_id": "north",
@@ -6302,7 +6074,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.050Z"
+          "resolvedAt": "2026-07-31T09:28:46.513Z"
         }
       },
       "district_id": "north",
@@ -6344,7 +6116,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.050Z"
+          "resolvedAt": "2026-07-31T09:28:46.513Z"
         }
       },
       "district_id": "north",
@@ -6386,7 +6158,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.051Z"
+          "resolvedAt": "2026-07-31T09:28:46.514Z"
         }
       },
       "district_id": "north",
@@ -6428,53 +6200,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.051Z"
+          "resolvedAt": "2026-07-31T09:28:46.515Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#21",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "coordination_failure",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "ניכר קושי בהתארגנות פנים קהילתית",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "coordination_failure",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.052Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
       "article_date": "1970-01-01"
     },
     {
@@ -6512,7 +6242,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.053Z"
+          "resolvedAt": "2026-07-31T09:28:46.515Z"
         }
       },
       "district_id": "north",
@@ -6527,10 +6257,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "כרם בן זמרה",
-      "article_url": "",
-      "article_source": "נאג' מנסור+רז הימן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "נאג' מנסור+רז הימן",
       "temporal_weight": 1,
       "article_title": "כרם בן זמרה/מרום הגליל — חירם (ביקור שטח)",
       "municipality": "כרם בן זמרה",
@@ -6554,7 +6283,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.054Z"
+          "resolvedAt": "2026-07-31T09:28:46.516Z"
         }
       },
       "district_id": "north",
@@ -6569,10 +6298,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "כפר גלעדי",
-      "article_url": "",
-      "article_source": "ליאת מזר ומרואן פאלח",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "ליאת מזר ומרואן פאלח",
       "temporal_weight": 1,
       "article_title": "כפר גלעדי/גליל עליון — חירם (ביקור שטח)",
       "municipality": "כפר גלעדי",
@@ -6596,7 +6324,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.054Z"
+          "resolvedAt": "2026-07-31T09:28:46.517Z"
         }
       },
       "district_id": "north",
@@ -6611,10 +6339,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "מבואות חרמון - שאר ישוב",
-      "article_url": "",
-      "article_source": "אבי גרשון ואיציק בן נאור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אבי גרשון ואיציק בן נאור",
       "temporal_weight": 1,
       "article_title": "מבואות חרמון - שאר ישוב — חירם (ביקור שטח)",
       "municipality": "מבואות חרמון - שאר ישוב",
@@ -6638,7 +6365,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.055Z"
+          "resolvedAt": "2026-07-31T09:28:46.518Z"
         }
       },
       "district_id": "north",
@@ -6653,10 +6380,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "מרגליות",
-      "article_url": "",
-      "article_source": "אבי גרשון ואיציק בן נאור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אבי גרשון ואיציק בן נאור",
       "temporal_weight": 1,
       "article_title": "מרגליות/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "מרגליות",
@@ -6680,7 +6406,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.056Z"
+          "resolvedAt": "2026-07-31T09:28:46.519Z"
         }
       },
       "district_id": "north",
@@ -6722,7 +6448,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.057Z"
+          "resolvedAt": "2026-07-31T09:28:46.520Z"
         }
       },
       "district_id": "north",
@@ -6737,10 +6463,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "כרם בן זמרה",
-      "article_url": "",
-      "article_source": "נאג' מנסור+רז הימן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "נאג' מנסור+רז הימן",
       "temporal_weight": 1,
       "article_title": "כרם בן זמרה/מרום הגליל — חירם (ביקור שטח)",
       "municipality": "כרם בן זמרה",
@@ -6764,7 +6489,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.058Z"
+          "resolvedAt": "2026-07-31T09:28:46.520Z"
         }
       },
       "district_id": "north",
@@ -6806,7 +6531,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.058Z"
+          "resolvedAt": "2026-07-31T09:28:46.521Z"
         }
       },
       "district_id": "north",
@@ -6848,7 +6573,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.059Z"
+          "resolvedAt": "2026-07-31T09:28:46.521Z"
         }
       },
       "district_id": "north",
@@ -6890,7 +6615,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.059Z"
+          "resolvedAt": "2026-07-31T09:28:46.522Z"
         }
       },
       "district_id": "north",
@@ -6932,7 +6657,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.059Z"
+          "resolvedAt": "2026-07-31T09:28:46.523Z"
         }
       },
       "district_id": "north",
@@ -6974,7 +6699,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.060Z"
+          "resolvedAt": "2026-07-31T09:28:46.523Z"
         }
       },
       "district_id": "north",
@@ -6989,10 +6714,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.9,
       "locality": "סאסא",
-      "article_url": "",
-      "article_source": "גל פוגל וליאור מזומן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל פוגל וליאור מזומן",
       "temporal_weight": 1,
       "article_title": "סאסא /גליל עליון — חירם (ביקור שטח)",
       "municipality": "סאסא",
@@ -7016,7 +6740,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.061Z"
+          "resolvedAt": "2026-07-31T09:28:46.524Z"
         }
       },
       "district_id": "north",
@@ -7031,10 +6755,9 @@
       "scope_level": "quantified_or_broad",
       "confidence": 0.85,
       "locality": "דישון",
-      "article_url": "",
-      "article_source": "אמיר שמש ונאג'י מנסור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ונאג'י מנסור",
       "temporal_weight": 1,
       "article_title": "דישון/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "דישון",
@@ -7058,7 +6781,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.061Z"
+          "resolvedAt": "2026-07-31T09:28:46.525Z"
         }
       },
       "district_id": "north",
@@ -7100,7 +6823,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.062Z"
+          "resolvedAt": "2026-07-31T09:28:46.525Z"
         }
       },
       "district_id": "north",
@@ -7142,7 +6865,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.062Z"
+          "resolvedAt": "2026-07-31T09:28:46.525Z"
         }
       },
       "district_id": "north",
@@ -7184,7 +6907,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.063Z"
+          "resolvedAt": "2026-07-31T09:28:46.526Z"
         }
       },
       "district_id": "north",
@@ -7226,7 +6949,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.063Z"
+          "resolvedAt": "2026-07-31T09:28:46.527Z"
         }
       },
       "district_id": "north",
@@ -7241,10 +6964,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "יראון",
-      "article_url": "",
-      "article_source": "עלי סרחאן+ חנן ממן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי סרחאן+ חנן ממן",
       "temporal_weight": 1,
       "article_title": "יראון / גליל עליון — חירם (ביקור שטח)",
       "municipality": "יראון",
@@ -7268,7 +6990,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.063Z"
+          "resolvedAt": "2026-07-31T09:28:46.527Z"
         }
       },
       "district_id": "north",
@@ -7283,10 +7005,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "עג'ר",
-      "article_url": "",
-      "article_source": "תאיר סלוק",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "תאיר סלוק",
       "temporal_weight": 1,
       "article_title": "ע'ג'ר — חירם (ביקור שטח)",
       "municipality": "ע'ג'ר",
@@ -7310,7 +7031,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.064Z"
+          "resolvedAt": "2026-07-31T09:28:46.528Z"
         }
       },
       "district_id": "north",
@@ -7325,10 +7046,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "מלכיה",
-      "article_url": "",
-      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "temporal_weight": 1,
       "article_title": "מלכיה — חירם (ביקור שטח)",
       "municipality": "מלכיה",
@@ -7352,7 +7072,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.064Z"
+          "resolvedAt": "2026-07-31T09:28:46.528Z"
         }
       },
       "district_id": "north",
@@ -7394,7 +7114,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.065Z"
+          "resolvedAt": "2026-07-31T09:28:46.529Z"
         }
       },
       "district_id": "north",
@@ -7436,7 +7156,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.066Z"
+          "resolvedAt": "2026-07-31T09:28:46.529Z"
         }
       },
       "district_id": "north",
@@ -7478,7 +7198,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.066Z"
+          "resolvedAt": "2026-07-31T09:28:46.530Z"
         }
       },
       "district_id": "north",
@@ -7520,7 +7240,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.067Z"
+          "resolvedAt": "2026-07-31T09:28:46.530Z"
         }
       },
       "district_id": "north",
@@ -7562,7 +7282,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.068Z"
+          "resolvedAt": "2026-07-31T09:28:46.531Z"
         }
       },
       "district_id": "north",
@@ -7604,7 +7324,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.068Z"
+          "resolvedAt": "2026-07-31T09:28:46.532Z"
         }
       },
       "district_id": "north",
@@ -7646,7 +7366,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.069Z"
+          "resolvedAt": "2026-07-31T09:28:46.533Z"
         }
       },
       "district_id": "north",
@@ -7688,7 +7408,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.070Z"
+          "resolvedAt": "2026-07-31T09:28:46.534Z"
         }
       },
       "district_id": "north",
@@ -7703,10 +7423,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "כרם בן זמרה",
-      "article_url": "",
-      "article_source": "נאג' מנסור+רז הימן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "נאג' מנסור+רז הימן",
       "temporal_weight": 1,
       "article_title": "כרם בן זמרה/מרום הגליל — חירם (ביקור שטח)",
       "municipality": "כרם בן זמרה",
@@ -7730,7 +7449,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.070Z"
+          "resolvedAt": "2026-07-31T09:28:46.534Z"
         }
       },
       "district_id": "north",
@@ -7745,10 +7464,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "מרגליות",
-      "article_url": "",
-      "article_source": "אבי גרשון ואיציק בן נאור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אבי גרשון ואיציק בן נאור",
       "temporal_weight": 1,
       "article_title": "מרגליות/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "מרגליות",
@@ -7772,7 +7490,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.071Z"
+          "resolvedAt": "2026-07-31T09:28:46.535Z"
         }
       },
       "district_id": "north",
@@ -7814,7 +7532,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.072Z"
+          "resolvedAt": "2026-07-31T09:28:46.536Z"
         }
       },
       "district_id": "north",
@@ -7829,10 +7547,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "מלכיה",
-      "article_url": "",
-      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "temporal_weight": 1,
       "article_title": "מלכיה — חירם (ביקור שטח)",
       "municipality": "מלכיה",
@@ -7856,53 +7573,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.073Z"
+          "resolvedAt": "2026-07-31T09:28:46.536Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#34",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "evacuation_displacement",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "התושבים עושים אבחנה בין אוורור לבין פינוי. הם התפנו כקהילה",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.95,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "evacuation_displacement",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.073Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
       "article_date": "1970-01-01"
     },
     {
@@ -7913,10 +7588,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "דישון",
-      "article_url": "",
-      "article_source": "אמיר שמש ונאג'י מנסור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ונאג'י מנסור",
       "temporal_weight": 1,
       "article_title": "דישון/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "דישון",
@@ -7940,7 +7614,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.074Z"
+          "resolvedAt": "2026-07-31T09:28:46.537Z"
         }
       },
       "district_id": "north",
@@ -7955,10 +7629,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "יפתח",
-      "article_url": "",
-      "article_source": "גל יעל פוגל , ליאור מזומן, אמל עמאר",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל יעל פוגל , ליאור מזומן, אמל עמאר",
       "temporal_weight": 1,
       "article_title": "יפתח/גליל עליון — חירם (ביקור שטח)",
       "municipality": "יפתח",
@@ -7982,7 +7655,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.074Z"
+          "resolvedAt": "2026-07-31T09:28:46.537Z"
         }
       },
       "district_id": "north",
@@ -8024,7 +7697,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.075Z"
+          "resolvedAt": "2026-07-31T09:28:46.538Z"
         }
       },
       "district_id": "north",
@@ -8066,7 +7739,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.076Z"
+          "resolvedAt": "2026-07-31T09:28:46.539Z"
         }
       },
       "district_id": "north",
@@ -8081,10 +7754,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "יראון",
-      "article_url": "",
-      "article_source": "עלי סרחאן+ חנן ממן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי סרחאן+ חנן ממן",
       "temporal_weight": 1,
       "article_title": "יראון / גליל עליון — חירם (ביקור שטח)",
       "municipality": "יראון",
@@ -8108,7 +7780,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.076Z"
+          "resolvedAt": "2026-07-31T09:28:46.539Z"
         }
       },
       "district_id": "north",
@@ -8123,10 +7795,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "מלכיה",
-      "article_url": "",
-      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "temporal_weight": 1,
       "article_title": "מלכיה — חירם (ביקור שטח)",
       "municipality": "מלכיה",
@@ -8150,7 +7821,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.077Z"
+          "resolvedAt": "2026-07-31T09:28:46.540Z"
         }
       },
       "district_id": "north",
@@ -8165,10 +7836,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "דישון",
-      "article_url": "",
-      "article_source": "אמיר שמש ונאג'י מנסור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ונאג'י מנסור",
       "temporal_weight": 1,
       "article_title": "דישון/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "דישון",
@@ -8192,7 +7862,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.077Z"
+          "resolvedAt": "2026-07-31T09:28:46.541Z"
         }
       },
       "district_id": "north",
@@ -8234,7 +7904,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.078Z"
+          "resolvedAt": "2026-07-31T09:28:46.541Z"
         }
       },
       "district_id": "north",
@@ -8276,7 +7946,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.079Z"
+          "resolvedAt": "2026-07-31T09:28:46.542Z"
         }
       },
       "district_id": "north",
@@ -8318,7 +7988,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.079Z"
+          "resolvedAt": "2026-07-31T09:28:46.542Z"
         }
       },
       "district_id": "north",
@@ -8360,7 +8030,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.079Z"
+          "resolvedAt": "2026-07-31T09:28:46.543Z"
         }
       },
       "district_id": "north",
@@ -8402,7 +8072,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.080Z"
+          "resolvedAt": "2026-07-31T09:28:46.543Z"
         }
       },
       "district_id": "north",
@@ -8444,7 +8114,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.081Z"
+          "resolvedAt": "2026-07-31T09:28:46.544Z"
         }
       },
       "district_id": "north",
@@ -8459,10 +8129,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "צבעון",
-      "article_url": "",
-      "article_source": "נאג' מנסור+רז הימן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "נאג' מנסור+רז הימן",
       "temporal_weight": 1,
       "article_title": "צבעון/גליל עליון — חירם (ביקור שטח)",
       "municipality": "צבעון",
@@ -8486,53 +8155,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.081Z"
+          "resolvedAt": "2026-07-31T09:28:46.545Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#26",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "early_warning_system_failure",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "אי הישמעות להנחיות בשל 0 זמן אתרעה",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.9,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "early_warning_system_failure",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.082Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
       "article_date": "1970-01-01"
     },
     {
@@ -8570,7 +8197,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.083Z"
+          "resolvedAt": "2026-07-31T09:28:46.545Z"
         }
       },
       "district_id": "north",
@@ -8585,10 +8212,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "יראון",
-      "article_url": "",
-      "article_source": "עלי סרחאן+ חנן ממן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי סרחאן+ חנן ממן",
       "temporal_weight": 1,
       "article_title": "יראון / גליל עליון — חירם (ביקור שטח)",
       "municipality": "יראון",
@@ -8612,7 +8238,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.084Z"
+          "resolvedAt": "2026-07-31T09:28:46.546Z"
         }
       },
       "district_id": "north",
@@ -8627,10 +8253,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "מלכיה",
-      "article_url": "",
-      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "temporal_weight": 1,
       "article_title": "מלכיה — חירם (ביקור שטח)",
       "municipality": "מלכיה",
@@ -8654,7 +8279,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.084Z"
+          "resolvedAt": "2026-07-31T09:28:46.547Z"
         }
       },
       "district_id": "north",
@@ -8669,10 +8294,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "דישון",
-      "article_url": "",
-      "article_source": "אמיר שמש ונאג'י מנסור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ונאג'י מנסור",
       "temporal_weight": 1,
       "article_title": "דישון/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "דישון",
@@ -8696,7 +8320,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.085Z"
+          "resolvedAt": "2026-07-31T09:28:46.547Z"
         }
       },
       "district_id": "north",
@@ -8738,7 +8362,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.086Z"
+          "resolvedAt": "2026-07-31T09:28:46.548Z"
         }
       },
       "district_id": "north",
@@ -8780,7 +8404,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.086Z"
+          "resolvedAt": "2026-07-31T09:28:46.549Z"
         }
       },
       "district_id": "north",
@@ -8822,7 +8446,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.087Z"
+          "resolvedAt": "2026-07-31T09:28:46.550Z"
         }
       },
       "district_id": "north",
@@ -8837,10 +8461,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "כפר גלעדי",
-      "article_url": "",
-      "article_source": "ליאת מזר ומרואן פאלח",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "ליאת מזר ומרואן פאלח",
       "temporal_weight": 1,
       "article_title": "כפר גלעדי/גליל עליון — חירם (ביקור שטח)",
       "municipality": "כפר גלעדי",
@@ -8864,53 +8487,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.088Z"
+          "resolvedAt": "2026-07-31T09:28:46.550Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#28",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "psychological_distress",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "שחיקה אישית ומשפחתית מצטברת במלחמה ובמה שקרה בשנתיים וחצי האחרונות",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.9,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "psychological_distress",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.088Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
       "article_date": "1970-01-01"
     },
     {
@@ -8921,10 +8502,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "מנרה",
-      "article_url": "",
-      "article_source": "גל+ליאור+אמל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל+ליאור+אמל",
       "temporal_weight": 1,
       "article_title": "מנרה/גליל עליון — חירם (ביקור שטח)",
       "municipality": "מנרה",
@@ -8948,7 +8528,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.089Z"
+          "resolvedAt": "2026-07-31T09:28:46.551Z"
         }
       },
       "district_id": "north",
@@ -8963,10 +8543,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "מנרה",
-      "article_url": "",
-      "article_source": "גל+ליאור+אמל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל+ליאור+אמל",
       "temporal_weight": 1,
       "article_title": "מנרה/גליל עליון — חירם (ביקור שטח)",
       "municipality": "מנרה",
@@ -8990,7 +8569,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.089Z"
+          "resolvedAt": "2026-07-31T09:28:46.551Z"
         }
       },
       "district_id": "north",
@@ -9005,10 +8584,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "מבואות חרמון - שאר ישוב",
-      "article_url": "",
-      "article_source": "אבי גרשון ואיציק בן נאור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אבי גרשון ואיציק בן נאור",
       "temporal_weight": 1,
       "article_title": "מבואות חרמון - שאר ישוב — חירם (ביקור שטח)",
       "municipality": "מבואות חרמון - שאר ישוב",
@@ -9032,7 +8610,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.091Z"
+          "resolvedAt": "2026-07-31T09:28:46.553Z"
         }
       },
       "district_id": "north",
@@ -9047,10 +8625,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "יראון",
-      "article_url": "",
-      "article_source": "עלי סרחאן+ חנן ממן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי סרחאן+ חנן ממן",
       "temporal_weight": 1,
       "article_title": "יראון / גליל עליון — חירם (ביקור שטח)",
       "municipality": "יראון",
@@ -9074,7 +8651,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.091Z"
+          "resolvedAt": "2026-07-31T09:28:46.553Z"
         }
       },
       "district_id": "north",
@@ -9089,10 +8666,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "דישון",
-      "article_url": "",
-      "article_source": "אמיר שמש ונאג'י מנסור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ונאג'י מנסור",
       "temporal_weight": 1,
       "article_title": "דישון/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "דישון",
@@ -9116,7 +8692,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.092Z"
+          "resolvedAt": "2026-07-31T09:28:46.554Z"
         }
       },
       "district_id": "north",
@@ -9131,10 +8707,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "יפתח",
-      "article_url": "",
-      "article_source": "גל יעל פוגל , ליאור מזומן, אמל עמאר",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל יעל פוגל , ליאור מזומן, אמל עמאר",
       "temporal_weight": 1,
       "article_title": "יפתח/גליל עליון — חירם (ביקור שטח)",
       "municipality": "יפתח",
@@ -9158,7 +8733,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.092Z"
+          "resolvedAt": "2026-07-31T09:28:46.554Z"
         }
       },
       "district_id": "north",
@@ -9173,10 +8748,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "צבעון",
-      "article_url": "",
-      "article_source": "נאג' מנסור+רז הימן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "נאג' מנסור+רז הימן",
       "temporal_weight": 1,
       "article_title": "צבעון/גליל עליון — חירם (ביקור שטח)",
       "municipality": "צבעון",
@@ -9200,7 +8774,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.093Z"
+          "resolvedAt": "2026-07-31T09:28:46.555Z"
         }
       },
       "district_id": "north",
@@ -9215,10 +8789,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "מבואות חרמון - שאר ישוב",
-      "article_url": "",
-      "article_source": "אבי גרשון ואיציק בן נאור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אבי גרשון ואיציק בן נאור",
       "temporal_weight": 1,
       "article_title": "מבואות חרמון - שאר ישוב — חירם (ביקור שטח)",
       "municipality": "מבואות חרמון - שאר ישוב",
@@ -9242,7 +8815,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.094Z"
+          "resolvedAt": "2026-07-31T09:28:46.556Z"
         }
       },
       "district_id": "north",
@@ -9257,10 +8830,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "מרגליות",
-      "article_url": "",
-      "article_source": "אבי גרשון ואיציק בן נאור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אבי גרשון ואיציק בן נאור",
       "temporal_weight": 1,
       "article_title": "מרגליות/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "מרגליות",
@@ -9284,7 +8856,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.095Z"
+          "resolvedAt": "2026-07-31T09:28:46.557Z"
         }
       },
       "district_id": "north",
@@ -9299,10 +8871,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "דישון",
-      "article_url": "",
-      "article_source": "אמיר שמש ונאג'י מנסור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ונאג'י מנסור",
       "temporal_weight": 1,
       "article_title": "דישון/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "דישון",
@@ -9326,7 +8897,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.095Z"
+          "resolvedAt": "2026-07-31T09:28:46.557Z"
         }
       },
       "district_id": "north",
@@ -9341,10 +8912,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "כפר יובל",
-      "article_url": "",
-      "article_source": "אמיר שמש ונאג'י מנסור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ונאג'י מנסור",
       "temporal_weight": 1,
       "article_title": "כפר יובל/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "כפר יובל",
@@ -9368,7 +8938,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.096Z"
+          "resolvedAt": "2026-07-31T09:28:46.558Z"
         }
       },
       "district_id": "north",
@@ -9383,10 +8953,9 @@
       "scope_level": "single_case",
       "confidence": 0.95,
       "locality": "צבעון",
-      "article_url": "",
-      "article_source": "נאג' מנסור+רז הימן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "נאג' מנסור+רז הימן",
       "temporal_weight": 1,
       "article_title": "צבעון/גליל עליון — חירם (ביקור שטח)",
       "municipality": "צבעון",
@@ -9410,7 +8979,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.096Z"
+          "resolvedAt": "2026-07-31T09:28:46.558Z"
         }
       },
       "district_id": "north",
@@ -9425,10 +8994,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "צבעון",
-      "article_url": "",
-      "article_source": "נאג' מנסור+רז הימן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "נאג' מנסור+רז הימן",
       "temporal_weight": 1,
       "article_title": "צבעון/גליל עליון — חירם (ביקור שטח)",
       "municipality": "צבעון",
@@ -9452,7 +9020,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.097Z"
+          "resolvedAt": "2026-07-31T09:28:46.559Z"
         }
       },
       "district_id": "north",
@@ -9467,10 +9035,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "רמות נפתלי",
-      "article_url": "",
-      "article_source": "מירי בן עמי ואסי כהן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "מירי בן עמי ואסי כהן",
       "temporal_weight": 1,
       "article_title": "רמות נפתלי/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "רמות נפתלי",
@@ -9494,7 +9061,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.097Z"
+          "resolvedAt": "2026-07-31T09:28:46.560Z"
         }
       },
       "district_id": "north",
@@ -9509,10 +9076,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "יראון",
-      "article_url": "",
-      "article_source": "עלי סרחאן+ חנן ממן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "עלי סרחאן+ חנן ממן",
       "temporal_weight": 1,
       "article_title": "יראון / גליל עליון — חירם (ביקור שטח)",
       "municipality": "יראון",
@@ -9536,7 +9102,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.098Z"
+          "resolvedAt": "2026-07-31T09:28:46.560Z"
         }
       },
       "district_id": "north",
@@ -9551,10 +9117,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "רמות נפתלי",
-      "article_url": "",
-      "article_source": "מירי בן עמי ואסי כהן",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "מירי בן עמי ואסי כהן",
       "temporal_weight": 1,
       "article_title": "רמות נפתלי/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "רמות נפתלי",
@@ -9578,7 +9143,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.099Z"
+          "resolvedAt": "2026-07-31T09:28:46.561Z"
         }
       },
       "district_id": "north",
@@ -9593,10 +9158,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.9,
       "locality": "מלכיה",
-      "article_url": "",
-      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "חנן ממן ,עלי סרחאן(לשאלות -דוח זה מולא ע\"י חנן ממן)",
       "temporal_weight": 1,
       "article_title": "מלכיה — חירם (ביקור שטח)",
       "municipality": "מלכיה",
@@ -9620,305 +9184,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.099Z"
+          "resolvedAt": "2026-07-31T09:28:46.561Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#34",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "preparedness_gap_identified",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "חיוניות שילוב מורות חיילות במערך הפעילות הבלתי פורמלית",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "preparedness_gap_identified",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.100Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "preparedness_gap_identified",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "קושי בגיוס חברים לצוות הכוננות",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "preparedness_gap_identified",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.100Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "future_orientation_hope",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "ציפייה לשקט ממושך בעקבות המלחמה",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "future_orientation_hope",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.101Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "informal_leadership_emergence",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "פרוייקטורית חדשה הפועלת חודשיים ומסייעת בארגון הקהילה",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.85,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "informal_leadership_emergence",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.102Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "volunteer_donor_fatigue",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "ההתנדבות היא בעצמה יוצרת שחיקה",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.9,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "volunteer_donor_fatigue",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.103Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "accountability_demand_constructive",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "ציפייה לפגישה עם מפקדים בכירים",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "accountability_demand_constructive",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.103Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "dissensus_blocks_action",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "עמדות חלוקות לגבי ההנהגה הפנים-יישובית",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.8,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "containment",
-      "grounding_method": "containment",
-      "type": "dissensus_blocks_action",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.104Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
       "article_date": "1970-01-01"
     },
     {
@@ -9929,10 +9199,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.75,
       "locality": "עלמה",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ופאבל",
       "temporal_weight": 1,
       "article_title": "עלמה /מרום הגליל — חירם (ביקור שטח)",
       "municipality": "עלמה",
@@ -9956,7 +9225,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.104Z"
+          "resolvedAt": "2026-07-31T09:28:46.562Z"
         }
       },
       "district_id": "north",
@@ -9971,10 +9240,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "עלמה",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ופאבל",
       "temporal_weight": 1,
       "article_title": "עלמה /מרום הגליל — חירם (ביקור שטח)",
       "municipality": "עלמה",
@@ -9998,7 +9266,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.105Z"
+          "resolvedAt": "2026-07-31T09:28:46.562Z"
         }
       },
       "district_id": "north",
@@ -10013,10 +9281,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "כפר יובל",
-      "article_url": "",
-      "article_source": "אמיר שמש ונאג'י מנסור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ונאג'י מנסור",
       "temporal_weight": 1,
       "article_title": "כפר יובל/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "כפר יובל",
@@ -10040,7 +9307,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.106Z"
+          "resolvedAt": "2026-07-31T09:28:46.563Z"
         }
       },
       "district_id": "north",
@@ -10055,10 +9322,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.85,
       "locality": "כפר יובל",
-      "article_url": "",
-      "article_source": "אמיר שמש ונאג'י מנסור",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "אמיר שמש ונאג'י מנסור",
       "temporal_weight": 1,
       "article_title": "כפר יובל/מבואות חרמון — חירם (ביקור שטח)",
       "municipality": "כפר יובל",
@@ -10082,7 +9348,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.106Z"
+          "resolvedAt": "2026-07-31T09:28:46.564Z"
         }
       },
       "district_id": "north",
@@ -10097,10 +9363,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "יפתח",
-      "article_url": "",
-      "article_source": "גל יעל פוגל , ליאור מזומן, אמל עמאר",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "גל יעל פוגל , ליאור מזומן, אמל עמאר",
       "temporal_weight": 1,
       "article_title": "יפתח/גליל עליון — חירם (ביקור שטח)",
       "municipality": "יפתח",
@@ -10124,7 +9389,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.107Z"
+          "resolvedAt": "2026-07-31T09:28:46.564Z"
         }
       },
       "district_id": "north",
@@ -10139,10 +9404,9 @@
       "scope_level": "repeated_pattern",
       "confidence": 0.8,
       "locality": "הגושרים",
-      "article_url": "",
-      "article_source": "ליאת לזר+מרואן סאלח",
       "evidence_basis": "present_in_text",
       "extraction_confidence": 0.85,
+      "article_source": "ליאת לזר+מרואן סאלח",
       "temporal_weight": 1,
       "article_title": "הגושרים/גליל עליון — חירם (ביקור שטח)",
       "municipality": "הגושרים",
@@ -10166,53 +9430,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.107Z"
+          "resolvedAt": "2026-07-31T09:28:46.565Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#41",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "protective_infrastructure_absent",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "היעדר ממ״ד",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.95,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "entailment_rescue",
-      "grounding_method": "entailment",
-      "type": "protective_infrastructure_absent",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.108Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
       "article_date": "1970-01-01"
     },
     {
@@ -10250,7 +9472,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.108Z"
+          "resolvedAt": "2026-07-31T09:28:46.565Z"
         }
       },
       "district_id": "north",
@@ -10292,7 +9514,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.109Z"
+          "resolvedAt": "2026-07-31T09:28:46.566Z"
         }
       },
       "district_id": "north",
@@ -10334,7 +9556,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.110Z"
+          "resolvedAt": "2026-07-31T09:28:46.567Z"
         }
       },
       "district_id": "north",
@@ -10376,7 +9598,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.110Z"
+          "resolvedAt": "2026-07-31T09:28:46.568Z"
         }
       },
       "district_id": "north",
@@ -10418,7 +9640,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.111Z"
+          "resolvedAt": "2026-07-31T09:28:46.568Z"
         }
       },
       "district_id": "north",
@@ -10460,53 +9682,11 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.111Z"
+          "resolvedAt": "2026-07-31T09:28:46.568Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#21",
-      "article_date": "1970-01-01"
-    },
-    {
-      "article_index": 36,
-      "signal_type": "preparedness_gap_identified",
-      "evidence_type": "observational_reported_fact",
-      "evidence": "אין צח״י",
-      "scope_level": "repeated_pattern",
-      "confidence": 0.95,
-      "locality": "Mrom HaGalil",
-      "article_url": "",
-      "article_source": "אמיר שמש ופאבל",
-      "evidence_basis": "present_in_text",
-      "extraction_confidence": 0.85,
-      "temporal_weight": 1,
-      "article_title": "דוב\"ב /מרום הגליל — חירם (ביקור שטח)",
-      "municipality": "דוב\"ב",
-      "grounding_tier": "grounded",
-      "grounding_reason": "entailment_rescue",
-      "grounding_method": "entailment",
-      "type": "preparedness_gap_identified",
-      "source_type": "visits",
-      "geo": {
-        "kind": "unknown",
-        "reason": "NO_MATCH",
-        "rawName": "Mrom HaGalil",
-        "geoReferenceVersion": "north-geo-2026-05-10",
-        "source": "north-localities-v1",
-        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
-        "resolution": {
-          "rawInput": "Mrom HaGalil",
-          "normalizedInput": "mrom hagalil",
-          "geoEntityType": "unknown"
-        },
-        "audit": {
-          "geoReferenceVersion": "north-geo-2026-05-10",
-          "source": "north-localities-v1",
-          "resolvedAt": "2026-08-01T11:00:39.112Z"
-        }
-      },
-      "district_id": "north",
-      "source_id": "md:business_modules/visits/data/articles-visits-reports-1970-01-01.md#36",
       "article_date": "1970-01-01"
     }
   ]

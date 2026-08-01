@@ -73,28 +73,73 @@ function normalizeOfficer(officer) {
 }
 
 /**
+ * Group a review's gaps (critique) and questions (missing info) under each
+ * resilience component of the raw report, so every component block reads:
+ * raw fields → critique → questions. Component-less items go to `general`.
+ * @param {{ components?: Record<string, object> }|null} raw
+ * @param {Array<object>} gaps
+ * @param {Array<object>} questions
+ */
+function groupReviewByComponent(raw, gaps, questions) {
+  const components = {};
+  for (const [cid, fields] of Object.entries(raw?.components ?? {})) {
+    components[cid] = { ...fields, gaps: [], questions: [] };
+  }
+  const general = { gaps: [], questions: [] };
+  const bucket = (componentId) => {
+    if (!componentId) return general;
+    components[componentId] ??= { name: componentId, avg: null, scores: [], texts: [], gaps: [], questions: [] };
+    return components[componentId];
+  };
+  for (const g of gaps ?? []) bucket(g.componentId).gaps.push(g);
+  for (const q of questions ?? []) bucket(q.componentId).questions.push(q);
+  return { components, general };
+}
+
+/**
+ * Flatten a batch row's editable questions back into one list for sending.
+ * Order: general (universal) questions first, then per-component.
+ * Legacy batches with a top-level `questions` array pass through unchanged.
+ * @param {object} row batch municipality row
+ * @returns {Array<object>|null} null when the row carries no question fields at all
+ */
+export function collectBatchRowQuestions(row) {
+  if (Array.isArray(row?.questions)) return row.questions;
+  if (!row?.components && !row?.general) return null;
+  const out = [...(row?.general?.questions ?? [])];
+  for (const c of Object.values(row?.components ?? {})) {
+    out.push(...(c?.questions ?? []));
+  }
+  return out;
+}
+
+/**
  * @param {object} opts
  * @param {string} opts.date
  * @param {Array<object>} opts.reviews store review rows
  * @param {(name: string) => ({ email?: string, language?: string }|null)} opts.lookupOfficer
+ * @param {(name: string) => (object|null)} [opts.lookupRawReport] original PBO report fields for the municipality
  * @param {string} [opts.generatedAt]
  */
-export function buildBatchDocument({ date, reviews, lookupOfficer, generatedAt }) {
+export function buildBatchDocument({ date, reviews, lookupOfficer, lookupRawReport, generatedAt }) {
   const municipalities = (reviews ?? []).map((r) => {
     const officer = normalizeOfficer(lookupOfficer?.(r.municipality));
     const sufficient = Boolean(r.sufficient);
     const send = !sufficient && Boolean(officer?.email);
+    const raw = lookupRawReport?.(r.municipality) ?? null;
+    const { components, general } = groupReviewByComponent(raw, r.gaps ?? [], r.questions ?? []);
     return {
       municipality: r.municipality,
       sufficient,
       status: r.status ?? (sufficient ? 'resolved' : 'open'),
-      gaps: r.gaps ?? [],
-      questions: r.questions ?? [],
       gapsHash: r.gapsHash ?? '',
       language: r.language ?? officer?.language ?? 'he',
       officer,
       send,
       emailSentAt: r.emailSentAt ?? null,
+      sourceFile: raw?.sourceFile ?? null,
+      components,
+      general,
     };
   });
 
