@@ -1,6 +1,6 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from '../../../../db/persistence/openDatabase.js';
 
 import { IGeoUnknownSinkPort } from '../../domain/ports/IGeoUnknownSinkPort.js';
 import { normalizeLocalityLookupKey } from '../../domain/services/resolveLocalityMatch.js';
@@ -39,7 +39,7 @@ class GeoUnknownSqliteQueueAdapter extends IGeoUnknownSinkPort {
   constructor(dbPath, sourceType) {
     super();
     mkdirSync(dirname(dbPath), { recursive: true });
-    this.db = new DatabaseSync(dbPath);
+    this.db = openAppDatabase(dbPath);
     this.db.exec(DDL);
     this.sourceType = sourceType == null ? '' : String(sourceType);
 

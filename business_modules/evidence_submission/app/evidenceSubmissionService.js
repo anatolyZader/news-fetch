@@ -12,6 +12,7 @@ import {
   normalizeReportScope,
 } from '../../resilience_scorer/index.js';
 import { persistOriginalSources } from '../../../db/source_archive/persistOriginals.js';
+import { createUrlReputationChecker } from '../../../cross-cut-modules/security/index.js';
 import {
   buildExtractedContentReview,
   classifyLocalEvidenceFile,
@@ -93,7 +94,13 @@ async function ingestUrls(content, ctx) {
   const urls = extractUrls(content);
   if (urls.length === 0) return;
   ctx.autoIngest.attempted = true;
+  const reputations = await ctx.urlReputation.checkUrls(urls);
   for (const url of urls) {
+    const reputation = reputations.get(url);
+    if (reputation?.status === 'flagged') {
+      ctx.autoIngest.errors.push(`${url}: blocked by Safe Browsing (${reputation.threatType})`);
+      continue;
+    }
     const kind = classifyUrlKind(url);
     ctx.autoIngest.kinds.push({ url, kind });
     try {
@@ -212,6 +219,7 @@ async function processSubmissionJob(deps, {
     videoGrabService: deps.videoGrabService,
     videoDownloadDir: deps.videoDownloadDir,
     evidenceUserUploadsRoot: deps.evidenceUserUploadsRoot,
+    urlReputation: deps.urlReputation,
   };
 
   await ingestUrls(content, ctx);
@@ -300,6 +308,7 @@ async function processSubmissionJob(deps, {
  * @param {string} opts.evidenceUserUploadsRoot
  * @param {string} [opts.timezone]
  * @param {number} [opts.jobTimeoutMs]
+ * @param {{ checkUrls: (urls: string[]) => Promise<Map<string, object>> }} [opts.urlReputation]
  */
 export function createEvidenceSubmissionService(opts) {
   const deps = {
@@ -319,6 +328,7 @@ export function createEvidenceSubmissionService(opts) {
       opts.createAnthropicResilienceLlmAdapter ?? createAnthropicResilienceLlmAdapter,
     outboxStore: opts.outboxStore ?? null,
     eventBus: opts.eventBus ?? null,
+    urlReputation: opts.urlReputation ?? createUrlReputationChecker(),
   };
 
   const submissionQueue = [];

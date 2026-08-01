@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { notifySecurityEvent } from '../cross-cut-modules/security/app/securityNotifier.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const ALLOWLIST_PATH = join(ROOT, 'security/osv-allowlist.json');
+const ALLOWLIST_PATH = join(ROOT, 'cross-cut-modules/security/data/osv-allowlist.json');
 const LOCKFILE = join(ROOT, 'package-lock.json');
 
 function runGit(args) {

@@ -1,5 +1,15 @@
 import { resolveCostLogPath } from '../infrastructure/logPaths.js';
-import { appendJsonlRecord, readJsonlRecords } from '../infrastructure/jsonlLog.js';
+import {
+  appendRotatedJsonl,
+  readRotatedJsonlForDate,
+  readRotatedJsonlRecords,
+} from '../infrastructure/rotatingJsonl.js';
+import { getCostSpendTracker, spendTrackerEnabled } from '../infrastructure/costSpendTracker.js';
+
+function costLogLookbackDays() {
+  const n = Number.parseInt(process.env.COST_LOG_RUNID_LOOKBACK_DAYS ?? '14', 10);
+  return Number.isFinite(n) && n > 0 ? n : 14;
+}
 
 /**
  * @param {Array<{ model?: string, cost?: number }>} usageLog
@@ -86,7 +96,7 @@ export function appendCostLog({ script, date, totalCostUsd, usageLog, stageEvent
   }
 
   try {
-    appendJsonlRecord(resolveCostLogPath(), record);
+    appendRotatedJsonl(resolveCostLogPath(), record);
   } catch (err) {
     console.error(`⚠ Could not write cost log: ${err.message}`);
   }
@@ -100,7 +110,9 @@ export function readCostForDate(logPath, date) {
   const byScript = {};
   const entries = [];
 
-  for (const entry of readJsonlRecords(logPath)) {
+  // Rows for a report date can be appended on other days (replays), so scan
+  // the lookback window rather than only that date's file.
+  for (const entry of readRotatedJsonlRecords(logPath, { days: costLogLookbackDays() })) {
     if (entry.date !== date) continue;
     entries.push(entry);
     byScript[entry.script] = (byScript[entry.script] ?? 0) + (entry.totalCostUsd ?? 0);
@@ -122,7 +134,7 @@ export function readCostForRunId(logPath, pipelineRunId) {
   const byScript = {};
   const entries = [];
 
-  for (const entry of readJsonlRecords(logPath)) {
+  for (const entry of readRotatedJsonlRecords(logPath, { days: costLogLookbackDays() })) {
     if (entry.pipelineRunId !== pipelineRunId) continue;
     entries.push(entry);
     byScript[entry.script] = (byScript[entry.script] ?? 0) + (entry.totalCostUsd ?? 0);
@@ -144,7 +156,7 @@ export function readCostForRunId(logPath, pipelineRunId) {
 export function readStageTelemetryForDate(logPath, date, opts = {}) {
   const want = opts.scripts?.length ? new Set(opts.scripts) : null;
   const latest = {};
-  for (const entry of readJsonlRecords(logPath)) {
+  for (const entry of readRotatedJsonlRecords(logPath, { days: costLogLookbackDays() })) {
     if (entry.date !== date || !entry.script) continue;
     if (want && !want.has(entry.script)) continue;
     if (!entry.stages) continue;
@@ -204,9 +216,12 @@ export function summarizeStageDropRates(byScript) {
  * @returns {number} Spend for today (UTC date) from cost log
  */
 export function readTodayCostSpend(rootDir) {
+  if (spendTrackerEnabled()) {
+    return getCostSpendTracker().todaySpendTotal(rootDir);
+  }
   const today = new Date().toISOString().slice(0, 10);
   let todaySpend = 0;
-  for (const entry of readJsonlRecords(resolveCostLogPath(rootDir))) {
+  for (const entry of readRotatedJsonlForDate(resolveCostLogPath(rootDir), today)) {
     if (entry.timestamp?.startsWith(today)) {
       todaySpend += entry.totalCostUsd ?? 0;
     }
@@ -222,9 +237,12 @@ export function readTodayCostSpend(rootDir) {
  */
 export function readTodayCostSpendForOwner(ownerUid, rootDir) {
   if (!ownerUid) return 0;
+  if (spendTrackerEnabled()) {
+    return getCostSpendTracker().todaySpendForOwner(ownerUid, rootDir);
+  }
   const today = new Date().toISOString().slice(0, 10);
   let total = 0;
-  for (const entry of readJsonlRecords(resolveCostLogPath(rootDir))) {
+  for (const entry of readRotatedJsonlForDate(resolveCostLogPath(rootDir), today)) {
     if (!entry.timestamp?.startsWith(today)) continue;
     if (entry.owner_uid !== ownerUid) continue;
     total += entry.totalCostUsd ?? 0;
@@ -238,10 +256,13 @@ export function readTodayCostSpendForOwner(ownerUid, rootDir) {
  * @returns {number}
  */
 export function readTodayCostSpendForScripts(scripts, rootDir) {
+  if (spendTrackerEnabled()) {
+    return getCostSpendTracker().todaySpendForScripts(scripts, rootDir);
+  }
   const want = new Set(scripts);
   const today = new Date().toISOString().slice(0, 10);
   let total = 0;
-  for (const entry of readJsonlRecords(resolveCostLogPath(rootDir))) {
+  for (const entry of readRotatedJsonlForDate(resolveCostLogPath(rootDir), today)) {
     if (!entry.timestamp?.startsWith(today)) continue;
     if (!want.has(entry.script)) continue;
     total += entry.totalCostUsd ?? 0;

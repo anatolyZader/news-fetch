@@ -13,7 +13,7 @@ import {
 import { notifySecurityEvent } from '../cross-cut-modules/security/app/securityNotifier.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const BASELINE_PATH = join(ROOT, 'security/integrity-baseline.json');
+const BASELINE_PATH = join(ROOT, 'cross-cut-modules/security/data/integrity-baseline.json');
 
 async function main() {
   if (!existsSync(BASELINE_PATH)) {

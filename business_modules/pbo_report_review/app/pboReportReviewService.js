@@ -1,7 +1,9 @@
 /**
  * Orchestrates municipal PBO completeness review, email follow-ups, and reply ingestion.
  */
-import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';
+
+import { writeFileAtomicSync } from '../../../cross-cut-modules/persistence/infrastructure/writeFileAtomic.js';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -414,7 +416,7 @@ export function createPboReportReviewService(deps) {
       });
       const path = outPath || defaultBatchPath(repoRoot, date);
       mkdirSync(dirname(path), { recursive: true });
-      writeFileSync(path, `${JSON.stringify(batch, null, 2)}\n`, 'utf8');
+      writeFileAtomicSync(path, `${JSON.stringify(batch, null, 2)}\n`);
       return {
         date,
         path,
@@ -499,7 +501,7 @@ export function createPboReportReviewService(deps) {
         outcomes,
       };
       mkdirSync(dirname(logPath), { recursive: true });
-      writeFileSync(logPath, `${JSON.stringify(logDoc, null, 2)}\n`, 'utf8');
+      writeFileAtomicSync(logPath, `${JSON.stringify(logDoc, null, 2)}\n`);
 
       return {
         date,

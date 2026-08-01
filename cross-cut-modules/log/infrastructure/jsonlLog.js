@@ -1,11 +1,16 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
+const ensuredDirs = new Set();
+
 /**
  * @param {string} filePath
  */
 export function ensureParentDir(filePath) {
-  mkdirSync(dirname(filePath), { recursive: true });
+  const dir = dirname(filePath);
+  if (ensuredDirs.has(dir)) return;
+  mkdirSync(dir, { recursive: true });
+  ensuredDirs.add(dir);
 }
 
 /**

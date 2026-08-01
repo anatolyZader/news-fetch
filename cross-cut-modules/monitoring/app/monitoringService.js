@@ -1,3 +1,5 @@
+import { DatabaseSync } from 'node:sqlite';
+
 import { createNoopMetricsPort } from '../domain/ports/IMetricsPort.js';
 import { createNoopTracePort } from '../domain/ports/ITracePort.js';
 import { METRIC } from '../domain/metricNames.js';
@@ -9,11 +11,35 @@ import {
   resolveCostLogPath,
   summarizeStageDropRates,
 } from '../infrastructure/adapters/costLogReader.js';
-import { readJsonlRecords } from '../../log/infrastructure/jsonlLog.js';
 import {
+  readLlmInvocationRowsForDate,
   readLlmTelemetryForDate,
-  resolveLlmInvocationsPath,
 } from '../../llm/llmInvocationLog.js';
+
+/**
+ * Real liveness ping: lazily opens a read-only connection and runs SELECT 1.
+ * On failure the connection is dropped so the next call reopens once.
+ *
+ * @param {string} sqlitePath
+ * @returns {() => boolean}
+ */
+function createSqlitePing(sqlitePath) {
+  /** @type {import('node:sqlite').DatabaseSync | null} */
+  let db = null;
+  return () => {
+    try {
+      if (!db) {
+        db = new DatabaseSync(sqlitePath, { readOnly: true });
+      }
+      db.prepare('SELECT 1').get();
+      return true;
+    } catch {
+      try { db?.close(); } catch { /* already closed */ }
+      db = null;
+      return false;
+    }
+  };
+}
 
 /**
  * Technical monitoring facade (filesystem + cost-log v1).
@@ -25,6 +51,7 @@ import {
  *   sqlitePath?: string | null,
  *   metricsPort?: object,
  *   tracePort?: object,
+ *   getLoopDelayMs?: (() => number) | null,
  * }} deps
  */
 export function createMonitoringService(deps) {
@@ -37,6 +64,8 @@ export function createMonitoringService(deps) {
   const health = createHealthService({
     rootDir: deps.rootDir,
     sqlitePath: deps.sqlitePath,
+    sqlitePing: deps.sqlitePath ? createSqlitePing(deps.sqlitePath) : null,
+    getLoopDelayMs: deps.getLoopDelayMs ?? null,
   });
 
   async function getPipelineStatus(opts = {}) {
@@ -128,8 +157,7 @@ export function createMonitoringService(deps) {
 
   async function getAgentTelemetry({ date } = {}) {
     const datePrefix = date ?? new Date().toISOString().slice(0, 10);
-    const invocationsPath = resolveLlmInvocationsPath(deps.rootDir);
-    const rows = readJsonlRecords(invocationsPath);
+    const rows = readLlmInvocationRowsForDate(datePrefix, deps.rootDir);
 
     const byFeature = {};
     const inc = (feature, key, value = 1) => {

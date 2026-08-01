@@ -4,7 +4,7 @@
  */
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from '../../../db/persistence/openDatabase.js';
 
 const DDL = `
 CREATE TABLE IF NOT EXISTS whatsapp_messages (
@@ -27,7 +27,7 @@ CREATE INDEX IF NOT EXISTS idx_wa_messages_date ON whatsapp_messages(date);
  */
 export function createWhatsAppMessageStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(DDL);
 
   const insertStmt = db.prepare(`

@@ -10,7 +10,7 @@
  */
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from '../../../db/persistence/openDatabase.js';
 import { randomUUID } from 'node:crypto';
 
 const DDL = `
@@ -69,7 +69,7 @@ function hydrateWhatsAppReportDraftRow(row) {
  */
 export function createWhatsAppReportDraftStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(DDL);
   applyMigrations(db);
 

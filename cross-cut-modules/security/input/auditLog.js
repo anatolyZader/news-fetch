@@ -1,7 +1,9 @@
-import { appendFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { redactSecrets } from '../domain/services/secretRedaction.js';
+import { appendJsonlRecord } from '../../log/infrastructure/jsonlLog.js';
+import { enqueueJsonlAppend } from '../../log/infrastructure/jsonlAppendQueue.js';
+import { datedJsonlPath, jsonlRotationEnabled } from '../../log/infrastructure/rotatingJsonl.js';
 
 const moduleRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -41,8 +43,14 @@ export function appendAuditEvent(entry, logPath = resolveAuditLogPath()) {
     userAgent: entry.userAgent ?? null,
     meta: entry.meta == null ? null : redactSecrets(entry.meta),
   };
-  mkdirSync(dirname(logPath), { recursive: true });
-  appendFileSync(logPath, `${JSON.stringify(row)}\n`, 'utf8');
+  const target = jsonlRotationEnabled()
+    ? datedJsonlPath(logPath, row.ts.slice(0, 10))
+    : logPath;
+  if (process.env.JSONL_ASYNC_APPEND !== 'false') {
+    enqueueJsonlAppend(target, JSON.stringify(row));
+  } else {
+    appendJsonlRecord(target, row);
+  }
 }
 
 /**

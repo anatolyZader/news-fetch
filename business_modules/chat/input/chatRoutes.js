@@ -21,6 +21,7 @@ import { executePendingAction } from '../app/executePendingAction.js';
 import { getSource } from '../index.js';
 import { OPERATOR_PROPOSE_TOOL_NAMES } from '../app/chatConfig.js';
 import { METRIC } from '../../../cross-cut-modules/monitoring/domain/metricNames.js';
+import { registerActiveStream } from '../../../cross-cut-modules/monitoring/app/activeStreams.js';
 
 /**
  * Observes the SSE event stream and builds the assistant message meta that
@@ -138,6 +139,7 @@ export async function chatRoutes(app, opts) {
     agentKernel,
     chatLlmPort,
     crisisBudgetService = null,
+    metricsPort = null,
   } = opts;
 
   const chatBudgetPreHandler = createHttpChatBudgetPreHandler({ crisisBudgetService });
@@ -321,6 +323,8 @@ export async function chatRoutes(app, opts) {
     });
     const retrievalCache = createChatRetrievalCache(sid);
     const abortController = new AbortController();
+    const unregisterStream = registerActiveStream(abortController);
+    const turnStartedAt = Date.now();
     const timeoutId = setTimeout(() => {
       abortController.abort(new Error('Chat request timed out'));
     }, chatRequestTimeoutMs());
@@ -414,6 +418,10 @@ export async function chatRoutes(app, opts) {
       }
     } finally {
       clearTimeout(timeoutId);
+      unregisterStream();
+      metricsPort?.histogram(METRIC.CHAT_TURN_DURATION, Date.now() - turnStartedAt, {
+        aborted: abortController.signal.aborted ? 'true' : 'false',
+      });
       costRecorder.flush();
       try {
         if (!reply.raw.writableEnded) reply.raw.end();

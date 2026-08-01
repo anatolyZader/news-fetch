@@ -1,7 +1,7 @@
 /**
  * Analyze llm-invocations.jsonl for prompt-cache and tool-loop health.
  */
-import { readJsonlRecords } from '../log/infrastructure/jsonlLog.js';
+import { readRotatedJsonlForDate } from '../log/infrastructure/rotatingJsonl.js';
 import { resolveLlmInvocationsPath } from './llmInvocationLog.js';
 import { llmPromptCacheMasterEnabled } from './promptCacheConfig.js';
 
@@ -128,7 +128,8 @@ export function analyzeLlmInvocations(rows) {
  */
 export function readInvocationsForDate(datePrefix, rootDir) {
   const path = resolveLlmInvocationsPath(rootDir);
-  return readJsonlRecords(path).filter((row) => row.timestamp?.startsWith(datePrefix));
+  return readRotatedJsonlForDate(path, datePrefix)
+    .filter((row) => row.timestamp?.startsWith(datePrefix));
 }
 
 /**

@@ -1,5 +1,12 @@
+import { randomInt } from 'node:crypto';
+
 export function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Non-crypto-sensitive retry jitter (0 .. maxExclusive-1). */
+export function retryJitterMs(maxExclusive = 250) {
+  return randomInt(maxExclusive);
 }
 
 export function getErrStatus(err) {

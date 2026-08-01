@@ -1,7 +1,7 @@
 /**
  * SQLite-backed LLM extraction response cache.
  */
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from '../../../db/persistence/openDatabase.js';
 import { resolveSqlitePath } from '../../config/sqlitePath.js';
 import { createHash } from 'node:crypto';
 
@@ -70,7 +70,7 @@ export function buildExtractCacheKey(parts) {
  */
 export function createExtractionCacheStore(dbPath) {
   const path = dbPath ?? resolveSqlitePath();
-  const db = new DatabaseSync(path);
+  const db = openAppDatabase(path);
   db.exec(DDL);
 
   const getStmt = db.prepare('SELECT signals_json, hit_count FROM llm_extraction_cache WHERE cache_key = ?');

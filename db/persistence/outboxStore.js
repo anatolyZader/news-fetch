@@ -3,7 +3,7 @@
  */
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from './openDatabase.js';
 import { runInTransaction } from './sqliteTransaction.js';
 
 const DDL = `
@@ -22,7 +22,7 @@ CREATE INDEX IF NOT EXISTS idx_outbox_unprocessed ON outbox_events(processed_at)
  */
 export function createOutboxStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(DDL);
 
   const insert = db.prepare(`

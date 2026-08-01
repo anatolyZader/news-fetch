@@ -34,6 +34,7 @@ import {
   stripTrailingEvidenceCitation,
 } from '../lib/evidenceSourceMeta.js';
 import { isStubNarrative } from '../lib/isStubNarrative.js';
+import { safeExternalUrl } from '../lib/safeExternalUrl.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { MarkdownArticle } from '../ui/index.js';
 import { ReportEditionContextBar } from './ReportEditionContextBar.jsx';
@@ -297,12 +298,10 @@ function evidenceListItemSx(theme, { highlighted = false } = {}) {
 
 function evidenceItemUrl(item, meta) {
   if (typeof item === 'object' && item) {
-    const url = item.url ?? item.article_url;
-    if (url && url !== '(no url)' && url !== 'null') return url;
+    const url = safeExternalUrl(item.url ?? item.article_url);
+    if (url) return url;
   }
-  const metaUrl = meta?.url ?? meta?.article_url;
-  if (metaUrl && metaUrl !== '(no url)' && metaUrl !== 'null') return metaUrl;
-  return null;
+  return safeExternalUrl(meta?.url ?? meta?.article_url);
 }
 
 function evidenceListDomId(componentId, item, _index) {

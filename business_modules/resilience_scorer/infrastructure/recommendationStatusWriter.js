@@ -1,8 +1,13 @@
 /**
  * Persist operator recommendation acknowledge/dismiss on report JSON.
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+
+import { writeFileAtomicSync } from '../../../cross-cut-modules/persistence/infrastructure/writeFileAtomic.js';
+import { createKeyedMutex } from '../../../cross-cut-modules/persistence/infrastructure/keyedMutex.js';
 import { resolveReportJsonPathForDate } from './reportCacheService.js';
+
+const reportFileMutex = createKeyedMutex();
 
 /**
  * @param {string} reportDate YYYY-MM-DD
@@ -11,7 +16,7 @@ import { resolveReportJsonPathForDate } from './reportCacheService.js';
  * @param {{ action: 'acknowledge'|'dismiss', userEmail?: string|null, rationale?: string }} update
  * @param {{ reportsDir?: string }} [opts]
  */
-export function updateOperatorRecommendationStatus(
+export async function updateOperatorRecommendationStatus(
   reportDate,
   scope,
   recommendationId,
@@ -22,7 +27,18 @@ export function updateOperatorRecommendationStatus(
   if (!jsonPath) {
     return { ok: false, error: 'report_not_found' };
   }
+  // Read-modify-write on a shared report file: serialize per path so
+  // concurrent acknowledges cannot drop each other's update.
+  return reportFileMutex.runExclusive(jsonPath, () =>
+    applyRecommendationUpdate(jsonPath, recommendationId, update));
+}
 
+/**
+ * @param {string} jsonPath
+ * @param {string} recommendationId
+ * @param {{ action: 'acknowledge'|'dismiss', userEmail?: string|null, rationale?: string }} update
+ */
+function applyRecommendationUpdate(jsonPath, recommendationId, update) {
   let parsed;
   try {
     parsed = JSON.parse(readFileSync(jsonPath, 'utf8'));
@@ -67,7 +83,7 @@ export function updateOperatorRecommendationStatus(
   else Object.assign(parsed, assessment);
 
   try {
-    writeFileSync(jsonPath, `${JSON.stringify(parsed, null, 2)}\n`, 'utf8');
+    writeFileAtomicSync(jsonPath, `${JSON.stringify(parsed, null, 2)}\n`);
   } catch {
     return { ok: false, error: 'report_write_failed' };
   }

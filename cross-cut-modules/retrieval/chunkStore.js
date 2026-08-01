@@ -4,6 +4,7 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from '../../db/persistence/openDatabase.js';
 import { bufferToFloat32, cosineSim, float32ToBuffer } from '../vector_index/vectorMath.js';
 
 const BASE_DDL = `
@@ -79,7 +80,7 @@ export function createChunkStore(dbPath, opts = {}) {
     metricsPort.histogram(name, performance.now() - startMs);
   }
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(BASE_DDL);
   let ftsReady = false;
   if (detectFts5Support()) {

@@ -9,7 +9,7 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { createHash } from 'node:crypto';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from '../../db/persistence/openDatabase.js';
 
 import { getDefaultEmbeddingPort } from './infrastructure/openaiEmbeddingPortAdapter.js';
 import { bufferToFloat32, cosineSim, float32ToBuffer } from './vectorMath.js';
@@ -71,7 +71,7 @@ function safeJsonParse(s) {
  */
 export function createVectorIndexStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(DDL);
   try { db.exec('PRAGMA journal_mode = WAL;'); } catch { /* ignore */ }
 

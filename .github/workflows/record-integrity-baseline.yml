@@ -39,5 +39,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: integrity-baseline
-          path: security/integrity-baseline.json
+          path: cross-cut-modules/security/data/integrity-baseline.json
           retention-days: 7

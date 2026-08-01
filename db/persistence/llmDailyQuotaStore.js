@@ -3,7 +3,7 @@
  */
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from './openDatabase.js';
 
 const DDL = `
 CREATE TABLE IF NOT EXISTS llm_usage_daily (
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS llm_usage_daily (
  */
 export function createLlmDailyQuotaStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(DDL);
 
   const getCountStmt = db.prepare(`

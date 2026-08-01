@@ -3,7 +3,7 @@
  */
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from '../../../db/persistence/openDatabase.js';
 
 const DDL = `
 CREATE TABLE IF NOT EXISTS mailing_preferences (
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS mailing_preferences (
  */
 export function createMailingPreferencesStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(DDL);
   try {
     const cols = db.prepare(`PRAGMA table_info(mailing_preferences)`).all();

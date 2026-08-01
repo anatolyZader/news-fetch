@@ -5,7 +5,7 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { createHash } from 'node:crypto';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from './openDatabase.js';
 import { ensureSourceId } from '../source_archive/sourceId.js';
 import { EPHEMERAL_SOURCE_TYPES } from '../source_archive/retentionPolicy.js';
 
@@ -90,7 +90,7 @@ function filterSearchRows(rows, filters) {
  */
 export function createSourceArchiveStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(DDL);
   try { db.exec('PRAGMA journal_mode = WAL;'); } catch { /* ignore */ }
 

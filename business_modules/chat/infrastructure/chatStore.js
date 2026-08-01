@@ -5,7 +5,7 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from '../../../db/persistence/openDatabase.js';
 
 const DDL = `
 CREATE TABLE IF NOT EXISTS chat_sessions (
@@ -39,7 +39,7 @@ CREATE INDEX IF NOT EXISTS idx_chat_messages_session_created
 
 export function createChatStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(DDL);
   try { db.exec('PRAGMA journal_mode = WAL;'); } catch { /* ignore */ }
   try { db.exec('PRAGMA foreign_keys = ON;'); } catch { /* ignore */ }

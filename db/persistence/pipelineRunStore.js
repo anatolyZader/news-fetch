@@ -1,6 +1,6 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from './openDatabase.js';
 import { runInTransaction } from './sqliteTransaction.js';
 
 const DDL = `
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS pipeline_runs (
  */
 export function createPipelineRunStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(DDL);
 
   const upsert = db.prepare(`

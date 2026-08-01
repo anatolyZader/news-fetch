@@ -1,0 +1,429 @@
+{
+  "label": "baseline-pre-stage1",
+  "base_url": "http://127.0.0.1:3100",
+  "duration_s": 10,
+  "connections": 20,
+  "scenarios": {
+    "report-today": {
+      "summary": {
+        "requests_per_sec": 48.6,
+        "latency_ms": {
+          "p50": 374,
+          "p97_5": 786,
+          "p99": 2330,
+          "max": 3762
+        },
+        "status": {
+          "2xx": 486,
+          "non2xx": 0
+        },
+        "errors": 0,
+        "timeouts": 0
+      },
+      "monitoring": {
+        "before": {
+          "http_latency": {
+            "http.request.duration_ms{method=GET,route=/api/monitoring/health,status=2xx}": {
+              "count": 1,
+              "sum": 8.796118999831378,
+              "min": 8.796118999831378,
+              "max": 8.796118999831378,
+              "p50": 8.796118999831378,
+              "p95": 8.796118999831378
+            },
+            "http.request.duration_ms{method=GET,route=/api/monitoring/summary,status=2xx}": {
+              "count": 1,
+              "sum": 41.83747800067067,
+              "min": 41.83747800067067,
+              "max": 41.83747800067067,
+              "p50": 41.83747800067067,
+              "p95": 41.83747800067067
+            }
+          },
+          "chat_turn": {},
+          "loop_delay_p99": 52.723711,
+          "heap_used": 140511280,
+          "health": "ok"
+        },
+        "after": {
+          "http_latency": {
+            "http.request.duration_ms{method=GET,route=/api/monitoring/health,status=2xx}": {
+              "count": 1,
+              "sum": 8.796118999831378,
+              "min": 8.796118999831378,
+              "max": 8.796118999831378,
+              "p50": 8.796118999831378,
+              "p95": 8.796118999831378
+            },
+            "http.request.duration_ms{method=GET,route=/api/monitoring/summary,status=2xx}": {
+              "count": 2,
+              "sum": 54.86006300058216,
+              "min": 13.022584999911487,
+              "max": 41.83747800067067,
+              "p50": 13.022584999911487,
+              "p95": 41.83747800067067
+            },
+            "http.request.duration_ms{method=GET,route=/api/report/today,status=2xx}": {
+              "count": 506,
+              "sum": 10122.995255003683,
+              "min": 17.256169999949634,
+              "max": 46.399476000107825,
+              "p50": 18.938845000229776,
+              "p95": 27.004571000114083
+            }
+          },
+          "chat_turn": {},
+          "loop_delay_p99": 419.954687,
+          "heap_used": 193632992,
+          "health": "degraded"
+        }
+      }
+    },
+    "report-dates": {
+      "summary": {
+        "requests_per_sec": 2.9,
+        "latency_ms": {
+          "p50": 1619,
+          "p97_5": 8339,
+          "p99": 8339,
+          "max": 8339
+        },
+        "status": {
+          "2xx": 29,
+          "non2xx": 0
+        },
+        "errors": 13,
+        "timeouts": 13
+      },
+      "monitoring": {
+        "before": {
+          "http_latency": {
+            "http.request.duration_ms{method=GET,route=/api/monitoring/health,status=2xx}": {
+              "count": 1,
+              "sum": 8.796118999831378,
+              "min": 8.796118999831378,
+              "max": 8.796118999831378,
+              "p50": 8.796118999831378,
+              "p95": 8.796118999831378
+            },
+            "http.request.duration_ms{method=GET,route=/api/monitoring/summary,status=2xx}": {
+              "count": 3,
+              "sum": 67.06979100033641,
+              "min": 12.20972799975425,
+              "max": 41.83747800067067,
+              "p50": 13.022584999911487,
+              "p95": 41.83747800067067
+            },
+            "http.request.duration_ms{method=GET,route=/api/report/today,status=2xx}": {
+              "count": 506,
+              "sum": 10122.995255003683,
+              "min": 17.256169999949634,
+              "max": 46.399476000107825,
+              "p50": 18.938845000229776,
+              "p95": 27.004571000114083
+            }
+          },
+          "chat_turn": {},
+          "loop_delay_p99": 419.954687,
+          "heap_used": 193632992,
+          "health": "degraded"
+        },
+        "after": {
+          "http_latency": {
+            "http.request.duration_ms{method=GET,route=/api/monitoring/health,status=2xx}": {
+              "count": 1,
+              "sum": 8.796118999831378,
+              "min": 8.796118999831378,
+              "max": 8.796118999831378,
+              "p50": 8.796118999831378,
+              "p95": 8.796118999831378
+            },
+            "http.request.duration_ms{method=GET,route=/api/monitoring/summary,status=2xx}": {
+              "count": 4,
+              "sum": 80.95215000025928,
+              "min": 12.20972799975425,
+              "max": 41.83747800067067,
+              "p50": 13.022584999911487,
+              "p95": 41.83747800067067
+            },
+            "http.request.duration_ms{method=GET,route=/api/report/today,status=2xx}": {
+              "count": 506,
+              "sum": 10122.995255003683,
+              "min": 17.256169999949634,
+              "max": 46.399476000107825,
+              "p50": 18.938845000229776,
+              "p95": 27.004571000114083
+            },
+            "http.request.duration_ms{method=GET,route=/api/report/dates,status=2xx}": {
+              "count": 37,
+              "sum": 12654.330587000586,
+              "min": 291.3767500007525,
+              "max": 443.09468699991703,
+              "p50": 324.6703840000555,
+              "p95": 436.3620050000027
+            }
+          },
+          "chat_turn": {},
+          "loop_delay_p99": 1825.570815,
+          "heap_used": 183382944,
+          "health": "degraded"
+        }
+      }
+    },
+    "municipalities": {
+      "summary": {
+        "requests_per_sec": 1016.2,
+        "latency_ms": {
+          "p50": 9,
+          "p97_5": 19,
+          "p99": 22,
+          "max": 5147
+        },
+        "status": {
+          "2xx": 0,
+          "non2xx": 10160
+        },
+        "errors": 0,
+        "timeouts": 0
+      },
+      "monitoring": {
+        "before": {
+          "http_latency": {
+            "http.request.duration_ms{method=GET,route=/api/monitoring/health,status=2xx}": {
+              "count": 1,
+              "sum": 8.796118999831378,
+              "min": 8.796118999831378,
+              "max": 8.796118999831378,
+              "p50": 8.796118999831378,
+              "p95": 8.796118999831378
+            },
+            "http.request.duration_ms{method=GET,route=/api/monitoring/summary,status=2xx}": {
+              "count": 5,
+              "sum": 92.40128000080585,
+              "min": 11.449130000546575,
+              "max": 41.83747800067067,
+              "p50": 13.022584999911487,
+              "p95": 41.83747800067067
+            },
+            "http.request.duration_ms{method=GET,route=/api/report/today,status=2xx}": {
+              "count": 506,
+              "sum": 10122.995255003683,
+              "min": 17.256169999949634,
+              "max": 46.399476000107825,
+              "p50": 18.938845000229776,
+              "p95": 27.004571000114083
+            },
+            "http.request.duration_ms{method=GET,route=/api/report/dates,status=2xx}": {
+              "count": 38,
+              "sum": 12963.907564000227,
+              "min": 291.3767500007525,
+              "max": 443.09468699991703,
+              "p50": 322.0209160000086,
+              "p95": 436.3620050000027
+            }
+          },
+          "chat_turn": {},
+          "loop_delay_p99": 2495.610879,
+          "heap_used": 351177624,
+          "health": "degraded"
+        },
+        "after": {
+          "http_latency": {
+            "http.request.duration_ms{method=GET,route=/api/monitoring/health,status=2xx}": {
+              "count": 1,
+              "sum": 8.796118999831378,
+              "min": 8.796118999831378,
+              "max": 8.796118999831378,
+              "p50": 8.796118999831378,
+              "p95": 8.796118999831378
+            },
+            "http.request.duration_ms{method=GET,route=/api/monitoring/summary,status=2xx}": {
+              "count": 6,
+              "sum": 102.05214900057763,
+              "min": 9.650868999771774,
+              "max": 41.83747800067067,
+              "p50": 12.20972799975425,
+              "p95": 41.83747800067067
+            },
+            "http.request.duration_ms{method=GET,route=/api/report/today,status=2xx}": {
+              "count": 506,
+              "sum": 10122.995255003683,
+              "min": 17.256169999949634,
+              "max": 46.399476000107825,
+              "p50": 18.938845000229776,
+              "p95": 27.004571000114083
+            },
+            "http.request.duration_ms{method=GET,route=/api/report/dates,status=2xx}": {
+              "count": 54,
+              "sum": 17948.81577100046,
+              "min": 289.9940120000392,
+              "max": 443.09468699991703,
+              "p50": 309.7653120001778,
+              "p95": 432.45558399986476
+            },
+            "http.request.duration_ms{method=GET,route=/api/municipalities,status=4xx}": {
+              "count": 10180,
+              "sum": 2756.1876099528745,
+              "min": 0.14667099993675947,
+              "max": 45.15288200043142,
+              "p50": 0.2615860002115369,
+              "p95": 0.3674750002101064
+            }
+          },
+          "chat_turn": {},
+          "loop_delay_p99": 39.485439,
+          "heap_used": 141987664,
+          "health": "ok"
+        }
+      }
+    },
+    "chat": {
+      "summary": {
+        "requests_per_sec": 12,
+        "latency_ms": {
+          "p50": 781,
+          "p97_5": 965,
+          "p99": 983,
+          "max": 1040
+        },
+        "status": {
+          "2xx": 120,
+          "non2xx": 0
+        },
+        "errors": 0,
+        "timeouts": 0
+      },
+      "monitoring": {
+        "before": {
+          "http_latency": {
+            "http.request.duration_ms{method=GET,route=/api/monitoring/health,status=2xx}": {
+              "count": 1,
+              "sum": 8.796118999831378,
+              "min": 8.796118999831378,
+              "max": 8.796118999831378,
+              "p50": 8.796118999831378,
+              "p95": 8.796118999831378
+            },
+            "http.request.duration_ms{method=GET,route=/api/monitoring/summary,status=2xx}": {
+              "count": 7,
+              "sum": 113.13641800079495,
+              "min": 9.650868999771774,
+              "max": 41.83747800067067,
+              "p50": 12.20972799975425,
+              "p95": 41.83747800067067
+            },
+            "http.request.duration_ms{method=GET,route=/api/report/today,status=2xx}": {
+              "count": 506,
+              "sum": 10122.995255003683,
+              "min": 17.256169999949634,
+              "max": 46.399476000107825,
+              "p50": 18.938845000229776,
+              "p95": 27.004571000114083
+            },
+            "http.request.duration_ms{method=GET,route=/api/report/dates,status=2xx}": {
+              "count": 54,
+              "sum": 17948.81577100046,
+              "min": 289.9940120000392,
+              "max": 443.09468699991703,
+              "p50": 309.7653120001778,
+              "p95": 432.45558399986476
+            },
+            "http.request.duration_ms{method=GET,route=/api/municipalities,status=4xx}": {
+              "count": 10180,
+              "sum": 2756.1876099528745,
+              "min": 0.14667099993675947,
+              "max": 45.15288200043142,
+              "p50": 0.2615860002115369,
+              "p95": 0.3674750002101064
+            },
+            "http.request.duration_ms{method=POST,route=/api/chat/sessions,status=2xx}": {
+              "count": 1,
+              "sum": 13.638946999795735,
+              "min": 13.638946999795735,
+              "max": 13.638946999795735,
+              "p50": 13.638946999795735,
+              "p95": 13.638946999795735
+            }
+          },
+          "chat_turn": {},
+          "loop_delay_p99": 39.485439,
+          "heap_used": 141987664,
+          "health": "ok"
+        },
+        "after": {
+          "http_latency": {
+            "http.request.duration_ms{method=GET,route=/api/monitoring/health,status=2xx}": {
+              "count": 1,
+              "sum": 8.796118999831378,
+              "min": 8.796118999831378,
+              "max": 8.796118999831378,
+              "p50": 8.796118999831378,
+              "p95": 8.796118999831378
+            },
+            "http.request.duration_ms{method=GET,route=/api/monitoring/summary,status=2xx}": {
+              "count": 8,
+              "sum": 122.99051300063729,
+              "min": 9.650868999771774,
+              "max": 41.83747800067067,
+              "p50": 11.449130000546575,
+              "p95": 41.83747800067067
+            },
+            "http.request.duration_ms{method=GET,route=/api/report/today,status=2xx}": {
+              "count": 506,
+              "sum": 10122.995255003683,
+              "min": 17.256169999949634,
+              "max": 46.399476000107825,
+              "p50": 18.938845000229776,
+              "p95": 27.004571000114083
+            },
+            "http.request.duration_ms{method=GET,route=/api/report/dates,status=2xx}": {
+              "count": 54,
+              "sum": 17948.81577100046,
+              "min": 289.9940120000392,
+              "max": 443.09468699991703,
+              "p50": 309.7653120001778,
+              "p95": 432.45558399986476
+            },
+            "http.request.duration_ms{method=GET,route=/api/municipalities,status=4xx}": {
+              "count": 10180,
+              "sum": 2756.1876099528745,
+              "min": 0.14667099993675947,
+              "max": 45.15288200043142,
+              "p50": 0.2615860002115369,
+              "p95": 0.3674750002101064
+            },
+            "http.request.duration_ms{method=POST,route=/api/chat/sessions,status=2xx}": {
+              "count": 1,
+              "sum": 13.638946999795735,
+              "min": 13.638946999795735,
+              "max": 13.638946999795735,
+              "p50": 13.638946999795735,
+              "p95": 13.638946999795735
+            },
+            "http.request.duration_ms{method=POST,route=/api/chat,status=2xx}": {
+              "count": 120,
+              "sum": 89302.45481800567,
+              "min": 668.6753930002451,
+              "max": 870.0160170001909,
+              "p50": 736.3825189992785,
+              "p95": 829.5535239996389
+            }
+          },
+          "chat_turn": {
+            "chat.turn.duration_ms{aborted=false}": {
+              "count": 120,
+              "sum": 87371,
+              "min": 653,
+              "max": 855,
+              "p50": 719,
+              "p95": 812
+            }
+          },
+          "loop_delay_p99": 78.512127,
+          "heap_used": 121482720,
+          "health": "ok"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1181 @@
+[
+  {
+    "id": "narrative_component",
+    "he": "נרטיב",
+    "en": "Narrative",
+    "ru": "Нарратив",
+    "aliases": [
+      "Narrative",
+      "נרטיב"
+    ],
+    "examples": {
+      "en": "The dominant behavioral pattern on April 1 across northern border communities is one of sustained structural deficit coexisting with a broadly maintained narrative of persistence.",
+      "he": "בקרב הקהילות הצפוניות שהוערכו, הנרטיב הקהילתי הדומיננטי הוא של התמודדות אדפטיבית: התושבים מכירים באופן נרחב במצב הביטחוני, שומרים על ציות להנחיות החירום, ומקיימים שגרת חיים במידה שהנסיבות מאפשרות.",
+      "ru": "В Букаате прослеживается отчётливо выраженный нарратив, укоренённый в привязанности к месту проживания: жители выражают коллективную готовность оставаться и защищать свои дома при любых обстоятельствах."
+    }
+  },
+  {
+    "id": "information_sharing",
+    "he": "מידע, תקשורת ושיתוף",
+    "en": "Information, Communication, and Sharing",
+    "ru": "Информация, коммуникация и обмен",
+    "aliases": [
+      "information sharing",
+      "תקשורת ושיתוף"
+    ],
+    "examples": {
+      "en": "In Kafr Yasif, solidarity is operationalized through organized communication groups that facilitate information sharing and direct assistance to elderly and other vulnerable residents, with observers noting that the collective sense of togetherness actively reduces feelings of social exclusion [S119].",
+      "he": "רוב הציבור מתעדכן ופועל בהתאם להנחיות, כאשר גורמי הרשות והמנהיגות המקומית פועלים להעברת מידע אמין ועדכונים שוטפים לציבור.",
+      "ru": "Системы информации и коммуникации в оцениваемых населённых пунктах в целом функционируют, а в ряде местностей — работают на максимальной оцениваемой мощности."
+    }
+  },
+  {
+    "id": "lifesaving_behavior",
+    "he": "התנהגות אפקטיבית להצלת חיים",
+    "en": "Effective Life-Saving Behavior",
+    "ru": "Эффективное жизнеспасающее поведение",
+    "aliases": [
+      "lifesaving",
+      "life-saving behavior",
+      "התנהגות אפקטיבית"
+    ],
+    "examples": {
+      "en": "Life-saving behavior compliance remains the predominant pattern across northern communities, with residents entering shelters during alerts and demonstrating clear knowledge of Home Front Command guidelines.",
+      "he": "עדויות על התנהגות אפקטיבית להצלת חיים מצביעות על אוכלוסייה שמפנימה ברובה פרוטוקולי פעולה מגנים, בתמיכת תשתית אזעקות שהוכחה כתפקודית לאורך מספר צירי איום.",
+      "ru": "Данные по Эффективному жизнеспасающему поведению свидетельствуют о том, что в ходе иранских ракетных обстрелов миллионы людей по всей стране укрылись в защитных укрытиях."
+    }
+  },
+  {
+    "id": "functional_continuity",
+    "he": "רציפות תפקודית",
+    "en": "Functional Continuity",
+    "ru": "Функциональная непрерывность",
+    "aliases": [
+      "functional continuity",
+      "רציפות תפקודית"
+    ],
+    "examples": {
+      "en": "Functional continuity remains near-total collapse across the visited communities, consistent with the prior day's pattern and with no evidence of directional improvement.",
+      "he": "רציפות תפקודית באזור המוערך מציגה תמונה מעורבת של שיקום חלקי של שירותים לצד שיבוש מתמשך בניצול שירותי בריאות, חינוך ופעילות כלכלית.",
+      "ru": "Сфера образования представляет собой наиболее последовательно фиксируемый разрыв в функциональной непрерывности по всему региону."
+    }
+  },
+  {
+    "id": "community_capital",
+    "he": "הון ומשאבי קהילה",
+    "en": "Community Capital and Resources",
+    "ru": "Общественный капитал и ресурсы",
+    "aliases": [
+      "community capital",
+      "הון קהילתי"
+    ],
+    "examples": {
+      "en": "Community capital is the component showing the most organizational density in today's signals, with cross-sector cooperation operating simultaneously at national, regional, and community levels.",
+      "he": "הון ומשאבי קהילה בקרב קהילות הצפון והקהילות המעורבות מציג תמונה הטרוגנית, שבה תוכניות התנדבות עירוניות מובנות מתקיימות לצד סולידריות עממית ספונטנית ופערי שוויון בולטים.",
+      "ru": "Общественный капитал и ресурсы — компонент, демонстрирующий наибольшую организационную насыщенность в сигналах сегодняшнего дня: межсекторное взаимодействие осуществляется одновременно на национальном, региональном и общинном уровнях."
+    }
+  },
+  {
+    "id": "leadership",
+    "he": "מנהיגות",
+    "en": "Leadership",
+    "ru": "Лидерство",
+    "aliases": [
+      "leadership",
+      "מנהיגות"
+    ],
+    "examples": {
+      "en": "National leadership is maintaining a visible communication posture, directing residents to mental health and support resources through broadcast channels and a government portal.",
+      "he": "במקביל, ניכרת תחושת שייכות גבוהה, סולידריות קהילתית ואמון במנהיגות המקומית ובגורמי הרשות, אשר תורמים לחיזוק החוסן הקהילתי.",
+      "ru": "В Бараме/Брааме руководитель общины Ангел Ицхак, секретарь Иланит Кассос и координатор по образованию Шир демонстрируют сильное лидерство и слаженное взаимодействие между держателями различных ролей."
+    }
+  },
+  {
+    "id": "belonging_solidarity",
+    "he": "שייכות וסולידריות",
+    "en": "Belonging and Solidarity",
+    "ru": "Принадлежность и солидарность",
+    "aliases": [
+      "belonging",
+      "solidarity",
+      "שייכות"
+    ],
+    "examples": {
+      "en": "Belonging is most precarious among populations experiencing demographic change, prior evacuation trauma, or the departure of younger and more socially active residents.",
+      "he": "במקביל, ניכרת תחושת שייכות גבוהה, סולידריות קהילתית ואמון במנהיגות המקומית ובגורמי הרשות, אשר תורמים לחיזוק החוסן הקהילתי.",
+      "ru": "Принадлежность и солидарность в северных общинах в целом отличаются высокой устойчивостью: в нескольких населённых пунктах зафиксированы полный или близкий к максимальному уровень потенциала, а также активные проявления взаимопомощи."
+    }
+  },
+  {
+    "id": "wellbeing_at_risk",
+    "he": "רווחה פיזית ונפשית / אוכלוסיות סיכון",
+    "en": "Physical and Mental Wellbeing (At-Risk Populations)",
+    "ru": "Физическое и психическое благополучие",
+    "aliases": [
+      "at-risk populations",
+      "אוכלוסיות סיכון"
+    ],
+    "examples": {
+      "en": "Wellbeing deficits among at-risk populations are documented with unusual breadth and specificity across the field reports.",
+      "he": "היקף הצרכים הבלתי-מסופקים בתחום הרווחה בקרב אוכלוסיות סיכון מתועד באופן כמותי ואיכותני הן בדוחות שטח והן במקורות תקשורתיים.",
+      "ru": "Показатели физического и психического благополучия находятся на минимальном уровне как в общенациональной выборке, так и среди жителей общин северного приграничья."
+    }
+  },
+  {
+    "id": "hfc",
+    "category": "civil_defense",
+    "he": "פיקוד העורף",
+    "en": "Home Front Command",
+    "ru": "Командование тыла",
+    "aliases": [
+      "HFC",
+      "פיקוד העורף",
+      "Home Front Command"
+    ],
+    "examples": {
+      "en": "The narrative is circulating actively through community coordinators, Home Front Command trust-building processes, and informal decompression activities.",
+      "he": "אמון הציבור בפיקוד העורף נותר גבוה באופן עקבי, ונתפס כאחד המוסדות הממלכתיים המהימנים ביותר, במיוחד בהשוואה למוסדות פוליטיים.",
+      "ru": "В оценённых северных общинах прослеживается общерегиональная позиция устойчивой адаптивной жизнестойкости, опирающейся на широко функционирующие информационные каналы, массовое соблюдение директив Командования тыла и развитые волонтёрские сети взаимопомощи."
+    }
+  },
+  {
+    "id": "shelter",
+    "category": "civil_defense",
+    "he": "מרחב מוגן / ממ\"ד",
+    "en": "protected space / shelter",
+    "ru": "защитное укрытие",
+    "aliases": [
+      "shelter",
+      "מקלט",
+      "מרחב מוגן",
+      "ממ\"ד",
+      "protected space"
+    ],
+    "examples": {
+      "en": "Emergency alert broadcasts directed residents in specific northern Israeli communities to enter protected spaces following hostile aircraft incursions, and residents complied with these directives across repeated events.",
+      "he": "כאשר התושבים נשמעים להנחיות כמו כניסה למרחבים מוגנים בזמן אזעקה, הישארות בקרבת מקלטים ומעקב אחר הודעות רשמיות, הם מרגישים בטוחים יותר ויודעים שהם פועלים בהתאם להנחיות שנועדו להגן עליהם.",
+      "ru": "В Бараме жители находятся в защитных укрытиях на постоянной основе ввиду отсутствия индивидуальных защищённых помещений (ממ\"דים)."
+    }
+  },
+  {
+    "id": "safe_room",
+    "category": "civil_defense",
+    "he": "ממ\"ד (מרחב מוגן דירתי)",
+    "en": "residential safe room (mamad)",
+    "ru": "защищённая комната (мамад)",
+    "aliases": [
+      "safe room",
+      "mamad",
+      "ממ\"ד"
+    ],
+    "examples": {
+      "en": "Field report from Yaara/Maaleh Yosef, Baram: residents described as fatalistic because no one will help evacuate them to a safe room when needed; loneliness documented; HFC reaching fewer than 2% of families.",
+      "he": "האוכ' המבוגרת שמתגוררת בבתים ללא ממ\"ד מתקשה ללכת למקלט הציבורי בלילות ולכן חלקה בוחר להשאר בבתים על אף הסכנה הכרוכה בכך, אין מדובר באי הבנה של ההנחיות או זלזול בהן אלא בחירה שנובעת מנוחות.",
+      "ru": "В Горен/Маале-Йосеф значительная часть жителей не имеет индивидуальных защищённых комнат (ממ\"דים); общественные укрытия не находятся в оптимальном состоянии; у части жителей укрытия расположены далеко от их домов."
+    }
+  },
+  {
+    "id": "public_shelter",
+    "category": "civil_defense",
+    "he": "מקלט ציבורי",
+    "en": "public shelter",
+    "ru": "общественное бомбоубежище",
+    "aliases": [
+      "public shelter",
+      "מקלט ציבורי"
+    ],
+    "examples": {
+      "en": "The most significant incident occurred in Ramat HaSharon, where either the rocket or its debris struck near a public shelter.",
+      "he": "הזירה המרכזית נרשמה ברמת השרון, שם פגע הטיל, או שברים ממנו, סמוך מאוד למקלט ציבורי.",
+      "ru": "Общественное бомбоубежище рядом со школой Кинар в Тверии подверглось актам вандализма: двери взломаны, оборудование похищено."
+    }
+  },
+  {
+    "id": "protective_guidelines",
+    "category": "civil_defense",
+    "he": "הנחיות התגוננות",
+    "en": "protective guidelines",
+    "ru": "инструкции по гражданской обороне",
+    "aliases": [
+      "protective guidelines",
+      "הנחיות מגן",
+      "הנחיות התגוננות",
+      "defensive guidelines"
+    ],
+    "examples": {
+      "en": "Across visited communities, residents are broadly complying with protective guidelines: street movement is minimal, residents remain in homes, and shelter entry occurs in response to alerts.",
+      "he": "מהתצפיות בשטח עולה כי שגרת החיים נמשכת כמעט ללא התאמות למצב הביטחוני: מתקיימת תנועת רכבים סדירה, נצפית שוטטות בכבישים, ובני נוער ממשיכים בפעילות שגרתית במגרשים ציבוריים, ללא הקפדה מספקת על הנחיות התגוננות.",
+      "ru": "Голанский орган управления интегрирует и задействует волонтёров в соответствии с инструкциями по гражданской обороне."
+    }
+  },
+  {
+    "id": "alert_siren",
+    "category": "civil_defense",
+    "he": "אזעקה / צפירה",
+    "en": "alert / siren",
+    "ru": "тревога / сирена",
+    "aliases": [
+      "alert",
+      "siren",
+      "אזעקה",
+      "צפירה"
+    ],
+    "examples": {
+      "en": "Emergency alert broadcasts directed residents in specific northern Israeli communities to enter protected spaces following hostile aircraft incursions, and residents complied with these directives across repeated events.",
+      "he": "יש לציין כי נצפו בשבוע שעבר במהלך האזעקה, רכבים המשיכו בנסיעתם, אנשים הלכו ברחובות והיו אדישים בנוגע להנחיות פקע\"ר (תופעה זו נצפתה על בסיס מצלמות הרשות).",
+      "ru": "Вместе с тем заметно, что существует привычный уклад, при котором дети находятся на улицах и детских площадках, однако напряжение, связанное с сиренами воздушной тревоги и военными действиями, по-прежнему беспокоит и занимает умы жителей."
+    }
+  },
+  {
+    "id": "red_alert",
+    "category": "civil_defense",
+    "he": "צבע אדום",
+    "en": "Red Alert (Tzeva Adom)",
+    "ru": "сигнал тревоги «Цева адом» («Красный цвет»)",
+    "aliases": [
+      "red alert",
+      "tzeva adom",
+      "צבע אדום"
+    ],
+    "examples": {
+      "en": "Magen David Adom team delivered baby at home in Tel Aviv, then rushed newborn and parents to nearby shelter minutes later after Red Alert sirens sounded.",
+      "he": "צוות מד\"א ומשפחה עם יילוד פונו למרחב מוגן בתל אביב דקות לאחר הלידה כאשר נשמעו צלילי צבע אדום.",
+      "ru": "Армия обороны Израиля проводит расследование инцидента с целью установить причины, по которым сирена тревоги не была активирована."
+    }
+  },
+  {
+    "id": "alert_zone",
+    "category": "civil_defense",
+    "he": "אזור התרעה",
+    "en": "alert zone",
+    "ru": "зона оповещения",
+    "aliases": [
+      "alert zone",
+      "alert zones",
+      "אזור התרעה"
+    ],
+    "examples": {
+      "he": "בנוסף מדגישים כי צריך להכיר את המרחב המוגן במקום שאליו נוסעים, להכיר את אזורי ההתרעה ביעד ובדרך אליו ולעדכן אותם ביישומון פיקוד העורף, כך שגם במקרה ושירותי המיקום ייפגעו, עדיין תתקבל התרעה בטלפון הנייד."
+    }
+  },
+  {
+    "id": "all_clear",
+    "category": "civil_defense",
+    "he": "ניתן לצאת מהמרחב המוגן (הסרת ההגבלות)",
+    "en": "all-clear",
+    "ru": "отбой тревоги",
+    "aliases": [
+      "all clear",
+      "all-clear",
+      "ניתן לצאת"
+    ],
+    "examples": {
+      "en": "Bus drivers were reported to leave passengers in shelters and depart before the Home Front Command all-clear signal, abandoning passengers without alternative transportation — a recurring pattern on multiple routes.",
+      "he": "בהמשך להתרעות שהופעלו בקריית שמונה, פיקוד העורף מעדכן כעת כי ניתן לצאת מהמרחבים המוגנים.",
+      "ru": "В Кирьят-Шмоне жители вошли в защитные укрытия по инструкции Командования тыла после проникновения вражеского воздушного судна в воздушное пространство страны и покинули укрытия после отбоя тревоги."
+    }
+  },
+  {
+    "id": "activity_restrictions",
+    "category": "civil_defense",
+    "he": "הגבלות פעילות והתקהלות",
+    "en": "activity and gathering restrictions",
+    "ru": "ограничения на деятельность и массовые мероприятия",
+    "aliases": [
+      "activity restrictions",
+      "gathering restrictions",
+      "הגבלות פעילות",
+      "הגבלות התקהלות"
+    ],
+    "examples": {
+      "en": "In Majdal Shams, one thousand residents participated in a Zoom session on spirituality and resilience, and 25 volunteers participated in 'Building a World' workshops — digital solidarity events maintaining community cohesion under physical gathering restrictions.",
+      "he": "לקראת חג הפסח שחל בימים אלה, נשלחו הנחיות והגבלות התקהלות כתזכורת לתושבים ולציבור המתפללים.",
+      "ru": "Пресс-служба ЦАХАЛа сообщила, что оборонная политика Командования тыла остаётся неизменной и будет действовать до субботнего вечера 20:00; ограничения и директивы будут действовать в течение Песаха и ночи Седера; Командование тыла продолжает изучать необходимые корректировки во всех областях с акцентом на образование и ограничение массовых собраний."
+    }
+  },
+  {
+    "id": "evacuation",
+    "category": "civil_defense",
+    "he": "פינוי",
+    "en": "evacuation",
+    "ru": "эвакуация",
+    "aliases": [
+      "evacuation",
+      "פינוי"
+    ],
+    "examples": {
+      "en": "Belonging is most precarious among populations experiencing demographic change, prior evacuation trauma, or the departure of younger and more socially active residents.",
+      "he": "עוד הודגש כי תלמידים במסלולי מב\"ר ואתגר נפגעו במיוחד, בשל קריסת המסגרות התומכות בתקופת הפינוי.",
+      "ru": "В основе плана лежит бюджет в размере 4,9 млрд шекелей, остаток из 12 млрд шекелей, выделенных в связи с возвращением жителей после длительной эвакуации."
+    }
+  },
+  {
+    "id": "emergency_kit",
+    "category": "civil_defense",
+    "he": "ערכת חירום",
+    "en": "emergency kit",
+    "ru": "комплект на случай чрезвычайной ситуации",
+    "aliases": [
+      "emergency kit",
+      "ערכת חירום"
+    ],
+    "examples": {
+      "en": "Readiness unit in Ramat Naftali did not receive training on 'Noah's Box' (emergency supplies)",
+      "ru": "Дежурное подразделение в Рамат-Нафтали не прошло обучения по использованию «Ковчега Ноя» (аварийного запаса)"
+    }
+  },
+  {
+    "id": "emergency_preparedness",
+    "category": "civil_defense",
+    "he": "מוכנות לחירום",
+    "en": "emergency preparedness",
+    "ru": "готовность к чрезвычайным ситуациям",
+    "aliases": [
+      "preparedness",
+      "מוכנות לחירום",
+      "מוכנות"
+    ],
+    "examples": {
+      "en": "Community preparedness teams — including daily outreach rounds by IQLR (IDF Home Front) personnel, outreach sessions in businesses and schools, and adaptation of messages through religious leaders — are actively compensating for fatigue-driven compliance gaps.",
+      "he": "בבחינת מוכנות פיזית, קיימים פערי מיגון משמעותיים בחלק מבתי התושבים, אשר אינם עומדים בסטנדרטים הנדרשים למענה בעת חירום, ומהווים גורם סיכון מהותי לאוכלוסייה.",
+      "ru": "В рамках особой подготовки к чрезвычайной ситуации увеличено количество ночных поездов до 27 на ключевых маршрутах, включая линии Иерусалим -- аэропорт Бен-Гурион и Хоф-ха-Кармель -- Беэр-Шева."
+    }
+  },
+  {
+    "id": "idf",
+    "category": "military",
+    "he": "צה\"ל",
+    "en": "IDF (Israel Defense Forces)",
+    "ru": "ЦАХАЛ (Армия обороны Израиля)",
+    "aliases": [
+      "IDF",
+      "Israel Defense Forces",
+      "צה\"ל"
+    ],
+    "examples": {
+      "en": "National-level communication channels are operational and directing residents toward mental health hotlines and a government emergency portal, with messaging adapted for specific groups including IDF casualties, wounded, and their families.",
+      "he": "צה\"ל פרסם הבוקר (שישי) עדכון משמעותי בנוגע למשך שירות המילואים הצפוי במהלך שנת 2026 בשל התמשכות המלחמה והצורך בכוח אדם.",
+      "ru": "В ближайшие дни в ЦАХАЛе планируют новые учения в разных районах, чтобы отработать действия при резкой эскалации."
+    }
+  },
+  {
+    "id": "home_front",
+    "category": "military",
+    "he": "העורף",
+    "en": "home front",
+    "ru": "тыл",
+    "aliases": [
+      "home front",
+      "homefront",
+      "עורף"
+    ],
+    "examples": {
+      "en": "Home Front Command issued reminder that the silent alert system is available during the holiday; residents can tune radio to the silent alert frequency to receive warnings.",
+      "he": "אמון הציבור בפיקוד העורף נותר גבוה באופן עקבי, ונתפס כאחד המוסדות הממלכתיים המהימנים ביותר, במיוחד בהשוואה למוסדות פוליטיים.",
+      "ru": "Пока системы ПВО обеспечивали заслон от примерно 10 ракет, семьи с детьми, выполняя указания Службы тыла, останавливались на обочине дороги и ложились на землю."
+    }
+  },
+  {
+    "id": "ceasefire",
+    "category": "military",
+    "he": "הפסקת אש",
+    "en": "ceasefire",
+    "ru": "прекращение огня",
+    "aliases": [
+      "ceasefire",
+      "cease-fire",
+      "truce",
+      "הפסקת אש"
+    ],
+    "examples": {
+      "en": "No evidence was found of the coping narrative credibly addressing the structural gap between national ceasefire discourse and ongoing northern front conditions; residents in the contact line explicitly name this gap as a source of distrust toward authority.",
+      "he": "לדבריו, המציאות הזו היא חלק בלתי נפרד מחיי היום-יום של אזרחי ישראל, בזמן שבקהילה הבינלאומית ממשיכים לקרוא להפסקת אש ולמתן זמן נוסף לדיפלומטיה.",
+      "ru": "18 апреля доминирующая поведенческая модель в общинах севера отражает первый полный день после введения ливанского режима прекращения огня: наблюдается измеримый, однако неравномерный сдвиг в сторону восстановления привычного уклада жизни."
+    }
+  },
+  {
+    "id": "escalation",
+    "category": "military",
+    "he": "הסלמה",
+    "en": "escalation",
+    "ru": "эскалация",
+    "aliases": [
+      "escalation",
+      "הסלמה"
+    ],
+    "examples": {
+      "en": "The escalation of missile fire toward civilian areas during the holiday period has delayed the formal assessment of a phased physical return to in-person schooling, leaving the educational reopening timeline uncertain.",
+      "he": "התושבים מודעים למצב הביטחוני ולמתיחות באזור, כולל האפשרות להסלמה בגזרה הצפונית מול לבנון, אך יחד עם זאת מגלים אחריות, נשמעים להנחיות וממשיכים לקיים שגרת חיים במידת האפשר.",
+      "ru": "В ближайшие дни в ЦАХАЛе планируют новые учения в разных районах, чтобы отработать действия при резкой эскалации."
+    }
+  },
+  {
+    "id": "rocket_fire",
+    "category": "military",
+    "he": "ירי רקטות / מטח רקטות",
+    "en": "rocket fire / rocket barrage",
+    "ru": "ракетный обстрел / залп ракет",
+    "aliases": [
+      "rocket",
+      "barrage",
+      "רקטות",
+      "מטח"
+    ],
+    "examples": {
+      "en": "Following rocket fire from Iran, sirens activated across the south, center, and north; no casualties were reported and residents exited protected areas upon the all-clear.",
+      "he": "גם הבוקר (חמישי), היום הראשון של חג הפסח, נמשך ירי הרקטות הנרחב של חיזבאללה מלבנון לצפון הארץ.",
+      "ru": "В самом начале Песаха многих израильтян по дороге на праздничный седер застал мощный и продолжительный ракетный обстрел со стороны Ирана."
+    }
+  },
+  {
+    "id": "missile",
+    "category": "military",
+    "he": "טיל / טיל בליסטי",
+    "en": "missile / ballistic missile",
+    "ru": "ракета / баллистическая ракета",
+    "aliases": [
+      "missile",
+      "ballistic",
+      "טיל"
+    ],
+    "examples": {
+      "en": "IDF changed interception policy for northern roads effective Passover eve: Iron Dome will now intercept missiles targeting main highways previously classified as open areas, due to heavy fire from Lebanon and short shelter time.",
+      "he": "נזק משמעותי נגרם למפעל של חברת 'אירוסול פתרונות תעופתיים', שמייצרת בין היתר רחפנים ביטחוניים, בעקבות ראש הקרב של הטיל האיראני שהתפוצץ אמש בפתח תקווה.",
+      "ru": "Пока системы ПВО обеспечивали заслон от примерно 10 ракет, семьи с детьми, выполняя указания Службы тыла, останавливались на обочине дороги и ложились на землю."
+    }
+  },
+  {
+    "id": "interception",
+    "category": "military",
+    "he": "יירוט",
+    "en": "interception (air defense)",
+    "ru": "перехват (средствами ПВО)",
+    "aliases": [
+      "interception",
+      "intercepted",
+      "interceptor",
+      "יירוט",
+      "כיפת ברזל",
+      "Iron Dome"
+    ],
+    "examples": {
+      "en": "IDF changed interception policy for northern roads effective Passover eve: Iron Dome will now intercept missiles targeting main highways previously classified as open areas, due to heavy fire from Lebanon and short shelter time.",
+      "he": "כמו כן, ראש הרשות לאחר כל אירוע של נפילת שבר יירוט בעיר פונה לתושבים ומדגיש את החשיבות של הישמעות להנחיות.",
+      "ru": "Начиная с сегодняшнего дня (среда), кануна праздника Песах, система «Железный купол» будет задействована для перехвата ракет, запускаемых в направлении основных дорог."
+    }
+  },
+  {
+    "id": "uav",
+    "category": "military",
+    "he": "כטב\"ם (כלי טיס בלתי מאויש)",
+    "en": "UAV / drone",
+    "ru": "БПЛА (беспилотник)",
+    "aliases": [
+      "UAV",
+      "drone",
+      "כטב\"ם",
+      "כלי טיס בלתי מאויש"
+    ],
+    "examples": {
+      "en": "Home Front Command instructed residents in Kiryat Shmona and nearby Upper Galilee communities to enter protected spaces following rocket fire and UAV alert; subsequently issued clearance to exit when threat ended.",
+      "he": "07:00: נמשך המרדף אחר הכטב\"ם שחדר מלבנון, אזעקות הופעלו גם בצפת, בחצור הגלילית, ראש פינה ובעמק החולה.",
+      "ru": "Сирены были активированы в ряде населённых пунктов района Кирьят-Шмоны в связи с проникновением БПЛА из Ливана."
+    }
+  },
+  {
+    "id": "direct_hit",
+    "category": "military",
+    "he": "פגיעה ישירה",
+    "en": "direct hit",
+    "ru": "прямое попадание",
+    "aliases": [
+      "direct hit",
+      "פגיעה ישירה"
+    ],
+    "examples": {
+      "en": "Ramat Gan municipality documented that a couple's adherence to shelter guidelines saved their lives during a direct hit on their home, illustrating a case where guidance was both received and actionable.",
+      "he": "מספר נקודות פגיעה דווחו בנהריה ביום שלישי בעקבות מטח רקטות מלבנון, כולל פגיעה ישירה שהציתה מספר כלי רכב.",
+      "ru": "Муниципалитет Рамат-Гана задокументировал случай, в котором соблюдение супружеской парой защитных инструкций спасло им жизнь при прямом попадании в их дом, наглядно демонстрируя ситуацию, в которой руководство было как получено, так и применено на практике."
+    }
+  },
+  {
+    "id": "shrapnel",
+    "category": "military",
+    "he": "רסיסים",
+    "en": "shrapnel / fragments",
+    "ru": "осколки",
+    "aliases": [
+      "shrapnel",
+      "fragments",
+      "רסיסים"
+    ],
+    "examples": {
+      "en": "In the Galilee, a 36-year-old was injured by shrapnel following a Hezbollah rocket impact, MDA says.",
+      "he": "מד\"א עדכן כי שני גברים, בני 85 ו־34, נפצעו קל מרסיסים בקריית שמונה לאחר ירי מלבנון.",
+      "ru": "Вблизи Кармиэля «Маген Давид Адом» оказал медицинскую помощь мужчине в возрасте около 30 лет с травмой спины и мужчине в возрасте около 40 лет с травмой головы в результате поражения осколками вблизи школы."
+    }
+  },
+  {
+    "id": "casualties",
+    "category": "military",
+    "he": "נפגעים",
+    "en": "casualties",
+    "ru": "пострадавшие",
+    "aliases": [
+      "casualties",
+      "casualty",
+      "נפגעים"
+    ],
+    "examples": {
+      "en": "Following rocket fire from Iran, sirens activated across the south, center, and north; no casualties were reported and residents exited protected areas upon the all-clear.",
+      "he": "מד\"א עדכן כי בהמשך לירי הטילים למרכז, צוותיו מעניקים טיפול רפואי ומפנים מבני ברק חמישה נפגעים: ארבעה שנפצעו באורח קל משברי זכוכיות ושריטות -- בני 24, 12 ושתי תינוקות בנות שבעה חודשים -- וכן אישה בת 34 שלקתה בחרדה.",
+      "ru": "В АОИ сообщают о выявленном пуске с территории Ирана в южном направлении; служба скорой медицинской помощи «Маген Давид Адом»: сведений о пострадавших не поступало."
+    }
+  },
+  {
+    "id": "fatalities",
+    "category": "military",
+    "he": "הרוגים",
+    "en": "fatalities / killed",
+    "ru": "погибшие",
+    "aliases": [
+      "fatalities",
+      "killed",
+      "dead",
+      "הרוגים"
+    ],
+    "examples": {
+      "en": "Police officer Viacheslav Vidment did not shelter during an alert shortly before midnight on Friday and was killed by shrapnel from an interceptor missile explosion on a road.",
+      "he": "ברמה הארצית, היום התאפיין במתקפת טיל בליסטי על בניין מגורים בחיפה — שהסתיימה בשני הרוגים, שני נעדרים ומבצע חילוץ רב-שעתי — לצד פגיעות של תחמושת מצרורות באתרים לפחות חמישה-עשר ברחבי מרכז הארץ.",
+      "ru": "Позже останки погибших захоронили в общей могиле, однако установить личность Пармeта удалось лишь сейчас."
+    }
+  },
+  {
+    "id": "wounded",
+    "category": "military",
+    "he": "פצועים",
+    "en": "wounded / injured",
+    "ru": "раненые",
+    "aliases": [
+      "wounded",
+      "injured",
+      "פצועים"
+    ],
+    "examples": {
+      "en": "National-level communication channels are operational and directing residents toward mental health hotlines and a government emergency portal, with messaging adapted for specific groups including IDF casualties, wounded, and their families.",
+      "he": "שירות מגן דוד אדום מדווח כי לא קיבל דיווחים על פצועים ישירים בעקבות המתקפה הבליסטית האיראנית האחרונה על מרכז ישראל, כאשר חובשים טיפלו במספר אנשים שנפצעו קל בדרכם למקלטים או שסבלו מחרדה חריפה.",
+      "ru": "Тело павшего осталось на оборонительном рубеже, когда его подразделение отступило, неся на носилках раненого товарища."
+    }
+  },
+  {
+    "id": "reservists",
+    "category": "military",
+    "he": "אנשי מילואים / שירות מילואים",
+    "en": "reservists / reserve duty",
+    "ru": "резервисты / резервистская служба",
+    "aliases": [
+      "reservist",
+      "reserve duty",
+      "מילואים"
+    ],
+    "examples": {
+      "en": "The extension of reserve duty from six to nine weeks adds an additional strain on household and business functioning, particularly for essential workers whose childcare and household continuity are already disrupted.",
+      "he": "צה\"ל פרסם הבוקר (שישי) עדכון משמעותי בנוגע למשך שירות המילואים הצפוי במהלך שנת 2026 בשל התמשכות המלחמה והצורך בכוח אדם.",
+      "ru": "Армия обороны Израиля продлевает срок службы резервистов в текущем году согласно обновлённому военному плану в условиях войны с Ираном и против «Хезболлы» в Ливане."
+    }
+  },
+  {
+    "id": "mda",
+    "category": "emergency_services",
+    "he": "מגן דוד אדום (מד\"א)",
+    "en": "Magen David Adom (MDA)",
+    "ru": "«Маген Давид Адом» (служба скорой помощи)",
+    "aliases": [
+      "MDA",
+      "Magen David Adom",
+      "מד\"א",
+      "ambulance"
+    ],
+    "examples": {
+      "en": "MDA paramedics deployed with intensive care vehicles, ambulances, and immediate response motorcycles following the Bnei Brak strike.",
+      "he": "מד\"א עדכן כי שני גברים, בני 85 ו־34, נפצעו קל מרסיסים בקריית שמונה לאחר ירי מלבנון.",
+      "ru": "Бригады машин скорой помощи организации «Маген Давид Адом» сообщили об оказании помощи двум пострадавшим с незначительными физическими травмами и двум дополнительным жертвам шока."
+    }
+  },
+  {
+    "id": "fire_rescue",
+    "category": "emergency_services",
+    "he": "כבאות והצלה",
+    "en": "Fire and Rescue Authority",
+    "ru": "Пожарно-спасательная служба",
+    "aliases": [
+      "fire and rescue",
+      "firefighters",
+      "כבאות והצלה",
+      "כיבוי אש"
+    ],
+    "examples": {
+      "en": "National Security Minister Itamar Ben Gvir on Saturday night arrived at the scene of the Iranian missile strike in the city of Arad, accompanied by Minister Yitzhak Wasserlauf, Israel Police Commissioner Danny Levi and Fire and Rescue Commissioner Eyal Caspi.",
+      "he": "כוחות כבאות והצלה פועלים בזירת הפגיעה בגן הילדים בנהריה, שגרמה להרס במקום ולנזק לבניין מגורים סמוך.",
+      "ru": "Пожарно-спасательная служба сообщила, что огонь взят под контроль и инцидент завершился без пострадавших"
+    }
+  },
+  {
+    "id": "police",
+    "category": "emergency_services",
+    "he": "משטרת ישראל",
+    "en": "Israel Police",
+    "ru": "полиция Израиля",
+    "aliases": [
+      "police",
+      "משטרה"
+    ],
+    "examples": {
+      "en": "Crowds of curious onlookers gathered at missile impact sites in the Tel Aviv district, blocking emergency access routes; police issued an urgent call for the public to stay away from impact zones.",
+      "he": "כוחות משטרה, מג\"ב וחבלנים מבצעים סריקות ברחבי הגליל המערבי לאיתור שברי יירוט נוספים.",
+      "ru": "Полиция Израиля завершила масштабную подготовку к праздникам Песах и Пасхи в Иерусалиме и по всей стране."
+    }
+  },
+  {
+    "id": "first_responders",
+    "category": "emergency_services",
+    "he": "כוחות ההצלה",
+    "en": "first responders / rescue forces",
+    "ru": "службы экстренного реагирования",
+    "aliases": [
+      "first responders",
+      "rescue forces",
+      "כוחות הצלה"
+    ],
+    "examples": {
+      "en": "Security forces and first responders were called to a number of impact sites in Haifa and Kiryat Ata.",
+      "he": "אישה וגבר נפצעו באורח בינוני בקריסה חלקית של מבנה ברחוב מרחביה ביפו, כאשר כוחות ההצלה פועלים בזירה גם בשעה זו.",
+      "ru": "Полиция сообщает о скоплении посторонних наблюдателей на местах ракетных ударов в районе Тель-Авива, перекрывающих маршруты доступа для экстренных служб и препятствующих проведению спасательных операций силовыми структурами и службами экстренного реагирования."
+    }
+  },
+  {
+    "id": "search_rescue",
+    "category": "emergency_services",
+    "he": "חילוץ והצלה",
+    "en": "search and rescue",
+    "ru": "поисково-спасательные работы",
+    "aliases": [
+      "search and rescue",
+      "חילוץ והצלה",
+      "חילוץ"
+    ],
+    "examples": {
+      "he": "במקביל, צוותי חילוץ והצלה פועלים במספר מוקדים בבני ברק, גבעתיים ותל אביב, שם אותרו נפילות אמל\"ח ושברי יירוט.",
+      "ru": "Полиция сообщает о скоплении любопытствующих очевидцев на местах ракетных ударов в районе Тель-Авива; они блокируют маршруты подъезда экстренных служб и препятствуют проведению спасательных операций."
+    }
+  },
+  {
+    "id": "situation_room",
+    "category": "emergency_services",
+    "he": "חמ\"ל",
+    "en": "situation room / operations center",
+    "ru": "оперативный штаб",
+    "aliases": [
+      "situation room",
+      "operations center",
+      "war room",
+      "חמ\"ל",
+      "חדר מצב"
+    ],
+    "examples": {
+      "en": "The Foreign Ministry operations center was reported as unable to assist a stranded citizen, indicating a channel functioning in name but not in practice for at least some users.",
+      "he": "האתגרים בשטח משמעותיים - תנאי חורף, קרקע מורכבת ואויב פעיל - אך אנשי הלוגיסטיקה פועלים לילות כימים בכלל הזרועות: מבסיסי ההכשרה, דרך החמ\"לים ועד בסיסי חיל האוויר."
+    }
+  },
+  {
+    "id": "emergency_hotline",
+    "category": "emergency_services",
+    "he": "מוקד עירוני 106 / מוקד חירום",
+    "en": "municipal hotline (106) / emergency hotline",
+    "ru": "муниципальная горячая линия (106)",
+    "aliases": [
+      "hotline",
+      "106",
+      "מוקד עירוני",
+      "מוקד חירום"
+    ],
+    "examples": {
+      "en": "Goren/Maaleh Yosef: Young people fled; residents aged 40+ remained, some known to welfare services; increase in calls to emergency hotline 106.",
+      "he": "לא היו פניות למוקד העירוני בעניין החירום וברחובות יש מוכרי פרחים והכניסיות משמיעות מוסיקה לקראת החג.",
+      "ru": "В Горене/Маале-Йосеф зафиксирован рост числа обращений на горячую линию экстренной помощи 106."
+    }
+  },
+  {
+    "id": "hazmat",
+    "category": "hazards",
+    "he": "חומרים מסוכנים (חומ\"ס)",
+    "en": "hazardous materials",
+    "ru": "опасные вещества",
+    "aliases": [
+      "hazardous materials",
+      "hazmat",
+      "חומרים מסוכנים",
+      "חומ\"ס"
+    ],
+    "examples": {
+      "en": "Factory workers in Neot Hovav industrial zone remained in protected spaces per directive following hazardous materials alert.",
+      "he": "שלושה צוותי חומ\"ס ייעודיים וכוחות ניטור מתחנת באר שבע החלו בבדיקת רמת הסכנה וריכוזי החומרים במרחב הפגיעה, ולוחמי האש פועלים לבלימה ולאיטום המכלים שנפגעו.",
+      "ru": "Информация, таким образом, надежно достигает жителей в сценарии с ракетами и укрытиями, но является недостаточной, отсутствует или неправильно откалибрована в сценариях опасных материалов, трансграничных, ежедневных разрешений и вторичного населения."
+    }
+  },
+  {
+    "id": "earthquake",
+    "category": "hazards",
+    "he": "רעידת אדמה",
+    "en": "earthquake",
+    "ru": "землетрясение",
+    "aliases": [
+      "earthquake",
+      "רעידת אדמה"
+    ],
+    "examples": {
+      "en": "\"Northern District Planning and Building Committee approved two urban renewal programs in Safed and Hatzor HaGlilit in response to Operation Shagat HaAri, with new buildings designed to strict earthquake resistance standards and mitigation solutions\" — [source](https://www.ice.co.il/realestate/news/article/1107825)",
+      "he": "תושבים בכמה אזורים בלבנון מדווחים גם הם כי הורגשה רעידת אדמה, כך לפי הערוץ הלבנוני אל-ג'דיד."
+    }
+  },
+  {
+    "id": "wildfire",
+    "category": "hazards",
+    "he": "שריפת חורש / שריפת יער",
+    "en": "wildfire / brush fire",
+    "ru": "природный (лесной) пожар",
+    "aliases": [
+      "wildfire",
+      "brush fire",
+      "forest fire",
+      "שריפה"
+    ]
+  },
+  {
+    "id": "power_outage",
+    "category": "hazards",
+    "he": "הפסקת חשמל",
+    "en": "power outage",
+    "ru": "отключение электроэнергии",
+    "aliases": [
+      "power outage",
+      "blackout",
+      "הפסקת חשמל"
+    ],
+    "examples": {
+      "en": "At the national level, missile strikes on Rosh Ha'ayin caused power outages, a building collapsed in Ramat Gan, and an industrial facility in Neot Hovav was set on fire — each representing acute but localized service disruption that emergency services addressed.",
+      "he": "קו מתח גבוה ניזוק בראש העין וגרם להפסקת חשמל בחלקים מהעיר",
+      "ru": "Отключения электроэнергии зафиксированы на обширных территориях города вследствие пуска иранской кассетной ракеты"
+    }
+  },
+  {
+    "id": "infrastructure_damage",
+    "category": "hazards",
+    "he": "פגיעה בתשתיות",
+    "en": "infrastructure damage",
+    "ru": "повреждение инфраструктуры",
+    "aliases": [
+      "infrastructure damage",
+      "damaged infrastructure",
+      "פגיעה בתשתיות",
+      "תשתיות"
+    ],
+    "examples": {
+      "en": "Functional continuity across Israel during the reporting period reflects a system under acute stress, with significant infrastructure damage accumulating alongside deliberate institutional efforts to restore essential services.",
+      "he": "הפגיעה האיראנית בסמוך למתחם העלתה באופן מיידי חשש מפני תרחיש מורכב יותר: פגיעה בתשתיות המכילות חומרים מסוכנים ופיזורם לסביבה.",
+      "ru": "Функциональная непрерывность в оцениваемых общинах подвержена воздействию двух различных категорий нарушений: острого физического ущерба инфраструктуре в результате враждебного огня и разрывов в предоставлении услуг, обусловленных периодом праздника Песах и весенних праздников."
+    }
+  },
+  {
+    "id": "resilience",
+    "category": "community",
+    "he": "חוסן / חוסן קהילתי",
+    "en": "resilience / community resilience",
+    "ru": "устойчивость / жизнестойкость",
+    "aliases": [
+      "resilience",
+      "community resilience",
+      "חוסן",
+      "חוסן קהילתי"
+    ],
+    "examples": {
+      "en": "The Passover holiday context amplified the narrative of collective resilience in official and media messaging, while simultaneously making visible the populations for whom that narrative does not apply.",
+      "he": "למרות האתגרים שמביא עמו מצב החירום, קיימת תחושת גיבוש קהילתי שמחזקת את החוסן של התושבים ואת היכולת להתמודד עם המציאות המורכבת.",
+      "ru": "В оценённых северных общинах прослеживается общерегиональная позиция устойчивой адаптивной жизнестойкости, опирающейся на широко функционирующие информационные каналы, массовое соблюдение директив Командования тыла и развитые волонтёрские сети взаимопомощи."
+    }
+  },
+  {
+    "id": "coping",
+    "category": "community",
+    "he": "התמודדות",
+    "en": "coping",
+    "ru": "совладание",
+    "aliases": [
+      "coping",
+      "התמודדות"
+    ],
+    "examples": {
+      "en": "Field reports document behavioral and material conditions across more than twenty communities but do not record residents or officials articulating a shared coping frame, nor do they capture competing or contradictory narratives.",
+      "he": "התנהלותם הזהירה והמותאמת למציאות המשתנה משקפת רמת מודעות גבוהה ויכולת התמודדות יעילה בתקופת החירום.",
+      "ru": "Механизмы культурной и религиозной преемственности функционируют в нескольких сообществах как существенные ресурсы совладания."
+    }
+  },
+  {
+    "id": "mutual_aid",
+    "category": "community",
+    "he": "עזרה הדדית",
+    "en": "mutual aid",
+    "ru": "взаимопомощь",
+    "aliases": [
+      "mutual aid",
+      "עזרה הדדית"
+    ],
+    "examples": {
+      "en": "Concrete mutual aid — supply distribution via WhatsApp, volunteer care for elderly, organized charitable distributions by youth football teams — is documented in multiple settings, indicating that solidarity as a behavior is present.",
+      "he": "קיימת סולידריות גבוהה בין התושבים, נכונות לעזרה הדדית ואמון מתמשך במנהיגות המקומית ובגורמי הרשות.",
+      "ru": "Принадлежность и солидарность в северных общинах в целом отличаются высокой устойчивостью: в нескольких населённых пунктах зафиксированы полный или близкий к максимальному уровень потенциала, а также активные проявления взаимопомощи."
+    }
+  },
+  {
+    "id": "collective_efficacy",
+    "category": "community",
+    "he": "אפקטיביות קולקטיבית",
+    "en": "collective efficacy",
+    "ru": "коллективная эффективность",
+    "aliases": [
+      "collective efficacy"
+    ],
+    "examples": {
+      "en": "The official and media resilience narrative is geographically concentrated in central Israel and Jewish communities; no evidence was found of this narrative reaching or reflecting Arab, Christian minority, or West Bank populations, whose accounts are structured around shortage and threat rather than collective efficacy.",
+      "he": "נרטיב החוסן הרשמי והתקשורתי מרוכז מבחינה גיאוגרפית במרכז הארץ ובקהילות יהודיות; לא נמצאו עדויות לכך שנרטיב זה מגיע לאוכלוסיות ערביות, מיעוטים נוצריים או תושבי הגדה המערבית, או שהוא משקף את חוויותיהם — שכן תיאוריהם בנויים סביב מחסור ואיום ולא סביב אפקטיביות קולקטיבית.",
+      "ru": "Официальный и медийный нарратив устойчивости географически сосредоточен в центральной части Израиля и в еврейских общинах; свидетельств того, что данный нарратив достигает арабского, христианского меньшинства или населения Западного берега реки Иордан или отражает их опыт, выявлено не было — их описания выстраиваются вокруг нехватки ресурсов и угрозы, а не вокруг коллективной эффективности."
+    }
+  },
+  {
+    "id": "local_authority",
+    "category": "community",
+    "he": "רשות מקומית",
+    "en": "local authority",
+    "ru": "местная власть / муниципалитет",
+    "aliases": [
+      "local authority",
+      "רשות מקומית",
+      "municipality"
+    ],
+    "examples": {
+      "en": "Ramat Gan municipality launched 'Shelter in a Flash' AI service: residents call a number, AI assistant locates nearest shelter and sends navigation link in real time.",
+      "he": "אין רצון לפינוי במיעון ברוך/גליל עליון; קהילה חזקה ורשות מקומית חזקה.",
+      "ru": "Главная проблема, которая сегодня занимает жителей муниципалитета, — поддержание нормального жизненного уклада наряду с ощущением безопасности, особенно ввиду угроз чрезвычайных ситуаций и событий в сфере безопасности."
+    }
+  },
+  {
+    "id": "tzachi",
+    "category": "community",
+    "he": "צח\"י (צוות חירום יישובי)",
+    "en": "community emergency team (Tzahi)",
+    "ru": "общинная команда экстренного реагирования (ЦАХИ)",
+    "aliases": [
+      "community emergency team",
+      "tzahi",
+      "tzachi",
+      "צח\"י",
+      "צוות חירום יישובי"
+    ],
+    "examples": {
+      "en": "Reporting from Dir al-Asad describes multiple institutionalized volunteer bodies including SAR, MDA volunteers, community emergency teams, and associations, but documents a lesson from a recent fall incident: the access route to the incident site was blocked by well-meaning residents, highlighting a coordination gap between community solidarity and emergency access management ([S303]).",
+      "he": "יחד עם זאת, בזמן אמת התושבים מסתמכים בעיקר על הודעות המועצה והצח\"י."
+    }
+  },
+  {
+    "id": "resilience_center",
+    "category": "community",
+    "he": "מרכז חוסן",
+    "en": "resilience center",
+    "ru": "центр психологической устойчивости («Хосен»)",
+    "aliases": [
+      "resilience center",
+      "מרכז חוסן"
+    ],
+    "examples": {
+      "en": "The Israeli Trauma Coalition operates 14 resilience centers providing free support to anyone affected by security events.",
+      "he": "צורך ייחודי שאינו מקבל מענה זוהה במבוא חרמון: איש המקצוע בשטח הצביע על מחסור לא בשירותי מרכז חוסן אלא בטיפול פסיכיאטרי רב-תחומי לתושבים הסובלים ממצבי בריאות נפשית קודמים שמצבם מחמיר בתנאי חירום מתמשכים — צורך שאינו בגדר סמכות מרכזי החוסן הקהילתיים.",
+      "ru": "Министерство здравоохранения напоминает всем, кто нуждается в помощи, что можно обращаться в центры психологической устойчивости, а также на экстренные линии и линии эмоциональной поддержки больничных касс, чтобы получить психологическую помощь."
+    }
+  },
+  {
+    "id": "welfare_services",
+    "category": "community",
+    "he": "שירותי הרווחה",
+    "en": "welfare / social services",
+    "ru": "социальные службы",
+    "aliases": [
+      "welfare",
+      "social services",
+      "רווחה"
+    ],
+    "examples": {
+      "en": "Granot HaGalil/Maaleh Yosef: Elderly, urban residents, families with special-needs children, and women whose families are mostly in military service—disconnected from welfare services.",
+      "he": "לאחר חג הפסח אגף הרווחה מתכנן להתחיל לקיים פעילויות הפגה לקשישים במרחבים מוגנים בעיר.",
+      "ru": "Анализ Фонда Берии Кацнельсона: в то время как бюджеты министерств по секторам выросли на 450%, общество все больше сталкивается с недофинансированием здравоохранения, социальных служб, защитных структур."
+    }
+  },
+  {
+    "id": "volunteers",
+    "category": "community",
+    "he": "מתנדבים / התנדבות",
+    "en": "volunteers / volunteering",
+    "ru": "волонтёры / волонтёрство",
+    "aliases": [
+      "volunteer",
+      "מתנדבים",
+      "התנדבות"
+    ],
+    "examples": {
+      "en": "Field report from Abdon/Maaleh Yosef, Baram: HFC community coordinator is actively recruiting volunteers.",
+      "he": "היום יש קושי לגייס מתנדבים כי הרבה מאלה שהתנדבו גוייסו בצוי 8 , חלק נמצא בעבודה במקומות העבודה הפתוחים , סטודנטים שהם כוח התנדבות גדול נמצאים בלימודים מרחוק .",
+      "ru": "Волонтёрский капитал общин в северных населённых пунктах представляет в целом высокий, однако внутренне дифференцированный потенциал: большинство общин сообщают о высокой или полной мобилизационной готовности."
+    }
+  },
+  {
+    "id": "displaced_residents",
+    "category": "community",
+    "he": "מפונים / תושבים מפונים",
+    "en": "evacuees / displaced residents",
+    "ru": "эвакуированные жители",
+    "aliases": [
+      "evacuees",
+      "displaced residents",
+      "displaced",
+      "מפונים",
+      "תושבים מפונים"
+    ],
+    "examples": {
+      "en": "More than 2,000 people displaced from Beersheba received notices to vacate hotels on the day before Passover Seder and return to uninhabitable homes.",
+      "he": "קרוב לשנתיים היו תושבי דוב\"ב מפונים מבתיהם ורק לפני מספר חודשים שבו למושב, בתקווה לחזור לחיי שגרה.",
+      "ru": "Более 2 000 эвакуированных жителей Беэр-Шевы получили уведомления об освобождении гостиничных номеров накануне пасхального Седера и о необходимости вернуться в непригодные для проживания дома."
+    }
+  },
+  {
+    "id": "host_communities",
+    "category": "community",
+    "he": "קהילות קולטות",
+    "en": "host communities",
+    "ru": "принимающие общины",
+    "aliases": [
+      "host communities",
+      "host community",
+      "קהילות קולטות"
+    ],
+    "examples": {
+      "en": "Field report, Kafr Manda: solidarity narrative explicitly articulated — 'many tell a story of solidarity: neighbors helping each other, volunteering, hosting evacuees, donating equipment and mutual encouragement; the narrative emphasizes standing together'"
+    }
+  },
+  {
+    "id": "psychological_first_aid",
+    "category": "community",
+    "he": "עזרה ראשונה נפשית",
+    "en": "psychological first aid",
+    "ru": "первая психологическая помощь",
+    "aliases": [
+      "psychological first aid",
+      "עזרה ראשונה נפשית"
+    ],
+    "examples": {
+      "en": "Wellbeing responses for at-risk populations are operating across most visited communities, with welfare departments conducting daily outreach, resilience centers open and receiving referrals, and psychological first aid available for panic casualties.",
+      "he": "לכן עולה הצורך לבנות תשתית קהילתית שתאפשר לאנשים בסביבה הקרובה לזהות מצוקה ולהעניק עזרה ראשונה נפשית, בדומה לעזרה ראשונה רפואית.",
+      "ru": "Больничная касса «Клалит» открыла новый центр психологической помощи в Кирьят-Шмоне, работающий в дневные часы; в вечернее и ночное время функции центра выполняет аналогичное подразделение больницы «Рамбам», обеспечивая круглосуточное покрытие."
+    }
+  },
+  {
+    "id": "mental_health_support",
+    "category": "community",
+    "he": "סיוע נפשי / תמיכה נפשית",
+    "en": "mental health support",
+    "ru": "психологическая поддержка",
+    "aliases": [
+      "mental health",
+      "emotional support",
+      "סיוע נפשי",
+      "תמיכה נפשית"
+    ],
+    "examples": {
+      "en": "National leadership is maintaining a visible communication posture, directing residents to mental health and support resources through broadcast channels and a government portal.",
+      "he": "מסרי הממשלה ומשרד הביטחון הפנו תושבים לפורטלי חירום ולקווי סיוע נפשי, ומכך עולה כי מידע תומך הופץ בערוצים מרובים.",
+      "ru": "Сообщения правительства и Министерства обороны направляли жителей на порталы экстренной помощи и линии психологической поддержки, что свидетельствует о многоканальном распространении информации о доступной помощи."
+    }
+  },
+  {
+    "id": "anxiety_casualties",
+    "category": "community",
+    "he": "נפגעי חרדה",
+    "en": "anxiety casualties",
+    "ru": "пострадавшие от острой тревоги",
+    "aliases": [
+      "anxiety casualties",
+      "anxiety victims",
+      "נפגעי חרדה"
+    ],
+    "examples": {
+      "en": "Field report from Nachaf: volunteer recruitment tripled following targeted personal outreach; a dedicated WhatsApp coordination group enabled real-time response to a multi-site impact event with four anxiety casualties.",
+      "he": "צוותי מד\"א נוספים ממשיכים בסריקות על מנת לוודא שאין נפגעים נוספים ומעניקים טיפול רפואי למספר נפגעי חרדה.",
+      "ru": "МАДА в ежедневной сводке пострадавших за время войны: оказана помощь 25 получившим физические травмы и 16 пострадавшим от стресса"
+    }
+  },
+  {
+    "id": "return_to_routine",
+    "category": "community",
+    "he": "חזרה לשגרה",
+    "en": "return to routine",
+    "ru": "возвращение к нормальной жизни",
+    "aliases": [
+      "return to routine",
+      "back to routine",
+      "חזרה לשגרה"
+    ],
+    "examples": {
+      "en": "Two and a half years after October 7, residents of Netiv HaAsara are cautiously trying to return to routine.",
+      "he": "מצד אחד רצון לסיום המלחמה וחזרה לשגרה, ומצד שני פחד כי ללא פתרון אמיתי בצפון חיזבאללה יתעצם מחדש.",
+      "ru": "Сотрудники аэропорта Бен-Гурион не переведены в режим административного отпуска; они работают посменно для поддержания высокой готовности и обеспечения возможности быстрого возврата к нормальной деятельности после окончания войны."
+    }
+  },
+  {
+    "id": "distance_learning",
+    "category": "community",
+    "he": "למידה מרחוק",
+    "en": "remote / distance learning",
+    "ru": "дистанционное обучение",
+    "aliases": [
+      "remote learning",
+      "distance learning",
+      "למידה מרחוק"
+    ],
+    "examples": {
+      "en": "Communications Ministry arranged agreement with cellular companies to waive overage charges for remote learning data and calls.",
+      "he": "ההחלטה נועדה להבטיח רציפות לימודית, בעיקר עבור תלמידי הציבור החרדי, ולאפשר השתתפות בלמידה מרחוק ללא חשש מהוצאות נוספות.",
+      "ru": "Происходящее разворачивается на фоне войны с Ираном, в результате которой почти все 2,5 миллиона детей страны на протяжении последних пяти недель — с момента начала боевых действий — находятся дома при крайне ограниченном дистанционном обучении."
+    }
+  },
+  {
+    "id": "data_void",
+    "category": "methodology",
+    "he": "חוסר נתונים / void",
+    "en": "data void",
+    "ru": "пробел в данных",
+    "aliases": [
+      "data void",
+      "חוסר נתונים"
+    ],
+    "examples": {
+      "en": "This absence of evidence represents a continued data gap rather than a behavioral finding.",
+      "he": "מצב שני ישנם גם ישובים שעדיין מתמודדים עם חוסר נתונים במיפוי האוכלוסיה גם היום.",
+      "ru": "Свидетельств продвижения мероприятий по готовности на уровне общины в сигналах сегодняшнего дня обнаружено не было, хотя это может отражать пробел в данных, а не фактическое отсутствие такой деятельности."
+    }
+  },
+  {
+    "id": "operator_abstention",
+    "category": "methodology",
+    "he": "הימנעות מפעולה / abstention",
+    "en": "operator abstention",
+    "ru": "воздержание оператора",
+    "aliases": [
+      "abstention",
+      "הימנעות",
+      "operator abstention"
+    ],
+    "examples": {
+      "en": "Five components — `narrative`, `information_communication`, `lifesaving_behavior`, `leadership`, and `belonging_solidarity` — returned Tier C abstentions with thin evidence profiles and zero claims.",
+      "he": "ארגון אחד שאינו חיוני בחר, לעומת זאת, שלא לציית להנחיות הפינוי, בציינו שפעילותו יכולה להמתין — מקרה של הימנעות מפעולה מכוונת ולא של חוסר ידיעה על ההנחיות."
+    }
+  },
+  {
+    "id": "scoring_model",
+    "category": "methodology",
+    "he": "מודל ניקוד",
+    "en": "scoring model",
+    "ru": "модель оценки",
+    "aliases": [
+      "scoring model",
+      "מודל ניקוד",
+      "score"
+    ]
+  },
+  {
+    "id": "pbo",
+    "category": "methodology",
+    "he": "דוח פיקוד עורף ברמת רשות",
+    "en": "PBO report",
+    "ru": "отчёт ПОО",
+    "aliases": [
+      "PBO",
+      "pbo report"
+    ],
+    "examples": {
+      "en": "Separately, a community survey in Shtula found that half of residents prefer a period of decompression over formal evacuation, suggesting that population preferences do not uniformly align with evacuation-centric response frameworks (PBO survey, 2026-03-24).",
+      "he": "כ-80% מהאותות עבור רכיב זה נגזרים מנתונים מובנים של דוח פיקוד עורף ברמת רשות (PBO); אימות עצמאי ממקורות עיתונאיים או ביקורי שטח מוגבל ברוב הטענות ברמת היישוב.",
+      "ru": "Приблизительно 93% сигналов в данном компоненте получены из единственного типа источников (отчёты ПОО)."
+    }
+  },
+  {
+    "id": "signal_catalog",
+    "category": "methodology",
+    "he": "קטלוג אותות",
+    "en": "signal catalog",
+    "ru": "каталог сигналов",
+    "aliases": [
+      "signal catalog",
+      "catalog gap"
+    ],
+    "examples": {
+      "en": "A one-sided balance can reflect catalog routing (the mirrored evidence type is anchored on another component) — a \"mirror evidence anchored elsewhere\" note marks those cases."
+    }
+  },
+  {
+    "id": "validation_review",
+    "category": "methodology",
+    "he": "ביקורת אימות",
+    "en": "validation review",
+    "ru": "проверка валидации",
+    "aliases": [
+      "validation review",
+      "אימות"
+    ],
+    "examples": {
+      "en": "Narrative validation incomplete — component prose may not meet grounding standards; prefer evidence_operator bullets and operator display states.",
+      "he": "ציוני האפקטיביות ברמת הקהילה משקפים נתוני הערכה מובנים ממקור זה; אימות עצמאי מוגבל מאוד ויש לפרש את הממצאים בהתאם."
+    }
+  },
+  {
+    "id": "field_visit",
+    "category": "methodology",
+    "he": "ביקור שטח",
+    "en": "Field visit",
+    "ru": "полевое наблюдение",
+    "aliases": [
+      "Field visit",
+      "field observation",
+      "ביקור שטח",
+      "תצפית שטח"
+    ],
+    "examples": {
+      "en": "A newly identified at-risk sub-population appears in Batzet, where substance use and alcohol complications among youth were discovered during field visits — indicating that adolescent wellbeing needs were not previously visible to service systems.",
+      "he": "דיר אל אסד מצטיינת במיוחד בזכות מבנים ממוסדים הכוללים שירותי חילוץ, מתנדבי מגן דוד אדום ועמותות אזרחיות (ביקור שטח, 04-04-2026).",
+      "ru": "Полевые наблюдения, собранные в северных общинах в середине и конце марта 2026 года, выявляют устойчивые и конкретные недостатки системы предупреждения."
+    }
+  },
+  {
+    "id": "protective_outcome",
+    "category": "methodology",
+    "he": "תוצאת מיגון",
+    "en": "protective outcome",
+    "ru": "защитный результат",
+    "aliases": [
+      "protective outcome",
+      "protection outcome"
+    ],
+    "examples": {
+      "en": "An attributed resident account adds texture to protection outcomes: a powerful explosion caused structural damage to a shelter wall but did not penetrate, illustrating the physical limits within which protective infrastructure operated.",
+      "he": "ב-25 במרץ 2026, עמידת האוכלוסייה בהנחיות הכניסה למרחב המוגן בעת מטחי הטילים האיראניים הניבה תוצאת מיגון בולטת: צוותי מגן דוד אדום שסרקו את אתרי הפגיעה לא איתרו נפגעים באף מיקום, וחובשים טיפלו אך ורק במספר קטן של פצועים שנפגעו בדרכם למרחב המוגן.",
+      "ru": "Соблюдение режима укрытия 25 марта 2026 года носило явно повсеместный характер и обеспечило ощутимый защитный результат."
+    }
+  }
+]

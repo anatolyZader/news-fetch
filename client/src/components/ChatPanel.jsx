@@ -31,6 +31,7 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 import { resolveChatStreamLabel, resolveSlowWarning } from '../lib/chatStreamStatus.js';
 import { groupSessionsByRecency } from '../lib/chatSessionGroups.js';
 import { panelHeaderButtonSx, panelSectionRadius } from '../ui/panelChrome.js';
+import { safeExternalUrl } from '../lib/safeExternalUrl.js';
 import {
   chatActionsVisibilitySx,
   chatRowHoverRevealSx,
@@ -113,6 +114,26 @@ function buildChatMarkdownComponents(t) {
     ),
   };
 }
+
+function CitationSourceLink({ url }) {
+  const safeUrl = safeExternalUrl(url);
+  if (!safeUrl) return null;
+  return (
+    <Link
+      href={safeUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      variant="body2"
+      sx={{ marginRight: 'auto' }}
+    >
+      {safeUrl.slice(0, 60)}
+    </Link>
+  );
+}
+
+CitationSourceLink.propTypes = {
+  url: PropTypes.string,
+};
 
 /** Persisted stopped-flag renders as a banner alongside explicit banners. */
 function resolveRowBanner(meta) {
@@ -964,17 +985,7 @@ export function ChatPanel({
           )}
         </DialogContent>
         <DialogActions>
-          {sourceView?.citation?.url && (
-            <Link
-              href={sourceView.citation.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              variant="body2"
-              sx={{ marginRight: 'auto' }}
-            >
-              {sourceView.citation.url.slice(0, 60)}
-            </Link>
-          )}
+          <CitationSourceLink url={sourceView?.citation?.url} />
           <Button size="small" onClick={() => setSourceView(null)}>{t('chat.close')}</Button>
         </DialogActions>
       </Dialog>

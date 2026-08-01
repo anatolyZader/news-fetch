@@ -3,7 +3,7 @@
  */
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from '../../../db/persistence/openDatabase.js';
 
 import { denormalizedGeoColumns } from '../../../cross-cut-modules/geo/geoSqliteColumns.js';
 
@@ -65,7 +65,7 @@ function ensureColumns(db) {
  */
 export function createWhatsAppSignalStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(DDL);
   ensureColumns(db);
 

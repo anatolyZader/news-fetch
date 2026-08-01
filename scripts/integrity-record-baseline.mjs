@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { buildIntegrityManifest } from '../cross-cut-modules/security/app/integrityManifest.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const BASELINE_PATH = join(ROOT, 'security/integrity-baseline.json');
+const BASELINE_PATH = join(ROOT, 'cross-cut-modules/security/data/integrity-baseline.json');
 
 function gitSha() {
   try {

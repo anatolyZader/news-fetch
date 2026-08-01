@@ -8,7 +8,7 @@
  */
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from './openDatabase.js';
 
 const DDL = `
 CREATE TABLE IF NOT EXISTS evidence_items (
@@ -49,7 +49,7 @@ CREATE INDEX IF NOT EXISTS idx_analysis_runs_date
  */
 export function createEvidenceStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(DDL);
   try { db.exec('PRAGMA journal_mode = WAL;'); } catch { /* ignore */ }
 

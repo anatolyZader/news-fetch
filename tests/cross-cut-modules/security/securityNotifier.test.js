@@ -9,6 +9,8 @@ import {
   sendTelegramSecurityAlert,
   shouldNotifyTelegram,
 } from '../../../cross-cut-modules/security/app/securityNotifier.js';
+import { flushJsonlQueuesSync } from '../../../cross-cut-modules/log/infrastructure/jsonlAppendQueue.js';
+import { datedJsonlPath } from '../../../cross-cut-modules/log/infrastructure/rotatingJsonl.js';
 
 describe('securityNotifier', () => {
   let tempDir;
@@ -52,7 +54,9 @@ describe('securityNotifier', () => {
     assert.equal(result.auditLogged, true);
     assert.equal(result.telegramSent, false);
 
-    const lines = readFileSync(auditPath, 'utf8').trim().split('\n');
+    flushJsonlQueuesSync();
+    const datedPath = datedJsonlPath(auditPath, new Date().toISOString().slice(0, 10));
+    const lines = readFileSync(datedPath, 'utf8').trim().split('\n');
     assert.equal(lines.length, 1);
     const row = JSON.parse(lines[0]);
     assert.equal(row.action, 'security.test');

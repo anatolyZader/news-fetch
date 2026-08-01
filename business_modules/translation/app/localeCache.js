@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
+import { writeFileAtomic } from '../../../cross-cut-modules/persistence/infrastructure/writeFileAtomic.js';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { translationLocaleDir } from '../domain/services/artifactPaths.js';
@@ -77,7 +78,7 @@ export async function readLocaleCache(resourceId, fingerprint, lang) {
 export async function writeLocaleCache(resourceId, fingerprint, lang, payload) {
   const key = `${resourceId}:${fingerprint}:${lang}`;
   try {
-    await writeFile(cacheFilePath(resourceId, fingerprint, lang), JSON.stringify(payload), 'utf8');
+    await writeFileAtomic(cacheFilePath(resourceId, fingerprint, lang), JSON.stringify(payload));
     memCache.set(key, payload);
   } catch {
     /* non-fatal */

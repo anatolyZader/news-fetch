@@ -1,6 +1,6 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from '../../../../db/persistence/openDatabase.js';
 
 import { IGeoLocalityOverridesPort } from '../../domain/ports/IGeoLocalityOverridesPort.js';
 
@@ -34,7 +34,7 @@ class GeoLocalityOverridesSqliteAdapter extends IGeoLocalityOverridesPort {
   constructor(dbPath) {
     super();
     mkdirSync(dirname(dbPath), { recursive: true });
-    this.db = new DatabaseSync(dbPath);
+    this.db = openAppDatabase(dbPath);
     this.db.exec(DDL);
   }
 

@@ -3,7 +3,7 @@
  */
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from '../../../../db/persistence/openDatabase.js';
 import { randomBytes } from 'node:crypto';
 import { IPboReviewStorePort } from '../../domain/ports/IPboReviewStorePort.js';
 
@@ -68,7 +68,7 @@ export class PboReviewSqliteStore extends IPboReviewStorePort {
   constructor(dbPath) {
     super();
     mkdirSync(dirname(dbPath), { recursive: true });
-    this.db = new DatabaseSync(dbPath);
+    this.db = openAppDatabase(dbPath);
     this.db.exec(DDL);
   }
 

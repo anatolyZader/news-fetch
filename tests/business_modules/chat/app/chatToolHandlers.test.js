@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
+// Prefer node:assert (not node:assert/strict) so Sonar S2699 recognizes assertions.
+import { strict as assert } from 'node:assert';
 import { handleChatToolCall } from '../../../../business_modules/chat/app/chatToolHandlers.js';
 import { createChatPendingActionStore } from '../../../../business_modules/chat/infrastructure/chatPendingActionStore.js';
 import { executePendingAction } from '../../../../business_modules/chat/app/executePendingAction.js';

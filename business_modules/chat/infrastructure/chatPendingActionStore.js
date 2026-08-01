@@ -4,7 +4,7 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from '../../../db/persistence/openDatabase.js';
 
 import { PENDING_ACTION_TTL_MS } from '../domain/chatConfig.js';
 
@@ -27,7 +27,7 @@ CREATE INDEX IF NOT EXISTS idx_chat_pending_owner_session
 
 export function createChatPendingActionStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(DDL);
 
   return {

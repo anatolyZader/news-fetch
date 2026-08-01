@@ -2,7 +2,9 @@
  * Writes the resilience assessment as both a Markdown report and a JSON data file.
  */
 
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
+
+import { writeFileAtomicSync } from '../../../cross-cut-modules/persistence/infrastructure/writeFileAtomic.js';
 import { dirname } from 'node:path';
 import { collectGeoVersionsFromSignals } from '../../../cross-cut-modules/geo/signalGeoSummary.js';
 import {
@@ -226,7 +228,7 @@ export function writeReport(assessment, signals, sourceFiles, outputBase, { scor
     stripDeadEvidenceAnchors(buildMarkdown(assessment, sourceFiles) + appendix),
     assessment?.date,
   );
-  writeFileSync(mdPath, md, 'utf-8');
+  writeFileAtomicSync(mdPath, md);
 
   const jsonPayload = {
     assessment,
@@ -241,7 +243,7 @@ export function writeReport(assessment, signals, sourceFiles, outputBase, { scor
   if (scoreBySource && Object.keys(scoreBySource).length > 0) {
     jsonPayload.score_by_source = scoreBySource;
   }
-  writeFileSync(jsonPath, JSON.stringify(jsonPayload, null, 2), 'utf-8');
+  writeFileAtomicSync(jsonPath, JSON.stringify(jsonPayload, null, 2));
 
   return { mdPath, jsonPath };
 }

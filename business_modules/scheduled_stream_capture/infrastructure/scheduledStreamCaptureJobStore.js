@@ -14,7 +14,7 @@
  */
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from '../../../db/persistence/openDatabase.js';
 import { randomUUID } from 'node:crypto';
 
 const DDL = `
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS recording_runs (
  */
 export function createScheduledStreamCaptureJobStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(DDL);
   // Migrate: add language column if it doesn't exist yet
   const cols = db.prepare(`PRAGMA table_info(recording_jobs)`).all().map((c) => c.name);

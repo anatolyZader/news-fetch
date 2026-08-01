@@ -2,7 +2,7 @@
  * Report cache service — loads persisted resilience assessments for the UI/API.
  * Production runs use `extract-signals` → `assess-signals` (see docs/main_docu_files/PIPELINE-AND-SOURCES.md).
  */
-import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, statSync } from 'node:fs';
 import { resolve, dirname, join, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -20,6 +20,11 @@ import {
 import { readCostBreakdownForDate as readCostBreakdownForDateFromLog } from '../../../cross-cut-modules/log/index.js';
 import { inferAssessmentWindowFromSourceFiles } from '../domain/services/paths/assessmentWindow.js';
 import { resilienceReportsDir } from '../domain/services/paths/outputDirs.js';
+import {
+  getDirNamesCached,
+  getParsedReportCached,
+  getReportMetaCached,
+} from './reportFileCache.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -110,22 +115,24 @@ function resolveReportsDir(opts = {}) {
   return resilienceReportsDir(ROOT);
 }
 
+function deriveReportMeta(parsed) {
+  const articles = parsed?.assessment?.total_articles_analyzed;
+  const critical = parsed?.assessment?.critical_signal === true;
+  // generated_at is a top-level ISO string written by reportWriter.js
+  const generatedAt = typeof parsed?.generated_at === 'string' ? parsed.generated_at : null;
+  return {
+    articles: typeof articles === 'number' && Number.isFinite(articles) ? articles : 0,
+    critical,
+    generatedAt,
+    assessmentWindow: parsed?.assessment_window ?? null,
+    sourceFiles: Array.isArray(parsed?.source_files) ? parsed.source_files : [],
+    reportDate: typeof parsed?.assessment?.date === 'string' ? parsed.assessment.date : null,
+  };
+}
+
 function readReportMeta(jsonPath) {
   try {
-    const raw = readFileSync(jsonPath, 'utf8');
-    const parsed = JSON.parse(raw);
-    const articles = parsed?.assessment?.total_articles_analyzed;
-    const critical = parsed?.assessment?.critical_signal === true;
-    // generated_at is a top-level ISO string written by reportWriter.js
-    const generatedAt = typeof parsed?.generated_at === 'string' ? parsed.generated_at : null;
-    return {
-      articles: typeof articles === 'number' && Number.isFinite(articles) ? articles : 0,
-      critical,
-      generatedAt,
-      assessmentWindow: parsed?.assessment_window ?? null,
-      sourceFiles: Array.isArray(parsed?.source_files) ? parsed.source_files : [],
-      reportDate: typeof parsed?.assessment?.date === 'string' ? parsed.assessment.date : null,
-    };
+    return getReportMetaCached(jsonPath, deriveReportMeta);
   } catch {
     return {
       articles: -1,
@@ -402,13 +409,7 @@ export function getAvailableReportEditions(opts = {}) {
   const today = getTodayInTimezone(timezone);
   if (!existsSync(dir)) return [];
 
-  let names;
-  try {
-    names = readdirSync(dir);
-  } catch {
-    return [];
-  }
-
+  const names = getDirNamesCached(dir);
   const nameSet = new Set(names);
   const candidates = names
     .map((f) => reportEditionCandidateFromFilename(f, { nameSet, scope, dir }))
@@ -464,7 +465,9 @@ function _readMarkdownSidecars(jsonPath) {
 function _loadJsonReportPayload(jsonPath, date) {
   let parsed;
   try {
-    parsed = JSON.parse(readFileSync(jsonPath, 'utf-8'));
+    // Shared cached object — the spread below gives callers a fresh top level;
+    // nested objects are shared and must be treated as read-only.
+    parsed = getParsedReportCached(jsonPath);
   } catch {
     return null;
   }
@@ -519,12 +522,7 @@ function _findLatestAvailableReport(today, store, { scope = 'national', reportsD
   const dir = reportsDir ?? resolveReportsDir();
   if (!existsSync(dir)) return null;
 
-  let names;
-  try {
-    names = readdirSync(dir);
-  } catch {
-    return null;
-  }
+  const names = getDirNamesCached(dir);
 
   const dates = [...new Set(
     names

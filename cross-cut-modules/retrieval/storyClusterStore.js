@@ -3,7 +3,7 @@
  */
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from '../../db/persistence/openDatabase.js';
 import { bufferToFloat32, float32ToBuffer } from '../vector_index/vectorMath.js';
 
 const DDL = `
@@ -29,7 +29,7 @@ CREATE INDEX IF NOT EXISTS idx_rag_story_clusters_group
  */
 export function createStoryClusterStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(DDL);
   try { db.exec('PRAGMA journal_mode = WAL;'); } catch { /* ignore */ }
 

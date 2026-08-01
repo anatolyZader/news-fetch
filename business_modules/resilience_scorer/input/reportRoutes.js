@@ -220,8 +220,8 @@ export async function reportRoutes(app, opts) {
     if (isRegionalReportScope(scope)) {
       if (!requireOperatorDistrictAccess(request, reply, scope)) return;
     }
-    const dates = getAvailableReportDates({ scope });
     const editions = getAvailableReportEditions({ scope });
+    const dates = [...new Set(editions.map((e) => e.date))].sort((a, b) => b.localeCompare(a));
     return reply.send({ dates, editions });
   });
 
@@ -323,7 +323,7 @@ export async function reportRoutes(app, opts) {
       return reply.code(404).send({ error: 'report_not_found' });
     }
 
-    const result = updateOperatorRecommendationStatus(
+    const result = await updateOperatorRecommendationStatus(
       date,
       scope,
       recommendationId,

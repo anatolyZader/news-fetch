@@ -3,7 +3,8 @@ import { getDefaultLlmPort } from '../../../cross-cut-modules/llm/anthropicLlmAd
 import { transportMeta } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { SONNET_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { jsonrepair } from 'jsonrepair';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
+import { writeFileAtomic } from '../../../cross-cut-modules/persistence/infrastructure/writeFileAtomic.js';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { calcInvocationCostUsd } from '../../../cross-cut-modules/budget/index.js';
@@ -96,10 +97,9 @@ async function writeDiskCache(report, lang, translatedReport, coverage = null) {
         updatedAt: new Date().toISOString(),
       },
     };
-    await writeFile(
+    await writeFileAtomic(
       scopedCacheFilePath(report, lang),
       JSON.stringify(withMeta),
-      'utf8',
     );
   } catch {
     /* non-fatal */
@@ -151,7 +151,7 @@ async function readSocialDiskCache(cacheKey) {
 async function writeSocialDiskCache(cacheKey, posts) {
   if (!cacheKey) return;
   try {
-    await writeFile(socialCacheFilePath(cacheKey), JSON.stringify(posts), 'utf8');
+    await writeFileAtomic(socialCacheFilePath(cacheKey), JSON.stringify(posts));
     socialMemCache.set(cacheKey, posts);
   } catch {
     /* non-fatal */

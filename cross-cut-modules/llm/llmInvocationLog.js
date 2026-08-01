@@ -3,7 +3,13 @@
  */
 import { join } from 'node:path';
 import { defaultLogDataDir } from '../log/infrastructure/logPaths.js';
-import { appendJsonlRecord, readJsonlRecords } from '../log/infrastructure/jsonlLog.js';
+import {
+  appendRotatedJsonl,
+  datedJsonlPath,
+  jsonlRotationEnabled,
+  readRotatedJsonlForDate,
+} from '../log/infrastructure/rotatingJsonl.js';
+import { enqueueJsonlAppend } from '../log/infrastructure/jsonlAppendQueue.js';
 import { calcLlmCostUsd, normalizeUsageTokens } from './llmPricing.js';
 
 /**
@@ -20,10 +26,30 @@ export function resolveLlmInvocationsPath(rootDir = process.cwd()) {
  */
 export function appendLlmInvocation(record) {
   try {
-    appendJsonlRecord(resolveLlmInvocationsPath(), record);
+    const basePath = resolveLlmInvocationsPath();
+    if (process.env.JSONL_ASYNC_APPEND !== 'false') {
+      const target = jsonlRotationEnabled()
+        ? datedJsonlPath(basePath, new Date().toISOString().slice(0, 10))
+        : basePath;
+      enqueueJsonlAppend(target, JSON.stringify(record));
+    } else {
+      appendRotatedJsonl(basePath, record);
+    }
   } catch (err) {
     console.error(`⚠ Could not write LLM invocation log: ${err.message}`);
   }
+}
+
+/**
+ * Raw invocation rows for one UTC date (dated file + legacy), pre-filtered
+ * by timestamp prefix.
+ * @param {string} datePrefix YYYY-MM-DD
+ * @param {string} [rootDir]
+ * @returns {object[]}
+ */
+export function readLlmInvocationRowsForDate(datePrefix, rootDir) {
+  return readRotatedJsonlForDate(resolveLlmInvocationsPath(rootDir), datePrefix)
+    .filter((row) => row.timestamp?.startsWith(datePrefix));
 }
 
 /**
@@ -80,7 +106,6 @@ export function logLlmInvocation(payload) {
  * @param {string} [rootDir]
  */
 export function readLlmTelemetryForDate(datePrefix, rootDir) {
-  const path = resolveLlmInvocationsPath(rootDir);
   const byFeature = {};
   const byFeatureCache = {};
   let totalUsd = 0;
@@ -88,8 +113,7 @@ export function readLlmTelemetryForDate(datePrefix, rootDir) {
   let cachedInputTotal = 0;
   let cacheCreationTotal = 0;
 
-  for (const row of readJsonlRecords(path)) {
-    if (!row.timestamp?.startsWith(datePrefix)) continue;
+  for (const row of readLlmInvocationRowsForDate(datePrefix, rootDir)) {
     const feature = row.feature ?? 'unknown';
     byFeature[feature] = (byFeature[feature] ?? 0) + (row.costUsd ?? 0);
     if (!byFeatureCache[feature]) {

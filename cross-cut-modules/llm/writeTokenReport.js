@@ -9,7 +9,7 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { readJsonlRecords } from '../log/infrastructure/jsonlLog.js';
+import { readRotatedJsonlRecords } from '../log/infrastructure/rotatingJsonl.js';
 import { readCostForRunId, resolveCostLogPath } from '../log/index.js';
 import { resolveLlmInvocationsPath } from './llmInvocationLog.js';
 
@@ -70,7 +70,7 @@ export function writeTokenReport({ startedAt, completedAt, date, scope, days, re
   const startMs = new Date(startedAt).getTime();
   const endMs = new Date(completedAt).getTime();
 
-  const rows = filterInvocationRows(readJsonlRecords(logPath), pipelineRunId, startMs, endMs);
+  const rows = filterInvocationRows(readRotatedJsonlRecords(logPath), pipelineRunId, startMs, endMs);
 
   const totalInput = rows.reduce((s, r) => s + (r.inputTokens ?? 0), 0);
   const totalOutput = rows.reduce((s, r) => s + (r.outputTokens ?? 0), 0);

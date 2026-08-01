@@ -49,7 +49,7 @@ Bounded CI scripts in `scripts/` and [`cross-cut-modules/security/`](cross-cut-m
 | Outbound fetch audit | `npm run security:check-fetch` / **Lint** | Static scan for raw `fetch()` on user-URL paths |
 | Tiered notifications | `notifySecurityEvent()` | Audit log always; Telegram on WARNING/CRITICAL when configured |
 
-**Post-deploy (pm2 host):** after `npm ci && npm run client:build && pm2 restart news`, run `npm run security:integrity:verify`. Supply-chain paths (lockfiles, configs) must match [`security/integrity-baseline.json`](security/integrity-baseline.json). **Client dist** is stored as a single aggregate hash recorded from **GitHub Actions** (v2 manifest) — Vite chunk filenames and bundles differ across hosts, so do not record the baseline locally after `client:build`. When `client/` changes, run the **Record integrity baseline** workflow and commit the uploaded artifact.
+**Post-deploy (pm2 host):** after `npm ci && npm run client:build && pm2 restart news`, run `npm run security:integrity:verify`. Supply-chain paths (lockfiles, configs) must match [`cross-cut-modules/security/data/integrity-baseline.json`](cross-cut-modules/security/data/integrity-baseline.json). **Client dist** is stored as a single aggregate hash recorded from **GitHub Actions** (v2 manifest) — Vite chunk filenames and bundles differ across hosts, so do not record the baseline locally after `client:build`. When `client/` changes, run the **Record integrity baseline** workflow and commit the uploaded artifact.
 
 **Optional secrets:** `ANTHROPIC_API_KEY` (Red Team), `TELEGRAM_BOT_TOKEN` + `TELEGRAM_SECURITY_CHAT_ID` (alerts). See [.github/CI-SETUP.md](.github/CI-SETUP.md).
 

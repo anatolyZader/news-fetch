@@ -9,7 +9,8 @@ import { tmpdir } from 'node:os';
 import { createAnthropicLlmPort } from '../anthropicLlmAdapter.js';
 import { HAIKU_MODEL } from '../modelIds.js';
 import { createLlmGateway } from '../llmGateway.js';
-import { readJsonlRecords } from '../../log/infrastructure/jsonlLog.js';
+import { readRotatedJsonlRecords } from '../../log/infrastructure/rotatingJsonl.js';
+import { flushJsonlQueuesSync } from '../../log/infrastructure/jsonlAppendQueue.js';
 import { resolveLlmInvocationsPath } from '../llmInvocationLog.js';
 import { calcLlmCostUsd } from '../llmPricing.js';
 import {
@@ -111,7 +112,8 @@ export async function runOfflineSmoke(opts = {}) {
       onUsage: () => {},
     });
 
-    const rows = [...readJsonlRecords(invPath)];
+    flushJsonlQueuesSync();
+    const rows = [...readRotatedJsonlRecords(invPath, { days: 1 })];
     const report = analyzeLlmInvocations(rows);
     const failures = collectOfflineSmokeFailures(rows, report);
     const ok = failures.length === 0;

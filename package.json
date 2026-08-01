@@ -34,6 +34,7 @@
   "scripts": {
     "start": "node server.js",
     "start:api": "SERVE_STATIC=false node server.js",
+    "loadtest": "node scripts/loadtest/run-loadtest.mjs",
     "worker:outbox": "node scripts/workers/outbox-dispatch.js",
     "worker:assess": "node scripts/workers/assess-signals-worker.js",
     "lint": "eslint .",
@@ -105,6 +106,7 @@
     "mail:digest": "node business_modules/mailing/input/runDailyDigest.js",
     "mail:digest:cli": "LLM_TRANSPORT=claude-cli node business_modules/mailing/input/runDailyDigest.js",
     "archive:purge": "node db/input/purgeSourceArchive.js",
+    "sweep:url-reputation": "node db/input/sweepUrlReputation.js",
     "archive:backfill": "node db/input/backfillSourceArchive.js",
     "rag:reindex": "node db/input/reindexRag.js",
     "rag:reindex-field-examples": "node business_modules/report_build/input/reindex-field-examples.js",
@@ -126,6 +128,7 @@
     "@playwright/test": "^1.60.0",
     "@redocly/cli": "^1.34.0",
     "ajv-formats-draft2019": "^1.6.1",
+    "autocannon": "^8.0.0",
     "dependency-cruiser": "^16.10.4",
     "eslint": "^10.4.0",
     "eslint-plugin-react-hooks": "^7.1.1",

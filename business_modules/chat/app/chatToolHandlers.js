@@ -623,7 +623,7 @@ function buildMunicipalityPboSection(dashboard, resolved, ctx) {
     return (
       `PBO data for "${latestMuni.name}" — last collected ${latestDay.date}, NOT current; state this date when answering:\n` +
       `${formatDashboardMunicipality(dashboard, latestDay, latestMuni)}\n` +
-      `PBO dates covered: ${coveredDates.sort((a, b) => a.localeCompare(b)).join(', ')}`
+      `PBO dates covered: ${coveredDates.toSorted((a, b) => a.localeCompare(b)).join(', ')}`
     );
   }
   const indexHit = lookupInPboIndex(ctx.pboLookup ?? {}, resolved);

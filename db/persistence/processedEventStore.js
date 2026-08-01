@@ -1,6 +1,6 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { openAppDatabase } from './openDatabase.js';
 
 const DDL = `
 CREATE TABLE IF NOT EXISTS processed_events (
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS processed_events (
  */
 export function createProcessedEventStore(dbPath) {
   mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
+  const db = openAppDatabase(dbPath);
   db.exec(DDL);
 
   const insert = db.prepare(`

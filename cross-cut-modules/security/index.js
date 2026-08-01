@@ -7,6 +7,7 @@ export {
 export { REDACTED, redactSecrets } from './domain/services/secretRedaction.js';
 export { validateUserFetchUrl, validateRemoteVideoUrl, isBlockedHostname } from './domain/services/ssrfGuard.js';
 export { safeFetch } from './infrastructure/safeFetch.js';
+export { createUrlReputationChecker, safeBrowsingApiKey } from './infrastructure/urlReputation.js';
 export { validateProductionSecurity, productionSecurityWarnings } from './app/validateProductionSecurity.js';
 export {
   notifySecurityEvent,

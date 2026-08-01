@@ -6,6 +6,7 @@
  * to the 8 resilience components using header text matching.
  */
 
+import { statSync } from 'node:fs';
 import { resolve, basename, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import XLSX from 'xlsx';
@@ -214,8 +215,28 @@ export function parsePboNorthExcelFile(filePath) {
   return parseOneFile(filePath);
 }
 
+/** @type {Map<string, { key: string, value: object }>} XLSX parse memo per district */
+const dashboardCache = new Map();
+
+export function resetMunicipalityDashboardCacheForTests() {
+  dashboardCache.clear();
+}
+
+function dashboardCacheKey(filePaths) {
+  return filePaths.map((p) => {
+    try {
+      const s = statSync(p);
+      return `${p}:${s.mtimeMs}:${s.size}`;
+    } catch {
+      return `${p}:missing`;
+    }
+  }).join('|');
+}
+
 /**
  * Scan district Excel files, parse them, return all days.
+ * XLSX parsing is CPU-heavy and synchronous, so the result is memoized per
+ * district keyed on the source files' mtime/size (MUNI_DASHBOARD_CACHE_ENABLED=false bypasses).
  * @param {string} [districtId]
  * @param {{ rootDir?: string }} [opts]
  */
@@ -223,6 +244,26 @@ export function getMunicipalityDashboard(districtId = 'north', opts = {}) {
   const id = normalizePboDistrictId(districtId);
   const rootDir = opts.rootDir ?? REPO_ROOT;
   const filePaths = resolveLocalExcelPaths(rootDir, id);
+
+  const cacheEnabled = process.env.MUNI_DASHBOARD_CACHE_ENABLED !== 'false';
+  const cacheKey = cacheEnabled ? dashboardCacheKey(filePaths) : null;
+  if (cacheEnabled) {
+    const hit = dashboardCache.get(`${rootDir}:${id}`);
+    if (hit && hit.key === cacheKey) return hit.value;
+  }
+
+  const value = buildMunicipalityDashboard(id, filePaths);
+  if (cacheEnabled) {
+    dashboardCache.set(`${rootDir}:${id}`, { key: cacheKey, value });
+  }
+  return value;
+}
+
+/**
+ * @param {string} id normalized district id
+ * @param {string[]} filePaths
+ */
+function buildMunicipalityDashboard(id, filePaths) {
   const files = filePaths.map((p) => basename(p));
 
   const days = [];

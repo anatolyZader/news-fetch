@@ -1,4 +1,5 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
+import { writeFileAtomic } from '../../../../cross-cut-modules/persistence/infrastructure/writeFileAtomic.js';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -42,10 +43,9 @@ export function createTrendsDashboardCacheAdapter(opts = {}) {
     async write(districtId, days, payload) {
       const path = cachePath(districtId, days);
       await mkdir(dirname(path), { recursive: true });
-      await writeFile(
+      await writeFileAtomic(
         path,
         JSON.stringify({ cachedAt: new Date().toISOString(), payload }, null, 0),
-        'utf8',
       );
     },
   };

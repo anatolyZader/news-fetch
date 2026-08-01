@@ -8,6 +8,7 @@ import fastifySwaggerUi from '@fastify/swagger-ui';
 import YAML from 'yaml';
 import { createReportReadPort, createReportDisplayPort } from '../business_modules/resilience_scorer/index.js';
 import { createClaudeChatAdapter } from '../business_modules/chat/infrastructure/adapters/claudeChatAdapter.js';
+import { createStubChatAdapter } from '../business_modules/chat/infrastructure/adapters/stubChatAdapter.js';
 import { getMunicipalityDashboard } from '../business_modules/pbo_report/index.js';
 import { registerAppErrorHandler } from '../cross-cut-modules/errors/index.js';
 import {
@@ -32,6 +33,9 @@ import {
   createMonitoringService,
   registerMonitoringRoutes,
 } from '../cross-cut-modules/monitoring/index.js';
+import { registerHttpMetricsHooks } from '../cross-cut-modules/monitoring/input/registerHttpMetricsHooks.js';
+import { startRuntimeGauges } from '../cross-cut-modules/monitoring/infrastructure/adapters/runtimeGauges.js';
+import { getActiveStreamCount } from '../cross-cut-modules/monitoring/app/activeStreams.js';
 import {
   createSearchTrendsService,
   registerSearchTrendsRoutes,
@@ -264,8 +268,9 @@ async function registerApplicationRoutes(app, ctx) {
     tracePort: w.tracePort,
     reportReadPort: createReportReadPort(),
     reportDisplayPort: createReportDisplayPort(),
-    chatLlmPort: createClaudeChatAdapter(),
+    chatLlmPort: ctx.chatLlmStub ? createStubChatAdapter() : createClaudeChatAdapter(),
     crisisBudgetService: w.crisisBudgetService ?? null,
+    metricsPort: w.metricsPort,
   });
 
   await registerCrisisBudgetRoutes(app, {
@@ -279,11 +284,14 @@ async function registerApplicationRoutes(app, ctx) {
     sqlitePath: w.sqlitePath,
     metricsPort: w.metricsPort,
     tracePort: w.tracePort,
+    getLoopDelayMs: ctx.getLoopDelayMs ?? null,
   });
   await registerMonitoringRoutes(app, {
     monitoringService,
     authPreHandler: protectedAuthPreHandler,
-    requireAnalystView,
+    // In no-auth mode (local dev / loadtest) there is no user identity to
+    // gate on; every other route is already open in that mode.
+    requireAnalystView: authRequired ? requireAnalystView : null,
     timezone,
   });
 
@@ -416,6 +424,14 @@ export async function createApp(options) {
   });
 
   registerAppErrorHandler(app);
+  registerHttpMetricsHooks(app, { metricsPort: w.metricsPort });
+  const runtimeGauges = startRuntimeGauges({
+    metricsPort: w.metricsPort,
+    getActiveSseStreams: getActiveStreamCount,
+  });
+  app.addHook('onClose', async () => {
+    runtimeGauges.stop();
+  });
   const eventBus = getDefaultEventBus();
   registerModuleHandlers(eventBus, {
     processedEvents: w.processedEventStore,
@@ -445,6 +461,11 @@ export async function createApp(options) {
     w.media.createVideoServices();
   const reportBuildService = w.media.createReportBuildServiceIfConfigured();
 
+  const chatLlmStub = process.env.CHAT_LLM_STUB === 'true';
+  if (chatLlmStub) {
+    console.warn('[loadtest] CHAT_LLM_STUB active — chat responses are fake, no LLM spend');
+  }
+
   await registerApplicationRoutes(app, {
     w,
     authRequired,
@@ -460,6 +481,8 @@ export async function createApp(options) {
     videoGrabService,
     youtubeEvidenceIngestService,
     reportBuildService,
+    chatLlmStub,
+    getLoopDelayMs: runtimeGauges.getLoopDelayP99Ms,
   });
 
   await registerSecurityTxtRoute(app, w.repoRoot);

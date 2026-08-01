@@ -7,6 +7,7 @@ import { appendCostLog } from '../../../cross-cut-modules/log/index.js';
 import {
   getErrStatus,
   isTransientTranslateError,
+  retryJitterMs,
   sleep,
 } from './translationTranslateUtils.js';
 import { translationSystemPrompt } from './translationTermRag.js';
@@ -14,6 +15,20 @@ import { buildReportSystemPrompt, buildProseSystemPrompt } from './translationGl
 
 const LANG_NAMES = { en: 'English', he: 'Hebrew', ru: 'Russian' };
 const MODEL = SONNET_MODEL;
+
+/** First JSON object/array slice in model output (linear scan; no backtracking regex). */
+function extractJsonText(raw) {
+  const text = String(raw ?? '');
+  const objStart = text.indexOf('{');
+  const arrStart = text.indexOf('[');
+  if (objStart < 0 && arrStart < 0) return null;
+  const useArr = arrStart >= 0 && (objStart < 0 || arrStart < objStart);
+  const start = useArr ? arrStart : objStart;
+  const endChar = useArr ? ']' : '}';
+  const end = text.lastIndexOf(endChar);
+  if (end <= start) return null;
+  return text.slice(start, end + 1);
+}
 
 const GENERIC_SYSTEM = {
   he: `You translate JSON string values into modern Israeli Hebrew for civil-defense operator UI. Preserve URLs, markdown links, IDs, and numbers. Return ONLY valid JSON with the exact same structure.`,
@@ -28,7 +43,7 @@ const GENERIC_SYSTEM = {
 export async function translateGenericJson(payload, lang, opts = {}) {
   const langName = LANG_NAMES[lang] ?? lang;
   const basePrompt = opts.useReportPrompt
-    ? await buildReportSystemPrompt(lang)
+    ? await buildReportSystemPrompt(lang, JSON.stringify(payload))
     : GENERIC_SYSTEM[lang];
   const system = await translationSystemPrompt(
     lang,
@@ -57,14 +72,14 @@ export async function translateGenericJson(payload, lang, opts = {}) {
   }
 
   const raw = message.content[0].text;
-  const match = /\{[\s\S]*\}|\[[\s\S]*\]/.exec(raw);
-  if (!match) throw new Error('Translation response contained no JSON');
+  const jsonText = extractJsonText(raw);
+  if (!jsonText) throw new Error('Translation response contained no JSON');
 
   let result;
   try {
-    result = JSON.parse(match[0]);
+    result = JSON.parse(jsonText);
   } catch {
-    result = JSON.parse(jsonrepair(match[0]));
+    result = JSON.parse(jsonrepair(jsonText));
   }
 
   if (opts.costLabel) {
@@ -99,8 +114,7 @@ export async function translateGenericJsonWithRetry(payload, lang, opts = {}) {
         throw new Error(`Translation provider error (${detail})`, { cause: err });
       }
       const base = 750 * (2 ** (attempt - 1));
-      const jitter = Math.floor(Math.random() * 250);
-      await sleep(base + jitter);
+      await sleep(base + retryJitterMs(250));
     }
   }
   throw new Error('Translation provider error (exhausted retries)');
@@ -117,7 +131,7 @@ export async function translateGenericJsonWithRetry(payload, lang, opts = {}) {
  */
 export async function translateProse(text, lang, opts = {}) {
   const langName = LANG_NAMES[lang] ?? lang;
-  const basePrompt = await buildProseSystemPrompt(lang);
+  const basePrompt = await buildProseSystemPrompt(lang, text);
   const system = await translationSystemPrompt(lang, basePrompt, opts.queryHint ?? text.slice(0, 400));
 
   const sourceLang = opts.sourceLang ?? 'en';
@@ -172,8 +186,7 @@ export async function translateProseWithRetry(text, lang, opts = {}) {
         throw new Error(`Translation provider error (${detail})`, { cause: err });
       }
       const base = 750 * (2 ** (attempt - 1));
-      const jitter = Math.floor(Math.random() * 250);
-      await sleep(base + jitter);
+      await sleep(base + retryJitterMs(250));
     }
   }
   throw new Error('Translation provider error (exhausted retries)');

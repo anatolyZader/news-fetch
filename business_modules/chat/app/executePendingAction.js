@@ -33,7 +33,7 @@ async function executeOperatorRecommendation(params, ctx) {
   const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
   const reportDate = String(params.date ?? '').trim() || getTodayInTimezone(timezone);
   const scope = normalizeReportScope(params.scope ?? 'national');
-  const result = updateOperatorRecommendationStatus(
+  const result = await updateOperatorRecommendationStatus(
     reportDate,
     scope,
     params.recommendation_id,
