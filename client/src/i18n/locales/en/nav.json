@@ -3,7 +3,7 @@
   "nav.browseDataSources": "Browse data sources",
   "nav.chooseDataSource": "Choose",
   "nav.dailyAssessment": "Daily assessment",
-  "nav.dataSources": "Data source",
+  "nav.dataSources": "Data sources",
   "nav.dataSourcesHint": "Input feeds that inform the daily assessment",
   "nav.sourceContext": "Data source location",
   "nav.switchSource": "Switch source"

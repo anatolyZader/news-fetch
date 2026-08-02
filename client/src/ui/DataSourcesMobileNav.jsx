@@ -161,6 +161,7 @@ export function DataSourcesMobileNav({
             {sources.map((source) => (
               <Chip
                 key={source.id}
+                data-tour={`source-tab-${source.id}`}
                 role="tab"
                 aria-selected={isActive(source.id)}
                 label={source.label}

@@ -105,6 +105,7 @@ export function BrandHeader({
 
   return (
     <Stack
+      data-tour="brand-header"
       spacing={0.25}
       sx={(theme) => ({
         ...alignSx,

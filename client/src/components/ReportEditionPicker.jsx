@@ -110,6 +110,7 @@ export function ReportEditionPicker({
   return (
     <>
       <Button
+        data-tour="edition-picker"
         size="small"
         variant="outlined"
         color="inherit"

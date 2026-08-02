@@ -46,6 +46,7 @@ export function DailyAssessmentControls({
       sx={{ width: compact ? '100%' : 'auto', flexShrink: 0 }}
     >
       <ToggleButtonGroup
+        data-tour="scope-toggle"
         exclusive
         size="small"
         value={reportScope}

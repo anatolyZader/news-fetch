@@ -9,6 +9,7 @@ import { createChatPendingActionStore } from '../business_modules/chat/infrastru
 import { createSignalFlagStore } from '../business_modules/chat/infrastructure/signalFlagStore.js';
 import { createVectorIndexStore } from '../cross-cut-modules/vector_index/index.js';
 import { createMailingPreferencesStore } from '../business_modules/mailing/infrastructure/mailingPreferencesStore.js';
+import { createTourProgressStore } from '../business_modules/product_tour/infrastructure/tourProgressStore.js';
 import { setTranslationRetrievalService } from '../business_modules/translation/app/translationTermRag.js';
 import { createOutboxStore } from '../db/persistence/outboxStore.js';
 import { createProcessedEventStore } from '../db/persistence/processedEventStore.js';
@@ -44,6 +45,7 @@ export function registerPersistence(opts) {
   const signalFlagStore = createSignalFlagStore();
   const vectorIndexStore = createVectorIndexStore(sqlitePath);
   const mailingPrefsStore = createMailingPreferencesStore(sqlitePath);
+  const tourProgressStore = createTourProgressStore(sqlitePath);
   const outboxStore = createOutboxStore(sqlitePath);
   const processedEventStore = createProcessedEventStore(sqlitePath);
   const crisisBudgetAdapter = createCrisisBudgetSqliteAdapter({ dbPath: sqlitePath });
@@ -62,6 +64,7 @@ export function registerPersistence(opts) {
     signalFlagStore,
     vectorIndexStore,
     mailingPrefsStore,
+    tourProgressStore,
     outboxStore,
     processedEventStore,
     crisisBudgetService,

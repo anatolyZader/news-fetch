@@ -14,6 +14,7 @@ export function ChatLauncher({
   closedLabel = 'Chat',
   position = 'bottom-right',
   bottomInset = 0,
+  ...rest
 }) {
   const theme = useTheme();
   const isCompact = useMediaQuery(theme.breakpoints.down('sm'));
@@ -34,6 +35,7 @@ export function ChatLauncher({
   if (isCompact) {
     return (
       <Fab
+        {...rest}
         color="primary"
         aria-label={label}
         aria-expanded={open}
@@ -52,6 +54,7 @@ export function ChatLauncher({
 
   return (
     <Button
+      {...rest}
       type="button"
       variant="outlined"
       size="small"

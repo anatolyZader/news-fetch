@@ -97,6 +97,7 @@ export const ReportContentsMobileNav = forwardRef(function ReportContentsMobileN
 
   return (
     <Box
+      data-tour="report-contents"
       sx={(theme) => ({
         display: 'none',
         [theme.breakpoints.down('md')]: {

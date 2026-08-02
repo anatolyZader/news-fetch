@@ -18,6 +18,8 @@ import { useTheme, alpha } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useTodayReport, useReportEditions } from './hooks/useAnalysis.js';
+import { TourProvider } from './tour/TourProvider.jsx';
+import { useTourOptional } from './tour/tourContext.js';
 import { usePanelPopups } from './hooks/usePanelPopups.js';
 import { useDisplayCapabilities } from './hooks/useDisplayCapabilities.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
@@ -380,6 +382,7 @@ function HeaderMoreMenu({
   logout,
   t,
 }) {
+  const tour = useTourOptional();
   return (
     <Menu
       id="header-more-menu"
@@ -426,6 +429,16 @@ function HeaderMoreMenu({
       >
         {t('app.settings')}
       </MenuItem>
+      {tour && (
+        <MenuItem
+          onClick={() => {
+            closeMoreMenu();
+            tour.startTour({ replay: true });
+          }}
+        >
+          {t('tour.replay')}
+        </MenuItem>
+      )}
       {!isDesktop && (
         <>
           <Divider sx={{ my: 0.5 }} />
@@ -491,6 +504,7 @@ function AppShellHeader({
         >
           {writeReportButton}
           <Button
+            data-tour="send-evidence"
             variant="outlined"
             size="small"
             type="button"
@@ -872,6 +886,7 @@ function AppShell() {
 
   const writeReportButton = (
     <Button
+      data-tour="write-report"
       variant="outlined"
       size="small"
       type="button"
@@ -886,6 +901,7 @@ function AppShell() {
   const moreMenuButton = (
     <IconButton
       id="header-more-button"
+      data-tour="more-menu"
       type="button"
       size="small"
       onClick={openMoreMenu}
@@ -974,7 +990,27 @@ function AppShell() {
     setScopeSwitchNotice(null);
   }, []);
 
+  // Tour steps that spotlight inside a component card ask us to open it first.
+  const firstReportCompId = displayReport?.components?.[0]?.component_id ?? null;
+  const prepareTourStep = useCallback((step) => {
+    if (!firstReportCompId) return;
+    if (step.prepare === 'open-first-component') {
+      setOpenReportCompId(firstReportCompId);
+      setOpenReportEvidenceCompId(null);
+    } else if (step.prepare === 'open-first-component-evidence') {
+      setOpenReportCompId(firstReportCompId);
+      setOpenReportEvidenceCompId(firstReportCompId);
+    }
+  }, [firstReportCompId]);
+
   return (
+    <TourProvider
+      isDesktop={isDesktop}
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+      ready={Boolean(initialReportLoadDone)}
+      onPrepareStep={prepareTourStep}
+    >
     <AppLayout
       header={header}
       footer={(isCompact && activeTab === 'report') ? null : (
@@ -1074,6 +1110,7 @@ function AppShell() {
                 {!showMarkdownOnlyReport && reportContents.length > 0 && (
                 <Box
                   component="aside"
+                  data-tour="report-contents"
                   dir={lang === 'he' ? 'rtl' : 'ltr'}
                   aria-label={t('app.ariaReportContents')}
                   sx={(theme) => ({
@@ -1122,6 +1159,7 @@ function AppShell() {
                     </Alert>
                   )}
                   <Box
+                    data-tour="report-components"
                     sx={(theme) => ({
                       border: theme.custom.border.hairline,
                       borderRadius: `${theme.custom.radius.section}px`,
@@ -1283,6 +1321,7 @@ function AppShell() {
 
       {!chatPopupOpen && !chatOpen && (
         <ChatLauncher
+          data-tour="chat-launcher"
           open={false}
           onClick={openChat}
           closedLabel={t('chat.launcherWhenClosed')}
@@ -1400,6 +1439,7 @@ function AppShell() {
         </Alert>
       </Snackbar>
     </AppLayout>
+    </TourProvider>
   );
 }
 

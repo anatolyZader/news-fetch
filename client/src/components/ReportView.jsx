@@ -716,15 +716,18 @@ function ComponentCard({
             {t('report.dataQualityCaveat')}: {comp.data_quality_caveat}
           </Typography>
         )}
-        <EvidenceNavigationProvider onNavigateToAnchor={navigateToAnchor}>
-          <MarkdownArticle
-            variant="report"
-            markdown={formatNarrativeMd(narrativeBody)}
-            components={evidenceNavigationMarkdownComponents()}
-          />
-        </EvidenceNavigationProvider>
+        <Box data-tour="component-narrative">
+          <EvidenceNavigationProvider onNavigateToAnchor={navigateToAnchor}>
+            <MarkdownArticle
+              variant="report"
+              markdown={formatNarrativeMd(narrativeBody)}
+              components={evidenceNavigationMarkdownComponents()}
+            />
+          </EvidenceNavigationProvider>
+        </Box>
         {showEvidenceAccordion && evidenceCount > 0 && (
           <Accordion
+            data-tour="component-evidence"
             expanded={evidenceOpen}
             onChange={(_, expanded) => onEvidenceToggle(expanded)}
             sx={(theme) => (flat

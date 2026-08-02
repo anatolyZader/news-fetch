@@ -22,6 +22,7 @@ tags:
   - name: Translation
   - name: Chat
   - name: Mailing
+  - name: Tour
 security:
   - bearerAuth: []
 components:
@@ -239,6 +240,32 @@ components:
         products:
           type: object
           additionalProperties: true
+    TourProgress:
+      type: object
+      required: [tourId, status, lastStepIndex, seenVersion]
+      properties:
+        tourId: { type: string, enum: [main-shell] }
+        status: { type: string, enum: [in_progress, completed, dismissed] }
+        lastStepIndex: { type: integer, minimum: 0, maximum: 99 }
+        seenVersion: { type: integer, minimum: 1 }
+        completedAt: { type: string, nullable: true }
+    TourProgressResponse:
+      type: object
+      required: [tourId, progress]
+      properties:
+        tourId: { type: string, enum: [main-shell] }
+        progress:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/TourProgress"
+    TourProgressUpdate:
+      type: object
+      required: [tourId, status]
+      properties:
+        tourId: { type: string, enum: [main-shell] }
+        status: { type: string, enum: [in_progress, completed, dismissed] }
+        lastStepIndex: { type: integer, minimum: 0, maximum: 99 }
+        seenVersion: { type: integer, minimum: 1 }
     MailSendDigestRequest:
       type: object
       properties:
@@ -1168,6 +1195,56 @@ paths:
               schema: { $ref: "#/components/schemas/Error" }
         "503":
           description: Mailing not configured
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/tour/progress:
+    get:
+      tags: [Tour]
+      summary: Get onboarding tour progress for the signed-in user
+      parameters:
+        - name: tourId
+          in: query
+          required: true
+          schema: { type: string, enum: [main-shell] }
+      responses:
+        "200":
+          description: OK (progress is null when the user has never seen the tour)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TourProgressResponse" }
+        "400":
+          description: Unknown tourId
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    put:
+      tags: [Tour]
+      summary: Save onboarding tour progress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TourProgressUpdate" }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TourProgressResponse" }
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }

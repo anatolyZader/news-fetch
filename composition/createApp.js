@@ -50,6 +50,7 @@ import { radioRoutes } from '../business_modules/audio/index.js';
 import { reportBotManualReportsRoutes } from '../business_modules/report_bot/index.js';
 import { reportBuildRoutes } from '../business_modules/report_build/input/reportBuildRoutes.js';
 import { mailingRoutes } from '../business_modules/mailing/input/mailingRoutes.js';
+import { createTourService, tourRoutes } from '../business_modules/product_tour/index.js';
 import { pboReviewRoutes } from '../business_modules/pbo_report_review/input/pboReviewRoutes.js';
 import { evidenceRoutes } from '../business_modules/evidence_submission/input/evidenceRoutes.js';
 import { chatRoutes } from '../business_modules/chat/input/chatRoutes.js';
@@ -340,6 +341,12 @@ async function registerApplicationRoutes(app, ctx) {
     mailingService: w.mailingService,
     tryAuthPreHandler,
     isMailingConfigured: w.isMailingConfigured,
+    allowAnonymous: !authRequired,
+  });
+
+  await app.register(tourRoutes, {
+    tourService: createTourService({ store: w.tourProgressStore }),
+    tryAuthPreHandler,
     allowAnonymous: !authRequired,
   });
 

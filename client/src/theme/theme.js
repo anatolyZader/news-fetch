@@ -174,6 +174,7 @@ export function buildTheme(direction = 'ltr') {
       raised:       base.palette.background.paper,
       overlay:      alpha(PASTEL.periwinkle, 0.05),
       backdrop:     alpha(PASTEL.periwinkleDark, 0.12),
+      tourScrim:    alpha(PASTEL.periwinkleDark, 0.55),
       code:         alpha(PASTEL.lilac, 0.14),
       bannerSubtle: alpha(PASTEL.sky, 0.4),
       blush:        PASTEL.mist,

@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { alpha } from '@mui/material/styles';
 import { useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { useTourOptional } from '../tour/tourContext.js';
 import { LanguageSelector } from '../components/LanguageSelector.jsx';
 import { getDocsBaseUrl, getSupportEmail, joinDocsPath } from '../lib/docsUrl.js';
 import { appContentContainerSx } from './appShellLayout.js';
@@ -279,6 +280,7 @@ export function SiteFooter({
   docsBaseUrl = getDocsBaseUrl(),
 }) {
   const { t } = useLanguage();
+  const tour = useTourOptional();
   const supportEmail = getSupportEmail();
   const version = String(import.meta.env.VITE_APP_VERSION ?? '').trim();
   const userEmail = user?.email ?? '';
@@ -443,6 +445,13 @@ export function SiteFooter({
           </FooterColumn>
 
           <FooterColumn title={t('footer.column.help')}>
+            {tour && (
+              <FooterColumnItem>
+                <FooterLink onClick={() => tour.startTour({ replay: true })}>
+                  {t('tour.replay')}
+                </FooterLink>
+              </FooterColumnItem>
+            )}
             <FooterColumnItem>
               <FooterLink onClick={openGetStartedDocs}>
                 {t('footer.link.getStarted')}

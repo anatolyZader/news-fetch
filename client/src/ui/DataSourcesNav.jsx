@@ -67,6 +67,7 @@ export function DataSourcesNav({
         {sources.map((source) => (
           <PrimaryTab
             key={source.id}
+            data-tour={`source-tab-${source.id}`}
             active={!isOnAssessment && activeSourceId === source.id}
             onClick={() => onSelectSource(source.id)}
             sx={(th) => ({
@@ -107,7 +108,7 @@ export function DataSourcesNav({
 
   if (isOnAssessment) {
     return (
-      <Box component="nav" aria-label={t('app.ariaDataSources')} sx={{ width: '100%' }}>
+      <Box component="nav" data-tour="data-sources" aria-label={t('app.ariaDataSources')} sx={{ width: '100%' }}>
         {navBody}
       </Box>
     );
@@ -116,6 +117,7 @@ export function DataSourcesNav({
   return (
     <Stack
       component="nav"
+      data-tour="data-sources"
       aria-label={t('app.ariaDataSources')}
       spacing={3}
       sx={(th) => ({
