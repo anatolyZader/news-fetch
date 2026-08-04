@@ -183,6 +183,7 @@ export async function runPlannerAgent(params) {
         : 'Create investigation plan using epistemic profile and planner context (gaps, media anomalies, OOV).',
     }],
     tools: PLANNER_TOOLS,
+    forceSubmitTool: 'submit_plan',
     budget,
     traceId: parentTraceId ? `${parentTraceId}:planner` : undefined,
     onUsage,

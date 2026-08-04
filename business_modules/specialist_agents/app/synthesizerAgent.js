@@ -232,6 +232,7 @@ export async function runSynthesizerAgent(params) {
       content: 'Produce cross-component synthesis and priority attention themes.',
     }],
     tools: SYNTHESIZER_TOOLS,
+    forceSubmitTool: 'submit_synthesis',
     budget,
     traceId: `${traceId}:synth`,
     onUsage,

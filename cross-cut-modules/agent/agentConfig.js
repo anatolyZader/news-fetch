@@ -10,6 +10,11 @@ export function assessmentAgentEnabled() {
   return process.env.RESILIENCE_ASSESSMENT_AGENT !== '0';
 }
 
+/** Forced-submit rescue round (tool_choice-pinned) when a run ends without its submit_* payload. */
+export function forceSubmitRescueEnabled() {
+  return process.env.AGENT_FORCE_SUBMIT_RESCUE !== '0';
+}
+
 /** @deprecated RESILIENCE_ASSESSMENT_AGENT=0 — use RESILIENCE_ASSESSMENT_FORCE_DETERMINISTIC=1 */
 export function logDeprecatedAssessmentAgentFlag() {
   if (process.env.RESILIENCE_ASSESSMENT_AGENT !== '0') return;

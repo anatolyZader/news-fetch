@@ -57,6 +57,39 @@ describe('runToolLoop', () => {
     assert.ok(result.messages.length >= 3);
   });
 
+  it('forwards toolChoice as tool_choice and omits it when unset', async () => {
+    const requests = [];
+    const capturingClient = {
+      messages: {
+        create: async (request) => {
+          requests.push(request);
+          return {
+            stop_reason: 'tool_use',
+            content: [{ type: 'tool_use', id: 't1', name: 'submit_x', input: {} }],
+            usage: { input_tokens: 1, output_tokens: 1 },
+          };
+        },
+      },
+    };
+
+    const base = {
+      client: capturingClient,
+      model: 'test-model',
+      system: 'sys',
+      messages: [{ role: 'user', content: 'go' }],
+      tools: [{ name: 'submit_x', input_schema: { type: 'object', properties: {} } }],
+      agentKind: 'test',
+      maxRounds: 0,
+      executeTool: async () => 'ok',
+    };
+
+    await runToolLoop({ ...base, toolChoice: { type: 'tool', name: 'submit_x' } });
+    assert.deepEqual(requests[0].tool_choice, { type: 'tool', name: 'submit_x' });
+
+    await runToolLoop(base);
+    assert.equal('tool_choice' in requests[1], false);
+  });
+
   it('calls onToolStart before executeTool with round metadata', async () => {
     const client = fakeClient([
       {

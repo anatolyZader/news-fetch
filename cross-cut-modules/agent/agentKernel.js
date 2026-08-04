@@ -11,7 +11,7 @@ import {
   validateToolInputAgainstInputSchema,
 } from './schemaValidator.js';
 import { getToolsForProfile } from './toolRegistry.js';
-import { compactToolLoopEnabled, chatCompactToolLoopEnabled } from './agentConfig.js';
+import { compactToolLoopEnabled, chatCompactToolLoopEnabled, forceSubmitRescueEnabled } from './agentConfig.js';
 
 function resolveCompactHistory(profile, explicit) {
   if (explicit !== undefined) return explicit;
@@ -63,6 +63,8 @@ export function createAgentKernel(deps) {
    *   onTextDelta?: (text: string) => void,
    *   onUsage?: (payload: object) => void,
    *   budget?: ReturnType<typeof createAgentBudgetGovernor>,
+   *   toolChoice?: { type: string, name?: string } | null,
+   *   forceSubmitTool?: string | null,
    *   runId?: string,
    *   traceId?: string,
    *   inputsForHash?: unknown,
@@ -86,7 +88,7 @@ export function createAgentKernel(deps) {
 
     const submitPayloads = [];
 
-    const loopResult = await llmPort.runToolLoop({
+    const loopOpts = {
       model: opts.model,
       maxTokens: opts.maxTokens ?? 4000,
       maxRounds: opts.maxRounds ?? 5,
@@ -97,6 +99,7 @@ export function createAgentKernel(deps) {
       agentKind,
       abortSignal: opts.abortSignal ?? null,
       retryModelCall: opts.retryModelCall ?? null,
+      toolChoice: opts.toolChoice ?? null,
       parallelToolCalls: opts.parallelToolCalls === true,
       compactHistoryAfterRound: resolveCompactHistory(opts.profile, opts.compactHistoryAfterRound),
       workingMemory: memory,
@@ -128,7 +131,14 @@ export function createAgentKernel(deps) {
         // Submits are always allowed through: tokens are already spent, discarding
         // the result gains nothing and breaks the entire run via fallback templates.
         if (!isSubmit && !budget.canContinue()) {
-          return JSON.stringify({ error: 'budget_exceeded', budget: budget.snapshot() });
+          return JSON.stringify({
+            error: 'budget_exceeded',
+            is_error: true,
+            category: 'budget',
+            retryable: false,
+            guidance: 'Budget exhausted — do not call more read tools; finish with the evidence you already have.',
+            budget: budget.snapshot(),
+          });
         }
 
         const parsed = parseToolInput(input);
@@ -140,14 +150,30 @@ export function createAgentKernel(deps) {
         if (inputSchema) {
           const validation = validateToolInputAgainstInputSchema(parsed, inputSchema);
           if (!validation.valid) {
-            return JSON.stringify({ error: 'validation_failed', tool: name, errors: validation.errors });
+            return JSON.stringify({
+              error: 'validation_failed',
+              is_error: true,
+              category: 'validation',
+              retryable: true,
+              guidance: 'Fix the listed input errors and call the tool again.',
+              tool: name,
+              errors: validation.errors,
+            });
           }
         }
 
         if (isSubmit) {
           const validation = validateSubmitToolPayload(name, parsed);
           if (!validation.valid) {
-            return JSON.stringify({ error: 'validation_failed', errors: validation.errors });
+            return JSON.stringify({
+              error: 'validation_failed',
+              is_error: true,
+              category: 'validation',
+              retryable: true,
+              guidance: 'Fix the listed payload errors and call the submit tool again.',
+              tool: name,
+              errors: validation.errors,
+            });
           }
           submitPayloads.push({ tool: name, payload: parsed });
           memory.set(`submit:${name}`, parsed);
@@ -157,7 +183,49 @@ export function createAgentKernel(deps) {
         memory.set(`tool:${name}:${budget.toolRounds}`, result);
         return result;
       },
-    });
+    };
+
+    let loopResult = await llmPort.runToolLoop(loopOpts);
+
+    // Forced-submit rescue: when the loop ends without the expected submit_*
+    // payload, one extra round with tool_choice pinned to the submit tool is
+    // far cheaper (and better grounded) than the deterministic fallback
+    // templates downstream. Skipped when the budget is already exhausted.
+    const forceSubmitTool = opts.forceSubmitTool ?? null;
+    if (
+      forceSubmitTool
+      && forceSubmitRescueEnabled()
+      && !submitPayloads.some((p) => p.tool === forceSubmitTool)
+      && budget.canContinue()
+    ) {
+      const priorMessages = loopResult.messages?.length ? loopResult.messages : (opts.messages ?? []);
+      const rescueResult = await llmPort.runToolLoop({
+        ...loopOpts,
+        messages: [
+          ...priorMessages,
+          {
+            role: 'user',
+            content:
+              `You have not called ${forceSubmitTool}. Call ${forceSubmitTool} now with your best `
+              + 'evidence-backed result based on the work above. Do not call any other tool.',
+          },
+        ],
+        maxRounds: 0,
+        toolChoice: { type: 'tool', name: forceSubmitTool },
+      });
+      loopResult = {
+        ...loopResult,
+        messages: rescueResult.messages ?? loopResult.messages,
+        stopReason: rescueResult.stopReason ?? loopResult.stopReason,
+        usage: rescueResult.usage ?? loopResult.usage,
+      };
+      traceStore.append(traceId, {
+        agent: agentKind,
+        event: 'submit_rescue',
+        tool: forceSubmitTool,
+        submitted: submitPayloads.some((p) => p.tool === forceSubmitTool),
+      });
+    }
 
     traceStore.append(traceId, {
       agent: agentKind,

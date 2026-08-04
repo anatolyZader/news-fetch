@@ -161,6 +161,10 @@ async function performModelRound(opts, currentMessages, round) {
     system: opts.system,
     messages: currentMessages,
     tools,
+    // Pinned/forced tool selection (e.g. a forced-submit rescue round). With
+    // tool_choice set the model always emits tool_use, so the no-tool-blocks
+    // end condition never fires — callers pair this with maxRounds: 0.
+    ...(opts.toolChoice ? { tool_choice: opts.toolChoice } : {}),
     agentKind,
     callContext: opts.callContext,
   }, { feature: resolvePromptCacheFeature({ ...opts, agentKind }) });
@@ -218,6 +222,7 @@ function applyCompactHistoryMessages({
  *   onToolStart?: (meta: { name: string, round: number, maxRounds: number, input: object }) => void,
  *   retryModelCall?: { retries?: number, waitMs?: (err: Error, attempt: number) => number } | null,
  *   parallelToolCalls?: boolean,
+ *   toolChoice?: { type: string, name?: string } | null,
  *   onToolRound?: (meta: object) => void,
  *   onUsage?: (payload: { label: string, model: string, usage: object }) => void,
  *   agentKind?: string,

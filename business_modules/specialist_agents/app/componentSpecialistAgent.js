@@ -251,6 +251,7 @@ export async function runComponentSpecialist(params) {
     system,
     messages: [{ role: 'user', content: userContent }],
     tools: SPECIALIST_TOOLS,
+    forceSubmitTool: 'submit_component_assessment',
     budget,
     traceId: `${traceId}:${componentId}`,
     onUsage,

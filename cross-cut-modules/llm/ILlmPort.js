@@ -18,7 +18,9 @@
  *   when served through the LLM gateway.
  * @property {(opts: object) => Promise<{ messages: Array<object>, lastAssistantText: string, stopReason: (string|null), usage: (object|null) }>} runToolLoop
  *   Pass-through to the shared tool-use loop with the client pre-bound. Callers
- *   MUST NOT pass `client` — it is supplied by the port.
+ *   MUST NOT pass `client` — it is supplied by the port. Supports `toolChoice`
+ *   (`{type, name?}` → Anthropic `tool_choice`); when pinned the loop can only
+ *   end by round exhaustion, so pair it with `maxRounds: 0`.
  * @property {(string|undefined)} defaultModel
  *   Optional hint stored on the port for callers that opt in. NOT applied
  *   automatically by `createMessage`/`stream`.

@@ -42,6 +42,8 @@ import { attachRichOperatorSurface } from '../../domain/services/operator/operat
 import { shouldUseRichDeterministicPath } from '../../domain/contracts/operatorSurfaceMode.js';
 import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../../cross-cut-modules/geo/israelDistricts.js';
 import { produceAssessment } from './produceAssessment.js';
+import { sampleSpotChecks } from '../../domain/services/signals/spotCheckSampler.js';
+import { createSpotCheckStore } from '../../infrastructure/spotCheckStore.js';
 import { applyOperatorNarrativePipeline } from './operatorNarrativePipeline.js';
 import { attachDecisionBrief } from './attachDecisionBrief.js';
 import { ensureArticleCorpusRagIndexed } from './ensureArticleCorpusRagIndexed.js';
@@ -392,6 +394,24 @@ export async function runPostExtractionAssessmentCore(params) {
 
   const defaultNorthGate = evaluateDefaultNorthGate(scopedSignals);
   assertDefaultNorthGate(defaultNorthGate, scopedSignals);
+
+  // Stratified spot-check sample of the high-confidence path for operator
+  // review (SPOT_CHECK_SAMPLE_SIZE, default 8, 0 disables). Never fatal.
+  try {
+    const sampleSize = Number(process.env.SPOT_CHECK_SAMPLE_SIZE ?? 8);
+    const sample = sampleSpotChecks({
+      signals: scopedSignals,
+      reportDate,
+      scopeId: reportScopeId,
+      sampleSize,
+    });
+    const written = createSpotCheckStore().appendSample(reportDate, reportScopeId, sample);
+    if (written.length) {
+      console.error(`[assess-signals] spot-check queue: ${written.length} signal(s) sampled → data/spot_checks/spot-checks-${reportDate}.jsonl`);
+    }
+  } catch (err) {
+    console.error(`[assess-signals] spot-check sampling skipped (${err.message})`);
+  }
 
   const scopeAttribution = {
     default_district_signal_count: defaultNorthGate.count,
