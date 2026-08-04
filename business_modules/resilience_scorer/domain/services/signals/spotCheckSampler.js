@@ -46,6 +46,42 @@ function primaryComponents(signalType) {
 }
 
 /**
+ * Group signals into source_type × signal_type strata, each internally
+ * shuffled, keyed largest-first (ties alphabetical) so proportional weight
+ * emerges naturally from round-robin picking.
+ */
+function buildShuffledStrata(signals, rand) {
+  const strata = new Map();
+  for (const signal of signals) {
+    const key = `${signal?.source_type ?? 'unknown'}|${signal?.signal_type ?? 'unknown'}`;
+    if (!strata.has(key)) strata.set(key, []);
+    strata.get(key).push(signal);
+  }
+  const orderedKeys = [...strata.keys()].sort(
+    (a, b) => strata.get(b).length - strata.get(a).length || a.localeCompare(b),
+  );
+  for (const key of orderedKeys) shuffle(strata.get(key), rand);
+  return { strata, orderedKeys };
+}
+
+/** Round-robin across strata (≥1 per stratum while the budget lasts). */
+function roundRobinPick(strata, orderedKeys, budget) {
+  const picks = [];
+  for (let cursor = 0; picks.length < budget; cursor++) {
+    let pickedThisPass = false;
+    for (const key of orderedKeys) {
+      if (picks.length >= budget) break;
+      const pool = strata.get(key);
+      if (cursor >= pool.length) continue;
+      picks.push({ strataKey: key, signal: pool[cursor] });
+      pickedThisPass = true;
+    }
+    if (!pickedThisPass) break;
+  }
+  return picks;
+}
+
+/**
  * @param {{
  *   signals: Array<object>,
  *   reportDate: string,
@@ -61,34 +97,8 @@ export function sampleSpotChecks({ signals, reportDate, scopeId, sampleSize = 8 
   }
 
   const rand = mulberry32(seedFrom(reportDate, scopeId));
-
-  const strata = new Map();
-  for (const signal of signals) {
-    const key = `${signal?.source_type ?? 'unknown'}|${signal?.signal_type ?? 'unknown'}`;
-    if (!strata.has(key)) strata.set(key, []);
-    strata.get(key).push(signal);
-  }
-
-  // Largest strata first (ties alphabetical) so proportional weight emerges
-  // naturally from round-robin; shuffle within each stratum for the pick.
-  const orderedKeys = [...strata.keys()].sort(
-    (a, b) => strata.get(b).length - strata.get(a).length || a.localeCompare(b),
-  );
-  for (const key of orderedKeys) shuffle(strata.get(key), rand);
-
-  const picks = [];
-  const budget = Math.min(size, signals.length);
-  for (let cursor = 0; picks.length < budget; cursor++) {
-    let pickedThisPass = false;
-    for (const key of orderedKeys) {
-      if (picks.length >= budget) break;
-      const pool = strata.get(key);
-      if (cursor >= pool.length) continue;
-      picks.push({ strataKey: key, signal: pool[cursor] });
-      pickedThisPass = true;
-    }
-    if (!pickedThisPass) break;
-  }
+  const { strata, orderedKeys } = buildShuffledStrata(signals, rand);
+  const picks = roundRobinPick(strata, orderedKeys, Math.min(size, signals.length));
 
   return picks.map(({ strataKey, signal }) => ({
     report_date: reportDate,
