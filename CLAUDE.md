@@ -28,6 +28,10 @@ Use Opus/thinking only for architecture (~15–20% of sessions). Default to Sonn
 
 Configured in `.claude/settings.json` → `statusLine.command` → `~/.claude/statusline.sh`. Shows model + context % bar (like `/context` at a glance).
 
+## Path-scoped rules
+
+Conventions in `.claude/rules/` load automatically when editing matching paths (chat/resilience navigation, module structure, client rebuild, OpenAPI contract; `token-economy` is always-on). Mirrored from `.cursor/rules/` — edit both together.
+
 ## Memory outside chat
 
 At session start, read **`memory.md`** (repo) and `~/.claude/projects/-home-eventstorm1-news/memory/` (Claude project memory). Do not re-explain rules already there.

@@ -107,6 +107,10 @@ Then look across all components for patterns:
 - Any component with `certainty < 0.25` — does the evidence actually justify even that low certainty, or is the signal count misleadingly inflated?
 - Unregistered signal types (from `meta.unregistered_signal_types`) — what are they actually capturing?
 
+**Step 3b — Spot-check queue (if present)**
+
+Check `business_modules/resilience_scorer/data/spot_checks/spot-checks-<report-date>.jsonl` (the pipeline's stratified sample of the high-confidence extraction path). If the file exists, for each record with `status: "pending"` matching this report's scope: verify the `evidence` text genuinely supports the `signal_type` classification (use the catalog definitions already loaded in Step 2), and give a verdict per record: ✓ correct / ~ marginal / ✗ misclassified, with one line of reasoning. Include the verdicts in the review file under a `## Spot-Check Sample` section. Do NOT edit the JSONL file — it is an append-only queue; verdicts live in the review file.
+
 **Step 4 — Write the review file**
 
 Write to `business_modules/resilience_scorer/analyst/data/reviews/review-<report-slug>.md` (same base name as the report, prefix `review-`). Use this structure:

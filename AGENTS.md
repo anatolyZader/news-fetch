@@ -15,7 +15,7 @@ Lean index + constitution. **Not documentation** — deep docs live in linked fi
 | Assessment agent, scoring | `docs/main_docu_files/RESILIENCE-ENGINE-REFERENCE.md` |
 | Chat + tools | `docs/main_docu_files/LLM-CHAT-AND-AGENTS.md` |
 | LLM budgets | `docs/main_docu_files/COST-CONTROLS.md` |
-| Module layout | `.cursor/skills/create-business-module/SKILL.md` |
+| Module layout | `.claude/rules/module-structure.md` |
 | Architecture overview | `cross-cut-modules/docs/content/pages/architecture/system-overview.md` |
 | Module map | `cross-cut-modules/docs/content/pages/architecture/module-map.md` |
 | Session memory (decisions, dead ends) | `memory.md` |
