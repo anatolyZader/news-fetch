@@ -71,8 +71,8 @@ export function TourIntroCard({ onStart, onSkip }) {
                   {t('tour.intro.title')}
                 </Typography>
                 <Box id={bodyId}>
-                  {t('tour.intro.body').split('\n\n').map((paragraph, i) => (
-                    <Typography key={i} variant="body2" sx={{ mt: 1.25, color: 'text.secondary' }}>
+                  {t('tour.intro.body').split('\n\n').map((paragraph) => (
+                    <Typography key={paragraph} variant="body2" sx={{ mt: 1.25, color: 'text.secondary' }}>
                       {paragraph}
                     </Typography>
                   ))}
