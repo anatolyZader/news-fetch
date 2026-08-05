@@ -241,7 +241,7 @@ function resolveHighlightedEvidenceItems(isRichMode, curatedEvidence, isFiltered
   return curatedEvidence;
 }
 
-function resolveCuratedEvidence(comp) {
+export function resolveCuratedEvidence(comp) {
   if (comp.evidence_operator_structured?.length) return comp.evidence_operator_structured;
   if (comp.evidence_operator?.length) return comp.evidence_operator;
   if (comp.evidence?.length) return comp.evidence;
@@ -494,7 +494,7 @@ EvidenceBySourceList.propTypes = {
   highlightedAnchorId: PropTypes.string,
 };
 
-function ComponentCard({
+export function ComponentCard({
   comp,
   t,
   reportDate,
@@ -503,6 +503,7 @@ function ComponentCard({
   flat = false,
   open,
   evidenceOpen,
+  autoExpandFirstSourceGroup = false,
   onToggle,
   onEvidenceToggle,
   onAskAi = null,
@@ -557,6 +558,13 @@ function ComponentCard({
   const openEvidenceAccordion = useCallback(() => {
     if (!evidenceOpen) onEvidenceToggle(true);
   }, [evidenceOpen, onEvidenceToggle]);
+  // Tour-driven evidence step: collapsed source groups would leave the
+  // spotlighted accordion showing only headers, so open the first group.
+  useEffect(() => {
+    if (!autoExpandFirstSourceGroup || !evidenceOpen) return;
+    const firstKey = groupEvidenceBySourceType(primaryEvidenceItems, sourceSignals)[0]?.key;
+    if (firstKey) openSourceGroup(firstKey);
+  }, [autoExpandFirstSourceGroup, evidenceOpen, primaryEvidenceItems, sourceSignals, openSourceGroup]);
   const openFullPoolAccordion = useCallback(() => {
     setFullPoolOpen(true);
   }, [setFullPoolOpen]);
@@ -1024,6 +1032,7 @@ ComponentCard.propTypes = {
   flat: PropTypes.bool,
   open: PropTypes.bool,
   evidenceOpen: PropTypes.bool,
+  autoExpandFirstSourceGroup: PropTypes.bool,
   onToggle: PropTypes.func.isRequired,
   onEvidenceToggle: PropTypes.func.isRequired,
   onAskAi: PropTypes.func,

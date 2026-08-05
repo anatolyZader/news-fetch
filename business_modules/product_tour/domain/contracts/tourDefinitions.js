@@ -32,6 +32,8 @@ export const TOUR_TIERS = Object.freeze(['desktop', 'mobile']);
  *    accordion so the anchor becomes visible), or absent
  *  - instant: anchor is either visible right now or never will be on this tier
  *    (always-mounted element) — skip immediately instead of waiting
+ *  - extraAnchors: additional data-tour anchors spotlighted alongside the main
+ *    one (extra scrim holes, best-effort — missing/hidden ones are ignored)
  */
 export const MAIN_SHELL_TOUR = Object.freeze({
   id: MAIN_SHELL_TOUR_ID,
@@ -41,8 +43,8 @@ export const MAIN_SHELL_TOUR = Object.freeze({
     { id: 'scope-toggle', anchor: 'scope-toggle', tiers: ['desktop', 'mobile'], requiresTab: 'report', optional: true },
     { id: 'edition-picker', anchor: 'edition-picker', tiers: ['desktop', 'mobile'], requiresTab: 'report', optional: true },
     { id: 'report-contents', anchor: 'report-contents', tiers: ['desktop', 'mobile'], requiresTab: 'report', optional: true },
-    { id: 'component-narrative', anchor: 'component-narrative', tiers: ['desktop', 'mobile'], requiresTab: 'report', optional: true, prepare: 'open-first-component' },
-    { id: 'component-evidence', anchor: 'component-evidence', tiers: ['desktop', 'mobile'], requiresTab: 'report', optional: true, prepare: 'open-first-component-evidence' },
+    { id: 'component-narrative', anchor: 'component-narrative', tiers: ['desktop', 'mobile'], requiresTab: 'report', optional: true, extraAnchors: ['contents-showcase'] },
+    { id: 'component-evidence', anchor: 'component-evidence', tiers: ['desktop', 'mobile'], requiresTab: 'report', optional: true, extraAnchors: ['contents-showcase'] },
     { id: 'data-sources', anchor: 'data-sources', tiers: ['desktop', 'mobile'], requiresTab: null, optional: false },
     { id: 'source-pbo-reports', anchor: 'source-tab-pbo-reports', tiers: ['desktop', 'mobile'], requiresTab: null, optional: true, instant: true },
     { id: 'source-report-bot', anchor: 'source-tab-report-bot', tiers: ['desktop', 'mobile'], requiresTab: null, optional: true, instant: true },
@@ -55,7 +57,7 @@ export const MAIN_SHELL_TOUR = Object.freeze({
     { id: 'write-report', anchor: 'write-report', tiers: ['desktop'], requiresTab: null, optional: true },
     { id: 'send-evidence', anchor: 'send-evidence', tiers: ['desktop'], requiresTab: null, optional: true },
     { id: 'chat', anchor: 'chat-launcher', tiers: ['desktop', 'mobile'], requiresTab: null, optional: true },
-    { id: 'finale', anchor: 'more-menu', tiers: ['desktop', 'mobile'], requiresTab: null, optional: false },
+    { id: 'finale', anchor: 'tour-replay-item', tiers: ['desktop', 'mobile'], requiresTab: null, optional: false },
   ].map(Object.freeze)),
 });
 

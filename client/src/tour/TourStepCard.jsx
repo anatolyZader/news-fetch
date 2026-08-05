@@ -66,7 +66,10 @@ export function TourStepCard({
       modifiers={[
         { name: 'offset', options: { offset: [0, 18] } },
         { name: 'flip', options: { fallbackPlacements: ['top', 'right', 'left'] } },
-        { name: 'preventOverflow', options: { padding: 12 } },
+        // altAxis + no tether: tall anchors (e.g. the showcase panel) leave no
+        // room on any side — clamp the card fully inside the viewport instead
+        // of letting it slide under the bottom edge.
+        { name: 'preventOverflow', options: { padding: 12, altAxis: true, tether: false } },
       ]}
     >
       {({ TransitionProps }) => (

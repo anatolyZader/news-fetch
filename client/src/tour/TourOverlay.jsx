@@ -9,32 +9,54 @@ const SPOTLIGHT_PADDING = 8;
 
 function measureSpotlight(el) {
   const r = el.getBoundingClientRect();
+  // Clip to scroll/overflow ancestors: a target inside a scrollable panel may
+  // extend past the panel's box, and a hole over the clipped part would expose
+  // unrelated page content behind the panel.
+  let { top, left, right, bottom } = r;
+  for (let node = el.parentElement; node; node = node.parentElement) {
+    const style = window.getComputedStyle(node);
+    if (/(auto|scroll|hidden)/.test(style.overflowY + style.overflowX)) {
+      const c = node.getBoundingClientRect();
+      top = Math.max(top, c.top);
+      left = Math.max(left, c.left);
+      right = Math.min(right, c.right);
+      bottom = Math.min(bottom, c.bottom);
+    }
+  }
   return {
-    top: r.top - SPOTLIGHT_PADDING,
-    left: r.left - SPOTLIGHT_PADDING,
-    width: r.width + SPOTLIGHT_PADDING * 2,
-    height: r.height + SPOTLIGHT_PADDING * 2,
+    top: top - SPOTLIGHT_PADDING,
+    left: left - SPOTLIGHT_PADDING,
+    width: Math.max(right - left, 0) + SPOTLIGHT_PADDING * 2,
+    height: Math.max(bottom - top, 0) + SPOTLIGHT_PADDING * 2,
   };
 }
 
 /**
- * Full-viewport click-catcher with a spotlight "hole" over the current target.
- * The hole is a single div whose huge box-shadow paints the scrim everywhere
- * except the target rect — one element, transitions cleanly, RTL-agnostic
- * because it works in physical viewport coordinates.
+ * Full-viewport click-catcher with spotlight "holes" over the current target
+ * and any extra co-highlighted targets. The scrim is an SVG rect masked by
+ * per-target hole rects — geometry animates via CSS, RTL-agnostic because it
+ * works in physical viewport coordinates.
  */
-export function TourOverlay({ targetEl, step, stepNumber, totalSteps, isFirst, isLast, onNext, onBack, onSkip }) {
+export function TourOverlay({ targetEl, extraTargetEls = [], step, stepNumber, totalSteps, isFirst, isLast, onNext, onBack, onSkip }) {
   const theme = useTheme();
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
-  const [rect, setRect] = useState(() => (targetEl ? measureSpotlight(targetEl) : null));
+  const measureAll = useCallback(() => {
+    if (!targetEl?.isConnected) return null;
+    return [
+      measureSpotlight(targetEl),
+      ...extraTargetEls.filter((el) => el?.isConnected).map(measureSpotlight),
+    ];
+  }, [targetEl, extraTargetEls]);
+  const [rects, setRects] = useState(measureAll);
   const frameRef = useRef(0);
 
   const remeasure = useCallback(() => {
     cancelAnimationFrame(frameRef.current);
     frameRef.current = requestAnimationFrame(() => {
-      if (targetEl?.isConnected) setRect(measureSpotlight(targetEl));
+      const next = measureAll();
+      if (next) setRects(next);
     });
-  }, [targetEl]);
+  }, [measureAll]);
 
   useEffect(() => {
     if (!targetEl) return undefined;
@@ -44,6 +66,9 @@ export function TourOverlay({ targetEl, step, stepNumber, totalSteps, isFirst, i
     window.addEventListener('scroll', remeasure, { capture: true, passive: true });
     const resizeObserver = new ResizeObserver(remeasure);
     resizeObserver.observe(targetEl);
+    for (const el of extraTargetEls) {
+      if (el?.isConnected) resizeObserver.observe(el);
+    }
     let mutationTimer = 0;
     const mutationObserver = new MutationObserver(() => {
       clearTimeout(mutationTimer);
@@ -59,9 +84,13 @@ export function TourOverlay({ targetEl, step, stepNumber, totalSteps, isFirst, i
       clearTimeout(mutationTimer);
       cancelAnimationFrame(frameRef.current);
     };
-  }, [targetEl, remeasure]);
+  }, [targetEl, extraTargetEls, remeasure]);
 
-  if (!targetEl || !rect) return null;
+  if (!targetEl || !rects) return null;
+
+  const holeTransition = reducedMotion
+    ? 'none'
+    : 'x 260ms ease, y 260ms ease, width 260ms ease, height 260ms ease';
 
   return createPortal(
     <>
@@ -75,21 +104,26 @@ export function TourOverlay({ targetEl, step, stepNumber, totalSteps, isFirst, i
           overflow: 'hidden',
         }}
       >
-        <div
-          style={{
-            position: 'fixed',
-            top: rect.top,
-            left: rect.left,
-            width: rect.width,
-            height: rect.height,
-            borderRadius: theme.custom.radius.section,
-            boxShadow: `0 0 0 200vmax ${theme.custom.surface.tourScrim}`,
-            pointerEvents: 'none',
-            transition: reducedMotion
-              ? 'none'
-              : 'top 260ms ease, left 260ms ease, width 260ms ease, height 260ms ease',
-          }}
-        />
+        <svg width="100%" height="100%" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+          <defs>
+            <mask id="tour-scrim-mask">
+              <rect width="100%" height="100%" fill="#fff" />
+              {rects.map((r, i) => (
+                <rect
+                  key={i}
+                  x={r.left}
+                  y={r.top}
+                  width={r.width}
+                  height={r.height}
+                  rx={theme.custom.radius.section}
+                  fill="#000"
+                  style={{ transition: holeTransition }}
+                />
+              ))}
+            </mask>
+          </defs>
+          <rect width="100%" height="100%" fill={theme.custom.surface.tourScrim} mask="url(#tour-scrim-mask)" />
+        </svg>
       </div>
       <TourStepCard
         step={step}
@@ -109,6 +143,7 @@ export function TourOverlay({ targetEl, step, stepNumber, totalSteps, isFirst, i
 
 TourOverlay.propTypes = {
   targetEl: PropTypes.object,
+  extraTargetEls: PropTypes.arrayOf(PropTypes.object),
   step: PropTypes.shape({ id: PropTypes.string.isRequired }).isRequired,
   stepNumber: PropTypes.number.isRequired,
   totalSteps: PropTypes.number.isRequired,

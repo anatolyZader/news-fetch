@@ -12,8 +12,9 @@ import {
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { TourContext } from './tourContext.js';
+import { TourIntroCard } from './TourIntroCard.jsx';
 import { TourOverlay } from './TourOverlay.jsx';
-import { waitForAnchor } from './anchors.js';
+import { findVisibleAnchor, waitForAnchor } from './anchors.js';
 import { loadProgress, saveProgress, writeLocalProgress } from './progressStorage.js';
 
 const SCROLL_SETTLE_MS = 380;
@@ -55,7 +56,10 @@ export function TourProvider({ isDesktop, activeTab, setActiveTab, ready, onPrep
     [isDesktop],
   );
 
-  const [tour, setTour] = useState({ running: false, stepIndex: 0, targetEl: null });
+  const [tour, setTour] = useState({ running: false, phase: 'steps', stepIndex: 0, targetEl: null, extraEls: [] });
+  // Step being entered or shown — set before anchor resolution so host UI
+  // (e.g. the showcase panel) can mount the anchor the step is waiting for.
+  const [activeStep, setActiveStep] = useState(null);
 
   // Refs so async step transitions read fresh values without re-binding callbacks
   const stepsRef = useRef(steps);
@@ -84,7 +88,8 @@ export function TourProvider({ isDesktop, activeTab, setActiveTab, ready, onPrep
 
   const stopTour = useCallback((status, stepIndex) => {
     navTokenRef.current += 1;
-    setTour({ running: false, stepIndex: 0, targetEl: null });
+    setTour({ running: false, phase: 'steps', stepIndex: 0, targetEl: null, extraEls: [] });
+    setActiveStep(null);
     persist(status, stepIndex);
   }, [persist]);
 
@@ -94,6 +99,7 @@ export function TourProvider({ isDesktop, activeTab, setActiveTab, ready, onPrep
     const currentSteps = stepsRef.current;
     const result = await findPresentableStep(currentSteps, startIndex, direction, {
       onEnterStep: (step) => {
+        setActiveStep(step);
         if (step.requiresTab && activeTabRef.current !== step.requiresTab) {
           setActiveTab(step.requiresTab);
         }
@@ -103,7 +109,8 @@ export function TourProvider({ isDesktop, activeTab, setActiveTab, ready, onPrep
     });
     if (result.cancelled || result.outOfRange) return;
     if (result.completed) {
-      setTour({ running: false, stepIndex: 0, targetEl: null });
+      setTour({ running: false, phase: 'steps', stepIndex: 0, targetEl: null, extraEls: [] });
+      setActiveStep(null);
       persist('completed', currentSteps.length - 1);
       return;
     }
@@ -112,13 +119,26 @@ export function TourProvider({ isDesktop, activeTab, setActiveTab, ready, onPrep
       setTimeout(resolve, reducedMotionRef.current ? SCROLL_SETTLE_REDUCED_MS : SCROLL_SETTLE_MS);
     });
     if (isCancelled()) return;
-    setTour({ running: true, stepIndex: result.index, targetEl: result.el });
+    const extraEls = (result.step.extraAnchors ?? []).map(findVisibleAnchor).filter(Boolean);
+    setTour({ running: true, phase: 'steps', stepIndex: result.index, targetEl: result.el, extraEls });
     persist('in_progress', result.index);
   }, [persist, setActiveTab]);
 
   const startTour = useCallback(({ resumeAt = 0 } = {}) => {
     startedOnceRef.current = true;
-    goToStep(Math.min(resumeAt, Math.max(stepsRef.current.length - 1, 0)), 1);
+    const clamped = Math.min(resumeAt, Math.max(stepsRef.current.length - 1, 0));
+    if (clamped > 0) {
+      // Mid-tour resume: the user has already seen the framing, go straight in.
+      goToStep(clamped, 1);
+      return;
+    }
+    navTokenRef.current += 1;
+    setTour({ running: true, phase: 'intro', stepIndex: 0, targetEl: null, extraEls: [] });
+    setActiveStep(null);
+  }, [goToStep]);
+
+  const handleIntroStart = useCallback(() => {
+    goToStep(0, 1);
   }, [goToStep]);
 
   // Auto-start once, after the report has settled. The ref is set synchronously
@@ -129,7 +149,12 @@ export function TourProvider({ isDesktop, activeTab, setActiveTab, ready, onPrep
     autoStartAttemptedRef.current = true;
     (async () => {
       const progress = await loadProgress(authRef.current, MAIN_SHELL_TOUR_ID);
-      const decision = shouldAutoStart(progress, MAIN_SHELL_TOUR);
+      // TEMP (intro testing): always offer the intro from the top on every load,
+      // ignoring saved completed/dismissed progress. Revert to:
+      //   const decision = shouldAutoStart(progress, MAIN_SHELL_TOUR);
+      void shouldAutoStart;
+      void progress;
+      const decision = { start: true, resumeAt: 0 };
       if (decision.start && !startedOnceRef.current) {
         writeLocalProgress(MAIN_SHELL_TOUR_ID, {
           tourId: MAIN_SHELL_TOUR_ID,
@@ -169,7 +194,11 @@ export function TourProvider({ isDesktop, activeTab, setActiveTab, ready, onPrep
       if (event.key === 'Escape') {
         event.stopPropagation();
         handleDismiss();
-      } else if (event.key === 'ArrowRight') {
+        return;
+      }
+      // Arrows navigate steps only — during the intro they would desync stepIndex.
+      if (tour.phase === 'intro') return;
+      if (event.key === 'ArrowRight') {
         (isRtl ? handleBack : handleNext)();
       } else if (event.key === 'ArrowLeft') {
         (isRtl ? handleNext : handleBack)();
@@ -177,7 +206,7 @@ export function TourProvider({ isDesktop, activeTab, setActiveTab, ready, onPrep
     };
     window.addEventListener('keydown', onKeyDown, true);
     return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [tour.running, theme.direction, handleNext, handleBack, handleDismiss]);
+  }, [tour.running, tour.phase, theme.direction, handleNext, handleBack, handleDismiss]);
 
   // If the layout tier flips mid-tour (device rotation, window resize across
   // the md breakpoint), the step list changes under us — close without
@@ -186,7 +215,8 @@ export function TourProvider({ isDesktop, activeTab, setActiveTab, ready, onPrep
     if (!tour.running) return undefined;
     const id = setTimeout(() => {
       navTokenRef.current += 1;
-      setTour({ running: false, stepIndex: 0, targetEl: null });
+      setTour({ running: false, phase: 'steps', stepIndex: 0, targetEl: null, extraEls: [] });
+      setActiveStep(null);
     }, 0);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -196,18 +226,24 @@ export function TourProvider({ isDesktop, activeTab, setActiveTab, ready, onPrep
     isRunning: tour.running,
     stepIndex: tour.stepIndex,
     totalSteps: steps.length,
+    activeStepId: activeStep?.id ?? null,
+    currentStepId: tour.running && tour.phase === 'steps' ? (steps[tour.stepIndex]?.id ?? null) : null,
     startTour,
-  }), [tour.running, tour.stepIndex, steps.length, startTour]);
+  }), [tour.running, tour.phase, tour.stepIndex, steps, activeStep, startTour]);
 
-  const currentStep = tour.running ? steps[tour.stepIndex] : null;
+  const currentStep = tour.running && tour.phase === 'steps' ? steps[tour.stepIndex] : null;
 
   return (
     <TourContext.Provider value={contextValue}>
       {children}
+      {tour.running && tour.phase === 'intro' ? (
+        <TourIntroCard onStart={handleIntroStart} onSkip={handleDismiss} />
+      ) : null}
       {currentStep ? (
         <>
           <TourOverlay
             targetEl={tour.targetEl}
+            extraTargetEls={tour.extraEls}
             step={currentStep}
             stepNumber={tour.stepIndex + 1}
             totalSteps={steps.length}

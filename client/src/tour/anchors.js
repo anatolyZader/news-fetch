@@ -6,7 +6,7 @@
 import { anchorSelector } from '../../../business_modules/product_tour/domain/contracts/index.js';
 
 export function isElementVisible(el) {
-  if (!el || !el.isConnected) return false;
+  if (!el?.isConnected) return false;
   const rect = el.getBoundingClientRect();
   if (rect.width === 0 && rect.height === 0) return false;
   const style = window.getComputedStyle(el);
@@ -15,14 +15,13 @@ export function isElementVisible(el) {
 
 /**
  * Desktop and mobile variants of the same concept share one anchor value;
- * pick whichever is actually rendered and visible.
+ * pick whichever is actually rendered and visible. Anchors inside a
+ * [data-tour-priority] container (e.g. the tour's showcase panel) win over
+ * identical anchors in the page behind it.
  */
 export function findVisibleAnchor(anchor) {
-  const nodes = document.querySelectorAll(anchorSelector(anchor));
-  for (const el of nodes) {
-    if (isElementVisible(el)) return el;
-  }
-  return null;
+  const visible = [...document.querySelectorAll(anchorSelector(anchor))].filter(isElementVisible);
+  return visible.find((el) => el.closest('[data-tour-priority]')) ?? visible[0] ?? null;
 }
 
 /**

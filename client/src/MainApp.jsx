@@ -19,7 +19,10 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useTodayReport, useReportEditions } from './hooks/useAnalysis.js';
 import { TourProvider } from './tour/TourProvider.jsx';
+import { TourShowcasePanel } from './tour/TourShowcasePanel.jsx';
+import { TOUR_SHOWCASE_COMPONENT_ID } from './tour/showcaseFixture.js';
 import { useTourOptional } from './tour/tourContext.js';
+import { findVisibleAnchor } from './tour/anchors.js';
 import { usePanelPopups } from './hooks/usePanelPopups.js';
 import { useDisplayCapabilities } from './hooks/useDisplayCapabilities.js';
 import { useTranslatedReport } from './hooks/useTranslatedReport.js';
@@ -383,12 +386,22 @@ function HeaderMoreMenu({
   t,
 }) {
   const tour = useTourOptional();
+  // Tour finale spotlights the replay item inside this menu: open the menu
+  // ourselves (anchored to the visible ⋮ button) while that step is active.
+  const finaleActive = tour?.activeStepId === 'finale';
+  const [tourAnchorEl, setTourAnchorEl] = useState(null);
+  useEffect(() => {
+    setTourAnchorEl(finaleActive ? findVisibleAnchor('more-menu') : null);
+  }, [finaleActive]);
+  const anchorEl = moreMenuAnchor ?? tourAnchorEl;
   return (
     <Menu
       id="header-more-menu"
-      anchorEl={moreMenuAnchor}
-      open={Boolean(moreMenuAnchor)}
+      anchorEl={anchorEl}
+      open={Boolean(anchorEl)}
       onClose={closeMoreMenu}
+      autoFocus={!tourAnchorEl}
+      disableEnforceFocus={Boolean(tourAnchorEl)}
       slotProps={{ list: { 'aria-labelledby': 'header-more-button' } }}
       anchorOrigin={isCompact ? { vertical: 'bottom', horizontal: 'left' } : { vertical: 'bottom', horizontal: 'right' }}
       transformOrigin={isCompact ? { vertical: 'top', horizontal: 'left' } : { vertical: 'top', horizontal: 'right' }}
@@ -431,6 +444,8 @@ function HeaderMoreMenu({
       </MenuItem>
       {tour && (
         <MenuItem
+          data-tour="tour-replay-item"
+          selected={finaleActive}
           onClick={() => {
             closeMoreMenu();
             tour.startTour({ replay: true });
@@ -990,27 +1005,14 @@ function AppShell() {
     setScopeSwitchNotice(null);
   }, []);
 
-  // Tour steps that spotlight inside a component card ask us to open it first.
-  const firstReportCompId = displayReport?.components?.[0]?.component_id ?? null;
-  const prepareTourStep = useCallback((step) => {
-    if (!firstReportCompId) return;
-    if (step.prepare === 'open-first-component') {
-      setOpenReportCompId(firstReportCompId);
-      setOpenReportEvidenceCompId(null);
-    } else if (step.prepare === 'open-first-component-evidence') {
-      setOpenReportCompId(firstReportCompId);
-      setOpenReportEvidenceCompId(firstReportCompId);
-    }
-  }, [firstReportCompId]);
-
   return (
     <TourProvider
       isDesktop={isDesktop}
       activeTab={activeTab}
       setActiveTab={setActiveTab}
       ready={Boolean(initialReportLoadDone)}
-      onPrepareStep={prepareTourStep}
     >
+    <TourShowcasePanel />
     <AppLayout
       header={header}
       footer={(isCompact && activeTab === 'report') ? null : (
@@ -1132,6 +1134,7 @@ function AppShell() {
                         grouped
                         isLast={index === reportContents.length - 1}
                         active={openReportCompId === c.id}
+                        data-tour={c.id === TOUR_SHOWCASE_COMPONENT_ID ? 'contents-showcase' : undefined}
                         onClick={() => jumpToReportComponent(c.id)}
                       >
                         {c.label}
