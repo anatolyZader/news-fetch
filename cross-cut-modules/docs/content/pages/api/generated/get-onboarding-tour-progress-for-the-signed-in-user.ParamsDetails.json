@@ -1,0 +1,1 @@
+{"parameters":[{"name":"tourId","in":"query","required":true,"schema":{"type":"string","enum":["main-shell"]}}]}
