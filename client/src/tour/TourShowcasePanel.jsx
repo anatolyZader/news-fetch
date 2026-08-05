@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -32,10 +32,14 @@ export function TourShowcasePanel() {
   if (SHOWCASE_STEP_IDS.has(pendingId)) stepId = pendingId;
   else if (SHOWCASE_STEP_IDS.has(currentId)) stepId = currentId;
 
+  // Render-adjustment instead of an effect: reset the accordion whenever the
+  // step changes, while still letting the user toggle it within a step.
   const [evidenceOpen, setEvidenceOpen] = useState(false);
-  useEffect(() => {
+  const [lastStepId, setLastStepId] = useState(null);
+  if (stepId !== lastStepId) {
+    setLastStepId(stepId);
     if (stepId) setEvidenceOpen(stepId === 'component-evidence');
-  }, [stepId]);
+  }
 
   if (!stepId) return null;
 

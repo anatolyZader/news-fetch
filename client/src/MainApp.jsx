@@ -389,10 +389,10 @@ function HeaderMoreMenu({
   // Tour finale spotlights the replay item inside this menu: open the menu
   // ourselves (anchored to the visible ⋮ button) while that step is active.
   const finaleActive = tour?.activeStepId === 'finale';
-  const [tourAnchorEl, setTourAnchorEl] = useState(null);
-  useEffect(() => {
-    setTourAnchorEl(finaleActive ? findVisibleAnchor('more-menu') : null);
-  }, [finaleActive]);
+  const tourAnchorEl = useMemo(
+    () => (finaleActive ? findVisibleAnchor('more-menu') : null),
+    [finaleActive],
+  );
   const anchorEl = moreMenuAnchor ?? tourAnchorEl;
   return (
     <Menu

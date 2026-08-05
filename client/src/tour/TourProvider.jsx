@@ -150,11 +150,9 @@ export function TourProvider({ isDesktop, activeTab, setActiveTab, ready, onPrep
     (async () => {
       const progress = await loadProgress(authRef.current, MAIN_SHELL_TOUR_ID);
       // TEMP (intro testing): always offer the intro from the top on every load,
-      // ignoring saved completed/dismissed progress. Revert to:
-      //   const decision = shouldAutoStart(progress, MAIN_SHELL_TOUR);
-      void shouldAutoStart;
-      void progress;
-      const decision = { start: true, resumeAt: 0 };
+      // ignoring saved completed/dismissed progress. Revert by dropping the
+      // start/resumeAt overrides below.
+      const decision = { ...shouldAutoStart(progress, MAIN_SHELL_TOUR), start: true, resumeAt: 0 };
       if (decision.start && !startedOnceRef.current) {
         writeLocalProgress(MAIN_SHELL_TOUR_ID, {
           tourId: MAIN_SHELL_TOUR_ID,
