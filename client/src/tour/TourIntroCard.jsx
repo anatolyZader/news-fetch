@@ -79,11 +79,11 @@ export function TourIntroCard({ onStart, onSkip }) {
                 </Box>
 
                 <Box sx={{ mt: 2.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Button size="small" color="inherit" onClick={onSkip} sx={{ color: 'text.secondary' }}>
+                  <Button size="small" color="inherit" disableFocusRipple onClick={onSkip} sx={{ color: 'text.secondary' }}>
                     {t('tour.skip')}
                   </Button>
                   <Box sx={{ flexGrow: 1 }} />
-                  <Button size="small" variant="contained" onClick={onStart} autoFocus>
+                  <Button size="small" variant="contained" disableFocusRipple onClick={onStart} autoFocus>
                     {t('tour.intro.start')}
                   </Button>
                 </Box>

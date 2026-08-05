@@ -136,16 +136,16 @@ export function TourStepCard({
                 </Box>
 
                 <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Button size="small" color="inherit" onClick={onSkip} sx={{ color: 'text.secondary' }}>
+                  <Button size="small" color="inherit" disableFocusRipple onClick={onSkip} sx={{ color: 'text.secondary' }}>
                     {t('tour.skip')}
                   </Button>
                   <Box sx={{ flexGrow: 1 }} />
                   {!isFirst && (
-                    <Button size="small" variant="text" onClick={onBack}>
+                    <Button size="small" variant="text" disableFocusRipple onClick={onBack}>
                       {t('tour.back')}
                     </Button>
                   )}
-                  <Button size="small" variant="contained" onClick={onNext} autoFocus>
+                  <Button size="small" variant="contained" disableFocusRipple onClick={onNext} autoFocus>
                     {isLast ? t('tour.done') : t('tour.next')}
                   </Button>
                 </Box>
