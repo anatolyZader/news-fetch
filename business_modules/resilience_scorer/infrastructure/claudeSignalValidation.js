@@ -106,6 +106,42 @@ function isValidSignalCandidate(s, sourceLabel) {
   return true;
 }
 
+const HEBREW_CHAR = /[֐-׿]/g;
+
+/** Share of non-whitespace characters that are Hebrew (0 when the text is empty). */
+function hebrewShare(text) {
+  const compact = String(text ?? '').replaceAll(/\s/g, '');
+  if (!compact.length) return 0;
+  return (compact.match(HEBREW_CHAR) ?? []).length / compact.length;
+}
+
+/** Body is Hebrew enough that verbatim evidence from it must also read as Hebrew. */
+const HEBREW_BODY_FLOOR = 0.3;
+/** Below this, evidence is a translation or paraphrase, not a span of the source. */
+const HEBREW_EVIDENCE_FLOOR = 0.2;
+
+/**
+ * Flag evidence that cannot possibly match its own source text.
+ *
+ * Verification is character/token containment against the article body, so evidence
+ * translated out of Hebrew scores ~zero and the signal is demoted below the grounded
+ * tier. That failure is indistinguishable from "the claim was not supported", which
+ * is how an entire domain group's signals once disappeared from a report without
+ * anything reporting that they had. Flag rather than drop: the observation may well
+ * be true, and the demoted-evidence surface exists to show it.
+ *
+ * @param {object} s
+ * @param {object} art
+ * @returns {boolean} true when the signal's evidence is not in the body's script
+ */
+function flagEvidenceLanguageMismatch(s, art) {
+  const body = art?.body ?? '';
+  if (hebrewShare(body) < HEBREW_BODY_FLOOR) return false;
+  if (hebrewShare(s.evidence) >= HEBREW_EVIDENCE_FLOOR) return false;
+  s.evidence_language_mismatch = true;
+  return true;
+}
+
 function enrichSignalFromArticle(s, art, contentKind) {
   s.article_source = art.source;
   s.temporal_weight = art.temporal_weight ?? 1;
@@ -123,10 +159,20 @@ function enrichSignalFromArticle(s, art, contentKind) {
 export function validateSignalsFromCall(signals, articles, sourceLabel, contentKind = 'news') {
   const valid = signals.filter((s) => isValidSignalCandidate(s, sourceLabel));
 
+  let languageMismatches = 0;
   for (const s of valid) {
     const art = articles[s.article_index - 1];
-    if (art) enrichSignalFromArticle(s, art, contentKind);
+    if (art) {
+      enrichSignalFromArticle(s, art, contentKind);
+      if (flagEvidenceLanguageMismatch(s, art)) languageMismatches += 1;
+    }
     normalizeEvidenceSpan(s, articles, sourceLabel);
+  }
+
+  if (languageMismatches > 0) {
+    console.error(
+      `  ⚠ [${sourceLabel}] ${languageMismatches}/${valid.length} signals carry evidence that is not in the source language — these cannot be verified against the source text and will be demoted below the grounded tier. Check the extraction prompt for a translation instruction.`,
+    );
   }
 
   return valid;

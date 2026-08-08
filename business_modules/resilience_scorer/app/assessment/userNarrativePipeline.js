@@ -614,10 +614,17 @@ export async function applyUserNarrativePipeline(params) {
     }
   } catch (err) {
     console.error(`[user-narrative] Pipeline failed (${err.message}); keeping score shell`);
-    if (isTokenOverflowError(err)) {
-      assessment.narrative_pipeline_degraded = true;
-      assessment.narrative_pipeline_degrade_reasons = ['narrative_context_overflow'];
-    }
+    // Fail-open is deliberate — the score shell still ships. But a report that
+    // lost its entire narrative layer used to say so only on stderr: north
+    // 2026-04-01 shipped 284 scoped signals, a 424-item investigation pool and
+    // zero claims while still serializing `assessment_degraded: null`. Only
+    // token overflow set the flag; every other throw was silent.
+    assessment.narrative_pipeline_degraded = true;
+    assessment.narrative_pipeline_degrade_reasons = [
+      ...(assessment.narrative_pipeline_degrade_reasons ?? []),
+      isTokenOverflowError(err) ? 'narrative_context_overflow' : 'narrative_pipeline_error',
+    ];
+    assessment.narrative_pipeline_error = { message: err.message };
   }
 
   return finalizeUserNarrativeSurface(assessment);

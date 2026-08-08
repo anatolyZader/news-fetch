@@ -15,7 +15,10 @@ import {
   isNarrativeGroundingBlockEnabled,
   narrativeGroundingMinScore,
 } from '../domain/services/narrativeGrounding/index.js';
-import { topContributorsFromScored } from '../domain/services/user/topContributors.js';
+import {
+  demotedEvidenceFromScored,
+  topContributorsFromScored,
+} from '../domain/services/user/topContributors.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamMessageWithRetry } from './llmStreamCall.js';
 import { extractNarrativeFacts } from './narrativeFactsExtract.js';
@@ -467,6 +470,7 @@ function buildAssessmentComponent(def, scored, narr, groundingMeta) {
     presence_gate: scored.presence_gate ?? null,
     user_status: scored.user_status ?? null,
     top_contributors: topContributorsFromScored(scored, def.id),
+    demoted_evidence: demotedEvidenceFromScored(scored, def.id),
     manifestations_evidenced: narr.manifestations_evidenced ?? [],
     manifestations_absent: narr.manifestations_absent ?? [],
     evidence: narr.evidence ?? [],

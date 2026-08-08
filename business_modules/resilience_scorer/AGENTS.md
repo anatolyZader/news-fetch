@@ -43,7 +43,7 @@ Read this before any file under `business_modules/resilience_scorer/` or `specia
 ## Neighbors (via composition, not direct import)
 
 - `cross-cut-modules/retrieval/`, `business_modules/specialist_agents/domain/services/`
-- Taxonomy: `cross-cut-modules/resilience-contracts/`
+- Taxonomy: `domain/contracts/signalCatalog.js` + `domain/services/signals/routing/signalRouting.js` (the old `cross-cut-modules/resilience-contracts/` path no longer exists)
 
 ## Terminology
 

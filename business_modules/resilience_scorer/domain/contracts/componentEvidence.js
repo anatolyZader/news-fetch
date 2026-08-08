@@ -225,7 +225,24 @@ function deriveMirrorContext(componentId, primaryItems, poolTypeCounts) {
 }
 
 // --- Component assembly ---
-/** Compact signal row for report/agent payloads (drops bulky fields). */
+/**
+ * Compact signal row for report/agent payloads (drops bulky fields).
+ *
+ * `evidence_type`, `temporal_weight` and `confidence` are carried because
+ * `contributorRankKey` reads them: when they were dropped here every candidate
+ * tied on the rank key and the stable sort degenerated to input (article) order.
+ * `grounding_reason` is carried so the demoted-evidence surface can distinguish
+ * "unverifiable against source text" from "verification failed".
+ *
+ * `article_url` and `article_index` are carried because `buildRefKey` walks
+ * article_url → source_file+article_index → article_index → source_type. Without
+ * them every slim signal in a component fell through to `<type>@src:pbo`, so the
+ * ref registry collapsed hundreds of distinct signals onto a handful of keys and
+ * later writes overwrote earlier ones.
+ *
+ * `confidence` reads the extractor's own field, never `extraction_confidence` —
+ * the latter is defaulted to a constant and would reintroduce the tie it fixes.
+ */
 function slimSignal(it, index) {
   const s = it.signal;
   return {
@@ -234,10 +251,17 @@ function slimSignal(it, index) {
     polarity: it.polarity,
     routing_role: it.role ?? 'primary',
     construct_role: it.construct_role ?? null,
-    intensity: s.intensity ?? 'moderate',
+    intensity: s.intensity ?? null,
     source_type: s.source_type ?? null,
     article_source: s.article_source ?? null,
+    article_url: s.article_url ?? null,
+    article_index: s.article_index ?? null,
+    scope_level: s.scope_level ?? null,
     grounding_tier: s.grounding_tier ?? null,
+    grounding_reason: s.grounding_reason ?? null,
+    evidence_type: s.evidence_type ?? null,
+    temporal_weight: s.temporal_weight ?? null,
+    confidence: typeof s.confidence === 'number' ? s.confidence : null,
     evidence_snippet: String(s.evidence ?? '').slice(0, 300) || null,
   };
 }

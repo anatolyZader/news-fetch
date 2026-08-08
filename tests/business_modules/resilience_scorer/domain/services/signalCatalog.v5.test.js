@@ -100,9 +100,9 @@ const V5_NEW_TYPES = [
 ];
 
 describe('signalCatalog v6', () => {
-  it('has catalog version v8 and ~165 types', () => {
-    assert.equal(CATALOG_VERSION, 'v8');
-    assert.ok(SIGNAL_TYPES.length >= 165, `expected >=165 types, got ${SIGNAL_TYPES.length}`);
+  it('has catalog version v9 and ~168 types', () => {
+    assert.equal(CATALOG_VERSION, 'v9');
+    assert.ok(SIGNAL_TYPES.length >= 168, `expected >=168 types, got ${SIGNAL_TYPES.length}`);
   });
 
   it('includes all v6 new signal types with routing', () => {
@@ -357,5 +357,42 @@ describe('signalCatalog v8', () => {
     // Abandonment perception is a direct leadership-trust observation.
     assert.equal(getRoutingRole('institutional_abandonment_perception', 'leadership'), 'primary');
     assert.deepEqual(SIGNAL_TO_COMPONENTS.institutional_abandonment_perception.leadership, { polarity: '-', role: 'primary' });
+  });
+
+  it('v9 epoch: wellbeing provision/uptake/mapping are three distinct types', () => {
+    const byType = Object.fromEntries(SIGNAL_CATALOG.map((e) => [e.type, e]));
+
+    // Mapping is the only one allowed to speak for wellbeing_at_risk, and only
+    // because it is an institutional_state — the component's own guiding
+    // questions ask for identification and monitoring mechanisms.
+    assert.equal(byType.vulnerable_population_mapping.construct_role, 'institutional_state');
+    assert.deepEqual(
+      SIGNAL_TO_COMPONENTS.vulnerable_population_mapping.wellbeing_at_risk,
+      { polarity: '+', role: 'primary' },
+    );
+
+    // The v7 rule still binds for provision and uptake: neither may claim wellbeing.
+    assert.equal(SIGNAL_TO_COMPONENTS.wellbeing_support_provided.wellbeing_at_risk, undefined);
+    assert.equal(SIGNAL_TO_COMPONENTS.wellbeing_support_accessed.wellbeing_at_risk, undefined);
+
+    // The split must not cost community_capital any evidence.
+    assert.deepEqual(
+      SIGNAL_TO_COMPONENTS.wellbeing_support_provided.community_capital,
+      SIGNAL_TO_COMPONENTS.wellbeing_support_accessed.community_capital,
+    );
+  });
+
+  it('v9 epoch: othering has its own type and does not overlap conflict', () => {
+    const byType = Object.fromEntries(SIGNAL_CATALOG.map((e) => [e.type, e]));
+
+    assert.deepEqual(
+      SIGNAL_TO_COMPONENTS.out_group_blaming.belonging_solidarity,
+      { polarity: '-', role: 'primary' },
+    );
+    // No mirror: the positive side is already covered by bridging_capital_demonstrated
+    // and friends, and a twin created only to satisfy reciprocity would be dead weight.
+    assert.equal(byType.out_group_blaming.mirror, undefined);
+    // conflict_or_tension must stop advertising scapegoating, or the two compete.
+    assert.ok(!/scapegoat/i.test(byType.conflict_or_tension.label));
   });
 });

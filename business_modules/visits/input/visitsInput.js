@@ -23,6 +23,7 @@ import { createRetrievalService } from '../../../cross-cut-modules/retrieval/cre
 import { articlesToArchiveItems } from '../../../db/source_archive/articlesToArchiveItems.js';
 import { loadMarkdownArticlesFromFile } from '../../../db/source_archive/markdownArticles.js';
 import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
+import { canonicalizeTeamName } from '../index.js';
 
 const args = process.argv.slice(2);
 const getArg = (flag) => { const idx = args.indexOf(flag); return idx >= 0 ? args[idx + 1] : null; };
@@ -98,7 +99,7 @@ for (const row of rows) {
 
   const regionSuffix = region ? ` — ${region}` : '';
   const title = `${municipality}${regionSuffix}`;
-  const source = team || 'field-team';
+  const source = canonicalizeTeamName(team) ?? 'field-team';
   const bodyParts = [];
   if (stakeholders) bodyParts.push(`גורמים שנפגשו: ${stakeholders}`);
   bodyParts.push(analysis);

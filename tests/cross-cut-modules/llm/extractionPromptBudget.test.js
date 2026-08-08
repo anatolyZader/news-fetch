@@ -14,11 +14,21 @@ import {
 } from '../../../business_modules/resilience_scorer/domain/services/signals/routing/signalCatalogPrompt.js';
 
 describe('extractionPromptBudget', () => {
-  it('uses extract-v4 prompt version (invalidates extraction cache)', () => {
+  it('uses extract-v5 prompt version (invalidates extraction cache)', () => {
     // The per-article extraction cache keys on this value, so a prompt edit
     // without a bump is served from cache and silently never runs.
     // v4 added the adversative-split instruction to the field-report prefix.
-    assert.equal(EXTRACT_PROMPT_VERSION, 'extract-v4');
+    // v5 requires evidence to be verbatim in the source language.
+    assert.equal(EXTRACT_PROMPT_VERSION, 'extract-v5');
+  });
+
+  it('requires evidence to be a verbatim source-language quote', () => {
+    // Evidence is verified by matching it against the source body. Translated
+    // evidence scores ~zero and the signal is demoted below the grounded tier —
+    // silently, and in bulk, when a whole extraction pass translates.
+    const stable = buildCoreExtractionStablePrefix(formatDisambiguationBlock);
+    assert.match(stable, /verbatim\s+source-language quote/);
+    assert.match(stable, /no translation/);
   });
 
   it('asks for a locality output field for geo-scope resolution', () => {

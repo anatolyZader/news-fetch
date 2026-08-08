@@ -244,6 +244,39 @@ describe('userNarrativePipeline', () => {
     assert.equal(assessment.narrative_pipeline_mode, 'agent');
   });
 
+  it('records a non-overflow pipeline failure on the assessment', async (t) => {
+    // Regression: only token overflow used to set the flag, so a caught JSON
+    // parse error shipped a claim-free report reading `assessment_degraded: null`.
+    // Mock setTimeout so the LLM retry backoff (5s + 10s) does not run in real time.
+    t.mock.timers.enable({ apis: ['setTimeout'] });
+    const assessment = {
+      components: [{ component_id: 'narrative', narrative: 'Score shell prose.' }],
+    };
+
+    const pipelinePromise = applyUserNarrativePipeline({
+      assessment,
+      narrativeScopeSignals: fixtures.scored_components.narrative.signals,
+      reportDate: '2026-04-01',
+      llmPort: {
+        stream: async () => { throw new Error('Unexpected character ":" at position 13'); },
+      },
+    });
+
+    let settled = false;
+    pipelinePromise.then(() => { settled = true; }, () => { settled = true; });
+    while (!settled) {
+      await new Promise((resolve) => setImmediate(resolve));
+      t.mock.timers.tick(90000);
+    }
+    await pipelinePromise;
+
+    assert.equal(assessment.narrative_pipeline_degraded, true);
+    assert.ok(assessment.narrative_pipeline_degrade_reasons.includes('narrative_pipeline_error'));
+    assert.match(assessment.narrative_pipeline_error.message, /position 13/);
+    // Fail-open is deliberate: the score shell still ships.
+    assert.equal(assessment.components[0].narrative, 'Score shell prose.');
+  });
+
   it('runs end-to-end with mocked LLM and sets user fields', async () => {
     const factsOutput = {
       components: [{

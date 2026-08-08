@@ -191,6 +191,16 @@ export {
   resolveClaimRef,
 } from './domain/services/narrative/claimRefNamespace.js';
 
+// --- Persisted report integrity ---
+export {
+  REPORT_KEY_ALIAS_RULES,
+  hasLegacyReportKeys,
+  canonicalReportKey,
+  applyReportKeyAliases,
+  parseReportWithAliases,
+} from './domain/contracts/reportKeyAliases.js';
+export { rewritePersistedReport } from './app/reports/rewritePersistedReport.js';
+
 // --- Cross-report critique (post-hoc user QA) ---
 export {
   CLAIM_WEAKNESS_KINDS,

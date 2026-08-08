@@ -615,7 +615,7 @@ function addSocialQuarantineAttentionItems(push, item, socialQuarantine) {
 }
 
 /** Below this signal count an empty assessment is thin input, not a failure. */
-const EMPTY_ASSESSMENT_SIGNAL_FLOOR = 50;
+export const EMPTY_ASSESSMENT_SIGNAL_FLOOR = 50;
 
 /**
  * A report that produced no claims at all from a full signal bundle.

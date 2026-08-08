@@ -19,8 +19,12 @@ import { promptCacheEnabledForFeature } from '../../../../cross-cut-modules/llm/
  * prompt edit MUST bump this — otherwise a re-extraction is served from cache
  * and the new instruction silently never runs.
  * v4: field reports must emit both halves of adversative answers.
+ * v5: evidence must be verbatim in the source language, with no place-name prefix —
+ *     translated evidence cannot be matched against the source and was silently
+ *     demoted below the grounded tier (one multipass domain group lost ~all of its
+ *     signals this way).
  */
-export const EXTRACT_PROMPT_VERSION = 'extract-v4';
+export const EXTRACT_PROMPT_VERSION = 'extract-v5';
 
 /** Stable prompt id for telemetry and cache keys. */
 export const EXTRACT_PROMPT_ID = 'signal-extraction';
@@ -107,7 +111,8 @@ export function buildCoreExtractionStablePrefix(formatDisambiguationBlock) {
     `general political punditry without civilian emergency behavior\n` +
     `- EXCLUDE: journalist mood without observable civilian facts\n` +
     `- fear_expression/calm_confidence require named person (direct_quote_named_person)\n\n` +
-    `OUTPUT FIELDS: article_index, signal_type, evidence_type, evidence (verbatim quote), ` +
+    `OUTPUT FIELDS: article_index, signal_type, evidence_type, evidence (verbatim ` +
+    `source-language quote, no translation or place prefix), ` +
     `scope_level, confidence (0-1), locality. Return [] if none.\n` +
     `- locality: the Israeli town/city/community/region where the described civilian behavior ` +
     `actually occurs (Hebrew or English, as written in the text). Set null when the signal is ` +

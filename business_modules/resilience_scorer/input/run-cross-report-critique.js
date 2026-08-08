@@ -6,6 +6,7 @@
  *   node business_modules/resilience_scorer/input/run-cross-report-critique.js
  *   node business_modules/resilience_scorer/input/run-cross-report-critique.js --scope north --limit 6
  *   node business_modules/resilience_scorer/input/run-cross-report-critique.js --min-recurrence 3 --json
+ *   node business_modules/resilience_scorer/input/run-cross-report-critique.js --produced-after 2026-07-24
  *
  * Read-only over reports; writes one artifact under data/critiques/.
  */
@@ -24,6 +25,8 @@ function numArg(flag, fallback) {
 
 const scope = getArg(process.argv, '--scope') ?? undefined;
 const limit = numArg('--limit', 8);
+/** Narrow to one build epoch when `render_epoch_spread` fires. */
+const producedAfter = getArg(process.argv, '--produced-after') ?? undefined;
 const thresholds = {
   ...CRITIQUE_DEFAULTS,
   minRecurrence: numArg('--min-recurrence', CRITIQUE_DEFAULTS.minRecurrence),
@@ -33,7 +36,12 @@ const thresholds = {
 };
 
 try {
-  const { artifactPath, payload } = buildAndWriteCrossReportCritique({ scope, limit, thresholds });
+  const { artifactPath, payload } = buildAndWriteCrossReportCritique({
+    scope,
+    limit,
+    producedAfter,
+    thresholds,
+  });
 
   if (hasFlag(process.argv, '--json')) {
     console.log(JSON.stringify(payload, null, 2));
@@ -42,10 +50,14 @@ try {
 
   const { totals, date_range: range } = payload;
   console.log(`Cross-report critique — scope=${payload.scope} ${range.from} → ${range.to}`);
-  console.log(`  reports=${totals.reports} (${totals.reports_without_claims} with no claims) `
-    + `claims=${totals.claims}`);
+  const emptyBreakdown = totals.reports_without_claims > 0
+    ? ` (${totals.reports_without_claims} with no claims: ${totals.reports_empty_failed} failed, `
+      + `${totals.reports_empty_thin} thin)`
+    : '';
+  console.log(`  reports=${totals.reports}${emptyBreakdown} claims=${totals.claims}`);
   console.log(`  unsupported=${totals.unsupported_claims} thin_only=${totals.thin_only_claims} `
-    + `clean=${totals.clean_claims} recurring_findings=${totals.recurring_findings}`);
+    + `structural_only=${totals.structural_only_claims} clean=${totals.clean_claims} `
+    + `recurring_findings=${totals.recurring_findings}`);
   console.log(`  artifact: ${artifactPath}\n`);
 
   console.log('Top recurring weak claims:');
@@ -75,6 +87,13 @@ try {
   console.log('\nWeakness frequency (claim-level):');
   for (const w of payload.weakness_frequency) {
     console.log(`  ${w.key.padEnd(26)} ${w.count}/${totals.claims} claims`);
+  }
+
+  if (payload.structural_frequency?.length > 0) {
+    console.log('\nStructural (one-source-by-nature material — recorded, not counted as weakness):');
+    for (const w of payload.structural_frequency) {
+      console.log(`  ${w.key.padEnd(26)} ${w.count}/${totals.claims} claims`);
+    }
   }
 } catch (err) {
   console.error('cross-report-critique failed:', err?.message ?? err);

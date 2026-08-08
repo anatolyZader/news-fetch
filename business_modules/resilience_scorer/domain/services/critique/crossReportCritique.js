@@ -24,6 +24,7 @@ import {
   canonicalClaimRef,
   CLAIM_REF_NAMESPACES,
 } from '../narrative/claimRefNamespace.js';
+import { EMPTY_ASSESSMENT_SIGNAL_FLOOR } from '../user/attentionItems.js';
 
 /** Closed vocabulary of per-claim weaknesses. Ordered roughly by severity. */
 export const CLAIM_WEAKNESS_KINDS = Object.freeze({
@@ -61,6 +62,9 @@ export const CLAIM_WEAKNESS_KINDS = Object.freeze({
  * `unsupported` — the claim's own evidence does not carry it.
  * `thin` — evidence exists but rests on a single point of failure.
  * `context` — a property of the surrounding component, not of this claim.
+ * `structural` — resolved per claim, not from this map: a single-point-of-failure
+ *   weakness on material that has exactly one point of failure by construction.
+ *   See `weaknessTier` and `ONE_SOURCE_BY_NATURE`.
  *
  * The tiers matter because context weaknesses apply to every claim in a
  * component at once; folding them into the claim verdict marks 100% of claims
@@ -88,6 +92,38 @@ export const UNSUPPORTED_WEAKNESS_KINDS = Object.freeze(
     .filter(([, tier]) => tier === 'unsupported')
     .map(([kind]) => kind),
 );
+
+/**
+ * Channels where one source is the whole population of sources.
+ *
+ * A municipal PBO questionnaire is one respondent answering for one
+ * municipality; a field visit is one visit. `single_article` / `single_source` /
+ * `single_channel` are guaranteed on this material, so scoring them as weakness
+ * marked 411 of 561 claims weak in the first full run and made `weak_claims` a
+ * synonym for `claims`. They stay in the record, demoted to `structural`.
+ */
+const ONE_SOURCE_BY_NATURE = new Set(['pbo', 'visits']);
+
+/** Weaknesses demoted to `structural` when the support is one-source-by-nature. */
+const SINGLE_POINT_WEAKNESS_KINDS = new Set([
+  CLAIM_WEAKNESS_KINDS.SINGLE_ARTICLE,
+  CLAIM_WEAKNESS_KINDS.SINGLE_SOURCE,
+  CLAIM_WEAKNESS_KINDS.SINGLE_CHANNEL,
+]);
+
+/**
+ * Tier of one weakness occurrence.
+ *
+ * Per-occurrence rather than a lookup, because `structural` depends on the
+ * claim's support (what channel it came from), not on the weakness kind alone.
+ *
+ * @param {{ kind: string, structural?: boolean }} weakness
+ * @returns {string}
+ */
+function weaknessTier(weakness) {
+  if (weakness?.structural === true) return 'structural';
+  return CLAIM_WEAKNESS_TIERS[weakness?.kind];
+}
 
 /** Defaults; callers may override from env-backed config. */
 export const CRITIQUE_DEFAULTS = Object.freeze({
@@ -204,10 +240,69 @@ export function indexSignalsByRef(signals) {
   return byRef;
 }
 
+/**
+ * Index a report's *evidence surface* by ref key — the fallback resolver.
+ *
+ * `report.signals[]` holds only the scoped signals (`scoped_signal_count`), but
+ * the narrative was built over a wider pool (`narrative_scope_signal_count`:
+ * 400 vs 355 on north 2026-04-02). Claims legitimately cite signals that never
+ * made the serialized array, and resolving against `signals[]` alone reported
+ * them as `unknown_type_ref` — 61 of 630 refs in the first full run, which was
+ * the entire `unknown_type_ref` count.
+ *
+ * Entries are normalized to the shape `supportQualityWeaknesses` expects. They
+ * carry no `grounding_tier` / `evidence_basis` / `extraction_confidence`, so
+ * `ungrounded_support`, `inferred_support` and `low_confidence_support` cannot
+ * fire on them — absent ≠ ungrounded, the same fail-open direction the rest of
+ * this module takes.
+ *
+ * @param {object[]} components
+ * @returns {Map<string, object[]>}
+ */
+export function indexEvidenceByRef(components) {
+  /** @type {Map<string, object[]>} */
+  const byRef = new Map();
+  for (const component of components ?? []) {
+    for (const entry of component?.evidence_user_structured ?? []) {
+      if (!entry?.ref) continue;
+      const parsed = classifyClaimRef(entry.ref);
+      if (parsed.namespace !== CLAIM_REF_NAMESPACES.SIGNAL) continue;
+      const support = {
+        signal_type: entry.signal_type ?? parsed.signalType,
+        article_source: entry.article_source ?? null,
+        source_type: entry.source_type ?? null,
+        evidence: entry.evidence ?? entry.text ?? null,
+        article_url: entry.url ?? null,
+        // Evidence entries carry no `article_index`, so `signalArticleKey` would
+        // collapse every one of them to `src:<source_type>` and defeat the
+        // per-article diversity check. The ref already names the article.
+        __article_key: parsed.articleKey,
+        __from_evidence_surface: true,
+      };
+      const key = canonicalClaimRef(entry.ref);
+      const bucket = byRef.get(key);
+      if (bucket) bucket.push(support);
+      else byRef.set(key, [support]);
+    }
+  }
+  return byRef;
+}
+
+/** Article key of a supporting record, whether it came from `signals[]` or the evidence surface. */
+function supportArticleKey(support) {
+  return support?.__article_key ?? signalArticleKey(support);
+}
+
 // ── Per-claim critique ───────────────────────────────────────────────────────
 
+/**
+ * `inferred_absence` is the only inferred basis the extractor can emit — the
+ * enum is `present_in_text | paraphrased | inferred_absence`
+ * (`claudeSignalValidation.js` VALID_BASIS). This previously tested for
+ * `'inferred'`, a value that does not exist, so the weakness could never fire.
+ */
 function isInferred(signal) {
-  return String(signal?.evidence_basis ?? '').trim() === 'inferred';
+  return String(signal?.evidence_basis ?? '').trim() === 'inferred_absence';
 }
 
 /** Only news-path signals carry grounding_tier; absent ≠ ungrounded. */
@@ -283,15 +378,20 @@ function componentWeaknesses(component, thresholds, reportContext) {
  * signal type that was never extracted from it (mis-attribution); if it does
  * not, the article dropped out between narrative build and serialization.
  *
+ * A miss against `signals[]` is retried against the report's evidence surface
+ * before either verdict is reached — see `indexEvidenceByRef` for why the two
+ * containers disagree.
+ *
  * @param {string[]} refs
  * @param {Map<string, object[]>} signalsByRef
- * @param {object} [context] `{ signalTypes, articleKeys }` sets from the report
+ * @param {object} [context] `{ signalTypes, articleKeys, evidenceByRef }` from the report
  * @returns {{ support: object[], unresolved: string[], unknownType: string[],
  *   external: string[], misattributed: string[] }}
  */
 function resolveClaimSupport(refs, signalsByRef, context = {}) {
   const knownTypes = context.signalTypes ?? null;
   const knownArticles = context.articleKeys ?? null;
+  const evidenceByRef = context.evidenceByRef ?? null;
   /** @type {object[]} */
   const support = [];
   /** @type {string[]} */
@@ -305,9 +405,17 @@ function resolveClaimSupport(refs, signalsByRef, context = {}) {
 
   for (const ref of refs) {
     // Canonical first, so a legacy bare-index citation resolves like any other.
-    const matches = signalsByRef.get(canonicalClaimRef(ref));
+    const canonical = canonicalClaimRef(ref);
+    const matches = signalsByRef.get(canonical);
     if (matches?.length) {
       support.push(...matches);
+      continue;
+    }
+    // Not in the scoped signal array — the evidence surface still resolves refs
+    // the narrative built from a wider pool.
+    const fromEvidence = evidenceByRef?.get(canonical);
+    if (fromEvidence?.length) {
+      support.push(...fromEvidence);
       continue;
     }
     const parsed = parseSignalRef(ref);
@@ -336,32 +444,39 @@ function resolveClaimSupport(refs, signalsByRef, context = {}) {
  */
 function supportQualityWeaknesses(support, thresholds, diversity) {
   if (support.length === 0) return [];
-  /** @type {Array<{ kind: string, detail: string }>} */
+  /** @type {Array<{ kind: string, detail: string, structural?: boolean }>} */
   const out = [];
   const { articles, sources, channels } = diversity;
 
+  // One municipality is one questionnaire; one visit is one visit. Recorded, but
+  // not counted against the claim — see ONE_SOURCE_BY_NATURE.
+  const structural = support.every((s) => ONE_SOURCE_BY_NATURE.has(String(s?.source_type ?? '')));
+  const tag = (weakness) => (structural && SINGLE_POINT_WEAKNESS_KINDS.has(weakness.kind)
+    ? { ...weakness, structural: true }
+    : weakness);
+
   if (articles.length === 1) {
-    out.push({
+    out.push(tag({
       kind: CLAIM_WEAKNESS_KINDS.SINGLE_ARTICLE,
       detail: `all ${support.length} supporting signal(s) from one article (${articles[0]})`,
-    });
+    }));
   }
   if (sources.length === 1) {
-    out.push({
+    out.push(tag({
       kind: CLAIM_WEAKNESS_KINDS.SINGLE_SOURCE,
       detail: `only source: ${sources[0] ?? 'unknown'}`,
-    });
+    }));
   }
   if (channels.length === 1) {
-    out.push({
+    out.push(tag({
       kind: CLAIM_WEAKNESS_KINDS.SINGLE_CHANNEL,
       detail: `only source_type: ${channels[0] ?? 'unknown'}`,
-    });
+    }));
   }
   if (support.every(isInferred)) {
     out.push({
       kind: CLAIM_WEAKNESS_KINDS.INFERRED_SUPPORT,
-      detail: 'every supporting signal has evidence_basis=inferred',
+      detail: 'every supporting signal has evidence_basis=inferred_absence',
     });
   }
   const tiered = support.filter(hasGroundingTier);
@@ -437,7 +552,7 @@ export function critiqueClaim({
     });
   }
 
-  const articles = distinct(support.map((s) => signalArticleKey(s)));
+  const articles = distinct(support.map((s) => supportArticleKey(s)));
   const sources = distinct(support.map((s) => s.article_source));
   const channels = distinct(support.map((s) => s.source_type));
   weaknesses.push(...supportQualityWeaknesses(support, thresholds, { articles, sources, channels }));
@@ -445,10 +560,13 @@ export function critiqueClaim({
   const all = [...weaknesses, ...componentWeaknesses(component, thresholds, reportContext)];
 
   const claimKinds = distinct(
-    all.filter((w) => CLAIM_WEAKNESS_TIERS[w.kind] !== 'context').map((w) => w.kind),
+    all.filter((w) => ['unsupported', 'thin'].includes(weaknessTier(w))).map((w) => w.kind),
   );
   const contextKinds = distinct(
-    all.filter((w) => CLAIM_WEAKNESS_TIERS[w.kind] === 'context').map((w) => w.kind),
+    all.filter((w) => weaknessTier(w) === 'context').map((w) => w.kind),
+  );
+  const structuralKinds = distinct(
+    all.filter((w) => weaknessTier(w) === 'structural').map((w) => w.kind),
   );
 
   return {
@@ -465,9 +583,11 @@ export function critiqueClaim({
     distinct_channels: channels.length,
     sources,
     weaknesses: all,
-    /** Claim-level only (`unsupported` + `thin`); context kinds live separately. */
+    /** Claim-level only (`unsupported` + `thin`); context and structural kinds live separately. */
     weakness_kinds: claimKinds,
     context_kinds: contextKinds,
+    /** Single-point-of-failure flags on one-source-by-nature material — recorded, not counted. */
+    structural_kinds: structuralKinds,
     unsupported: claimKinds.some((k) => UNSUPPORTED_WEAKNESS_KINDS.includes(k)),
   };
 }
@@ -490,6 +610,10 @@ function reportIdentity(report, filename) {
     days: report?.assessment_window?.days ?? null,
     generated_at: report?.generated_at ?? null,
     total_articles_analyzed: a.total_articles_analyzed ?? null,
+    /** Each signal counted once — the only trustworthy volume measure. Absent on pre-epoch reports. */
+    scoped_signal_count: Number.isFinite(Number(a.scoped_signal_count))
+      ? Number(a.scoped_signal_count)
+      : null,
   };
 }
 
@@ -529,6 +653,7 @@ export function critiqueReport(report, { filename, thresholds = CRITIQUE_DEFAULT
     groundingComputed: groundingWasComputed(report),
     signalTypes: new Set((report?.signals ?? []).map((s) => s?.signal_type ?? s?.type).filter(Boolean)),
     articleKeys: new Set((report?.signals ?? []).map((s) => signalArticleKey(s))),
+    evidenceByRef: indexEvidenceByRef(components),
   };
 
   /** @type {object[]} */
@@ -565,6 +690,45 @@ export function critiqueReport(report, { filename, thresholds = CRITIQUE_DEFAULT
 }
 
 // ── Cross-report aggregation ─────────────────────────────────────────────────
+
+/** Render dates further apart than this mean the reports came off different builds. */
+const RENDER_EPOCH_SPREAD_DAYS = 21;
+
+/**
+ * Warn when the selected reports were rendered by builds too far apart to compare.
+ *
+ * Selection takes the newest run per *data date*, so a window can mix a report
+ * rendered in June with one rendered in August. Claim text and ref formats
+ * changed between those builds, and recurrence clustering across the boundary
+ * measures the boundary rather than the analysis: in the first full run all 12
+ * judged findings turned out to be a claim-hygiene defect fixed weeks earlier,
+ * still frozen into the older renders.
+ *
+ * @param {object[]} reports report identities
+ * @returns {object[]} zero or one caveat
+ */
+function renderEpochCaveats(reports) {
+  const rendered = reports
+    .map((r) => ({ date: r.date, generated_at: r.generated_at }))
+    .filter((r) => r.generated_at);
+  if (rendered.length < 2) return [];
+
+  const times = rendered.map((r) => Date.parse(r.generated_at)).filter(Number.isFinite);
+  if (times.length < 2) return [];
+  const spreadDays = (Math.max(...times) - Math.min(...times)) / 86_400_000;
+  if (spreadDays <= RENDER_EPOCH_SPREAD_DAYS) return [];
+
+  return [{
+    kind: 'render_epoch_spread',
+    detail: `these reports were rendered ${Math.round(spreadDays)} days apart (threshold `
+      + `${RENDER_EPOCH_SPREAD_DAYS}). Claim text and ref formats change between builds, so a `
+      + 'weakness recurring across the spread may be an artifact frozen into the older renders '
+      + 'rather than a live defect. Narrow the window with --produced-after before concluding',
+    dates: rendered
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((r) => `${r.date} rendered ${String(r.generated_at).slice(0, 10)}`),
+  }];
+}
 
 /**
  * Cluster claims across reports by normalized-token similarity, partitioned by
@@ -743,32 +907,63 @@ export function aggregateCritiques(reportCritiques, { thresholds = CRITIQUE_DEFA
     .filter((r) => r.report.grounding_computed === false)
     .map((r) => r.report.date);
 
+  const emptyReports = reportCritiques.filter((r) => r.claims.length === 0);
+  // Zero claims off a full signal bundle is a pipeline failure, not a quiet day.
+  // Gate on claim count and signal volume only: `specialist_skipped` is *not* a
+  // failure signal — `user_surface_mode: "rich"` skips specialists by design and
+  // every north render since 2026-07-24 does so, including ones with 120 claims.
+  const emptyFailed = emptyReports
+    .filter((r) => Number(r.report.scoped_signal_count) >= EMPTY_ASSESSMENT_SIGNAL_FLOOR);
+  const emptyThin = emptyReports.filter((r) => !emptyFailed.includes(r));
+
   return {
     reports: reportCritiques.map((r) => r.report),
     thresholds,
-    caveats: groundingSkipped.length > 0
-      ? [{
-        kind: 'grounding_not_computed',
-        detail: 'the narrative grounding pipeline did not run for these reports, so '
-          + 'narrative_grounding_score is absent rather than low. Reports that did run '
-          + 'and scored 0 are counted as genuinely ungrounded, not excused here',
-        dates: groundingSkipped,
-      }]
-      : [],
+    caveats: [
+      ...(groundingSkipped.length > 0
+        ? [{
+          kind: 'grounding_not_computed',
+          detail: 'the narrative grounding pipeline did not run for these reports, so '
+            + 'narrative_grounding_score is absent rather than low. Reports that did run '
+            + 'and scored 0 are counted as genuinely ungrounded, not excused here',
+          dates: groundingSkipped,
+        }]
+        : []),
+      ...(emptyFailed.length > 0
+        ? [{
+          kind: 'empty_assessment',
+          detail: `these reports produced zero claims off a full signal bundle `
+            + `(>= ${EMPTY_ASSESSMENT_SIGNAL_FLOOR} scoped signals) — a pipeline failure, not a `
+            + 'quiet day. They contribute nothing to this critique and silently shrink the '
+            + 'sample. Check the run log for a caught narrative-pipeline error',
+          dates: emptyFailed.map((r) => r.report.date),
+        }]
+        : []),
+      ...renderEpochCaveats(reportCritiques.map((r) => r.report)),
+    ],
     totals: {
       reports: reportCritiques.length,
       // Reports that produced no narrative claims at all contribute nothing to
       // the critique — worth seeing, since they silently shrink the sample.
-      reports_without_claims: reportCritiques.filter((r) => r.claims.length === 0).length,
+      reports_without_claims: emptyReports.length,
+      /** Of those: full signal bundle, zero claims — a failed run. */
+      reports_empty_failed: emptyFailed.length,
+      /** Of those: genuinely thin input, nothing to say. */
+      reports_empty_thin: emptyThin.length,
       claims: allClaims.length,
       weak_claims: weakClaims.length,
       unsupported_claims: allClaims.filter((c) => c.unsupported).length,
       thin_only_claims: allClaims.filter((c) => !c.unsupported && c.weakness_kinds.length > 0).length,
-      clean_claims: allClaims.filter((c) => c.weakness_kinds.length === 0).length,
+      /** Flagged only for single-point-of-failure on one-source-by-nature material. */
+      structural_only_claims: allClaims.filter((c) =>
+        c.weakness_kinds.length === 0 && c.structural_kinds.length > 0).length,
+      clean_claims: allClaims.filter((c) =>
+        c.weakness_kinds.length === 0 && c.structural_kinds.length === 0).length,
       recurring_findings: recurring.length,
     },
     weakness_frequency: countBy(allClaims, (c) => c.weakness_kinds),
     context_frequency: countBy(allClaims, (c) => c.context_kinds),
+    structural_frequency: countBy(allClaims, (c) => c.structural_kinds),
     signal_type_weakness: countBy(weakClaims, (c) => c.signal_types),
     source_weakness: countBy(weakClaims, (c) => c.sources),
     recurring_weak_claims: recurring,

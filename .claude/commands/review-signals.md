@@ -8,10 +8,10 @@ description: Review signal relevance and propose extraction improvements for a c
 Audit the signal extraction quality of a completed resilience report JSON. No pipeline re-runs, no API calls. Do NOT ask for confirmation — just go.
 
 **Step 1 — Resolve report path**
-- If the user provided a file name or path, use it. Resolve relative names under `business_modules/resilience_scorer/data/reports/` (e.g. `north-1-data-2026-05-23-produced-2026-05-23T1545Z.json` → `business_modules/resilience_scorer/data/reports/north-1-data-2026-05-23-produced-2026-05-23T1545Z.json`; legacy compact `north-3-230526-1545.json` and `resilience-report-north-data-…-run-*.json` still parse).
+- If the user provided a file name or path, use it. Resolve relative names under `business_modules/resilience_scorer/data/daily_reports/` (e.g. `north-1-data-2026-05-23-produced-2026-05-23T1545Z.json` → `business_modules/resilience_scorer/data/daily_reports/north-1-data-2026-05-23-produced-2026-05-23T1545Z.json`; legacy compact `north-3-230526-1545.json` and `resilience-report-north-data-…-run-*.json` still parse).
 - If no file specified, find the most recent report (must end in `.json`, not `.md` or `-brief.md`):
 ```
-find /home/eventstorm1/news/business_modules/resilience_scorer/data/reports -name "*.json" ! -name "*-brief*" -type f | sort | tail -1
+find /home/eventstorm1/news/business_modules/resilience_scorer/data/daily_reports -name "*.json" ! -name "*-brief*" -type f | sort | tail -1
 ```
 
 **Step 2 — Extract review data**
@@ -22,8 +22,9 @@ Run this node script from `/home/eventstorm1/news` (replace `<REPORT_PATH>` with
 node -e "
 const fs = require('fs');
 const path = require('path');
-const { SIGNAL_CATALOG, SIGNAL_TO_COMPONENTS } = require('./cross-cut-modules/resilience-contracts/signalCatalog.js');
-const { RESILIENCE_COMPONENTS } = require('./cross-cut-modules/resilience-contracts/resilienceComponents.js');
+const { SIGNAL_CATALOG } = require('./business_modules/resilience_scorer/domain/contracts/signalCatalog.js');
+const { SIGNAL_TO_COMPONENTS } = require('./business_modules/resilience_scorer/domain/services/signals/routing/signalRouting.js');
+const { RESILIENCE_COMPONENTS } = require('./business_modules/resilience_scorer/domain/contracts/resilienceComponents.js');
 
 const report = JSON.parse(fs.readFileSync('<REPORT_PATH>', 'utf8'));
 const signals = report.signals || [];
@@ -41,8 +42,12 @@ const signalAudit = signals.map(s => {
   return {
     signal_type: s.signal_type,
     evidence: (s.evidence || '').slice(0, 150),
-    confidence: s.extraction_confidence,
+    confidence: s.confidence,
+    grounding_tier: s.grounding_tier,
+    grounding_reason: s.grounding_reason,
+    evidence_type: s.evidence_type,
     evidence_basis: s.evidence_basis,
+    scope_level: s.scope_level,
     source_type: s.source_type,
     source: s.article_source,
     polarity: s.polarity_override,
@@ -52,22 +57,32 @@ const signalAudit = signals.map(s => {
   };
 });
 
+// min-math: components carry no score / certainty / evidence_mass. The evidence
+// basis is where the real diagnostics live — most of what looks missing at the
+// top level is already computed there.
 const compSummary = components.map(c => ({
   id: c.component_id,
-  score: c.score,
   confidence: c.confidence,
   signal_count: c.signal_count,
-  evidence_mass: c.evidence_mass,
-  certainty: Math.round((c.certainty || 0) * 100) / 100,
+  distinct_article_count: c.distinct_article_count,
+  source_diversity: c.source_diversity,
+  coverage: c.coverage,
+  assessment_state: c.assessment_state,
+  presence_gate: c.presence_gate,
+  evidence_basis: c.evidence_basis,
   def: compDef(c.component_id),
   top_contributors: (c.top_contributors || []).map(t => ({
     signal_type: t.signal_type,
     evidence: (t.evidence || '').slice(0, 150),
-    contribution: Math.round(((t._contribution || t._contribution_raw || 0)) * 1000) / 1000,
+    evidence_type: t.evidence_type,
+    confidence: t.confidence,
+    grounding_tier: t.grounding_tier,
+    grounding_reason: t.grounding_reason,
     polarity: t._polarity,
     source: t.article_source,
     catalog_mapping: SIGNAL_TO_COMPONENTS[t.signal_type] || null,
   })),
+  demoted_evidence: c.demoted_evidence,
 }));
 
 const sourceCounts = {};
@@ -98,13 +113,15 @@ console.log(JSON.stringify(out, null, 2));
 
 Analyze the JSON output. For each component do a structured assessment:
 - **Relevance check**: for each top contributor, does the evidence text genuinely support this component's definition and guiding questions? Mark each: ✓ strong / ~ marginal / ✗ mismatched.
-- **Catalog mapping check**: does the signal_type's canonical mapping (from `component_mapping`) include this component with a weight ≥ 0.5? If not, flag as "weak link."
-- **Evidence basis check**: flag any contributor with `evidence_basis: inferred` or `confidence < 0.6` — these are the most likely noise sources.
+- **Catalog mapping check**: routing edges are `{polarity, role}`, not numeric weights. Does the signal_type's mapping give this component `role: "primary"`? An `inferred` edge is spillover from another component's evidence — flag as "weak link". Check `evidence_basis.inferred_context`: when inferred edges outnumber primary ones, and especially when they all share one polarity, the component reads better-evidenced and more one-directional than it is.
+- **Verification check**: flag contributors with `confidence < 0.7`, and read `grounding_reason` — `embedding_rescue` is a weaker match than `containment`.
+- **Demoted evidence**: read `demoted_evidence` per component. `signal_types` shows whether a whole class of evidence fell below the tier (a systemic extraction fault) rather than scattered rows. `grounding_reason: low_similarity` usually means the evidence could not be matched to its source — often a language or paraphrase problem — not that the claim is false. `critical_types_suppressed` names critical types that are being held back and deserve a look at the source.
 
 Then look across all components for patterns:
 - Any signal_type appearing ≥ 3× — is it being applied consistently or stretched?
-- Any source dominating (≥ 25% of signals) — does its evidence tend to be strong or weak?
-- Any component with `certainty < 0.25` — does the evidence actually justify even that low certainty, or is the signal count misleadingly inflated?
+- Source concentration: `evidence_basis.concentration_warning` is already computed per component (outlet > 60%, source_type > 70%). Also check the source *class* share by hand — one class can dominate completely while no single `article_source` trips the threshold.
+- Any component whose `evidence_basis.sufficiency` is `thin` or `moderate`, or whose `balance` is `contested` / one-sided — does the evidence justify the reading?
+- Where a component's `presence_gate` fired, is the gate's signal actually visible in `top_contributors`? A gate that fires on evidence the reader never sees is a surface bug.
 - Unregistered signal types (from `meta.unregistered_signal_types`) — what are they actually capturing?
 
 **Step 3b — Spot-check queue (if present)**
@@ -124,7 +141,7 @@ Date: <report date> | Scope: <scope> | Signals: N | Articles: N
 
 ## Per-Component Evidence Quality
 
-### <Component Name> (score: N, certainty: N, signals: N)
+### <Component Name> (confidence: N, signals: N, sufficiency: N, balance: N)
 | Signal type | Evidence (truncated) | Verdict | Note |
 |---|---|---|---|
 | ... | ... | ✓/~/✗ | ... |

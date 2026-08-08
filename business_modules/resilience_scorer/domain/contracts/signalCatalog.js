@@ -84,7 +84,7 @@
  * extraction prompts, report comparability, or routing coherence checks.
  * Keep in sync with methodology / changelog when types are added or redefined.
  */
-export const CATALOG_VERSION = 'v8';
+export const CATALOG_VERSION = 'v9';
 
 // --- Aliases ---
 /**
@@ -381,6 +381,10 @@ export const SIGNAL_CATALOG = [
       ],
       reject_patterns: [
         'cross-line cooperation breakdown → bridging_capital_failure',
+        // Left as-is: this entry is in DISAMBIGUATION_PRIORITY_TYPES, so every
+        // character is charged to the hard-budgeted stable prefix. The othering
+        // boundary is carried by conflict_or_tension's own disambiguation, which
+        // is not in that list and therefore free.
         'scapegoating or inter-group friction → conflict_or_tension',
       ],
     },
@@ -390,9 +394,19 @@ export const SIGNAL_CATALOG = [
     construct_role: 'population_state',
     domain: 'social',
     signal_class: 'behavior',
-    label: 'Reported conflicts, scapegoating, or inter-group tension',
+    // Narrowed in v9: "scapegoating" moved to out_group_blaming, which is
+    // one-directional. Leaving it here made the two types compete in the prompt.
+    label: 'Reported conflict or RECIPROCAL friction between groups or residents — both sides described as party to the dispute',
     defaultPolarity: 'negative',
     mirror: 'conflict_resolution',
+    related: ['out_group_blaming'],
+    disambiguation: {
+      not_confused_with: ['out_group_blaming', 'interfaith_tension', 'social_isolation'],
+      reject_patterns: [
+        'one speaker blaming or othering a group, with no reciprocal friction described → out_group_blaming',
+        'friction specifically along religious lines → interfaith_tension',
+      ],
+    },
   },
   {
     type: 'conflict_resolution',
@@ -465,6 +479,35 @@ export const SIGNAL_CATALOG = [
     label: 'Free-riding or norm-breaking in shared emergency resources (shelter hogging, aid queue jumping)',
     defaultPolarity: 'negative',
     related: ['panic_buying_hoarding'],
+  },
+  {
+    type: 'out_group_blaming',
+    construct_role: 'narrative_frame',
+    domain: 'social',
+    signal_class: 'narrative',
+    label: 'A speaker places a named population group outside the shared "we" — blaming it for the emergency\'s costs, singling it out as the one not complying, or describing it as behaving differently. One-directional attribution; no reciprocal conflict described',
+    defaultPolarity: 'negative',
+    related: ['conflict_or_tension', 'interfaith_tension', 'social_isolation', 'blame_narrative'],
+    disambiguation: {
+      not_confused_with: [
+        'conflict_or_tension',
+        'interfaith_tension',
+        'blame_narrative',
+        'social_isolation',
+        'inequitable_resource_access',
+      ],
+      accept_patterns: [
+        'קיימת קבוצת מיעוט שאינה מקפידה על ההנחיות מטעמים אמוניים',
+        'an official describing "that population" as the reason guidance is ignored',
+      ],
+      reject_patterns: [
+        'both sides described as in friction → conflict_or_tension',
+        'fault attributed to authorities or to the response → blame_narrative',
+        'individuals withdrawing or being left alone → social_isolation',
+        'a measured service or resource disparity between groups → inequitable_resource_access',
+      ],
+    },
+    example_evidence: ['קיימת קבוצת מיעוט שאינה מקפידה על ההנחיות, הנובעת מתפיסות אמוניות'],
   },
   // Leadership & Governance
   {
@@ -1496,9 +1539,80 @@ export const SIGNAL_CATALOG = [
     construct_role: 'response',
     domain: 'wellbeing',
     signal_class: 'structural_state',
-    label: 'Individuals or groups access psychological support, trauma care, or community wellbeing programs',
+    label: 'A person or group ACTUALLY RECEIVED psychological, trauma, welfare, or community-wellbeing support — attended a session or group, was visited, took up a service. Uptake by residents, never the service merely existing',
     defaultPolarity: 'positive',
     mirror: 'wellbeing_support_gap',
+    related: ['wellbeing_support_provided', 'vulnerable_population_mapping'],
+    disambiguation: {
+      not_confused_with: [
+        'wellbeing_support_provided',
+        'vulnerable_population_mapping',
+        'wellbeing_support_gap',
+      ],
+      accept_patterns: [
+        'residents attended the trauma-support group opened at the community centre',
+        'elderly residents received home visits from the welfare team',
+      ],
+      reject_patterns: [
+        'the welfare department is operating / staffed / providing responses → wellbeing_support_provided',
+        'the authority maps or monitors who the at-risk residents are → vulnerable_population_mapping',
+        'residents cannot reach the support they need → wellbeing_support_gap',
+      ],
+    },
+  },
+  {
+    type: 'wellbeing_support_provided',
+    construct_role: 'institutional_state',
+    domain: 'wellbeing',
+    signal_class: 'structural_state',
+    label: 'A welfare, psychosocial, or care service is described as operating, staffed, or providing responses — service-side provision, with no named recipient and no uptake claim',
+    defaultPolarity: 'positive',
+    related: ['wellbeing_support_accessed', 'wellbeing_support_gap', 'vulnerable_population_mapping'],
+    disambiguation: {
+      not_confused_with: [
+        'wellbeing_support_accessed',
+        'vulnerable_population_mapping',
+        'service_continuity',
+      ],
+      accept_patterns: [
+        'מחלקת הרווחה פועלת באופן רציף למתן מענה לתושבים',
+        'the psychosocial hotline is staffed around the clock',
+      ],
+      reject_patterns: [
+        'a named person or group took up the service → wellbeing_support_accessed',
+        'identifying, mapping, or monitoring who the at-risk residents are → vulnerable_population_mapping',
+        'non-welfare municipal services running normally → service_continuity',
+      ],
+    },
+  },
+  {
+    type: 'vulnerable_population_mapping',
+    construct_role: 'institutional_state',
+    domain: 'wellbeing',
+    signal_class: 'structural_state',
+    label: 'The authority maintains a mechanism to identify, map, or continuously monitor at-risk individuals or groups — a name-and-place registry, standing per-group protocols, assigned social-worker contact, recurring home-visit rounds. The mechanism itself, not a service anyone received',
+    defaultPolarity: 'positive',
+    related: ['wellbeing_support_provided', 'wellbeing_support_gap', 'preparedness_drill_conducted'],
+    disambiguation: {
+      not_confused_with: [
+        'wellbeing_support_provided',
+        'wellbeing_support_accessed',
+        'wellbeing_support_gap',
+        'local_capacity_demonstrated',
+      ],
+      accept_patterns: [
+        'מיפוי מדויק בשם ובמקום של האוכלוסיות בסיכון',
+        'separate standing protocols for assisted living, nursing-care, seniors, and special-needs residents',
+        'social workers keep continuous contact with a defined at-risk list',
+      ],
+      reject_patterns: [
+        'the welfare department is operating, with no mapping or monitoring content → wellbeing_support_provided',
+        'a resident received a home visit as care → wellbeing_support_accessed',
+        'no entity holds a full picture of the elderly and disabled → wellbeing_support_gap',
+        'an official asserting the authority is ready, with no named mechanism → local_capacity_demonstrated',
+      ],
+    },
+    example_evidence: ['מיפוי מדויק בשם ובמקום של האוכלוסיות בסיכון, מחלקת רווחה ממוסדת מגובה בצוותי מתנדבים'],
   },
   {
     type: 'wellbeing_support_gap',

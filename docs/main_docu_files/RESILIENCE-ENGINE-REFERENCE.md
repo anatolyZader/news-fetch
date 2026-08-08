@@ -186,7 +186,7 @@ When `RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS=1` (default), planner abstentio
 | `PROBE_SOURCE_TYPES` | `infrastructure_probe` | High-trust probes (not digital volume) |
 | `CAP_EXEMPT_SOURCE_TYPES` | `infrastructure_probe`, `pbo`, `pbo_regional`, `naftali`, `field` | Exempt from 50% source-type cap (official ground truth); `field_whatsapp` remains capped |
 
-Module facade `business_modules/resilience_scorer/domain/services/signalCatalog.js` re-exports `cross-cut-modules/resilience-contracts/signalCatalog.js` — edit the contract file only.
+The catalog contract lives at `business_modules/resilience_scorer/domain/contracts/signalCatalog.js` — edit it there. Routing lives separately in `domain/services/signals/routing/signalRouting.js`.
 
 
 **Data void / digital darkness** (`business_modules/resilience_scorer/domain/services/dataVoid/`):
@@ -240,7 +240,7 @@ The per-report `shadow-scores-*.json` / `divergence-*.json` artifact write (`RES
 
 ### Signal catalog v6
 
-**File:** `cross-cut-modules/resilience-contracts/signalCatalog.js` — `CATALOG_VERSION = 'v6'`, stamped on assessments and extraction cache keys.
+**File:** `business_modules/resilience_scorer/domain/contracts/signalCatalog.js` — `CATALOG_VERSION = 'v9'`, stamped on assessments and extraction cache keys.
 
 **Size:** ~165 closed signal types (`SIGNAL_TYPES.length >= 165`).
 
@@ -253,13 +253,13 @@ The per-report `shadow-scores-*.json` / `divergence-*.json` artifact write (`RES
 - `connectivity_outage`
 - `institutional_abandonment_perception`
 
-Module facade re-exports from `business_modules/resilience_scorer/domain/services/signalCatalog.js` and `business_modules/resilience_scorer/index.js` — edit the contract file only.
+Re-exported through `business_modules/resilience_scorer/index.js` — edit the contract file only.
 
 ### 7.1 Extraction
 
 - **CLI:** `extract-signals.js`
 - **Infrastructure:** `claudeExtraction.js`, closed vocabulary from `behaviorSignals.js` / catalog
-- **Catalog:** `cross-cut-modules/resilience-contracts/signalCatalog.js` — `SIGNAL_TYPES`, `CATALOG_VERSION` (v6) stamped on assessments
+- **Catalog:** `business_modules/resilience_scorer/domain/contracts/signalCatalog.js` — `SIGNAL_TYPES`, `CATALOG_VERSION` (v9) stamped on assessments
 - **OOV capture:** `business_modules/resilience_scorer/domain/services/oovCapture.js` → `daily_reports/oov-capture-{date}.jsonl` when `RESILIENCE_OOV_CAPTURE=1`
 - **Output:** `signals-{source}-{date}.json`
 - **Side effects:** `source_archive` rows, optional RAG index at ingest

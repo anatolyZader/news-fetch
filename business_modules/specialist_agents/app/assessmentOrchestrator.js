@@ -1,5 +1,5 @@
 /**
- * Assessment agent orchestrator: planner → specialists → critic → synthesizer → legacy map.
+ * Assessment agent orchestrator: planner → specialists → critic → skeptic (opt-in) → synthesizer → legacy map.
  *
  * **Owns:** multi-agent investigation loop, RAG seeding, evidence graph construction, replan
  * policy, budget governance, and v2→legacy assessment mapping.
@@ -52,6 +52,8 @@ import { COMPONENT_IDS } from '../../resilience_scorer/index.js';
 import { runPlannerAgent } from './plannerAgent.js';
 import { runComponentSpecialist } from './componentSpecialistAgent.js';
 import { runCriticChecks, applyCriticRepair } from './criticAgent.js';
+import { runSkepticChecks } from './skepticAgent.js';
+import { skepticEnabled, applySkepticVerdicts } from '../domain/services/skepticPolicy.js';
 import { runSynthesizerAgent } from './synthesizerAgent.js';
 import { applySynthesisOovChecks } from '../domain/services/synthesisOovChecks.js';
 import { mapAssessmentV2ToLegacy } from '../domain/services/assessmentV2Mapper.js';
@@ -495,6 +497,35 @@ export async function runAssessmentAgent(params) {
         ...(assessed.repair_log ?? []),
         { issue: 'critic_failed', action: 'downgraded_confidence' },
       ];
+    }
+
+    // Adversarial second reader. Dormant unless SKEPTIC_SAMPLE_SIZE is set, so
+    // the default path is byte-identical to the pre-skeptic pipeline. The critic
+    // above is deterministic and cannot judge whether evidence carries a claim;
+    // this can, on a bounded sample, and may only drop — never strengthen.
+    if (skepticEnabled()) {
+      const skeptic = await runSkepticChecks({
+        assessment: assessed,
+        criticVerdict: verdict,
+        signals: signalPool,
+        llmPort,
+        agentKernel: kernel,
+        budget,
+        onUsage,
+        traceId: plannerTraceId ?? traceId,
+      });
+      if (skeptic.sampled > 0) {
+        const applied = applySkepticVerdicts(assessed, skeptic.verdicts);
+        assessed = applied.assessment;
+        assessed.skeptic_failures = skeptic.failures;
+        if (applied.dropped > 0) {
+          // Claims changed, so the narrative's grounding score no longer
+          // describes this assessment. Recompute rather than carry a stale one.
+          const post = runCriticChecks(assessed, epistemicProfileEnriched);
+          assessed.grounding_score = post.grounding_score;
+          assessed.critic_passed = post.passed;
+        }
+      }
     }
     return assessed;
   }

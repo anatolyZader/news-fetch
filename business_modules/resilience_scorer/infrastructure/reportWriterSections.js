@@ -91,6 +91,76 @@ function appendComponentCriticalNotes(lines, comp) {
       `> **Note — thin evidence:** this component rests on ${basis.signal_count ?? 0} signal(s) from ${basis.distinct_articles ?? 0} article(s); treat cautiously.`,
     );
   }
+
+  // Inferred edges are spillover from other components' primary evidence. When
+  // they outweigh this component's own evidence AND run one way, the component
+  // can read as well-evidenced and one-directional while resting on signals that
+  // were never about it.
+  const inferred = basis.inferred_context;
+  const primaryCount = basis.signal_count ?? 0;
+  if (inferred?.count && inferred.count >= Math.max(4, primaryCount)) {
+    const lopsided = inferred.positive_count === 0 || inferred.negative_count === 0;
+    const direction = inferred.negative_count === 0 ? 'supporting' : 'opposing';
+    const split = lopsided
+      ? `, and all of them point one way (${direction})`
+      : ` (${inferred.positive_count} supporting / ${inferred.negative_count} opposing)`;
+    lines.push(
+      `> **Note — mostly inferred evidence:** ${inferred.count} of this component's observations are inferred spillover from other components (vs ${primaryCount} of its own)${split}. Inferred evidence is context, not direct observation of this component.`,
+    );
+  }
+}
+
+/**
+ * Evidence held below the grounded tier: listed, not hidden.
+ *
+ * Demoted signals are excluded from the narrative because they failed verification
+ * against the source text — but dropping them from the report entirely can erase a
+ * whole class of evidence without trace. The reason codes matter: `low_similarity`
+ * usually means the evidence could not be matched to the source (often a language
+ * or paraphrase problem in extraction), not that the observation is false.
+ */
+function appendDemotedEvidence(lines, comp) {
+  const block = comp.demoted_evidence;
+  if (!block?.items?.length) return;
+
+  const counts = Object.entries(block.counts ?? {})
+    .map(([tier, n]) => `${n} ${tier.replaceAll('_', ' ')}`)
+    .join(', ');
+  const histogram = Object.entries(block.signal_types ?? {})
+    .sort((a, b) => b[1] - a[1])
+    .map(([t, n]) => `\`${t}\` ×${n}`)
+    .join(', ');
+
+  lines.push(
+    ``,
+    `<details><summary><strong>Unverified evidence (${block.total}) — excluded from the narrative above</strong></summary>`,
+    ``,
+    `${counts}. These signals were extracted but could not be verified against their source text, so they carry no weight in the assessment. They are listed so that an absence here is visible rather than silent.`,
+    ``,
+    `**Types held back:** ${histogram || '—'}`,
+  );
+  if (block.critical_types_suppressed?.length) {
+    const criticalTypes = block.critical_types_suppressed.map((t) => '`' + t + '`').join(', ');
+    lines.push(
+      ``,
+      `> **Critical types among them:** ${criticalTypes}. A critical signal that cannot be verified is not the same as one that did not happen — it needs a look at the source, not dismissal.`,
+    );
+  }
+  lines.push(
+    ``,
+    `| Signal type | Evidence | Tier | Why unverified | Source |`,
+    `|---|---|---|---|---|`,
+  );
+  for (const it of block.items) {
+    const evidence = String(it.evidence ?? '').replaceAll('|', '\\|').slice(0, 160);
+    lines.push(
+      `| \`${it.signal_type ?? '—'}\` | ${evidence} | ${it.grounding_tier ?? '—'} | ${it.grounding_reason ?? '—'} | ${it.article_source ?? '—'} |`,
+    );
+  }
+  if (block.total > block.items.length) {
+    lines.push(``, `*Showing ${block.items.length} of ${block.total}.*`);
+  }
+  lines.push(``, `</details>`);
 }
 
 /** Shared-coverage clause: how much of this component's evidence also feeds other components. */
@@ -137,6 +207,8 @@ function appendOneComponentDetail(lines, comp, assessment, { evidenceDirection, 
     lines.push(``);
   }
 
+  appendDemotedEvidence(lines, comp);
+
   lines.push(`---`, ``);
 }
 
@@ -180,6 +252,16 @@ export function appendMethodologyBlock(lines, assessment) {
 
   if (m.governance?.headline_scores_are) {
     lines.push(`> ${m.governance.headline_scores_are}`, ``);
+  }
+
+  // Every component reads `specialist_skipped` on the closed-core path, which
+  // looks like a failure until you know that path is the default. Say which
+  // producer ran, so the reader is not left to infer it from a per-component flag.
+  if (assessment.assessment_producer === 'closed_core') {
+    lines.push(
+      `**Assessment producer:** closed core — narratives are generated directly from the verified evidence pool, without per-component specialist agents. Components therefore report \`specialist_skipped\`; this is the standard path, not a degraded run.`,
+      ``,
+    );
   }
 
   const sds = m.scope?.scope_decision_summary;

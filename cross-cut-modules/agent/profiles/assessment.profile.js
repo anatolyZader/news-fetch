@@ -220,10 +220,43 @@ export const SYNTHESIZER_TOOLS = [
   },
 ];
 
+/**
+ * Skeptic tools — deliberately one tool with a two-value verdict and no
+ * retrieval. The skeptic judges one claim against the evidence handed to it and
+ * may only keep or drop; it has no way to strengthen a claim, add one, or go
+ * looking for support the specialist failed to find.
+ */
+export const SKEPTIC_TOOLS = [
+  {
+    name: 'submit_claim_verdict',
+    description:
+      'Return a verdict on the single claim under review. `drop` only when the supplied evidence does not carry the claim.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        verdict: { type: 'string', enum: ['keep', 'drop'] },
+        reason_code: {
+          type: 'string',
+          enum: [
+            'evidence_supports',
+            'overstates_evidence',
+            'evidence_unrelated',
+            'evidence_too_narrow',
+          ],
+        },
+        rationale: { type: 'string' },
+      },
+      required: ['verdict', 'reason_code', 'rationale'],
+    },
+  },
+];
+
 registerProfileTools('assessment_planner', PLANNER_TOOLS);
 registerProfileTools('assessment_specialist', SPECIALIST_TOOLS);
 registerProfileTools('assessment_synthesizer', SYNTHESIZER_TOOLS);
+registerProfileTools('assessment_skeptic', SKEPTIC_TOOLS);
 
 export const ASSESSMENT_PLANNER_PROFILE = 'assessment_planner';
 export const ASSESSMENT_SPECIALIST_PROFILE = 'assessment_specialist';
 export const ASSESSMENT_SYNTHESIZER_PROFILE = 'assessment_synthesizer';
+export const ASSESSMENT_SKEPTIC_PROFILE = 'assessment_skeptic';

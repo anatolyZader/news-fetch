@@ -104,7 +104,11 @@ export function buildPassScopeSuffix(groupKey) {
     `For THIS extraction pass, ONLY emit signals whose type belongs to the domains: ` +
     `${domains.join(', ')}. Skip any candidate signal whose type does not appear in the ` +
     `subset list below — it will be picked up in another pass. Do NOT relabel a fact into ` +
-    `a wrong domain just to fit this pass.\n\n` +
+    `a wrong domain just to fit this pass.\n` +
+    // Repeated per pass on purpose: a single pass once translated all of its
+    // evidence to English, which made every signal it produced unverifiable.
+    `Reminder for THIS pass: \`evidence\` stays verbatim in the source language, with no ` +
+    `place-name prefix and no translation.\n\n` +
     `━━━ SIGNAL TYPES (closed vocabulary, this pass only) ━━━\n` +
     `${formatSignalCatalogSubset(domains)}\n\n`
   );

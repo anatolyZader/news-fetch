@@ -377,7 +377,13 @@ const FIELD_REPORT_SIGNAL_EXTRACTION_PREFIX =
   `━━━ SOURCE: EXPERT FIELD REPORTS (POPULATION BEHAVIOR OFFICER VISITS) ━━━\n` +
   `Input is Hebrew expert field notes written by trained resilience professionals after face-to-face visits to northern border communities.\n` +
   `Each document = one community visit. Notes are shorthand bullets, not journalism prose — read them as synthesis of observed conditions and stakeholder interviews.\n\n` +
-  `Domain vocabulary (always translate these into English in the evidence field):\n` +
+  // These glosses exist so the extractor can CHOOSE the right signal_type from
+  // shorthand it would otherwise misread. They must not be written into `evidence`:
+  // evidence is verified by matching it against the Hebrew source text, so an
+  // English rendering scores ~zero and the signal is demoted below the grounded
+  // tier — silently, and in bulk, since the terms below cluster in the protection
+  // and preparedness domains.
+  `Domain vocabulary (for YOUR comprehension when picking signal_type — never translate the evidence itself):\n` +
   `  ממ"ד = individual safe room (in-home shelter); מקלט = public shelter; מיגונית = armored field protection booth (for farmers in open fields)\n` +
   `  צח"י / צח"י = Home Front Command volunteer corps (civilian emergency unit); כיתת כוננות = community readiness unit\n` +
   `  גרעין נחל / גרעין נח"ל = army education core embedded in a community; מורות חיילות = soldier-teachers deployed to communities\n` +
@@ -393,7 +399,9 @@ const FIELD_REPORT_SIGNAL_EXTRACTION_PREFIX =
   `  Each document = one community. Default to "repeated_pattern" (community-wide observation).\n` +
   `  Use "quantified_or_broad" only when explicit counts or percentages appear (e.g. "30 homes without safe room", "60% functional continuity").\n` +
   `  Use "single_case" only for a clearly isolated individual incident.\n\n` +
-  `Always include municipality name in the evidence text so the signal is geographically traceable.\n\n` +
+  `Put the community name in the \`locality\` field — that is what makes the signal geographically\n` +
+  `  traceable. Do NOT prepend it to \`evidence\`: \`evidence\` must stay a verbatim Hebrew span of the\n` +
+  `  source document, character-for-character, or it cannot be verified against it.\n\n` +
   `Abstention rules (do NOT emit a signal):\n` +
   `  - Empty cells, whitespace-only, or non-informative stubs: "אין", "ללא שינוי", "אותו דבר", "אותו הדבר"\n` +
   `  - Officer score summaries or form metadata — never write "avg=N%" or replicate numeric component scores\n` +
@@ -952,7 +960,16 @@ async function extractSignalsBatch(articles, batchLabel, retries = 3, usageCallb
   return valid;
 }
 
+/**
+ * Confidence used to pick a winner between semantic duplicates.
+ *
+ * Reads the extractor's own `confidence` first. `extraction_confidence` is
+ * defaulted to a constant for every signal on the closed-catalogue path, so
+ * reading it first made this comparison always false and the incumbent always
+ * won — a tie-break that never broke a tie.
+ */
 function signalExtractionConfidence(s) {
+  if (typeof s.confidence === 'number') return s.confidence;
   return typeof s.extraction_confidence === 'number' ? s.extraction_confidence : 0.85;
 }
 

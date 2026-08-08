@@ -1,6 +1,6 @@
 ---
-allowed-tools: Bash(node business_modules/resilience_scorer/input/run-cross-report-critique.js *), Bash(cd /home/eventstorm1/news && *), Bash(node -e *), Bash(ls *), Read, Write
-description: Cross-report critique — find recurring weak/unsupported claims across the last N resilience reports (no API credits — analysis runs inline)
+allowed-tools: Bash(node business_modules/resilience_scorer/input/run-cross-report-critique.js *), Bash(cd /home/eventstorm1/news && *), Bash(node -e *), Bash(ls *), Read, Write, Workflow
+description: Cross-report critique — find recurring weak/unsupported claims across the last N resilience reports (no external API credits; judging fans out to up to 12 Claude subagents)
 ---
 
 ## Your task
@@ -33,15 +33,40 @@ Read the JSON. Its shape:
 - `component_findings` — chronic weakness per component. `graded_reports` is the denominator for grounding columns; when it is 0, grounding never ran and those columns mean nothing.
 - `signal_type_weakness` / `source_weakness` — which signal types and sources carry the weak claims.
 
-**Step 3 — Judge, don't just relay**
+**Step 3 — Judge, don't just relay (fan out)**
 
-The deterministic pass finds *structural* weakness. Your job is to say which findings are real analytical defects and which are artifacts. Work through `recurring_weak_claims` and classify each:
+The deterministic pass finds *structural* weakness. Your job is to say which findings are real analytical defects and which are artifacts.
+
+Findings are independent: judging `recurring_weak_claims[3]` never needs the verdict on `[2]`. Reading them one after another in this context is a chain with no real edges, and it does the judging in the same context that just read the whole artifact — so every verdict is coloured by the summary you already formed. Fan out instead.
+
+Call the **Workflow** tool with one judge per finding. Rules:
+
+- **Cap 12 judges.** Take the top findings by `recurrence`, tie-broken by number of `persistent_weaknesses`. If more than 12 findings exist, say so explicitly in the report — a silent cap reads as full coverage.
+- **Each judge gets one finding and nothing else** — its `exemplar_text`, `component_id`, `recurrence`, `persistent_weaknesses`, `verbatim_repeat`, `dates`, `sources`, `members`, plus the run's `caveats`. Never pass your own reading of the artifact, and never pass the other findings. A judge that inherits your summary is confirming it, not checking it.
+- **Each judge opens the underlying evidence.** Give it the report paths from `members` and tell it to check whether the cited refs resolve to what the claim asserts. Verdict on the artifact alone is worth much less than verdict against the report — that is the anchor, and it is the reason this is worth spawning agents for at all.
+- **Judges return structured verdicts**, one object each:
+
+```
+{ finding_index, verdict: "unsupported" | "thin_fair" | "artifact",
+  confidence: "high" | "medium" | "low",
+  rationale: "one or two sentences, citing what it checked",
+  responsible_stage: "<file or pipeline stage>"   // artifact verdicts only
+}
+```
+
+- **A judge that returns nothing is a gap, not a pass.** Count returned verdicts against judges spawned and list any finding that came back empty as unjudged in the report — never fold it into the counts as if it had been checked.
+
+Do the cross-finding pattern work (below) yourself after the fan-out, on the returned verdicts. That part genuinely needs all of them at once — the fan-out is only for the per-finding call.
+
+Use the classification rules below as the judge instructions, verbatim:
 
 - **✗ Unsupported** — the claim asserts more than its evidence carries. Check `persistent_weaknesses`: `unknown_type_ref` means the claim cites a signal type the report never produced; `unresolved_ref` with a high `misattributed` count (see the weakness `detail` text) means the claim points at a real article but a type never extracted from it — a mis-attribution, not a missing file.
 - **~ Thin but fair** — supported, just narrow (`single_article` / `single_source` / `single_channel`). Common and often unavoidable for PBO and visits material, where one municipality *is* one source. Say so rather than counting it as a defect.
 - **⚑ Artifact** — the finding is about tooling, not analysis. Ref-key drift between narrative build and report serialization, `external_ref` pointing into the open-observation bundle the report only summarizes, boilerplate PBO score lines (`[municipality] component: avg=NN% (…)`) that recur because the template recurs. Name these separately; fixing them is a code change, not an analysis change.
 
-Then look across findings for the patterns that matter:
+**Step 3b — Read across the returned verdicts (you, not a judge)**
+
+Once the fan-out returns, look across the verdicts for the patterns that matter. This is the reduce step and it genuinely needs every verdict at once:
 
 - Which **component** carries the most unsupported claims, and does its `unsupported_claim_share` hold across reports or spike on particular dates?
 - Which **signal types** and **sources** dominate `signal_type_weakness` / `source_weakness` — is one extraction rule generating most of the untraceable claims?
@@ -55,6 +80,7 @@ Write to `business_modules/resilience_scorer/data/critiques/critique-<scope>-<fr
 ```markdown
 # Cross-Report Critique: <scope> <from> → <to>
 Reports: N (M with no claims) | Claims: N | Unsupported: N | Thin only: N
+Judged: N of M findings (K over the cap, J returned nothing)
 
 ## Executive Summary
 [3–5 sentences: the dominant recurring defect, whether it is analytical or tooling, and the single highest-leverage fix]
@@ -82,4 +108,4 @@ Reports: N (M with no claims) | Claims: N | Unsupported: N | Thin only: N
 [3–6 proposals, ranked by estimated impact, each traceable to a finding above]
 ```
 
-After writing, report the file path and the top 2–3 proposals as a summary. Be explicit about which findings you judged artifacts — that judgement is the value of this pass, and hiding it makes the next run repeat the work.
+After writing, report the file path and the top 2–3 proposals as a summary. Be explicit about which findings were judged artifacts — that judgement is the value of this pass, and hiding it makes the next run repeat the work. Name any finding that was capped out or came back unjudged; an unchecked finding is not a clean one.

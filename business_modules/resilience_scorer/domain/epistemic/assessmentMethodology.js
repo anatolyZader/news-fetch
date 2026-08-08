@@ -25,13 +25,19 @@ import { DEFAULT_NORTH_SOURCE_TYPES } from '../services/signals/signalDistrictId
  * Bump when SIGNAL_TO_COMPONENTS or catalog/routing contracts change materially;
  * add a matching SCORING_MODEL_CHANGELOG entry.
  */
-export const SCORING_MODEL_VERSION = 'v10';
+export const SCORING_MODEL_VERSION = 'v11';
 
 /**
  * Human-maintained changelog paired with SCORING_MODEL_VERSION.
  * Newest first. Required when bumping the version.
  */
 export const SCORING_MODEL_CHANGELOG = [
+  {
+    version: 'v11',
+    date: '2026-08-08',
+    summary:
+      'Evidence-surface epoch (CATALOG_VERSION v8 → v9, so the extraction cache is invalidated; EXTRACT_PROMPT_VERSION separately bumped extract-v4 → v5 for a verbatim-evidence rule). Three new catalog types: vulnerable_population_mapping (construct_role institutional_state, + primary into wellbeing_at_risk), wellbeing_support_provided (split from wellbeing_support_accessed, which had stretched to cover "the welfare department is operating"; routes identically, no wellbeing edge), out_group_blaming (- primary into belonging_solidarity, closing GQ3 which previously had no instrument at all). conflict_or_tension narrowed to reciprocal friction — "scapegoating" moved to out_group_blaming. The institutional_state carve-out is deliberate and does not weaken the v7 response/capacity rule: that rule bars treatment uptake as proxy evidence of wellbeing, whereas wellbeing_at_risk is defined as "the ability to identify and address the needs of vulnerable populations" with GQ1/GQ3 asking for exactly the mapping and monitoring mechanisms this type describes — constitutive evidence, not proxy. Comparability breaks: wellbeing_at_risk gains its first structural positives (previously 2 positive / 47 negative by routing construction, both misclassified); community_capital sheds provision-only signals to the new type; belonging_solidarity gains othering evidence. Surface changes in the same epoch: contributor ranking no longer degenerates to article order, and demoted (weak / unverified_critical) evidence is now reported per component instead of dropped. signal_refs are not comparable pre/post — slimSignal now carries article_url/article_index, so buildRefKey stops collapsing every signal in a component onto one key.',
+  },
   {
     version: 'v10',
     date: '2026-07-24',

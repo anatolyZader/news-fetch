@@ -49,6 +49,14 @@ export const DISAMBIGUATION_PRIORITY_TYPES = [
   'feedback_channel_blocked',
   'system_overload',
   'social_isolation',
+  // v9 note: the wellbeing trio (accessed / provided / vulnerable_population_mapping)
+  // and out_group_blaming are deliberately NOT listed here. This block is part of
+  // the stable prefix, which is hard-budgeted (coreExtractionStablePrefixCharBudget)
+  // and was already within ~50 chars of its ceiling. Their boundaries are instead
+  // carried by their catalog labels — which the extractor also reads, via
+  // formatSignalCatalog, and which cost nothing against this budget. Their
+  // `disambiguation` entries remain for the per-domain subset prompts and for
+  // review tooling. Promote one here only by demoting another.
 ];
 
 // --- Catalog list formatting -------------------------------------------------

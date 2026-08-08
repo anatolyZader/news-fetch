@@ -547,6 +547,16 @@ export const SIGNAL_TO_COMPONENTS = {
     lifesaving_behavior: { polarity: '-', role: 'primary' },
     leadership: { polarity: '-', role: 'inferred' },
   },
+  // v9: closes belonging_solidarity GQ3 ("groups perceived as outside the camp,
+  // scapegoated or blamed"), which had no instrument at all — zero signals across
+  // a 284-signal report in a demographically mixed region. Belonging is the direct
+  // construct; the narrative effect is secondary. Deliberately no wellbeing edge:
+  // othering harms belonging directly, while harm to the othered group's wellbeing
+  // is a separate claim needing its own evidence.
+  out_group_blaming: {
+    belonging_solidarity: { polarity: '-', role: 'primary' },
+    narrative: { polarity: '-', role: 'inferred' },
+  },
   panic_behavior: {
     lifesaving_behavior: { polarity: '-', role: 'primary' },
     wellbeing_at_risk: { polarity: '-', role: 'primary' },
@@ -778,7 +788,27 @@ export const SIGNAL_TO_COMPONENTS = {
   volunteer_donor_fatigue: {
     community_capital: { polarity: '-', role: 'primary' },
   },
+  // v9: construct_role 'institutional_state', so the '+' wellbeing_at_risk edge is
+  // legal under checkConstructRole — and constitutive rather than proxy evidence.
+  // The v7 rule bars response/capacity types because "treatment uptake is not
+  // evidence of wellbeing"; but this component's own definition is "the ability to
+  // identify and address the needs of vulnerable populations", and its GQ1/GQ3 are
+  // literally "activity to IDENTIFY needs" and "mechanisms to LOCATE, MAP and
+  // MONITOR at-risk individuals". A standing registry is that mechanism. The rule
+  // still binds for wellbeing_support_provided below, which stays off this edge.
+  vulnerable_population_mapping: {
+    wellbeing_at_risk: { polarity: '+', role: 'primary' },
+    community_capital: { polarity: '+', role: 'inferred' },
+  },
   wellbeing_support_accessed: {
+    community_capital: { polarity: '+', role: 'primary' },
+    functional_continuity: { polarity: '+', role: 'inferred' },
+  },
+  // v9: split off wellbeing_support_accessed, which had stretched to cover "the
+  // welfare department is operating". Routes identically to the type it split
+  // from, so community_capital loses nothing. No wellbeing_at_risk edge: service
+  // provision is a response, and the v7 rule holds.
+  wellbeing_support_provided: {
     community_capital: { polarity: '+', role: 'primary' },
     functional_continuity: { polarity: '+', role: 'inferred' },
   },

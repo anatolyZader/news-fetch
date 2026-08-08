@@ -62,6 +62,13 @@ export function buildClosedCoreAssessmentShell(params) {
 
   const assessment = buildAssessmentPayload(emptyNarratives, scoredFull, meta);
   assessment.assessment_mode = 'closed_core';
+  // `assessment_mode` is later overwritten by the data-void mode in
+  // `attachEpistemicToAssessment` — the two uses of that field are different
+  // concepts (which producer ran vs. how complete the sampling was), and the
+  // data-void one wins. Record the producer separately so it survives: without
+  // this, a closed-core run is indistinguishable from a specialist run in the
+  // persisted report, while every component reads `specialist_skipped`.
+  assessment.assessment_producer = 'closed_core';
   assessment.assessment_degraded = null;
   return assessment;
 }

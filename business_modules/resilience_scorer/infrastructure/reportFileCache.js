@@ -6,6 +6,18 @@
  * REPORT_CACHE_ENABLED=false bypasses everything.
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { parseReportWithAliases } from '../domain/contracts/reportKeyAliases.js';
+
+/**
+ * Every report read goes through here, so legacy key vocabularies are aliased
+ * in one place — persisted reports never have to be rewritten for a rename.
+ *
+ * @param {string} jsonPath
+ * @returns {object}
+ */
+function readReport(jsonPath) {
+  return parseReportWithAliases(readFileSync(jsonPath, 'utf8'));
+}
 
 function cacheEnabled() {
   return process.env.REPORT_CACHE_ENABLED !== 'false';
@@ -53,7 +65,7 @@ function lruTouch(map, key, value, cap) {
  */
 export function getParsedReportCached(jsonPath) {
   if (!cacheEnabled()) {
-    return JSON.parse(readFileSync(jsonPath, 'utf-8'));
+    return readReport(jsonPath);
   }
   const key = statKey(jsonPath);
   const hit = contentCache.get(jsonPath);
@@ -61,7 +73,7 @@ export function getParsedReportCached(jsonPath) {
     lruTouch(contentCache, jsonPath, hit, maxContentEntries());
     return hit.payload;
   }
-  const payload = JSON.parse(readFileSync(jsonPath, 'utf-8'));
+  const payload = readReport(jsonPath);
   if (process.env.NODE_ENV !== 'production') {
     Object.freeze(payload);
     if (payload && typeof payload === 'object' && payload.assessment) {
@@ -83,7 +95,7 @@ export function getParsedReportCached(jsonPath) {
  */
 export function getReportMetaCached(jsonPath, derive) {
   if (!cacheEnabled()) {
-    return derive(JSON.parse(readFileSync(jsonPath, 'utf8')));
+    return derive(readReport(jsonPath));
   }
   const key = statKey(jsonPath);
   const hit = metaCache.get(jsonPath);
@@ -93,7 +105,7 @@ export function getReportMetaCached(jsonPath, derive) {
   const content = contentCache.get(jsonPath);
   const parsed = content && content.key === key
     ? content.payload
-    : JSON.parse(readFileSync(jsonPath, 'utf8'));
+    : readReport(jsonPath);
   const meta = derive(parsed);
   lruTouch(metaCache, jsonPath, { key, meta }, MAX_META_ENTRIES);
   return meta;

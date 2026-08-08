@@ -38,14 +38,25 @@ export { CRITIQUE_DEFAULTS } from '../../domain/services/critique/crossReportCri
  * @param {string} [options.reportsDir]
  * @param {string} [options.scope] restrict to one report scope id (e.g. 'north')
  * @param {number} [options.limit=8] how many reports to critique
+ * @param {string} [options.producedAfter] keep only runs rendered on or after this
+ *   date (`YYYY-MM-DD`). Recurrence across builds that changed claim text or ref
+ *   format measures the build boundary, not the analysis — narrow the window
+ *   when the `render_epoch_spread` caveat fires.
  * @returns {Array<{ file: string, path: string, scopeId: string, reportDate: string, runId: string }>}
  */
-export function selectReportFiles({ reportsDir = resilienceReportsDir(), scope, limit = 8 } = {}) {
+export function selectReportFiles({
+  reportsDir = resilienceReportsDir(),
+  scope,
+  limit = 8,
+  producedAfter,
+} = {}) {
   const parsed = readdirSync(reportsDir)
     .filter((f) => f.toLowerCase().endsWith('.json'))
     .map((file) => ({ file, meta: parseReportFilename(file) }))
     .filter((e) => e.meta != null)
     .filter((e) => !scope || e.meta.scopeId === scope)
+    // runId is the produced stamp (`2026-08-08T1516Z`), so a date prefix compares directly.
+    .filter((e) => !producedAfter || String(e.meta.runId) >= String(producedAfter))
     .map((e) => ({
       file: e.file,
       path: join(reportsDir, e.file),
@@ -106,6 +117,8 @@ export function buildCrossReportCritique(options = {}) {
       component_summary: r.component_summary,
       claim_count: r.claims.length,
       weak_claim_count: r.claims.filter((c) => c.weakness_kinds.length > 0).length,
+      structural_only_claim_count: r.claims.filter((c) =>
+        c.weakness_kinds.length === 0 && c.structural_kinds.length > 0).length,
     })),
   };
 }
