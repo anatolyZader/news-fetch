@@ -1,4 +1,4 @@
-import { redactReportPayload } from '../../domain/services/operator/assessmentDisplayTier.js';
+import { redactReportPayload } from '../../domain/services/user/assessmentDisplayTier.js';
 
 /** @returns {{ redactReportPayload: typeof redactReportPayload }} */
 export function createReportDisplayPort() {

@@ -6,9 +6,9 @@ import {
   buildEvidencePartitionsByComponent,
   buildSingleComponentDiagnostics,
   deriveAssessmentState,
-  deriveOperatorDisplayState,
+  deriveUserDisplayState,
   findUnknownComponentIds,
-} from '../../../../../business_modules/resilience_scorer/domain/services/operator/componentDiagnostics.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/user/componentDiagnostics.js';
 
 function pboSignal(i) {
   return {
@@ -49,7 +49,7 @@ describe('componentDiagnostics', () => {
       component_id: 'information_communication',
       severity: 'abstain',
       confidence: 'low',
-      operator_status: 'insufficient_data',
+      user_status: 'insufficient_data',
       narrative_claims: [],
       specialist_tier: 'C',
       specialist_ran: false,
@@ -64,8 +64,8 @@ describe('componentDiagnostics', () => {
 
     assert.equal(diagnostics.assessment_state, 'specialist_skipped');
     assert.ok(['field_anchor_only', 'mixed'].includes(diagnostics.evidence_usage_state));
-    assert.equal(diagnostics.operator_display_state, 'specialist_skipped');
-    assert.notEqual(diagnostics.operator_display_state, 'evidence_quarantined');
+    assert.equal(diagnostics.user_display_state, 'specialist_skipped');
+    assert.notEqual(diagnostics.user_display_state, 'evidence_quarantined');
     assert.equal(diagnostics.coverage.scoring_used, 57);
     assert.equal(diagnostics.coverage.quarantined, 143);
   });
@@ -84,21 +84,21 @@ describe('componentDiagnostics', () => {
       specialistSelectedSet: new Set(),
     });
     assert.equal(diagnostics.assessment_state, 'insufficient_data');
-    assert.equal(diagnostics.operator_display_state, 'insufficient_data');
+    assert.equal(diagnostics.user_display_state, 'insufficient_data');
   });
 
   it('claims + abstain severity → invalid_artifact', () => {
     const state = deriveAssessmentState(
       {
         severity: 'abstain',
-        operator_status: 'insufficient_data',
+        user_status: 'insufficient_data',
         confidence: 'medium',
       },
       { claims_count: 2, coverage: { scoring_used: 5 }, critic_downgraded: false },
       { epistemicProfileAvailable: true },
     );
     assert.equal(state.state, 'invalid_artifact');
-    assert.ok(state.analystFlags.includes('contract_inconsistent'));
+    assert.ok(state.developerFlags.includes('contract_inconsistent'));
   });
 
   it('missing epistemic profile → diagnostic_incomplete flag', () => {
@@ -108,7 +108,7 @@ describe('componentDiagnostics', () => {
       partitions,
       { epistemicProfileAvailable: false, specialistSelectedSet: new Set() },
     );
-    assert.ok(diagnostics.analyst_flags.includes('diagnostic_incomplete'));
+    assert.ok(diagnostics.developer_flags.includes('diagnostic_incomplete'));
   });
 
   it('acceptance #6: scoring_used > 0 and claims=0 must not be insufficient_data', () => {
@@ -164,11 +164,11 @@ describe('componentDiagnostics', () => {
       partitions,
       { epistemicProfileAvailable: true, specialistSelectedSet: new Set(), assessmentMode: 'field_anchor_only' },
     );
-    assert.equal(diagnostics.operator_display_state, 'evidence_quarantined');
+    assert.equal(diagnostics.user_display_state, 'evidence_quarantined');
   });
 
   it('assessed claims with low confidence → assessed_low_confidence', () => {
-    const display = deriveOperatorDisplayState('assessed_low_confidence', 'normal', {
+    const display = deriveUserDisplayState('assessed_low_confidence', 'normal', {
       claims_count: 2,
       critic_downgraded: true,
       coverage: { scoring_used: 5 },
@@ -226,7 +226,7 @@ describe('componentDiagnostics', () => {
     });
 
     const info = assessment.components.find((c) => c.component_id === 'information_communication');
-    assert.equal(info.operator_display_state, 'specialist_skipped');
+    assert.equal(info.user_display_state, 'specialist_skipped');
     assert.equal(info.coverage.scoring_used, 57);
     assert.ok(assessment.component_diagnostics.information_communication);
   });

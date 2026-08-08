@@ -2648,7 +2648,7 @@ Professionals note that the soil, which was soft due to recent rains, absorbed a
 
 The incident in Arad saw even more casualties, with 84 individuals injured, ten of whom severely. The missile hit an area populated by a large community of Ger Hassidim. An inquiry found that despite the building having shelters, the majority of the injured were outside of the protected areas at the time of impact.
 
-The IAF and IDF quickly clarified that despite the severe results, there was no "systematic failure" or human error on the part of the operators.
+The IAF and IDF quickly clarified that despite the severe results, there was no "systematic failure" or human error on the part of the users.
 
 According to military officials, the missiles in question are of a known type that has been successfully intercepted in the past, and no connection was found between the first interceptor failure in Dimona and the second in Arad. However, the IDF continues to thoroughly investigate the technical causes that led to the interception failures of the David's Sling system, which is designed to provide protection against medium- to long-range missiles.
 

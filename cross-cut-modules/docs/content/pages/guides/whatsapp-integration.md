@@ -15,7 +15,7 @@ llm:
 When WhatsApp is connected, messages from approved groups become part of the evidence used in the daily assessment. That means:
 - you can see WhatsApp-driven evidence behind a score
 - the assessment can reflect community sentiment and on-the-ground reports faster than news
-- operators can audit what was ingested for a given day (for privacy and accuracy)
+- users can audit what was ingested for a given day (for privacy and accuracy)
 
 WhatsApp is sensitive. Treat message content as private by default.
 
@@ -24,10 +24,10 @@ WhatsApp is sensitive. Treat message content as private by default.
 - If your deployment shows source breakdowns, WhatsApp will appear as one of the inputs for the day.
 - You may be able to drill into evidence excerpts (depending on your privacy settings).
 
-## Operator setup (one-time)
-If you’re not the operator: you can stop here and send this page to the person who manages the deployment.
+## User setup (one-time)
+If you’re not the user: you can stop here and send this page to the person who manages the deployment.
 
-The operator configures:
+The user configures:
 - `WHATSAPP_VERIFY_TOKEN`
 - `WHATSAPP_ACCESS_TOKEN`
 - `WHATSAPP_PHONE_NUMBER_ID`

@@ -66,4 +66,4 @@
 
 - No single number / score as a headline.
 - No "AI predicts" or "knows in advance."
-- No internal/analyst concepts (calibration, action compass, evidence-quality banners).
+- No internal/developer concepts (calibration, action compass, evidence-quality banners).

@@ -34,7 +34,7 @@ export function loadAppConfig(env = process.env) {
     env.ENABLE_SWAGGER === 'true' ||
     (profile.enableSwagger && nodeEnv !== 'production');
 
-  const analystEmails = (env.RESILIENCE_ANALYST_EMAILS ?? '')
+  const developerEmails = (env.RESILIENCE_ANALYST_EMAILS ?? '')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
@@ -52,6 +52,6 @@ export function loadAppConfig(env = process.env) {
     outboxDispatchIntervalMs: Number(env.OUTBOX_DISPATCH_INTERVAL_MS || 5000),
     pipelineRunTracking: env.PIPELINE_RUN_TRACKING !== '0',
     resilienceSecondExtract: env.RESILIENCE_SECOND_EXTRACT === '1',
-    analystEmails,
+    developerEmails,
   };
 }

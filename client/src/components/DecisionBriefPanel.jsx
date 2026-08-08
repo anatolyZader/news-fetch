@@ -14,7 +14,7 @@ const LEVEL_VARIANT = {
 };
 
 /**
- * Batch agent decision brief (operator-safe; no 1–10 scores).
+ * Batch agent decision brief (user-safe; no 1–10 scores).
  */
 export function DecisionBriefPanel({ decisionBrief, retrievalGaps = [] }) {
   const { t } = useLanguage();

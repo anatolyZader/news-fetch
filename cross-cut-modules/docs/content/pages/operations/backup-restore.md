@@ -9,7 +9,7 @@ tags: ["backup", "sqlite", "dr"]
 
 ## Purpose
 
-Quarterly restore drills ensure SQLite and uploaded evidence can be recovered after VM failure or operator error.
+Quarterly restore drills ensure SQLite and uploaded evidence can be recovered after VM failure or user error.
 
 ## Prerequisites
 
@@ -97,7 +97,7 @@ Copy archives off-box (GCS bucket, another region) — the script only creates l
 1. Stop the Node process (PM2 / systemd).
 2. Replace `db/app.sqlite` and `db/evidence-uploads/` from backup.
 3. Confirm `SQLITE_PATH` points at restored DB.
-4. Start server; hit `/api/monitoring/health/detail` as analyst.
+4. Start server; hit `/api/monitoring/health/detail` as developer.
 
 ## Related
 

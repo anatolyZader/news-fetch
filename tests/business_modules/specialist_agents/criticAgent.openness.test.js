@@ -41,7 +41,7 @@ describe('criticAgent openness', () => {
     assert.ok(requiresRepair);
     const repaired = applyCriticRepair({ ...assessment }, issues);
     assert.equal(repaired.severity, 'moderate');
-    assert.equal(repaired.operator_status, 'watch');
+    assert.equal(repaired.user_status, 'watch');
   });
 
   it('flags lookup_only_no_retrieval', () => {

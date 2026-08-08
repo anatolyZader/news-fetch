@@ -4,8 +4,8 @@
 
 - How the system reasons about **evidence quality** rather than just producing a number.
 - **Evidence mass**, **source caps**, and **certainty** - the building blocks of honest uncertainty.
-- The **operator instrument** that replaces the headline score.
-- Exactly **why and how** the 1-10 score is hidden from operators (`display_view` redaction).
+- The **user instrument** that replaces the headline score.
+- Exactly **why and how** the 1-10 score is hidden from users (`display_view` redaction).
 
 ## 1. Why epistemics matter here
 
@@ -45,31 +45,31 @@ This means twenty echoes of the same news outlet cannot manufacture certainty; m
 
 For the agent, a separate `enrichProfileForInvestigation` computes `investigation_mass`, `thin_for_investigation`, and `investigation_eligible` (adding archive/residual/OOV bonuses). This drives planner/specialist **abstention** (file 04) and is distinct from scoring mass.
 
-## 3. The operator instrument (what replaces the score)
+## 3. The user instrument (what replaces the score)
 
-Instead of a 1-10, the operator sees an **instrument** derived by `deriveInstrumentState` (`business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js`, line 75):
+Instead of a 1-10, the user sees an **instrument** derived by `deriveInstrumentState` (`business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js`, line 75):
 
 ```js
 {
   confidence,
   evidence_sufficiency: 'thin' | 'moderate' | 'adequate',
   contested, contested_thin, significant_delta,
-  operator_status, evidence_mass,
+  user_status, evidence_mass,
   polarization, polarization_band,
-  certainty_band, operator_shows_score,
+  certainty_band, user_shows_score,
   thin_evidence_instrument, ...
 }
 ```
 
-This communicates "how much to trust this, and is it changing" without inviting false precision. Operator display states (`insufficient_data`, `evidence_quarantined`, `specialist_skipped`) come from `business_modules/resilience_scorer/domain/services/componentDiagnostics.js`.
+This communicates "how much to trust this, and is it changing" without inviting false precision. User display states (`insufficient_data`, `evidence_quarantined`, `specialist_skipped`) come from `business_modules/resilience_scorer/domain/services/componentDiagnostics.js`.
 
-## 4. The headline 1-10: present internally, hidden from operators
+## 4. The headline 1-10: present internally, hidden from users
 
-The deterministic score still exists - it is useful for analysts calibrating the system - but it is treated as **secondary** and is **redacted** for operators.
+The deterministic score still exists - it is useful for developers calibrating the system - but it is treated as **secondary** and is **redacted** for users.
 
 ### 4.1 Where the score comes from
 
-The only sanctioned bridge from the resilience module into the scoring code is `business_modules/resilience_scorer/app/scoringFacade.js`, re-exporting `scoreComponents` / `overallScore` from `business_modules/resilience_scorer/analyst/`. In the daily run it produces the **shadow** score, compared against the agent assessment for divergence - not merged into the operator's component claims.
+The only sanctioned bridge from the resilience module into the scoring code is `business_modules/resilience_scorer/app/scoringFacade.js`, re-exporting `scoreComponents` / `overallScore` from `business_modules/resilience_scorer/developer/`. In the daily run it produces the **shadow** score, compared against the agent assessment for divergence - not merged into the user's component claims.
 
 ### 4.2 The gates and redactions that hide it
 
@@ -77,29 +77,29 @@ The only sanctioned bridge from the resilience module into the scoring code is `
 |-------|-----------|
 | Agent output | `mapAssessmentV2ToLegacy` sets `overall_resilience_score: null` |
 | Epistemic gate | `applyScoreAbstention` (`business_modules/resilience_scorer/domain/services/dataVoid/epistemicGate.js`) nulls scores and sets `epistemic_abstention` / `confidence: 'insufficient_data'` when the evidence void is elevated/critical |
-| API redaction | `redactReportPayload` / `redactAssessmentForView` strip per-component scores, `overall_resilience_score`, shadow scoring, and component diagnostics for operators |
-| Display-view auth | `resolveDisplayView` grants `analyst` only to allow-listed users; everyone else is `operator` |
-| Thin-evidence policy | sets `operator_shows_score: false` when mass is too low / abstaining / sampling-blind |
+| API redaction | `redactReportPayload` / `redactAssessmentForView` strip per-component scores, `overall_resilience_score`, shadow scoring, and component diagnostics for users |
+| Display-view auth | `resolveDisplayView` grants `developer` only to allow-listed users; everyone else is `user` |
+| Thin-evidence policy | sets `user_shows_score: false` when mass is too low / abstaining / sampling-blind |
 | Markdown | `...-brief.md` is written with `includeScores: false` |
-| Chat | scores included only when `display_view === 'analyst'`; operators get an operator summary |
+| Chat | scores included only when `display_view === 'developer'`; users get a user summary |
 
 Display view resolution:
 
 ```11:17:cross-cut-modules/resilience-contracts/displayViews.js
-export function resolveDisplayView({ queryView, canViewAnalyst = false } = {}) {
-  const requested = String(queryView ?? 'operator').trim().toLowerCase();
-  if (requested !== DISPLAY_VIEWS.analyst) {
-    return DISPLAY_VIEWS.operator;
+export function resolveDisplayView({ queryView, canViewDeveloper = false } = {}) {
+  const requested = String(queryView ?? 'user').trim().toLowerCase();
+  if (requested !== DISPLAY_VIEWS.developer) {
+    return DISPLAY_VIEWS.user;
   }
-  return canViewAnalyst ? DISPLAY_VIEWS.analyst : DISPLAY_VIEWS.operator;
+  return canViewDeveloper ? DISPLAY_VIEWS.developer : DISPLAY_VIEWS.user;
 }
 ```
 
 ### 4.3 Why
 
-A district officer producing twice-daily situation reports is better served by **claims + evidence + uncertainty** than by a single, easily-misread number - especially when evidence is thin or one-sided. The score is retained for analysts (calibration, drift, tuning) but is deliberately kept off the operator surface. This is the concrete expression of "decision support, not scoring" (file 01).
+A district officer producing twice-daily situation reports is better served by **claims + evidence + uncertainty** than by a single, easily-misread number - especially when evidence is thin or one-sided. The score is retained for developers (calibration, drift, tuning) but is deliberately kept off the user surface. This is the concrete expression of "decision support, not scoring" (file 01).
 
-## 5. Reading the instruments (operator cheat-sheet)
+## 5. Reading the instruments (user cheat-sheet)
 
 | Instrument | What it tells the officer |
 |------------|---------------------------|
@@ -107,8 +107,8 @@ A district officer producing twice-daily situation reports is better served by *
 | `confidence` / `certainty_band` | How firm is the reading given the evidence mass |
 | `contested` / `polarization_band` | Is the picture mixed (pro and con) vs one-sided |
 | `significant_delta` | Is today a meaningful change vs recent days |
-| `operator_status` | `stable` / `watch` / `critical_failure` / `insufficient_data` |
-| `operator_shows_score` | Whether a score would even be defensible here (usually false for operators) |
+| `user_status` | `stable` / `watch` / `critical_failure` / `insufficient_data` |
+| `user_shows_score` | Whether a score would even be defensible here (usually false for users) |
 
 ## 6. Key code locations
 
@@ -122,7 +122,7 @@ A district officer producing twice-daily situation reports is better served by *
 | Investigation abstention | `business_modules/specialist_agents/domain/services/investigationEpistemic.js` |
 | Instrument + redaction | `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js` |
 | Score abstention gate | `business_modules/resilience_scorer/domain/services/dataVoid/epistemicGate.js` |
-| Operator display states | `business_modules/resilience_scorer/domain/services/componentDiagnostics.js` |
+| User display states | `business_modules/resilience_scorer/domain/services/componentDiagnostics.js` |
 | Scoring bridge | `business_modules/resilience_scorer/app/scoringFacade.js` |
 | Display view | `cross-cut-modules/resilience-contracts/displayViews.js` |
 
@@ -136,6 +136,6 @@ On `digital_darkness` days the report carries **two** epistemic surfaces:
 | `assessment.shadow_scoring.epistemic_status` | **Score reliability** — `void_level`, `assessment_mode: field_anchor_only`, `scores_reliable` |
 | `assessment.digital_quarantine_state` | Active quarantine flag + `assessment_mode` for the scoring partition |
 
-**Operators and replay QA:** trust `operator_display_state` / `evidence_operator` on components, plus `shadow_scoring.epistemic_status` and `digital_quarantine_state` — not top-level `epistemic_status.void_level` alone.
+**Users and replay QA:** trust `user_display_state` / `evidence_user` on components, plus `shadow_scoring.epistemic_status` and `digital_quarantine_state` — not top-level `epistemic_status.void_level` alone.
 
 Post-run checklist: `npm run pipeline:audit -- --date YYYY-MM-DD --scope north`.

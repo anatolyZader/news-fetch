@@ -32,7 +32,7 @@ Explain how Srulik's lab's authentication works as a system: who issues tokens, 
 - **Build-time vs. runtime.** Client config is baked into the JS bundle at build time. Server config is read at runtime. Rotations affect different things: changing `VITE_FIREBASE_*` means rebuild + redeploy; changing server env means restart.
 - **Tokens expire.** The client SDK refreshes ID tokens before expiry automatically. The server accepts any valid non-expired token from the configured project.
 - **Membership gate:** When `AUTH_REQUIRE_LISTED_USER` is true (default in production), the email on the JWT must appear in `config/userAccess.json` or `RESILIENCE_*_EMAILS` env overrides. Otherwise the API returns `403` with `forbidden_not_invited`.
-- **Authorization (roles)** uses the same registry: operator / analyst / maintainer, plus optional operator district scoping.
+- **Authorization (roles)** uses the same registry: user / developer / maintainer, plus optional user district scoping.
 
 ## How a request actually flows
 

@@ -1,4 +1,4 @@
-/** Operator message when signals exist but LLM synthesis did not run. */
+/** User message when signals exist but LLM synthesis did not run. */
 export const INSUFFICIENT_SYNTHESIS_NARRATIVE =
   'Insufficient LLM synthesis — see supporting evidence below.';
 
@@ -18,7 +18,7 @@ export function shouldAllowTemplateNarrative(ep, claimCount = 0) {
  * epistemic facts (never raw evidence text). Used by the fallback/deterministic
  * assessment paths so reports stay readable even when the LLM agents do not run.
  * Verbatim, possibly multi-language, evidence quotes belong in the evidence tree,
- * not in the operator narrative.
+ * not in the user narrative.
  */
 
 /**
@@ -42,7 +42,7 @@ function dominantSourceType(ep) {
 }
 
 /**
- * Whether operator narrative should describe single-channel concentration.
+ * Whether user narrative should describe single-channel concentration.
  * Dominance alone is insufficient when diversity or investigation pool is rich.
  * @param {object} ep epistemic profile slice for the component
  * @returns {boolean}
@@ -80,14 +80,14 @@ function qualityCaveat({ contested, thin, dominant }) {
 }
 
 /**
- * Operator-register narrative: purely qualitative. No source_type slug, no raw
+ * User-register narrative: purely qualitative. No source_type slug, no raw
  * signal/source counts — those belong to the redacted instrument badges and the
- * analyst-only surfaces. Describes the evidence base in plain language only.
+ * developer-only surfaces. Describes the evidence base in plain language only.
  * @param {string} label
  * @param {object} ep
  * @returns {string}
  */
-function operatorNarrative(label, ep) {
+function userNarrative(label, ep) {
   const dominant = dominantSourceType(ep) !== null;
   const singleChannel = shouldUseSingleChannelNarrative(ep);
   const diversity = ep.source_diversity ?? null;
@@ -114,22 +114,22 @@ function operatorNarrative(label, ep) {
 }
 
 /**
- * Qualitative operator prose from epistemic profile only (no raw quotes).
+ * Qualitative user prose from epistemic profile only (no raw quotes).
  * @param {{ componentId: string, ep?: object }} params
  * @returns {string}
  */
-export function buildOperatorQualitativeNarrative({ componentId, ep = {} }) {
-  return operatorNarrative(componentLabel(componentId), ep);
+export function buildUserQualitativeNarrative({ componentId, ep = {} }) {
+  return userNarrative(componentLabel(componentId), ep);
 }
 
 /**
- * Analyst-register narrative: may name the dominant source family and counts.
+ * Developer-register narrative: may name the dominant source family and counts.
  * @param {string} label
  * @param {object} ep
  * @param {number} signalCount
  * @returns {string}
  */
-function analystNarrative(label, ep, signalCount) {
+function developerNarrative(label, ep, signalCount) {
   const dominantSource = dominantSourceType(ep);
   const diversity = ep.source_diversity ?? null;
 
@@ -152,12 +152,12 @@ function analystNarrative(label, ep, signalCount) {
 
 /**
  * Build a concise, readable component narrative from structured facts only.
- * Operator view (default) is purely qualitative; analyst view may name the
+ * User view (default) is purely qualitative; developer view may name the
  * dominant source family and counts.
- * @param {{ componentId: string, ep?: object, claimCount?: number, view?: 'operator'|'analyst' }} params
+ * @param {{ componentId: string, ep?: object, claimCount?: number, view?: 'user'|'developer' }} params
  * @returns {string}
  */
-export function buildComponentNarrative({ componentId, ep = {}, claimCount = 0, view = 'operator' }) {
+export function buildComponentNarrative({ componentId, ep = {}, claimCount = 0, view = 'user' }) {
   const label = componentLabel(componentId);
   const signalCount = ep.signal_count ?? claimCount ?? 0;
 
@@ -165,13 +165,13 @@ export function buildComponentNarrative({ componentId, ep = {}, claimCount = 0, 
     return `${label}: no substantive signals today.`;
   }
 
-  if (view !== 'analyst' && !shouldAllowTemplateNarrative(ep, claimCount)) {
+  if (view !== 'developer' && !shouldAllowTemplateNarrative(ep, claimCount)) {
     return INSUFFICIENT_SYNTHESIS_NARRATIVE;
   }
 
-  return view === 'analyst'
-    ? analystNarrative(label, ep, signalCount)
-    : operatorNarrative(label, ep);
+  return view === 'developer'
+    ? developerNarrative(label, ep, signalCount)
+    : userNarrative(label, ep);
 }
 
 /**

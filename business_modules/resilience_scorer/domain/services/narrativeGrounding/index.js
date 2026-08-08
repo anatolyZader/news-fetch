@@ -1,7 +1,7 @@
 /**
  * Public re-export barrel for narrative grounding (post-hoc prose vs evidence QA).
  *
- * Pipeline position: consumed by narrative LLM pipeline and operator finalize;
+ * Pipeline position: consumed by narrative LLM pipeline and user finalize;
  * NOT related to GROUNDING_TIER evidence verification.
  *
  * Owns: facade exports for config, signal refs, co-occurrence, validation, scoring.
@@ -23,7 +23,7 @@ export {
   resolveNarrativePipelineMode,
   hybridNarrativeEnabled,
   legacyNarrativeOnly,
-  operatorNarrativePipelineEnabled,
+  userNarrativePipelineEnabled,
 } from './groundingConfig.js';
 
 export {

@@ -7,10 +7,10 @@
  * Owns: narrativeEpistemicMode and narrativeInvestigationPermissive flags.
  * Does NOT: numeric scoring, GROUNDING_TIER verification, or narrativeGrounding QA.
  *
- * Key collaborators: operatorEpistemicOverlay.js, assessmentOrchestrator.js,
- * operatorSurfaceMode.js.
+ * Key collaborators: userEpistemicOverlay.js, assessmentOrchestrator.js,
+ * userSurfaceMode.js.
  */
-import { operatorEpistemicOverlayEnabled } from './operatorEpistemicOverlay.js';
+import { userEpistemicOverlayEnabled } from './userEpistemicOverlay.js';
 
 /** @typedef {'strict' | 'permissive'} NarrativeEpistemicMode */
 
@@ -32,5 +32,5 @@ export function narrativeEpistemicMode(env = process.env) {
  */
 export function narrativeInvestigationPermissive(env = process.env) {
   return narrativeEpistemicMode(env) === 'permissive'
-    || !operatorEpistemicOverlayEnabled(env);
+    || !userEpistemicOverlayEnabled(env);
 }

@@ -5,7 +5,7 @@ description: Doc-drift audit — find dead path citations, broken links, and ind
 
 ## Your task
 
-Audit developer-facing docs for drift: repo paths cited in prose/code-blocks that no longer exist, broken relative links, contradictions between doc generations, and `docs/INDEX.md` staleness. **Report-only: never edit any audited file.** Fixes happen as a separate operator-approved action after reading the report (same propose→approve split as `/harvest-signals` → `/apply-signal-batch`). No pipeline runs, no API calls. Do NOT ask for confirmation — just go.
+Audit developer-facing docs for drift: repo paths cited in prose/code-blocks that no longer exist, broken relative links, contradictions between doc generations, and `docs/INDEX.md` staleness. **Report-only: never edit any audited file.** Fixes happen as a separate user-approved action after reading the report (same propose→approve split as `/harvest-signals` → `/apply-signal-batch`). No pipeline runs, no API calls. Do NOT ask for confirmation — just go.
 
 Scope: `docs/**/*.md`, `.claude/commands/*.md`, `AGENTS.md`, `CLAUDE.md`, `memory.md`.
 

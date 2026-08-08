@@ -1,23 +1,23 @@
 {
-  "operatorDistrictEnforcementEnabled": false,
+  "userDistrictEnforcementEnabled": false,
   "users": [
     {
       "email": "myzader@gmail.com",
-      "level": "analyst"
+      "level": "developer"
     },
     {
       "email": "example.north@example.com",
-      "level": "operator",
+      "level": "user",
       "districtIds": ["north"]
     },
     {
       "email": "example.multi@example.com",
-      "level": "operator",
+      "level": "user",
       "districtIds": ["north", "south"]
     },
     {
       "email": "example.admin@example.com",
-      "level": "operator",
+      "level": "user",
       "allDistricts": true
     }
   ]

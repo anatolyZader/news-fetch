@@ -30,7 +30,7 @@ export function isSignupDisabled(env = process.env) {
  * @param {NodeJS.ProcessEnv} [env]
  * @returns {boolean}
  */
-export function isOperatorDistrictEnforcementForced(env = process.env) {
+export function isUserDistrictEnforcementForced(env = process.env) {
   return (env.OPERATOR_DISTRICT_ENFORCEMENT_ENABLED ?? '').trim().toLowerCase() === 'true';
 }
 

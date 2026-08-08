@@ -40,7 +40,7 @@ export const OUTPUT_SYMLINKS = [
   { link: 'production/ingest/pbo-regional', target: 'business_modules/pbo_report/data/regional' },
   { link: 'production/ingest/social-media', target: 'business_modules/social_media/data' },
 
-  // Research / calibration (not operator daily path)
+  // Research / calibration (not user daily path)
   { link: 'research/translation-locale', target: 'business_modules/translation/data/locale' },
 
   // Operational (verbose logs, cost — separate lifecycle from assessment artifacts)

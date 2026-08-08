@@ -52,17 +52,52 @@ const CONFIDENCE_DOWNGRADE = {
  */
 const EXTREME_CONCENTRATION_SHARE = 0.9;
 
-/** Sufficiency-derived confidence, downgraded one step under extreme concentration. */
-function deriveConfidence(basis) {
-  const base = SUFFICIENCY_CONFIDENCE[basis.sufficiency] ?? 'insufficient_data';
+/**
+ * Share of a component's primary evidence coming from municipalities whose PBO
+ * report was reviewed and found to be missing evidence, above which the
+ * volume-derived sufficiency band overstates what we actually know.
+ *
+ * Lower than EXTREME_CONCENTRATION_SHARE on purpose: concentration is a *proxy*
+ * for lost independence and must be near-total before it is acted on, whereas a
+ * review verdict is a direct quality judgement on the evidence itself, so a
+ * simple majority earns the downgrade. First cut — revisit once re-extraction
+ * produces a real distribution.
+ */
+const THIN_REVIEW_SHARE = 0.5;
+
+/** Human-readable reasons the sufficiency-derived band overstates confidence. */
+function confidenceDowngradeReasons(basis) {
+  const reasons = [];
   const cw = basis.concentration_warning;
   if (cw && cw.share >= EXTREME_CONCENTRATION_SHARE) {
-    return {
-      confidence: CONFIDENCE_DOWNGRADE[base],
-      confidence_caveat: `downgraded: ${cw.layer.replaceAll('_', ' ')} "${cw.key}" holds ${Math.round(cw.share * 100)}% of signals`,
-    };
+    reasons.push(`${cw.layer.replaceAll('_', ' ')} "${cw.key}" holds ${Math.round(cw.share * 100)}% of signals`);
   }
-  return { confidence: base, confidence_caveat: null };
+  const rc = basis.review_completeness;
+  if (rc && rc.incomplete_share >= THIN_REVIEW_SHARE) {
+    reasons.push(`${Math.round(rc.incomplete_share * 100)}% of evidence from PBO reports reviewed as incomplete`);
+  }
+  return reasons;
+}
+
+/**
+ * Sufficiency-derived confidence, downgraded one step when evidence quality
+ * undercuts the volume band.
+ *
+ * Downgrades do NOT stack: CONFIDENCE_DOWNGRADE is a one-step map, so applying
+ * it twice takes high straight to low, skipping medium — and 'low' is not a
+ * neutral value, since userDisplayState routes it to
+ * assessed_low_confidence. On PBO-dominated components both reasons routinely
+ * fire together, so stacking would be the common case, not the corner case.
+ * Every reason still appears in the caveat; only the band effect is capped.
+ */
+function deriveConfidence(basis) {
+  const base = SUFFICIENCY_CONFIDENCE[basis.sufficiency] ?? 'insufficient_data';
+  const reasons = confidenceDowngradeReasons(basis);
+  if (reasons.length === 0) return { confidence: base, confidence_caveat: null };
+  return {
+    confidence: CONFIDENCE_DOWNGRADE[base],
+    confidence_caveat: `downgraded: ${reasons.join('; ')}`,
+  };
 }
 
 /**
@@ -92,7 +127,7 @@ export function evidenceComponentAdapter(ev) {
     presence_gate: presence
       ? { rule_id: presence.rule_id, signal_type: presence.signal_type }
       : null,
-    operator_status: presence ? 'critical_failure' : null,
+    user_status: presence ? 'critical_failure' : null,
     salience_critical: salient != null,
     salience_bypass_reasons: [],
     salience_dominant_signal_type: salient?.signal_type ?? null,

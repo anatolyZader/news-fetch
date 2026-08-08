@@ -25,3 +25,8 @@ export {
   selectMunicipalitiesToSend,
 } from './domain/services/pboReviewBatch.js';
 export { parseInboundEmailPayload, extractReviewTokenFromAddress, stripQuotedReply } from './domain/services/inboundEmailParser.js';
+export {
+  PBO_REVIEW_STATE,
+  pboCompletenessLabel,
+  reviewMetadataEntry,
+} from './domain/services/reviewSupplementalTexts.js';

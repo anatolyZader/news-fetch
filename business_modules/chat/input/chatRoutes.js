@@ -6,7 +6,7 @@ import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 import { streamChat } from '../app/chatService.js';
 import { createChatSessionService } from '../app/chatSessionService.js';
 import { requireMaintainerAccess } from '../../../cross-cut-modules/auth/maintainerAccess.js';
-import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
+import { canViewDeveloperDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
 import { authPreHandlerList } from '../../../cross-cut-modules/auth/buildAuthHooks.js';
 import {
@@ -19,7 +19,7 @@ import {
 import { createChatRetrievalCache } from '../../../cross-cut-modules/retrieval/chatRetrievalCache.js';
 import { executePendingAction } from '../app/executePendingAction.js';
 import { getSource } from '../index.js';
-import { OPERATOR_PROPOSE_TOOL_NAMES } from '../app/chatConfig.js';
+import { USER_PROPOSE_TOOL_NAMES } from '../app/chatConfig.js';
 import { METRIC } from '../../../cross-cut-modules/monitoring/domain/metricNames.js';
 import { registerActiveStream } from '../../../cross-cut-modules/monitoring/app/activeStreams.js';
 
@@ -148,7 +148,7 @@ export async function chatRoutes(app, opts) {
     chatStore,
     chatLlmPort,
     timezone,
-    canViewAnalyst: canViewAnalystDisplay,
+    canViewDeveloper: canViewDeveloperDisplay,
   });
 
   app.get('/api/chat/budget', authHook, async (request, reply) => {
@@ -252,9 +252,9 @@ export async function chatRoutes(app, opts) {
       return reply.code(410).send({ error: 'action expired' });
     }
 
-    if (!canViewAnalystDisplay(request.user?.email)
-      && !OPERATOR_PROPOSE_TOOL_NAMES.has(pending.toolName)) {
-      return reply.code(403).send({ error: 'Analyst access required', code: 'analyst_view_required' });
+    if (!canViewDeveloperDisplay(request.user?.email)
+      && !USER_PROPOSE_TOOL_NAMES.has(pending.toolName)) {
+      return reply.code(403).send({ error: 'Developer access required', code: 'developer_view_required' });
     }
 
     const didConsume = pendingActionStore.markConsumed(aid);

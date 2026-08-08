@@ -1,6 +1,6 @@
-# FAQ — srulik.ai (operators & field)
+# FAQ — srulik.ai (users & field)
 
-> Answers grounded in `docs/MODEL-CARD.md`, `resilienceComponents.js`, and `footer.json`. Scope: the **operator-facing core only** — internal scoring instruments and analyst surfaces are out of scope (see `do-not-say.md`). Each answer ≤ ~80 words. No prediction language, no hero number, no "replaces" claims.
+> Answers grounded in `docs/MODEL-CARD.md`, `resilienceComponents.js`, and `footer.json`. Scope: the **user-facing core only** — internal scoring instruments and developer surfaces are out of scope (see `do-not-say.md`). Each answer ≤ ~80 words. No prediction language, no hero number, no "replaces" claims.
 
 ---
 
@@ -15,7 +15,7 @@ No. A news feed reports events; srulik.ai assesses how the community is *holding
 **3. Does it predict attacks or what will happen next?**
 No — and it's designed not to. It assesses today's observable picture from signals already present in text. The model card is explicit: *"Not an oracle."* It structures the picture; it does not forecast.
 
-**4. Does it replace analysts or field officers?**
+**4. Does it replace developers or field officers?**
 No. Replacing field-officer judgment is an explicit non-goal. It's decision-support: it suggests where to look and shows the evidence. People decide and act.
 
 ## The assessment
@@ -26,8 +26,8 @@ Narrative; Information & Communication; Effective Life-Saving Behavior; Function
 **6. Where does the evidence come from?**
 News, WhatsApp, radio/audio, Google Trends, and user submissions — plus PBO regional reports. Field, PBO, and WhatsApp reports sit alongside the digital signals in one assessment.
 
-**7. Why don't operators see a single 1–10 resilience score?**
-Because a single number hides what's behind it and flattens eight distinct dimensions into one. Operators see narrative and evidence instead. A community can have strong leadership and failing continuity at once — the components keep that visible.
+**7. Why don't users see a single 1–10 resilience score?**
+Because a single number hides what's behind it and flattens eight distinct dimensions into one. Users see narrative and evidence instead. A community can have strong leadership and failing continuity at once — the components keep that visible.
 
 **8. How is each component assessed?**
 Behavioral signals are extracted from text against a closed vocabulary, evidence is verified, the eight components are assessed, and a narrative is written with inline citations. So the prose stays tied to the evidence behind it.

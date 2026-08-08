@@ -1,5 +1,5 @@
 /**
- * Index analyst corrections into report RAG namespace (institutional memory).
+ * Index developer corrections into report RAG namespace (institutional memory).
  */
 import { createIndexWriter } from '../../../cross-cut-modules/retrieval/indexWriter.js';
 import { appendFileSync, mkdirSync } from 'node:fs';
@@ -16,13 +16,13 @@ export function createInstitutionalMemoryService(deps) {
   const evalLogPath = join(evalDir, 'agent-eval-negative.jsonl');
 
   return {
-    async indexAnalystCorrection({ date, componentId, claimText, rationale, analystEmail }) {
+    async indexDeveloperCorrection({ date, componentId, claimText, rationale, developerEmail }) {
       const body = [
-        `Analyst correction (${date})`,
+        `Developer correction (${date})`,
         `Component: ${componentId}`,
         `Claim rejected: ${claimText}`,
         `Rationale: ${rationale}`,
-        analystEmail ? `By: ${analystEmail}` : '',
+        developerEmail ? `By: ${developerEmail}` : '',
       ].filter(Boolean).join('\n');
 
       await indexWriter.indexChunksForParent({
@@ -30,20 +30,20 @@ export function createInstitutionalMemoryService(deps) {
         parentId: `correction:${date}:${componentId}:${Date.now()}`,
         date,
         body,
-        sourceType: 'analyst_correction',
+        sourceType: 'developer_correction',
         title: `Correction: ${componentId}`,
-        kind: 'analyst_correction',
+        kind: 'developer_correction',
         scopeId: 'national',
       });
       if (deps.rebuildFts) deps.rebuildFts();
       return { indexed: true };
     },
 
-    logOperatorDismissal({ recommendationId, rationale, date }) {
+    logUserDismissal({ recommendationId, rationale, date }) {
       mkdirSync(evalDir, { recursive: true });
       appendFileSync(evalLogPath, `${JSON.stringify({
         ts: new Date().toISOString(),
-        type: 'operator_dismissal',
+        type: 'user_dismissal',
         recommendation_id: recommendationId,
         rationale,
         date,

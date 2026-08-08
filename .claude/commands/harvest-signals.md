@@ -1,12 +1,12 @@
 ---
 allowed-tools: Bash(node scripts/catalog-harvest/*), Bash(cd /home/eventstorm1/news && *), Bash(find *), Bash(ls *), Bash(grep *), Read, Write, Grep, Glob, Task
-description: Harvest new signal-catalog candidates from pipeline residue + research literature into an operator review batch (NO catalog writes)
+description: Harvest new signal-catalog candidates from pipeline residue + research literature into a user review batch (NO catalog writes)
 argument-hint: "[--no-literature] [--residue-only] [--max-papers N]"
 ---
 
 ## Your task
 
-Run the catalog-harvest pipeline (Stages 0–4): mine empirical gaps from the pipeline's own OOV captures, optionally harvest research literature, extract schema-complete candidate signal types, dedup them against the live catalog, gate on extractability against the real article corpus, and write an **operator-revisable review batch**. **Never edit signalCatalog.js or signalRouting.js in this command** — landing happens only via `/apply-signal-batch` after operator approval.
+Run the catalog-harvest pipeline (Stages 0–4): mine empirical gaps from the pipeline's own OOV captures, optionally harvest research literature, extract schema-complete candidate signal types, dedup them against the live catalog, gate on extractability against the real article corpus, and write an **user-revisable review batch**. **Never edit signalCatalog.js or signalRouting.js in this command** — landing happens only via `/apply-signal-batch` after user approval.
 
 Arguments: `$ARGUMENTS` — `--no-literature` / `--residue-only` skips Stage 1 (OOV residue only); `--max-papers N` caps literature corpus (default 30).
 
@@ -109,11 +109,11 @@ Write `business_modules/resilience_scorer/data/catalog_harvest/<date>/harvest-ba
 
 Also write `harvest-review-<date>.md` next to it — a human review sheet: one section per `pass` candidate (proposal table, firings with quotes, nearest types + why it's not them, proposed routing), then merge improvements, then a one-line-each parked list, then the duplicates table (suggested_type → covered_by; this doubles as an alias-worthiness list).
 
-**Final report to operator**
+**Final report to user**
 
 - Batch + review file paths; the summary counts.
 - Top 3–5 strongest candidates (one line each: type, origin, #firings).
-- State explicitly: **nothing was written to the catalog**; to land, edit `status` fields in the batch JSON (`proposed` → `approved`/`rejected`; parked candidates can also be approved if the operator vouches) and run `/apply-signal-batch <date>`.
+- State explicitly: **nothing was written to the catalog**; to land, edit `status` fields in the batch JSON (`proposed` → `approved`/`rejected`; parked candidates can also be approved if the user vouches) and run `/apply-signal-batch <date>`.
 - Remind: landing bumps CATALOG_VERSION → new comparability epoch, so batch approvals rather than dribbling single types.
 
 **Cost rules:** no full PDFs, no external paid APIs, ≤8 agents, agents receive compact snapshot + their chunk only (never whole corpus + whole residue together).

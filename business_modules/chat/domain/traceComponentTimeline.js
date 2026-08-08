@@ -135,7 +135,7 @@ function enrichRowFromReport(row, report, componentId, includeScores, reportDate
   const comp = (report.assessment.components ?? []).find((c) => c.component_id === componentId);
   if (comp) {
     row.instrument = formatInstrumentLine(comp, includeScores);
-    row.narrative_excerpt = clip(comp.narrative_operator ?? comp.narrative ?? '', NARRATIVE_MAX);
+    row.narrative_excerpt = clip(comp.narrative_user ?? comp.narrative ?? '', NARRATIVE_MAX);
     return;
   }
   gaps.push(`no component ${componentId} in report ${row.date}`);

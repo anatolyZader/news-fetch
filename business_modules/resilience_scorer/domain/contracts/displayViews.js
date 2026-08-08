@@ -1,5 +1,5 @@
 /**
- * Display view resolution for operator vs analyst report tiers.
+ * Display view resolution for user vs developer report tiers.
  *
  * Pipeline position: report HTTP and client — selects redaction/display tier
  * from query params and auth capability. Client-safe isomorphic.
@@ -10,22 +10,22 @@
  * Key collaborators: reportRoutes.js, client report shell, reportCacheService.js.
  */
 
-/** Requested display tiers for resilience assessments (operator vs analyst). */
+/** Requested display tiers for resilience assessments (user vs developer). */
 export const DISPLAY_VIEWS = Object.freeze({
-  operator: 'operator',
-  analyst: 'analyst',
+  user: 'user',
+  developer: 'developer',
 });
 
 /**
- * Resolve the effective display view, falling back to operator when analyst
+ * Resolve the effective display view, falling back to user when developer
  * is requested without permission.
- * @param {{ queryView?: string, canViewAnalyst?: boolean }} opts
- * @returns {'operator' | 'analyst'}
+ * @param {{ queryView?: string, canViewDeveloper?: boolean }} opts
+ * @returns {'user' | 'developer'}
  */
-export function resolveDisplayView({ queryView, canViewAnalyst = false } = {}) {
-  const requested = String(queryView ?? 'operator').trim().toLowerCase();
-  if (requested !== DISPLAY_VIEWS.analyst) {
-    return DISPLAY_VIEWS.operator;
+export function resolveDisplayView({ queryView, canViewDeveloper = false } = {}) {
+  const requested = String(queryView ?? 'user').trim().toLowerCase();
+  if (requested !== DISPLAY_VIEWS.developer) {
+    return DISPLAY_VIEWS.user;
   }
-  return canViewAnalyst ? DISPLAY_VIEWS.analyst : DISPLAY_VIEWS.operator;
+  return canViewDeveloper ? DISPLAY_VIEWS.developer : DISPLAY_VIEWS.user;
 }

@@ -1,7 +1,7 @@
 /**
  * Assemble retrieval hits and signals into an evidence graph for agent reasoning.
  */
-import { buildSignalRefRegistry, SIGNAL_TO_COMPONENTS } from '../../business_modules/resilience_scorer/index.js';
+import { buildSignalRefRegistry, buildRefKey, SIGNAL_TO_COMPONENTS } from '../../business_modules/resilience_scorer/index.js';
 import { COMPONENT_IDS } from '../../business_modules/resilience_scorer/index.js';
 import { mapObservationToComponent, observationText } from './residualObservations.js';
 
@@ -104,10 +104,14 @@ function addHitNodes(hits, nodes, edges, sourceIds) {
   }
 }
 
-function addSignalNodes(signals, registry, nodes, edges) {
+function addSignalNodes(signals, nodes, edges) {
   for (const s of signals ?? []) {
-    const ref = registry.byRef ? [...registry.byRef.entries()].find(([, v]) => v.signal === s)?.[0] : null;
-    const refKey = ref ?? buildRefFromSignal(s);
+    // Always the canonical registry key. This used to look the signal up by
+    // object identity and fall back to a divergent local builder on a miss;
+    // signals are cloned between stages, so the miss was routine and produced
+    // `type@1` where the registry holds `type@idx:1` — unresolvable everywhere
+    // downstream (schema validator, grounding checker, chat citations).
+    const refKey = buildRefKey(s);
     nodes.signals.push({
       id: refKey,
       signal_type: s.signal_type ?? s.type,
@@ -131,7 +135,6 @@ function buildComponentHypotheses({
   hits,
   signals,
   epistemicProfile,
-  registry,
   totalArticles,
   nodes,
   oovClaimsByComponent,
@@ -148,7 +151,6 @@ function buildComponentHypotheses({
       compSignals,
       compHits.length ? compHits : hits,
       compProfile,
-      registry,
       totalArticles,
     );
     const mergedClaims = [
@@ -194,7 +196,7 @@ export function buildEvidenceGraph({
   const sourceIds = new Set();
 
   addHitNodes(hits, nodes, edges, sourceIds);
-  addSignalNodes(signals, registry, nodes, edges);
+  addSignalNodes(signals, nodes, edges);
 
   const oovClaimsByComponent = injectOovClusters(nodes, oovBurst, dataVoid);
   const mergedOpen = openObservations.length ? openObservations : residualObservations;
@@ -204,7 +206,6 @@ export function buildEvidenceGraph({
     hits,
     signals,
     epistemicProfile,
-    registry,
     totalArticles,
     nodes,
     oovClaimsByComponent,
@@ -365,11 +366,6 @@ function buildSignalRefRegistryFromSignals(signals) {
   return buildSignalRefRegistry(pseudo);
 }
 
-function buildRefFromSignal(s) {
-  const t = s.signal_type ?? s.type ?? 'unknown';
-  const k = s.article_url ?? s.article_index ?? 'na';
-  return `${t}@${k}`;
-}
 
 function signalMapsToComponent(signal, compId) {
   const t = signal.signal_type ?? signal.type;
@@ -377,12 +373,13 @@ function signalMapsToComponent(signal, compId) {
   return compId in (SIGNAL_TO_COMPONENTS[t] ?? {});
 }
 
-function buildSignalClaims(compId, compSignals, registry, profile) {
+function buildSignalClaims(compId, compSignals, profile) {
   const claims = [];
   let idx = 0;
   for (const s of compSignals.slice(0, 8)) {
-    const ref = [...(registry.byRef?.entries() ?? [])].find(([, v]) => v.signal === s)?.[0]
-      ?? buildRefFromSignal(s);
+    // See addSignalNodes: canonical key, never an identity scan with a
+    // divergent fallback.
+    const ref = buildRefKey(s);
     const polarity = s.polarity_override === 'negative' ? 'weaken' : 'support';
     idx += 1;
     claims.push({
@@ -430,8 +427,8 @@ function buildFallbackClaim(compId, hits, profile) {
   };
 }
 
-function buildClaimsForComponent(compId, compSignals, hits, profile, registry, totalArticles) {
-  const { claims: signalClaims, idx: signalIdx } = buildSignalClaims(compId, compSignals, registry, profile);
+function buildClaimsForComponent(compId, compSignals, hits, profile, totalArticles) {
+  const { claims: signalClaims, idx: signalIdx } = buildSignalClaims(compId, compSignals, profile);
   const { claims: ragClaims } = buildRagClaims(compId, hits, profile, signalIdx);
   const claims = [...signalClaims, ...ragClaims];
 

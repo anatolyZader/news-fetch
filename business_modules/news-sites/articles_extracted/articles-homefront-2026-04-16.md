@@ -3012,7 +3012,7 @@ International Holocaust Remembrance Day saw the country commemorating its past w
 
 The main question now is how long the ceasefire will last. Negotiations between the US and Iran have failed to produce significant results, and Israel remains skeptical.
 
-"We've seen this movie before," said a military analyst. As the deadline for the ceasefire approaches, Israelis are bracing for potential escalation despite current peace talks.
+"We've seen this movie before," said a military developer. As the deadline for the ceasefire approaches, Israelis are bracing for potential escalation despite current peace talks.
 
 For now, Israel moves forward, but many believe the return to normal may be temporary.
 
@@ -5206,7 +5206,7 @@ The broader geopolitical dimension was also a central theme. Israel's Ambassador
 - **Published:** 2026-04-16T12:02:17Z
 - **Source:** israelnationalnews.com
 
-The upcoming Israeli legislative elections for the 26th Knesset, scheduled no later than October 27, 2026, are shaping up to be a pivotal contest amid ongoing political turbulence, the aftermath of the Gaza war, security concerns, and deep societal divisions. While the official date remains in late October, many analysts and reports indicate a strong likelihood of earlier elections, driven by coalition strains over the state budget, haredi draft exemptions, and other pressures that could force dissolution by spring or summer.
+The upcoming Israeli legislative elections for the 26th Knesset, scheduled no later than October 27, 2026, are shaping up to be a pivotal contest amid ongoing political turbulence, the aftermath of the Gaza war, security concerns, and deep societal divisions. While the official date remains in late October, many developers and reports indicate a strong likelihood of earlier elections, driven by coalition strains over the state budget, haredi draft exemptions, and other pressures that could force dissolution by spring or summer.
 
 Israel's proportional representation system requires parties to surpass a 3.25% electoral threshold to win seats in the 120-member Knesset. Current polls show a fragmented landscape with no clear majority for any bloc, potentially returning to the deadlock seen in past cycles. Prime Minister Benjamin Netanyahu's right-wing coalition, currently holding power, faces erosion but remains competitive, while opposition forces struggle with internal divisions and a widespread reluctance among Zionist parties to rely on Arab support for government formation.
 

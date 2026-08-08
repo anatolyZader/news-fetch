@@ -7,9 +7,9 @@ import { wrapUntrustedBlock } from '../../../cross-cut-modules/security/index.js
 import { DISPLAY_VIEWS } from '../../resilience_scorer/index.js';
 import {
   deriveInstrumentState,
-  operatorAssessmentSummary,
+  userAssessmentSummary,
   buildAttentionItems,
-  operatorEpistemicOverlayEnabled,
+  userEpistemicOverlayEnabled,
 } from '../../resilience_scorer/index.js';
 import { formatPoolSummaryForChat } from './componentEvidenceBundle.js';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
@@ -19,16 +19,16 @@ const EXEC_SUMMARY_MAX_CHARS = 2000;
 const INSTRUMENT_NARRATIVE_MAX_CHARS = 300;
 
 function formatPendingRecommendations(assessment) {
-  const pending = (assessment?.operator_recommendations ?? []).filter((r) => r.status === 'pending');
+  const pending = (assessment?.user_recommendations ?? []).filter((r) => r.status === 'pending');
   if (pending.length === 0) return '';
   const lines = pending.map((r) => {
     const actionType = r.recommended_action?.type ?? 'n/a';
     return (
       `- [${r.id}] ${r.pattern_code} (${r.level}): action=${actionType} — ` +
-      'use propose_operator_recommendation to acknowledge/dismiss'
+      'use propose_user_recommendation to acknowledge/dismiss'
     );
   });
-  return `Pending operator recommendations:\n${lines.join('\n')}\n\n`;
+  return `Pending user recommendations:\n${lines.join('\n')}\n\n`;
 }
 
 /**
@@ -38,7 +38,7 @@ function formatPendingRecommendations(assessment) {
 export function formatAttentionItemsSummary(assessment, reportScopeId = 'national') {
   if (!assessment) return '';
   const items = buildAttentionItems(assessment, {
-    view: DISPLAY_VIEWS.operator,
+    view: DISPLAY_VIEWS.user,
     reportScopeId,
   }).slice(0, MAX_ATTENTION_SUMMARY);
   if (items.length === 0) return '';
@@ -75,7 +75,7 @@ function clipText(text, maxChars) {
 
 function formatComponentBlock(c, { includeScores }) {
   const id = c.component_id ?? 'unknown';
-  const narrativeRaw = c.narrative_operator ?? c.narrative ?? '';
+  const narrativeRaw = c.narrative_user ?? c.narrative ?? '';
   const narrative = wrapUntrustedBlock(narrativeRaw, { label: `component:${id}` });
   if (includeScores && c.score != null) {
     return `### ${id} (${c.score}/10, ${c.confidence})\n${narrative}`;
@@ -148,8 +148,8 @@ export function formatHeader(assessment, { includeScores, todayDate }) {
   }
   return (
     dateLine +
-    `${operatorAssessmentSummary(assessment)}\n\n` +
-    `Component instrument summary (no headline 1–10 scores in operator view):\n`
+    `${userAssessmentSummary(assessment)}\n\n` +
+    `Component instrument summary (no headline 1–10 scores in user view):\n`
   );
 }
 
@@ -195,7 +195,7 @@ function formatCrossComponentExcerpt(assessment) {
 }
 
 function includeGuidanceContext() {
-  return operatorEpistemicOverlayEnabled();
+  return userEpistemicOverlayEnabled();
 }
 
 function buildFullContext(a, reportScopeId, includeScores) {
@@ -276,9 +276,9 @@ function buildComponentContext(a, reportScopeId, includeScores, componentId) {
     : `(Component ${componentId} not found in report.)`;
 
   let extra = '';
-  const isRichSurface = a.operator_surface_mode === 'rich' || comp?.operator_surface_mode === 'rich';
+  const isRichSurface = a.user_surface_mode === 'rich' || comp?.user_surface_mode === 'rich';
   if (isRichSurface && comp) {
-    extra += `\nRich operator surface — investigation pool summary:\n${formatPoolSummaryForChat(comp)}\n`;
+    extra += `\nRich user surface — investigation pool summary:\n${formatPoolSummaryForChat(comp)}\n`;
     const claims = comp.narrative_claims ?? [];
     if (claims.length > 0) {
       extra += '\nNarrative claims:\n';

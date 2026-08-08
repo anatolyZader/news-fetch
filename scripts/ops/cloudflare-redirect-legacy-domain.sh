@@ -158,9 +158,9 @@ ensure_redirect_rule "${ZONE_ID}" "legacy-docs-to-srulik-docs" \
   "(http.host eq \"docs.${LEGACY_ZONE}\")" \
   "concat(\"https://docs.${TARGET_APEX}\", http.request.uri.path)"
 
-ensure_redirect_rule "${ZONE_ID}" "legacy-analyst-to-srulik-analyst" \
-  "(http.host eq \"analyst.${LEGACY_ZONE}\")" \
-  "concat(\"https://analyst.${TARGET_APEX}\", http.request.uri.path)"
+ensure_redirect_rule "${ZONE_ID}" "legacy-developer-to-srulik-developer" \
+  "(http.host eq \"developer.${LEGACY_ZONE}\")" \
+  "concat(\"https://developer.${TARGET_APEX}\", http.request.uri.path)"
 
 echo
 echo "Done. Verify:"

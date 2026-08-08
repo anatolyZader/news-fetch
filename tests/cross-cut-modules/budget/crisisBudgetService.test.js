@@ -22,7 +22,7 @@ describe('crisisBudgetService', () => {
   it('activates and returns active session', () => {
     const adapter = createCrisisBudgetSqliteAdapter({ dbPath: join(rootDir, 'app.sqlite') });
     const service = createCrisisBudgetService({ adapter });
-    const session = service.activate({ activatedBy: 'analyst@test', reason: 'earthquake drill' });
+    const session = service.activate({ activatedBy: 'developer@test', reason: 'earthquake drill' });
     assert.ok(session);
     const status = service.getChatBudgetStatus();
     assert.equal(status.crisis_active, true);

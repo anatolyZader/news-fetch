@@ -2,15 +2,15 @@
 
 ## What this answers
 
-- How the **assessment agent** turns evidence into **claim-backed component assessments** - the system's primary, operator-facing product.
+- How the **assessment agent** turns evidence into **claim-backed component assessments** - the system's primary, user-facing product.
 - The four-stage flow: **planner -> specialists -> critic -> synthesizer**.
 - The **evidence graph** and the **claim** data shape.
 - How **abstention** is enforced at every stage.
-- What the agent produces for the operator: **decision brief**, **attention items**, and an **action compass**.
+- What the agent produces for the user: **decision brief**, **attention items**, and an **action compass**.
 
 ## 1. Why an agent, not a formula
 
-A scoring formula can tell you a number. It cannot tell you *what is going on*, *what the evidence is*, *where it is contradictory*, or *what is missing*. The district officer needs the latter. So the daily assessment is **agent-primary, score-secondary**: an investigation agent reasons over the evidence and produces grounded claims; the deterministic score (file 05) runs alongside as a shadow/analyst artifact.
+A scoring formula can tell you a number. It cannot tell you *what is going on*, *what the evidence is*, *where it is contradictory*, or *what is missing*. The district officer needs the latter. So the daily assessment is **agent-primary, score-secondary**: an investigation agent reasons over the evidence and produces grounded claims; the deterministic score (file 05) runs alongside as a shadow/developer artifact.
 
 Entry point: `runAssessmentAgent(params)` in `business_modules/specialist_agents/app/assessmentOrchestrator.js` (line 267). It is invoked from the pipeline via `business_modules/resilience_scorer/app/assessment/produceAssessmentWithShadow.js` (`tryAssessmentAgent`). It returns `{ assessmentV2, assessment (legacy), traceId, budget, evidenceGraph }`.
 
@@ -88,7 +88,7 @@ Per-component output (tool `submit_component_assessment` + post-processing):
   component_id,
   severity: 'low'|'moderate'|'high'|'critical'|'abstain',
   confidence: 'low'|'medium'|'high',
-  operator_status: 'stable'|'watch'|'critical_failure'|'insufficient_data',
+  user_status: 'stable'|'watch'|'critical_failure'|'insufficient_data',
   claims: [{ claim_id, text, evidence_refs[], polarity, grounding_tier? }],
   narrative, dissent_summary, retrieval_gaps[],
   evidence_tree: claims[],
@@ -98,7 +98,7 @@ Per-component output (tool `submit_component_assessment` + post-processing):
 }
 ```
 
-> Terminology note: **`specialist_depth` (A/B/C)** is the agent's internal token/depth economy. It is *not* the same as **`display_view` (operator/analyst)**, which controls redaction (file 05). Both are tracked in `docs/architecture/ubiquitous-language.md`.
+> Terminology note: **`specialist_depth` (A/B/C)** is the agent's internal token/depth economy. It is *not* the same as **`display_view` (user/developer)**, which controls redaction (file 05). Both are tracked in `docs/architecture/ubiquitous-language.md`.
 
 ### Stage D - Critic (deterministic per component)
 
@@ -120,7 +120,7 @@ Repairs **downgrade to abstain**, reduce confidence, add dissent, append gap/OOV
 
 ### Stage F - Synthesizer
 
-`runSynthesizerAgent` (`business_modules/specialist_agents/app/synthesizerAgent.js`, line 68) produces the operator-facing synthesis:
+`runSynthesizerAgent` (`business_modules/specialist_agents/app/synthesizerAgent.js`, line 68) produces the user-facing synthesis:
 
 ```js
 {
@@ -154,23 +154,23 @@ The orchestrator assembles `assessmentV2` (`cross-cut-modules/resilience-contrac
 }
 ```
 
-A legacy mapper (`business_modules/specialist_agents/domain/services/assessmentV2Mapper.js`, `mapAssessmentV2ToLegacy`) adapts this for the API and **sets `overall_resilience_score: null`** - the headline score is not part of the agent's operator output. Claims map to `narrative_claims`, `evidence`, and `evidence_tree`.
+A legacy mapper (`business_modules/specialist_agents/domain/services/assessmentV2Mapper.js`, `mapAssessmentV2ToLegacy`) adapts this for the API and **sets `overall_resilience_score: null`** - the headline score is not part of the agent's user output. Claims map to `narrative_claims`, `evidence`, and `evidence_tree`.
 
-## 4. The operator products (decision support)
+## 4. The user products (decision support)
 
 The agent encodes "narrow attention + show evidence; humans decide":
 
 - **Decision brief** - advisory summary and priority items. Its prompt (`business_modules/resilience_scorer/domain/services/decisionBriefPrompt.js`, `buildDecisionBriefSystemPrompt`) **forbids** numeric 1-10 scores and **forbids** claiming any resource was dispatched; `suggested_next_step` must be advisory.
 - **Attention items** - a unified, ranked queue built by `buildAttentionItems` (`business_modules/resilience_scorer/domain/services/attentionItems.js`) from voids, epistemic status, components, OOV, and recommendations.
-- **Action compass** - `buildActionCompass` ranks operator actions under uncertainty, explicitly **without numeric scores**.
-- **Operator recommendations** - pattern-driven, acknowledge/dismiss via the report API.
+- **Action compass** - `buildActionCompass` ranks user actions under uncertainty, explicitly **without numeric scores**.
+- **User recommendations** - pattern-driven, acknowledge/dismiss via the report API.
 
 ## 5. Abstention across stages (recap)
 
 | Stage | Abstention mechanism |
 |-------|----------------------|
 | Planner | `abstention_components[]` |
-| Specialist | `severity: 'abstain'`, `operator_status: 'insufficient_data'`, empty claims, `specialist_ran: false` |
+| Specialist | `severity: 'abstain'`, `user_status: 'insufficient_data'`, empty claims, `specialist_ran: false` |
 | Critic | `thin_evidence_strong_claim` -> downgrade to abstain |
 | Scoring gate | nulls score, sets `epistemic_abstention` (file 05) |
 | Synthesis / instruments / UI | `insufficient_data`, `evidence_quarantined`, `specialist_skipped` |

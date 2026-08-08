@@ -18,7 +18,7 @@ Open **Data sources** → **Radio** (or **Audio**, depending on your deployment 
 ## When to use it
 - Follow official statements or recurring programs that rarely appear in print
 - Cross-check a component claim against spoken sources
-- Operators → [Audio ingestion](../../guides/audio-ingestion.md)
+- Users → [Audio ingestion](../../guides/audio-ingestion.md)
 
 ## Troubleshooting
 - **Tab not visible** — radio ingestion may be disabled for your instance.

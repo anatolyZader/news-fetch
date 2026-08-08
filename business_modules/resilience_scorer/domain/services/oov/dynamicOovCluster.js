@@ -1,5 +1,5 @@
 /**
- * Real-time OOV clustering for operator alerts during assessment.
+ * Real-time OOV clustering for user alerts during assessment.
  *
  * Pipeline position: STAGE-2 assess oov path — groups unknown/open capture records
  * by semantic similarity within a rolling window and emits burst alert metadata.
@@ -221,8 +221,8 @@ async function resolveUnknownClusters(unknowns, opts, embedThreshold) {
   };
 }
 
-function computeOovAlertLevel(unknowns, top, clusterMin, salienceBypass, operatorMin) {
-  if (unknowns.length >= operatorMin) {
+function computeOovAlertLevel(unknowns, top, clusterMin, salienceBypass, userMin) {
+  if (unknowns.length >= userMin) {
     return { alert: true, level: 'critical' };
   }
   if ((top?.count ?? 0) >= clusterMin) {
@@ -245,7 +245,7 @@ async function evaluateClustersFromRecords(records, opts) {
   const {
     windowHours,
     embedThreshold,
-    operatorMin,
+    userMin,
     salienceMin,
     investigationMode = false,
   } = opts;
@@ -268,7 +268,7 @@ async function evaluateClustersFromRecords(records, opts) {
     clusterMin = Math.min(clusterMin, salienceMin);
   }
 
-  const { alert, level } = computeOovAlertLevel(records, top, clusterMin, salienceBypass, operatorMin);
+  const { alert, level } = computeOovAlertLevel(records, top, clusterMin, salienceBypass, userMin);
 
   const residualCount = records.filter((r) =>
     r.capture_kind === LEARNING_CAPTURE_KINDS.RESIDUAL_OBSERVATION
@@ -301,12 +301,12 @@ async function evaluateClustersFromRecords(records, opts) {
 // ---------------------------------------------------------------------------
 
 /**
- * Evaluate dynamic OOV clusters for operator/scoring path (unknown_type only).
+ * Evaluate dynamic OOV clusters for user/scoring path (unknown_type only).
  * @param {Array<object>} records
  * @param {object} [opts]
  * @param {number} [opts.windowHours]
  * @param {number} [opts.anchorMs]
- * @param {number} [opts.operatorMin]
+ * @param {number} [opts.userMin]
  * @param {number} [opts.embedThreshold]
  * @param {boolean} [opts.digitalDarkness]
  * @param {(text: string) => Promise<{ vector: Float32Array }>} [opts.embedFn]
@@ -315,8 +315,8 @@ async function evaluateClustersFromRecords(records, opts) {
 export async function evaluateDynamicOovClusters(records, opts = {}) {
   const windowHours = opts.windowHours ?? parseEnvFloat('RESILIENCE_OOV_CLUSTER_WINDOW_HOURS', 2);
   const embedThreshold = opts.embedThreshold ?? parseEnvFloat('RESILIENCE_OOV_EMBED_THRESHOLD', 0.82);
-  const operatorMinRaw = opts.operatorMin ?? parseEnvInt('RESILIENCE_OOV_OPERATOR_MIN', 5);
-  const operatorMin = Number.isFinite(operatorMinRaw) && operatorMinRaw > 0 ? operatorMinRaw : 5;
+  const userMinRaw = opts.userMin ?? parseEnvInt('RESILIENCE_OOV_OPERATOR_MIN', 5);
+  const userMin = Number.isFinite(userMinRaw) && userMinRaw > 0 ? userMinRaw : 5;
   const salienceMinRaw = parseEnvInt('RESILIENCE_OOV_SALIENCE_MIN', 2);
   const salienceMin = Number.isFinite(salienceMinRaw) && salienceMinRaw > 0 ? salienceMinRaw : 2;
   const anchorMs = opts.anchorMs ?? Date.now();
@@ -330,7 +330,7 @@ export async function evaluateDynamicOovClusters(records, opts = {}) {
     ...opts,
     windowHours,
     embedThreshold,
-    operatorMin,
+    userMin,
     salienceMin,
     anchorMs,
   });
@@ -347,8 +347,8 @@ export async function evaluateDynamicOovClusters(records, opts = {}) {
 export async function evaluateInvestigationOovClusters(records, opts = {}) {
   const windowHours = opts.windowHours ?? parseEnvFloat('RESILIENCE_OOV_CLUSTER_WINDOW_HOURS', 2);
   const embedThreshold = opts.embedThreshold ?? parseEnvFloat('RESILIENCE_OOV_EMBED_THRESHOLD', 0.82);
-  const operatorMinRaw = opts.operatorMin ?? parseEnvInt('RESILIENCE_OOV_OPERATOR_MIN', 5);
-  const operatorMin = Number.isFinite(operatorMinRaw) && operatorMinRaw > 0 ? operatorMinRaw : 5;
+  const userMinRaw = opts.userMin ?? parseEnvInt('RESILIENCE_OOV_OPERATOR_MIN', 5);
+  const userMin = Number.isFinite(userMinRaw) && userMinRaw > 0 ? userMinRaw : 5;
   const salienceMinRaw = parseEnvInt('RESILIENCE_OOV_SALIENCE_MIN', 2);
   const salienceMin = Number.isFinite(salienceMinRaw) && salienceMinRaw > 0 ? salienceMinRaw : 2;
   const anchorMs = opts.anchorMs ?? Date.now();
@@ -361,7 +361,7 @@ export async function evaluateInvestigationOovClusters(records, opts = {}) {
     ...opts,
     windowHours,
     embedThreshold,
-    operatorMin,
+    userMin,
     salienceMin,
     anchorMs,
     investigationMode: true,

@@ -18,7 +18,7 @@ export default defineConfig([
       'articles_extracted/**',
       'business_modules/resilience_scorer/data/**',
       'business_modules/specialist_agents/data/**',
-      'business_modules/resilience_scorer/analyst/data/**',
+      'business_modules/resilience_scorer/developer/data/**',
       'signals/**',
       'cross-cut-modules/docs/content/pages/api/generated/**',
       'business_modules/**/data/**',

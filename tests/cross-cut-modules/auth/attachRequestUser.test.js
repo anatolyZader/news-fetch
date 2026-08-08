@@ -18,7 +18,7 @@ describe('attachRequestUser', () => {
   });
 
   it('rejects unlisted users when membership required', () => {
-    setUserAccessConfigForTests({ operatorDistrictEnforcementEnabled: false, users: [] });
+    setUserAccessConfigForTests({ userDistrictEnforcementEnabled: false, users: [] });
     const out = buildRequestUserFromDecoded({
       uid: 'u1',
       email: 'stranger@test.io',
@@ -30,8 +30,8 @@ describe('attachRequestUser', () => {
 
   it('attaches level for listed users', () => {
     setUserAccessConfigForTests({
-      operatorDistrictEnforcementEnabled: false,
-      users: [{ email: 'ops@test.io', level: 'operator' }],
+      userDistrictEnforcementEnabled: false,
+      users: [{ email: 'ops@test.io', level: 'user' }],
     });
     const out = buildRequestUserFromDecoded({
       uid: 'u2',
@@ -39,7 +39,7 @@ describe('attachRequestUser', () => {
       email_verified: true,
       firebase: { sign_in_provider: 'google.com' },
     });
-    assert.equal(out.user?.level, 'operator');
+    assert.equal(out.user?.level, 'user');
     assert.equal(out.user?.uid, 'u2');
   });
 });

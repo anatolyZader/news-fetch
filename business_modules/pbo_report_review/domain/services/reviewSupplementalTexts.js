@@ -38,11 +38,29 @@ export function collectSupplementalTextsFromReplies(replies) {
 }
 
 /**
- * @param {{ sufficient?: boolean, status?: string }} review
- * @returns {'complete'|'incomplete'}
+ * Municipal review states.
+ *
+ * `unreviewed` is deliberately distinct from `reviewed_incomplete`: "nobody has
+ * looked at this municipality yet" is not a verdict on its evidence. Collapsing
+ * the two (as the pre-2026-06-20 extractor did, defaulting every unreviewed
+ * municipality to `incomplete`) makes a review backlog indistinguishable from a
+ * quality finding, and would floor confidence on every PBO-dominated component.
+ */
+export const PBO_REVIEW_STATE = Object.freeze({
+  reviewed_sufficient: 'reviewed_sufficient',
+  reviewed_incomplete: 'reviewed_incomplete',
+  unreviewed: 'unreviewed',
+});
+
+/**
+ * @param {{ sufficient?: boolean, status?: string }|null|undefined} review
+ * @returns {'reviewed_sufficient'|'reviewed_incomplete'|'unreviewed'}
  */
 export function pboCompletenessLabel(review) {
-  return review.sufficient || review.status === 'resolved' ? 'complete' : 'incomplete';
+  if (!review) return PBO_REVIEW_STATE.unreviewed;
+  return review.sufficient || review.status === 'resolved'
+    ? PBO_REVIEW_STATE.reviewed_sufficient
+    : PBO_REVIEW_STATE.reviewed_incomplete;
 }
 
 /**
@@ -50,11 +68,11 @@ export function pboCompletenessLabel(review) {
  * @param {Record<string, string>} supplementalTexts
  */
 export function reviewMetadataEntry(review, supplementalTexts) {
-  const pboCompleteness = pboCompletenessLabel(review);
+  const reviewState = pboCompletenessLabel(review);
   return {
-    pbo_completeness: pboCompleteness,
+    pbo_review_state: reviewState,
     pbo_review_status: review.status,
-    pbo_evidence_thin: pboCompleteness === 'incomplete',
+    pbo_evidence_thin: reviewState === PBO_REVIEW_STATE.reviewed_incomplete,
     supplementalTexts,
   };
 }

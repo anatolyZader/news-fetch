@@ -18,7 +18,7 @@ describe('narrativeTemplates', () => {
     assert.equal(shouldAllowTemplateNarrative({ signal_count: 4 }, 4), false);
   });
 
-  it('operator view returns insufficient synthesis when signals exist', () => {
+  it('user view returns insufficient synthesis when signals exist', () => {
     const out = buildComponentNarrative({
       componentId: 'functional_continuity',
       ep: { signal_count: 12, source_diversity: 3 },
@@ -26,7 +26,7 @@ describe('narrativeTemplates', () => {
     assert.equal(out, INSUFFICIENT_SYNTHESIS_NARRATIVE);
   });
 
-  it('operator view does not emit template boilerplate for rich components', () => {
+  it('user view does not emit template boilerplate for rich components', () => {
     const out = buildComponentNarrative({
       componentId: 'leadership',
       ep: {
@@ -39,10 +39,10 @@ describe('narrativeTemplates', () => {
     assert.doesNotMatch(out, /single evidence channel/);
   });
 
-  it('analyst view may name the source family and counts', () => {
+  it('developer view may name the source family and counts', () => {
     const out = buildComponentNarrative({
       componentId: 'leadership',
-      view: 'analyst',
+      view: 'developer',
       ep: {
         signal_count: 8,
         dominance_warnings: [{ layer: 'source_type', key: 'pbo', message: 'pbo exceeds cap' }],

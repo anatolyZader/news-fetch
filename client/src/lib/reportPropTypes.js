@@ -38,13 +38,13 @@ export const componentScoreShape = PropTypes.shape({
   grounding_issues: PropTypes.arrayOf(PropTypes.object),
   interpretive_summary: PropTypes.bool,
   evidence: PropTypes.arrayOf(PropTypes.string),
-  evidence_operator: PropTypes.arrayOf(PropTypes.string),
-  operator_evidence_tier: PropTypes.oneOf(['curated', 'none', 'rich_pool']),
-  operator_surface_mode: PropTypes.oneOf(['rich', 'legacy']),
-  operator_investigation_pool: PropTypes.arrayOf(PropTypes.object),
-  operator_investigation_pool_by_source: PropTypes.arrayOf(PropTypes.object),
-  operator_surface_starved: PropTypes.bool,
-  operator_component_thin: PropTypes.bool,
+  evidence_user: PropTypes.arrayOf(PropTypes.string),
+  user_evidence_tier: PropTypes.oneOf(['curated', 'none', 'rich_pool']),
+  user_surface_mode: PropTypes.oneOf(['rich', 'legacy']),
+  user_investigation_pool: PropTypes.arrayOf(PropTypes.object),
+  user_investigation_pool_by_source: PropTypes.arrayOf(PropTypes.object),
+  user_surface_starved: PropTypes.bool,
+  user_component_thin: PropTypes.bool,
   evidence_tree: PropTypes.arrayOf(PropTypes.object),
   reasoning_trace_id: PropTypes.string,
   severity: PropTypes.string,
@@ -59,14 +59,14 @@ export const componentScoreShape = PropTypes.shape({
   calibration_deficit: PropTypes.number,
   weight_sensitivity: PropTypes.object,
   weight_sensitivity_note: PropTypes.string,
-  operator_display_state: PropTypes.oneOf([
+  user_display_state: PropTypes.oneOf([
     'assessed_claims',
     'assessed_low_confidence',
     'specialist_skipped',
     'evidence_quarantined',
     'insufficient_data',
   ]),
-  operator_state_reason: PropTypes.string,
+  user_state_reason: PropTypes.string,
   evidence_usage_state: PropTypes.oneOf([
     'normal',
     'field_anchor_only',
@@ -87,7 +87,7 @@ export const componentScoreShape = PropTypes.shape({
   specialist_tier: PropTypes.oneOf(['A', 'B', 'C']),
   specialist_ran: PropTypes.bool,
   assessment_state: PropTypes.string,
-  analyst_flags: PropTypes.arrayOf(PropTypes.string),
+  developer_flags: PropTypes.arrayOf(PropTypes.string),
 });
 
 export const assessmentShape = PropTypes.shape({
@@ -96,7 +96,7 @@ export const assessmentShape = PropTypes.shape({
   components: PropTypes.arrayOf(componentScoreShape),
   norris_capacities: PropTypes.arrayOf(PropTypes.object),
   cross_component_synthesis: PropTypes.string,
-  operator_surface_mode: PropTypes.oneOf(['rich', 'legacy']),
+  user_surface_mode: PropTypes.oneOf(['rich', 'legacy']),
   investigation_summary: PropTypes.shape({
     agent_ran: PropTypes.bool,
     degrade_reason: PropTypes.string,

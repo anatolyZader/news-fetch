@@ -186,7 +186,7 @@ export function readCostLogStagesForDate(date, opts = {}, rootDir) {
 }
 
 /**
- * Roll up drop rates across scripts for analyst display.
+ * Roll up drop rates across scripts for developer display.
  * @param {Record<string, object>} byScript
  */
 export function summarizeStageDropRates(byScript) {

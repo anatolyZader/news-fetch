@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-National and regional (e.g. north) resilience reports share one scoring engine but different evidence subsets. Operators can be misled if the API serves a national artifact while the UI shows a regional scope.
+National and regional (e.g. north) resilience reports share one scoring engine but different evidence subsets. Users can be misled if the API serves a national artifact while the UI shows a regional scope.
 
 ## Decision
 

@@ -8,7 +8,7 @@
  * Does NOT: perform overlap grounding QA (see narrativeGrounding/sentenceGroundingChecker.js).
  *
  * Key collaborators: `narrative/buildFullSignalDigest.js`, `narrativeGrounding/index.js`,
- * `operator/evidenceFormatting.js`.
+ * `user/evidenceFormatting.js`.
  */
 
 // ── Ref keys ──────────────────────────────────────────────────────────────────

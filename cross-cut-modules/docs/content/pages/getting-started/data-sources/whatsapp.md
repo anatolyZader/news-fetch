@@ -21,5 +21,5 @@ Open **Data sources** → **WhatsApp** (or the tab your deployment labels for gr
 - Connect or operate the integration → [WhatsApp integration](../../guides/whatsapp-integration.md)
 
 ## Troubleshooting
-- **Empty or stale** — group approval and ingestion are operator-controlled; contact your admin.
+- **Empty or stale** — group approval and ingestion are user-controlled; contact your admin.
 - **Report bot vs groups** — structured bot submissions appear under [Report bot](report-bot.md); passive group traffic is here.

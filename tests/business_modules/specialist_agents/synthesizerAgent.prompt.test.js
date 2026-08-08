@@ -17,7 +17,7 @@ const assessments = [{
   component_id: 'leadership',
   severity: 'high',
   confidence: 'medium',
-  operator_status: 'watch',
+  user_status: 'watch',
   specialist_tier: 'A',
   narrative: 'Important finding',
   claims: [{ text: 'Mayor urged sheltering', evidence_refs: ['md:2026-05-30:1'] }],

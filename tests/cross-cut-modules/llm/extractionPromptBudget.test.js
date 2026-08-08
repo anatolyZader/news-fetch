@@ -14,8 +14,11 @@ import {
 } from '../../../business_modules/resilience_scorer/domain/services/signals/routing/signalCatalogPrompt.js';
 
 describe('extractionPromptBudget', () => {
-  it('uses extract-v3 prompt version (invalidates extraction cache)', () => {
-    assert.equal(EXTRACT_PROMPT_VERSION, 'extract-v3');
+  it('uses extract-v4 prompt version (invalidates extraction cache)', () => {
+    // The per-article extraction cache keys on this value, so a prompt edit
+    // without a bump is served from cache and silently never runs.
+    // v4 added the adversative-split instruction to the field-report prefix.
+    assert.equal(EXTRACT_PROMPT_VERSION, 'extract-v4');
   });
 
   it('asks for a locality output field for geo-scope resolution', () => {

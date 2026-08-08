@@ -2,7 +2,7 @@
   "crisisBudget.activate": "Activate crisis chat budget",
   "crisisBudget.activeUntil": "Crisis chat pool active until {expires}",
   "crisisBudget.deactivate": "Deactivate crisis pool",
-  "crisisBudget.operatorSuggest": "Crisis epistemic signals detected while chat budget is exhausted.",
+  "crisisBudget.userSuggest": "Crisis epistemic signals detected while chat budget is exhausted.",
   "crisisBudget.panelTitle": "Crisis chat budget",
   "crisisBudget.reasonLabel": "Activation reason (required)"
 }

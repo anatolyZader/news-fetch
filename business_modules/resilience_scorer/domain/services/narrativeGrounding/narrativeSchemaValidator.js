@@ -18,6 +18,7 @@ import {
 } from './groundingConfig.js';
 import { validateClaimRelation } from './coOccurrenceGraph.js';
 import { resolveRef } from '../narrative/signalRefRegistry.js';
+import { resolveClaimRef, CLAIM_REF_NAMESPACES } from '../narrative/claimRefNamespace.js';
 import {
   bestEvidenceOverlap,
   findForbiddenConnectives,
@@ -45,6 +46,25 @@ function warnSignalLabelsInProse(text, fieldName, warnings) {
  * @param {object} def
  * @param {object} ctx
  */
+/**
+ * Unresolvable signal-namespace refs on one claim.
+ *
+ * Retrieval-chunk, OOV and open-observation citations are produced by the
+ * evidence graph and are legitimately absent from the signal registry. Flagging
+ * them as unknown was what exhausted the polish retry loop and degraded the
+ * whole narrative pipeline — which in turn suppressed grounding QA.
+ *
+ * @param {string[]} refs
+ * @param {object} registry
+ * @returns {string[]}
+ */
+function unknownSignalRefs(refs, registry) {
+  return refs.filter((ref) => {
+    const resolution = resolveClaimRef(ref, { registry });
+    return resolution.namespace === CLAIM_REF_NAMESPACES.SIGNAL && !resolution.resolved;
+  });
+}
+
 function validateNarrativeClaims(comp, def, ctx) {
   const { errors, registry } = ctx;
   for (const claim of comp.narrative_claims ?? []) {
@@ -56,10 +76,8 @@ function validateNarrativeClaims(comp, def, ctx) {
     if (refs.length === 0) {
       errors.push(`${def.id}: narrative_claim must cite ≥1 signal_ref`);
     }
-    for (const ref of refs) {
-      if (!resolveRef(ref, registry)) {
-        errors.push(`${def.id}: unknown signal_ref "${ref}"`);
-      }
+    for (const ref of unknownSignalRefs(refs, registry)) {
+      errors.push(`${def.id}: unknown signal_ref "${ref}"`);
     }
     const rel = claim.relation ?? 'parallel';
     if (!VALID_RELATIONS.has(rel)) {

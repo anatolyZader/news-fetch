@@ -16,6 +16,8 @@ import { parseInboundEmailPayload } from '../domain/services/inboundEmailParser.
 import {
   collectSupplementalTextsFromReplies,
   pboCompletenessLabel,
+  reviewMetadataEntry,
+  PBO_REVIEW_STATE,
 } from '../domain/services/reviewSupplementalTexts.js';
 import {
   buildBatchDocument,
@@ -396,31 +398,26 @@ export function createPboReportReviewService(deps) {
       if (!review) return null;
       const replies = await reviewStore.listReplies(date, municipality);
       const supplementalTexts = collectSupplementalTextsFromReplies(replies);
-      const pboCompleteness = pboCompletenessLabel(review);
-      return {
-        pbo_completeness: pboCompleteness,
-        pbo_review_status: review.status,
-        pbo_evidence_thin: pboCompleteness === 'incomplete',
-        supplementalTexts,
-      };
+      return reviewMetadataEntry(review, supplementalTexts);
     },
 
     async buildAssessmentSummary(date) {
       const reviews = await reviewStore.listReviewsForDate(date);
       const municipalities = reviews.map((r) => ({
         name: r.municipality,
-        pbo_completeness: pboCompletenessLabel(r),
+        pbo_review_state: pboCompletenessLabel(r),
         pbo_review_status: r.status,
       }));
       return {
         date,
-        incomplete_count: municipalities.filter((m) => m.pbo_completeness === 'incomplete').length,
+        incomplete_count: municipalities
+          .filter((m) => m.pbo_review_state === PBO_REVIEW_STATE.reviewed_incomplete).length,
         municipalities,
       };
     },
 
     /**
-     * Review all munis for a date (no mail) and write an operator-revisable batch JSON.
+     * Review all munis for a date (no mail) and write a user-revisable batch JSON.
      * @param {string} date YYYY-MM-DD
      * @param {{ outPath?: string, repoRoot?: string }} [opts]
      */
@@ -457,7 +454,7 @@ export function createPboReportReviewService(deps) {
     },
 
     /**
-     * Send feedback emails from an operator-revised batch (does not recompute gaps).
+     * Send feedback emails from a user-revised batch (does not recompute gaps).
      * @param {string} date YYYY-MM-DD
      * @param {{ batchPath?: string, repoRoot?: string, force?: boolean, dryRun?: boolean }} [opts]
      */

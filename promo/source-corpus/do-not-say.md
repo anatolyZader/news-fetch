@@ -9,9 +9,9 @@
 | ❌ Don't say | Why | ✅ Say instead |
 |-------------|-----|----------------|
 | "Predicts attacks" / "knows before command" | It's not predictive. Model card: *"Not an oracle."* | "Assesses today's homefront picture from observable signals" |
-| "Real-time resilience score" as the hero | Operators see narrative + evidence, not a number. Internal 1–10 is not the product. | "Evidence-backed daily homefront resilience assessment across eight components" |
+| "Real-time resilience score" as the hero | Users see narrative + evidence, not a number. Internal 1–10 is not the product. | "Evidence-backed daily homefront resilience assessment across eight components" |
 | "AI says you're fine" / "AI clears the area" | Removes the human. The whole design keeps humans deciding. | "Decision-support — humans decide" |
-| "Replaces analysts / PBOs / field officers" | Explicit non-goal. Model card: *"Replacing field officer judgment"* is a non-goal. | "Completes the field picture; field judgment stays primary" |
+| "Replaces developers / PBOs / field officers" | Explicit non-goal. Model card: *"Replacing field officer judgment"* is a non-goal. | "Completes the field picture; field judgment stays primary" |
 | "Measures public mood / true feelings" | Explicit non-goal: *"Measuring inner feelings or 'true' societal mood."* | "Extracts observable behavioral signals from text" |
 | "Autonomous dispatch / response" | Non-goal: *"Autonomous resource dispatch without human review."* | "Surfaces evidence for human review" |
 
@@ -19,11 +19,11 @@
 
 ## Scope rules for this promo set
 
-This kit presents only the **operator-facing core**: the daily eight-component assessment, open/traceable evidence, chat, multi-source inputs, and field contribution.
+This kit presents only the **user-facing core**: the daily eight-component assessment, open/traceable evidence, chat, multi-source inputs, and field contribution.
 
-**Keep out of all public/field/operator materials** (these are internal or analyst-only surfaces, not part of the promo story):
+**Keep out of all public/field/user materials** (these are internal or developer-only surfaces, not part of the promo story):
 
-- The analyst calibration view (`analyst.srulik.ai`), model drift, validation, suppression deltas.
+- The developer calibration view (`developer.srulik.ai`), model drift, validation, suppression deltas.
 - Internal scoring instruments and uncertainty mechanics — evidence-sufficiency banners, abstention/data-void states, action compass, OSINT/social quarantine, presence gates.
 - Any 1–10 score as a headline claim.
 
@@ -44,7 +44,7 @@ Don't reference these even to explain them. The promo story is: *daily assessmen
 - [ ] No prediction / pre-cognition language.
 - [ ] No single number as the hero claim.
 - [ ] No "replaces" anyone.
-- [ ] No analyst-only or internal-instrument concepts (calibration, drift, action compass, evidence banners, quarantine, abstention).
+- [ ] No developer-only or internal-instrument concepts (calibration, drift, action compass, evidence banners, quarantine, abstention).
 - [ ] Exactly one clear CTA.
 - [ ] Screenshots match current UI and show a visible assessment date.
 - [ ] Data-sources wording matches `footer.dataSources` exactly.

@@ -16,7 +16,7 @@ import { formatDate } from '../lib/date.js';
 import PropTypes from 'prop-types';
 import { useReportBotManualReports } from '../hooks/useReportBotManualReports.js';
 import { authFetch } from '../lib/authFetch.js';
-import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
+import { withUserDistrictQuery } from '../lib/clampUserDistrictScope.js';
 import { DistrictScopeSwitcher } from './DistrictScopeSwitcher.jsx';
 
 function formatBytes(n) {
@@ -27,8 +27,8 @@ function formatBytes(n) {
 }
 
 export function ReportBotManualReportsTab({
-  operatorScope = 'national',
-  onOperatorScopeChange,
+  userScope = 'national',
+  onUserScopeChange,
   districtAccess = null,
 }) {
   const theme = useTheme();
@@ -38,7 +38,7 @@ export function ReportBotManualReportsTab({
     getIdToken,
     getAppCheckToken,
     apiReady,
-    operatorScope,
+    userScope,
     lang,
   });
   const [expanded, setExpanded] = useState(null);
@@ -49,10 +49,10 @@ export function ReportBotManualReportsTab({
   const title = t('tab.reportBot');
   const subtitle = t('reportBotManual.subtitle');
 
-  const districtScope = onOperatorScopeChange ? (
+  const districtScope = onUserScopeChange ? (
     <DistrictScopeSwitcher
-      value={operatorScope}
-      onChange={onOperatorScopeChange}
+      value={userScope}
+      onChange={onUserScopeChange}
       districtAccess={districtAccess}
     />
   ) : null;
@@ -69,7 +69,7 @@ export function ReportBotManualReportsTab({
       try {
         const q = new URLSearchParams({ name: fileName });
         const json = await authFetch(
-          withOperatorDistrictQuery(`/api/report-bot/manual-reports/file?${q.toString()}`, operatorScope),
+          withUserDistrictQuery(`/api/report-bot/manual-reports/file?${q.toString()}`, userScope),
           { getIdToken, getAppCheckToken },
         );
         const content = String(json.content ?? '');
@@ -84,7 +84,7 @@ export function ReportBotManualReportsTab({
         setFullLoading(null);
       }
     },
-    [getIdToken, getAppCheckToken, t, operatorScope],
+    [getIdToken, getAppCheckToken, t, userScope],
   );
 
   const onAccordionChange =
@@ -219,7 +219,7 @@ export function ReportBotManualReportsTab({
 }
 
 ReportBotManualReportsTab.propTypes = {
-  operatorScope: PropTypes.string,
-  onOperatorScopeChange: PropTypes.func,
+  userScope: PropTypes.string,
+  onUserScopeChange: PropTypes.func,
   districtAccess: PropTypes.object,
 };

@@ -27,7 +27,7 @@ import {
 } from '../ui/index.js';
 import { formatDate } from '../lib/date.js';
 import PropTypes from 'prop-types';
-import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
+import { withUserDistrictQuery } from '../lib/clampUserDistrictScope.js';
 import { withLang } from '../lib/localeFetch.js';
 
 function buildSeverityColors(chart) {
@@ -60,7 +60,7 @@ function formatWeekLabel(trend) {
   return '?';
 }
 
-export function NaftaliTab({ operatorScope = 'national' }) {
+export function NaftaliTab({ userScope = 'national' }) {
   const { getIdToken, apiReady } = useAuth();
   const { t, lang } = useLanguage();
   const theme = useTheme();
@@ -112,7 +112,7 @@ export function NaftaliTab({ operatorScope = 'national' }) {
       const headers = new Headers();
       const token = await getIdToken();
       if (token) headers.set('Authorization', `Bearer ${token}`);
-      const r = await fetch(withLang(withOperatorDistrictQuery('/api/naftali', operatorScope), lang), { headers });
+      const r = await fetch(withLang(withUserDistrictQuery('/api/naftali', userScope), lang), { headers });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       setData(await r.json());
     } catch (e) {
@@ -120,14 +120,14 @@ export function NaftaliTab({ operatorScope = 'national' }) {
     } finally {
       setLoading(false);
     }
-  }, [getIdToken, operatorScope]);
+  }, [getIdToken, userScope]);
 
   useEffect(() => {
     if (!apiReady) return;
     void (async () => {
       await load();
     })();
-  }, [apiReady, load, operatorScope]);
+  }, [apiReady, load, userScope]);
 
   const filteredTrends = useMemo(() => {
     if (!data?.weeks || muniFilter.size === 0) return data?.trends ?? [];
@@ -364,5 +364,5 @@ export function NaftaliTab({ operatorScope = 'national' }) {
 }
 
 NaftaliTab.propTypes = {
-  operatorScope: PropTypes.string,
+  userScope: PropTypes.string,
 };

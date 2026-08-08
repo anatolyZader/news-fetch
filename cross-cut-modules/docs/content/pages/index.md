@@ -11,7 +11,7 @@ slug: /
 ---
 
 ## What is Srulik's lab?
-Srulik's lab is a **decision-support system** for homefront operators. It combines many daily input feeds into one assessment you can scan quickly and **drill into for proof**. **Not an oracle** — it narrows attention; you decide under explicit uncertainty.
+Srulik's lab is a **decision-support system** for homefront users. It combines many daily input feeds into one assessment you can scan quickly and **drill into for proof**. **Not an oracle** — it narrows attention; you decide under explicit uncertainty.
 
 ## Daily assessment (the report)
 Each run synthesizes the input feeds below into one report you read every morning.

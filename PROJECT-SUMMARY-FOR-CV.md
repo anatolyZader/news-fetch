@@ -8,17 +8,17 @@ Owning outcomes end-to-end (not just tickets): shaping the problem, building ful
 
 ## One-liner
 
-Product engineer who built a homefront decision-support product end-to-end — from ingesting messy multi-source, multi-language data to shipping an LLM-powered assessment experience that real operators use to make high-stakes calls (with the product deliberately designed so humans decide, not the model).
+Product engineer who built a homefront decision-support product end-to-end — from ingesting messy multi-source, multi-language data to shipping an LLM-powered assessment experience that real users use to make high-stakes calls (with the product deliberately designed so humans decide, not the model).
 
 ## The product
 
-- A decision-support tool for civilian homefront / community resilience: turns noisy real-world inputs into **evidence-backed claims** operators can trust and act on.
+- A decision-support tool for civilian homefront / community resilience: turns noisy real-world inputs into **evidence-backed claims** users can trust and act on.
 - Core product principle I designed around: **the system supports, humans decide** — "abstention" (I don't have enough evidence) is a first-class outcome, not a false "all clear." This shaped UX, scoring, and trust.
 - Shipped and running in production; I own it across frontend, backend, AI, and infra.
 
 ## What I owned end-to-end
 
-- **Problem → product:** translated a fuzzy real-world need (assessing community resilience from scattered sources) into a concrete daily workflow and UI operators actually use.
+- **Problem → product:** translated a fuzzy real-world need (assessing community resilience from scattered sources) into a concrete daily workflow and UI users actually use.
 - **Full-stack delivery:** React SPA frontend + Node.js/Fastify API backend, wired through a clean modular architecture; API contract defined in OpenAPI.
 - **AI as a product feature (not a demo):** built an LLM assessment agent + RAG (Anthropic/OpenAI/Cohere + vector search) that produces cited, evidence-linked outputs — with guardrails, cost budgets, and quality evals so it's dependable, not just impressive.
 - **Ingestion that meets reality:** pipelines for news, radio/audio, video/YouTube, WhatsApp, Telegram/social, surveys, and field reports — normalized into one signal format so the product isn't blocked by source chaos.

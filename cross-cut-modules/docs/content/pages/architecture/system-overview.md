@@ -12,7 +12,7 @@ llm:
 ---
 
 ## Purpose
-Give an operator- or integrator-level understanding of Srulik's lab's major subsystems, what each owns, and how data moves between them. **Architecture serves operator judgment loops**—ingestion and scoring exist to support scan → proof → decide → feedback, not to replace human operators.
+Give a user- or integrator-level understanding of Srulik's lab's major subsystems, what each owns, and how data moves between them. **Architecture serves user judgment loops**—ingestion and scoring exist to support scan → proof → decide → feedback, not to replace human users.
 
 After reading this you should be able to locate any behavior of the running system to a subsystem, and reason about the blast radius of a change before you make it.
 

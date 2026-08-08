@@ -14,8 +14,8 @@
 
 | Reader | Use |
 |--------|-----|
-| District population-behavior officer (operator) | The decision-support model, what a report says, how to read uncertainty (files 01, 04, 05, 06) |
-| Analyst / methodologist | How the de-emphasized scoring works and why it is hidden from operators (files 02, 05) |
+| District population-behavior officer (user) | The decision-support model, what a report says, how to read uncertainty (files 01, 04, 05, 06) |
+| Developer / methodologist | How the de-emphasized scoring works and why it is hidden from users (files 02, 05) |
 | Engineer / new contributor | End-to-end pipeline, artifacts, file-path traceability (files 02, 03, 04, 07) |
 | NotebookLM workflows | This index + the study prompts in file 07 |
 
@@ -24,7 +24,7 @@
 | File | Title | Answers |
 |------|-------|---------|
 | `00-INDEX-AND-READING-GUIDE.md` | Index and reading guide | This page: orientation + NotebookLM usage |
-| `01-MISSION-AND-OPERATOR-MODEL.md` | Mission and operator model | Why decision support, not scoring; who the operator is; the twice-daily report workflow; why abstention is valid |
+| `01-MISSION-AND-USER-MODEL.md` | Mission and user model | Why decision support, not scoring; who the user is; the twice-daily report workflow; why abstention is valid |
 | `02-DUAL-PATH-PIPELINE.md` | The dual-path pipeline | Open analysis (primary) vs closed vocabulary (supporting); how they merge; orchestration; artifacts |
 | `03-DATA-SOURCES-AND-GEOGRAPHY.md` | Data sources and geography | Every ingestion source; the northern-district geographic model; scope filtering |
 | `04-ASSESSMENT-AGENT.md` | The assessment agent | Planner -> specialists -> critic -> synthesizer; evidence graph; claims; decision brief |
@@ -34,7 +34,7 @@
 
 ## The throughline (repeated in every file)
 
-1. **Decision support, not scoring.** The primary product is the assessment agent's **evidence-backed claims** plus **operator instruments** (sufficiency, contested, attention items, decision brief). A headline 1-10 resilience score still exists internally but is **shadow/analyst-only** and is **redacted from operators** at the API and UI layer (`display_view`). See file 05.
+1. **Decision support, not scoring.** The primary product is the assessment agent's **evidence-backed claims** plus **user instruments** (sufficiency, contested, attention items, decision brief). A headline 1-10 resilience score still exists internally but is **shadow/developer-only** and is **redacted from users** at the API and UI layer (`display_view`). See file 05.
 2. **Open is primary; closed is supporting.** The **open path** extracts free-form behavioral observations with no fixed vocabulary and feeds the agent's investigation. The **closed path** maps observations to a fixed catalog (the 8-component Home Front Command model) and drives the structured, de-emphasized scoring. See file 02.
 3. **District officer, not local first responder.** The intended user is a **northern-district population-behavior officer** who produces **two thoughtful situation reports per day** from district-wide data - not a local emergency specialist who must react to each incident in real time. See file 01.
 4. **Abstention is valid.** "Insufficient data" is a deliberate outcome at the planner, specialist, critic, scoring-gate, instrument, and UI layers. It is never silently converted to "all clear." See files 04 and 05.

@@ -1,7 +1,7 @@
 /**
  * Historical PBO search via archive RAG.
  */
-import { retrievePboHistory } from '../../../cross-cut-modules/retrieval/analystRetrieval.js';
+import { retrievePboHistory } from '../../../cross-cut-modules/retrieval/developerRetrieval.js';
 import { pboReviewRagEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
 
 /**

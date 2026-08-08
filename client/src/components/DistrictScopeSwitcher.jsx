@@ -6,7 +6,7 @@ import Tooltip from '@mui/material/Tooltip';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { ISRAEL_REGIONAL_DISTRICT_ORDER } from '../lib/israelDistricts.js';
-import { isDistrictScopeAllowed } from '../lib/clampOperatorDistrictScope.js';
+import { isDistrictScopeAllowed } from '../lib/clampUserDistrictScope.js';
 import { REPORT_SCOPE_ORDER } from '../lib/reportScopes.js';
 import PropTypes from 'prop-types';
 
@@ -40,7 +40,7 @@ function pillDropdownButtonSx(theme) {
 }
 
 /**
- * Home-front district dropdown for operator tabs.
+ * Home-front district dropdown for user tabs.
  * @param {'report'|'regional'} mode report = national + 5 districts; regional = districts only
  */
 export function DistrictScopeSwitcher({
@@ -115,7 +115,7 @@ export function DistrictScopeSwitcher({
           }
 
           return (
-            <Tooltip key={scopeId} title={t('operator.districtAccess.denied')} placement="left">
+            <Tooltip key={scopeId} title={t('user.districtAccess.denied')} placement="left">
               <span>
                 <MenuItem selected={value === scopeId} disabled sx={{ opacity: 0.45 }}>
                   {label}

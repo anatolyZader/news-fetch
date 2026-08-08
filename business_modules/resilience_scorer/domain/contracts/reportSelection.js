@@ -1,5 +1,5 @@
 /**
- * Report file ranking for operator-facing assessment selection.
+ * Report file ranking for user-facing assessment selection.
  *
  * Pipeline position: report cache and monitoring — picks the best assessment
  * artifact when multiple candidates exist for a date/scope. Client-safe isomorphic.

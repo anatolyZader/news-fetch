@@ -1,6 +1,6 @@
 ---
 title: "Manual cutover: GCP, nginx, Cloudflare"
-description: "Step-by-step operator runbook — what to click and run on GCP, the VM, and Cloudflare, with verification and rollback."
+description: "Step-by-step user runbook — what to click and run on GCP, the VM, and Cloudflare, with verification and rollback."
 intent: operations
 audience: ["internal"]
 stability: beta
@@ -9,7 +9,7 @@ tags: ["security", "deploy", "gcp", "cloudflare", "nginx", "cutover"]
 
 ## Purpose
 
-Step-by-step operator runbook for first production cutover on GCP VM + nginx + Cloudflare: DNS, TLS, proxy, firewall, and verification with rollback notes.
+Step-by-step user runbook for first production cutover on GCP VM + nginx + Cloudflare: DNS, TLS, proxy, firewall, and verification with rollback notes.
 
 ## Architecture (target state)
 

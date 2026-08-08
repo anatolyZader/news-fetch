@@ -37,7 +37,7 @@ Results print to the console and are saved as JSON under
 - `report-today` — `GET /api/report/today` (main read path)
 - `report-dates` — `GET /api/report/dates` (directory-scan path)
 - `municipalities` — `GET /api/municipalities` (XLSX parse path). Requires a
-  `LOADTEST_BEARER` token of a registered district operator; without it the
+  `LOADTEST_BEARER` token of a registered district user; without it the
   scenario measures only the fast 403 auth-rejection path.
 - `chat` — `POST /api/chat` SSE turn against the stub adapter. The 15/min
   per-user chat rate limit means 429s are expected at sustained load; the

@@ -133,7 +133,7 @@ const JSON_RULES = `Return ONLY valid JSON with the exact same structure as the 
 const PROSE_RULES = `Return ONLY the translated text — no preamble, no commentary, no quotes around the output. Do NOT translate or alter URLs; keep markdown link syntax ([label](url)) unchanged. ${CITATION_RULES}`;
 
 /**
- * Base glossary merged with operator overrides from
+ * Base glossary merged with user overrides from
  * business_modules/translation/glossary/translation-glossary-overrides.json
  * (see translationGlossarySource.js).
  * @returns {Promise<Array<{ id: string, en: string, he: string, ru: string, category?: string, aliases?: string[] }>>}

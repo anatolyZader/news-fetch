@@ -7,7 +7,7 @@ describe('synthesizerAgent defaultSynthesis', () => {
     const componentAssessments = [
       { component_id: 'leadership', severity: 'moderate', retrieval_gaps: ['g1'] },
       { component_id: 'functional_continuity', severity: 'low', retrieval_gaps: ['g1'] },
-      { component_id: 'narrative', severity: 'abstain', operator_status: 'insufficient_data', retrieval_gaps: [] },
+      { component_id: 'narrative', severity: 'abstain', user_status: 'insufficient_data', retrieval_gaps: [] },
     ];
     const epistemicProfile = {
       by_component: {

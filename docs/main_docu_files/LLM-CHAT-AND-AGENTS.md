@@ -1,6 +1,6 @@
 # LLM chat and agents
 
-**Purpose:** Distinguish **report-grounded chat** (operator drill-down) from the **assessment agent** (batch assess pipeline). Both use tool loops and RAG; only chat is interactive HTTP.
+**Purpose:** Distinguish **report-grounded chat** (user drill-down) from the **assessment agent** (batch assess pipeline). Both use tool loops and RAG; only chat is interactive HTTP.
 
 **Sources:** `business_modules/chat/`, `business_modules/specialist_agents/`, `cross-cut-modules/agent/`, `cross-cut-modules/llm/`.
 
@@ -11,7 +11,7 @@
 | Agent | When | Pattern | Autonomy |
 |-------|------|---------|----------|
 | **Assessment agent** | `assess-signals` (default) | Planner → parallel specialists → critic → synthesizer | Batch; writes report + trace JSONL |
-| **Report chat** | Operator/analyst asks about current report | Single-session tool loop (max rounds) | Read-mostly; HITL for side effects |
+| **Report chat** | User/developer asks about current report | Single-session tool loop (max rounds) | Read-mostly; HITL for side effects |
 | **Report build** | Write report / WhatsApp DM | Turn-based gap engine + LLM draft | Confirm-gated archive write |
 
 The assessment agent is **plan-and-execute map–reduce**, not peer-to-peer multi-agent chat. Planner, specialists, critic, and synthesizer are **sequential roles on one Anthropic stack** (per-stage prompts and tool profiles) — not separate human-scale services. See [RESILIENCE-ENGINE-REFERENCE.md §3.1](./RESILIENCE-ENGINE-REFERENCE.md#31-assessment-agent-v2).
@@ -35,7 +35,7 @@ The assessment agent is **plan-and-execute map–reduce**, not peer-to-peer mult
 
 **Artifacts:** `daily_reports/assessment-agent-trace-{traceId}.jsonl`; report fields `agent_trace_id`, `investigation_plan`, `cross_component_issues`.
 
-**Eval:** `npm run agent:eval`. **Replay:** `GET /api/report/agent-trace/:traceId` (analyst).
+**Eval:** `npm run agent:eval`. **Replay:** `GET /api/report/agent-trace/:traceId` (developer).
 
 **Not chat:** assess agent does not use `/api/chat` sessions; it runs inside the assess CLI budget (`assess-signals` script id).
 
@@ -43,13 +43,13 @@ The assessment agent is **plan-and-execute map–reduce**, not peer-to-peer mult
 
 ## What chat is for
 
-Operators and analysts ask questions about the **current resilience report** (narratives, claims, evidence, changes). The model may call tools grouped by role:
+Users and developers ask questions about the **current resilience report** (narratives, claims, evidence, changes). The model may call tools grouped by role:
 
-**Operator hub (priorities and briefs):**
+**User hub (priorities and briefs):**
 
 - `list_attention_items` — ranked attention queue from current report
 - `get_decision_brief` — structured decision brief for hub-mode questions
-- `list_operator_recommendations` — pending operator recommendations
+- `list_user_recommendations` — pending user recommendations
 - `generate_brief` — audience-targeted narrative brief
 
 **Evidence and sources:**
@@ -59,7 +59,7 @@ Operators and analysts ask questions about the **current resilience report** (na
 - `lookup_pbo` — municipality PBO dashboard lookup
 - `search_sources`, `get_source`, `list_sources` — source archive hybrid search and fetch (`lookup_evidence` / `search_evidence` are aliases)
 
-**Analyst tools** (gated by `CHAT_ANALYST_TOOLS_ENABLED` and analyst access):
+**Developer tools** (gated by `CHAT_ANALYST_TOOLS_ENABLED` and developer access):
 
 - PBO review: `search_pbo_history`, `list_pbo_reviews`, `get_pbo_review`
 - Geo: `list_geo_unknown`
@@ -67,7 +67,7 @@ Operators and analysts ask questions about the **current resilience report** (na
 **HITL propose tools** (require `POST /api/chat/confirm-action`):
 
 - `propose_geo_unknown_update`
-- `propose_operator_recommendation`
+- `propose_user_recommendation`
 
 Chat does **not** re-run extract/assess or mutate reports without explicit confirm-gated actions.
 
@@ -77,7 +77,7 @@ Municipal PBO completeness review is exposed through **chat tools** and **REST**
 
 | Surface | Endpoints / tools |
 |---------|-------------------|
-| **Chat (analyst)** | `list_pbo_reviews`, `get_pbo_review`, `search_pbo_history` |
+| **Chat (developer)** | `list_pbo_reviews`, `get_pbo_review`, `search_pbo_history` |
 | **REST** | `GET /api/pbo/municipal-reviews`, `GET /api/pbo/municipal-reviews/:date/:municipality`, `POST /api/pbo/municipal-reviews/:date/:municipality/replies` |
 | **Inbound email** | `POST /api/pbo/review/inbound-email` (Resend webhook, `RESEND_WEBHOOK_SECRET`) |
 | **Historical search** | `GET /api/pbo/historical-search` (RAG-backed, when wired) |
@@ -98,7 +98,7 @@ Pipeline integration: [PIPELINE-AND-SOURCES.md § Municipal PBO review](./PIPELI
 | POST | `/api/chat/confirm-action` | No (HITL) |
 | POST | `/api/chat` | **Yes** — soft gate via `createHttpChatBudgetPreHandler`; logged as `http:chat` or `http:chat:crisis` when crisis pool active |
 
-**Chat budget:** Unlike other costly routes, `POST /api/chat` uses a **soft gate** — when daily budget is exceeded, chat may continue with deterministic tool fallback (`CHAT_DETERMINISTIC_FALLBACK`, default on) or draw from an analyst-activated **crisis chat pool** (`http:chat:crisis`). See [COST-CONTROLS.md § Crisis chat budget](./COST-CONTROLS.md#crisis-chat-budget-cb-hybrid).
+**Chat budget:** Unlike other costly routes, `POST /api/chat` uses a **soft gate** — when daily budget is exceeded, chat may continue with deterministic tool fallback (`CHAT_DETERMINISTIC_FALLBACK`, default on) or draw from a developer-activated **crisis chat pool** (`http:chat:crisis`). See [COST-CONTROLS.md § Crisis chat budget](./COST-CONTROLS.md#crisis-chat-budget-cb-hybrid).
 
 **Economy override:** `POST /api/chat` body `"economy": "full"` forces full report context, disables compact tool loop, and skips tool compression for that turn only. Every `done` SSE event includes `chat_economy` metadata.
 
@@ -119,7 +119,7 @@ Pipeline integration: [PIPELINE-AND-SOURCES.md § Municipal PBO review](./PIPELI
 
 Uses same cached report path as `GET /api/report/today` — `business_modules/resilience_scorer/app/reportCacheService.js` (`getCachedReport`, scope-aware JSON paths).
 
-**Operator tier:** report payload redacted before context build when applicable (`redactReportPayload`).
+**User tier:** report payload redacted before context build when applicable (`redactReportPayload`).
 
 **Provider:** `business_modules/chat/app/chatLlmOrchestrator.js` — hybrid model router (`resolveChatModel` in `cross-cut-modules/agent/agentConfig.js`): deep-dive context slices (`temporal`, `compare`, `component`, `full`) run on `CHAT_MODEL_STRONG` (default Sonnet), the rest on `CHAT_MODEL` (default Haiku `claude-haiku-4-5-20251001`); `CHAT_MODEL_ROUTER=0` pins everything to `CHAT_MODEL`. `max_tokens: 4000`. Title, follow-up-suggestion, and rolling-summary side-calls stay on Haiku; `generate_brief` follows the routed model.
 
@@ -159,7 +159,7 @@ When `CHAT_CONFIRM_ACTIONS_ENABLED` (default on):
 
 Propose-tool validation/summaries live inline in `chatToolHandlers.handleProposeTool`; execution logic in `executePendingAction.js` (`PENDING_EXECUTORS`). (The earlier `proposedActionCommands.js` staging registry was deleted in the chat overhaul.)
 
-Env: `CHAT_ANALYST_TOOLS_ENABLED` gates analyst read tools.
+Env: `CHAT_ANALYST_TOOLS_ENABLED` gates developer read tools.
 
 ---
 
@@ -206,7 +206,7 @@ Env: `CHAT_ANALYST_TOOLS_ENABLED` gates analyst read tools.
 | `CHAT_FOLLOWUP_SUGGESTIONS` | Post-answer follow-up suggestion chips (default on) |
 | `CHAT_PARALLEL_TOOLS` | Concurrent tool execution within a round (default on) |
 | `CHAT_CONFIRM_ACTIONS_ENABLED` | HITL propose/confirm |
-| `CHAT_ANALYST_TOOLS_ENABLED` | Analyst tools |
+| `CHAT_ANALYST_TOOLS_ENABLED` | Developer tools |
 | `CHAT_DETERMINISTIC_FALLBACK` | Non-LLM tool fallback when both daily and crisis chat pools exhausted (default on) |
 | `CRISIS_BUDGET_ENABLED` | Crisis chat pool master switch — see [COST-CONTROLS.md](./COST-CONTROLS.md) |
 | `DAILY_BUDGET_USD` | Shared HTTP budget (chat); assess uses CLI budget governor |
@@ -220,7 +220,7 @@ Assessment agent Tier 1/2 flags: [MODEL-CARD.md](../MODEL-CARD.md).
 ## Related docs
 
 - RAG at assess: [RAG.md](./RAG.md)
-- Operator vs analyst display tiers: [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md)
+- User vs developer display tiers: [SYSTEM-AND-USER-MODEL.md](./SYSTEM-AND-USER-MODEL.md)
 - Assessment agent stages: [RESILIENCE-ENGINE-REFERENCE.md §7.5](./RESILIENCE-ENGINE-REFERENCE.md#75-assessment-agent-default)
 - Signal catalog and OOV capture: [PIPELINE-AND-SOURCES.md § OOV capture](./PIPELINE-AND-SOURCES.md#oov-capture-post-extract)
 - Cost guards: [COST-CONTROLS.md](./COST-CONTROLS.md)

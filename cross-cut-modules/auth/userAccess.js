@@ -1,16 +1,16 @@
 /**
- * Central user access registry (operator / analyst / maintainer).
+ * Central user access registry (user / developer / maintainer).
  * Source of truth: config/userAccess.json (+ optional env overrides).
  */
 
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isOperatorDistrictEnforcementForced } from './authPolicy.js';
+import { isUserDistrictEnforcementForced } from './authPolicy.js';
 
 export const ACCESS_LEVELS = Object.freeze({
-  operator: 'operator',
-  analyst: 'analyst',
+  user: 'user',
+  developer: 'developer',
   maintainer: 'maintainer',
 });
 
@@ -19,9 +19,9 @@ const DEFAULT_CONFIG_PATH = resolve(
   '../../config/userAccess.json',
 );
 
-/** @typedef {'operator' | 'analyst' | 'maintainer'} AccessLevel */
+/** @typedef {'user' | 'developer' | 'maintainer'} AccessLevel */
 
-/** @typedef {{ operatorDistrictEnforcementEnabled?: boolean, users?: Array<{ email?: string, level?: string, districtIds?: string[], allDistricts?: boolean }> }} UserAccessConfig */
+/** @typedef {{ userDistrictEnforcementEnabled?: boolean, mailingAdmins?: string[], users?: Array<{ email?: string, level?: string, districtIds?: string[], allDistricts?: boolean }> }} UserAccessConfig */
 
 /** Per-path cache, invalidated when the file's mtime changes. @type {Map<string, { cfg: UserAccessConfig, mtimeMs: number | null }>} */
 const configCache = new Map();
@@ -44,8 +44,8 @@ export function normalizeUserEmail(email) {
  */
 function normalizeAccessLevel(raw) {
   const level = String(raw ?? '').trim().toLowerCase();
-  if (level === ACCESS_LEVELS.operator) return ACCESS_LEVELS.operator;
-  if (level === ACCESS_LEVELS.analyst) return ACCESS_LEVELS.analyst;
+  if (level === ACCESS_LEVELS.user) return ACCESS_LEVELS.user;
+  if (level === ACCESS_LEVELS.developer) return ACCESS_LEVELS.developer;
   if (level === ACCESS_LEVELS.maintainer) return ACCESS_LEVELS.maintainer;
   return null;
 }
@@ -57,7 +57,7 @@ function loadConfig(configPath = DEFAULT_CONFIG_PATH) {
   if (pinnedConfig && configPath === DEFAULT_CONFIG_PATH) return pinnedConfig;
   if (!existsSync(configPath)) {
     configCache.delete(configPath);
-    return { operatorDistrictEnforcementEnabled: false, users: [] };
+    return { userDistrictEnforcementEnabled: false, mailingAdmins: [], users: [] };
   }
 
   let mtimeMs;
@@ -73,7 +73,8 @@ function loadConfig(configPath = DEFAULT_CONFIG_PATH) {
   try {
     const parsed = JSON.parse(readFileSync(configPath, 'utf8'));
     cfg = {
-      operatorDistrictEnforcementEnabled: parsed?.operatorDistrictEnforcementEnabled === true,
+      userDistrictEnforcementEnabled: parsed?.userDistrictEnforcementEnabled === true,
+      mailingAdmins: Array.isArray(parsed?.mailingAdmins) ? parsed.mailingAdmins : [],
       users: Array.isArray(parsed?.users) ? parsed.users : [],
     };
   } catch (err) {
@@ -84,7 +85,7 @@ function loadConfig(configPath = DEFAULT_CONFIG_PATH) {
       );
       warnedKeys.add(warnKey);
     }
-    cfg = { operatorDistrictEnforcementEnabled: false, users: [] };
+    cfg = { userDistrictEnforcementEnabled: false, mailingAdmins: [], users: [] };
   }
   configCache.set(configPath, { cfg, mtimeMs });
   return cfg;
@@ -137,13 +138,13 @@ export function listConfiguredUsers(configPath = DEFAULT_CONFIG_PATH) {
 /**
  * @returns {boolean}
  */
-export function isOperatorDistrictEnforcementEnabled() {
-  if (isOperatorDistrictEnforcementForced()) {
-    return Object.keys(operatorDistrictEntriesFromUserAccess()).length > 0;
+export function isUserDistrictEnforcementEnabled() {
+  if (isUserDistrictEnforcementForced()) {
+    return Object.keys(userDistrictEntriesFromUserAccess()).length > 0;
   }
   const cfg = loadConfig();
-  return cfg.operatorDistrictEnforcementEnabled === true
-    && Object.keys(operatorDistrictEntriesFromUserAccess()).length > 0;
+  return cfg.userDistrictEnforcementEnabled === true
+    && Object.keys(userDistrictEntriesFromUserAccess()).length > 0;
 }
 
 /**
@@ -158,8 +159,8 @@ export function resolveUserAccessLevel(email, configPath = DEFAULT_CONFIG_PATH) 
   const maintainerEnv = emailsFromEnv('RESILIENCE_MAINTAINER_EMAILS');
   if (maintainerEnv.includes(normalized)) return ACCESS_LEVELS.maintainer;
 
-  const analystEnv = emailsFromEnv('RESILIENCE_ANALYST_EMAILS');
-  if (analystEnv.includes(normalized)) return ACCESS_LEVELS.analyst;
+  const developerEnv = emailsFromEnv('RESILIENCE_ANALYST_EMAILS');
+  if (developerEnv.includes(normalized)) return ACCESS_LEVELS.developer;
 
   for (const user of listConfiguredUsers(configPath)) {
     if (user.email === normalized) return user.level;
@@ -171,9 +172,9 @@ export function resolveUserAccessLevel(email, configPath = DEFAULT_CONFIG_PATH) 
  * @param {string | null | undefined} email
  * @returns {boolean}
  */
-export function canViewAnalystDisplay(email) {
+export function canViewDeveloperDisplay(email) {
   const level = resolveUserAccessLevel(email);
-  return level === ACCESS_LEVELS.analyst || level === ACCESS_LEVELS.maintainer;
+  return level === ACCESS_LEVELS.developer || level === ACCESS_LEVELS.maintainer;
 }
 
 /**
@@ -182,6 +183,28 @@ export function canViewAnalystDisplay(email) {
  */
 export function canRunAnalysisDisplay(email) {
   return resolveUserAccessLevel(email) === ACCESS_LEVELS.maintainer;
+}
+
+/**
+ * May edit the shared digest distribution list (mail to arbitrary addresses).
+ *
+ * Deliberately its own allowlist rather than a rung on the access ladder: the
+ * maintainer level also opens the pay-per-use social-media fetch and analysis
+ * routes, and managing a mailing list should not require any of that.
+ * Sources: `mailingAdmins` in config/userAccess.json, or MAIL_DIGEST_ADMIN_EMAILS.
+ *
+ * @param {string | null | undefined} email
+ * @param {string} [configPath]
+ * @returns {boolean}
+ */
+export function canManageMailingRecipients(email, configPath = DEFAULT_CONFIG_PATH) {
+  const normalized = normalizeUserEmail(email);
+  if (!normalized) return false;
+  if (emailsFromEnv('MAIL_DIGEST_ADMIN_EMAILS').includes(normalized)) return true;
+  const configured = (loadConfig(configPath).mailingAdmins ?? [])
+    .map((e) => normalizeUserEmail(e))
+    .filter(Boolean);
+  return configured.includes(normalized);
 }
 
 /**
@@ -199,18 +222,18 @@ export function canUseRichChatTools(email) {
  * @returns {boolean}
  */
 export function hasPrivilegedUserAccessConfigured() {
-  if (listConfiguredUsers().some((u) => u.level !== ACCESS_LEVELS.operator)) return true;
+  if (listConfiguredUsers().some((u) => u.level !== ACCESS_LEVELS.user)) return true;
   if (emailsFromEnv('RESILIENCE_ANALYST_EMAILS').length > 0) return true;
   if (emailsFromEnv('RESILIENCE_MAINTAINER_EMAILS').length > 0) return true;
   return false;
 }
 
 /**
- * Operator district map derived from listed users.
+ * User district map derived from listed users.
  * @param {string} [configPath]
  * @returns {Record<string, { districtIds?: string[], allDistricts?: boolean }>}
  */
-export function operatorDistrictEntriesFromUserAccess(configPath = DEFAULT_CONFIG_PATH) {
+export function userDistrictEntriesFromUserAccess(configPath = DEFAULT_CONFIG_PATH) {
   const out = {};
   for (const user of listConfiguredUsers(configPath)) {
     out[user.email] = {
@@ -226,7 +249,7 @@ export function operatorDistrictEntriesFromUserAccess(configPath = DEFAULT_CONFI
  * @returns {{
  *   email: string | null,
  *   level: AccessLevel | null,
- *   canViewAnalyst: boolean,
+ *   canViewDeveloper: boolean,
  *   canRunAnalysis: boolean,
  *   isListed: boolean,
  * }}
@@ -240,7 +263,7 @@ export function userAccessForApi(email) {
   return {
     email: normalized || null,
     level,
-    canViewAnalyst: canViewAnalystDisplay(normalized),
+    canViewDeveloper: canViewDeveloperDisplay(normalized),
     canRunAnalysis: canRunAnalysisDisplay(normalized),
     isListed,
   };

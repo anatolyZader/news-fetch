@@ -4,15 +4,15 @@
 
 ## Order of outreach
 
-1. **Trusted operators / HQ first** — `email-invite-operator-en.md`. One named contact at a time; lead with the 15-min demo, not a kit dump.
+1. **Trusted users / HQ first** — `email-invite-user-en.md`. One named contact at a time; lead with the 15-min demo, not a kit dump.
 2. **Field professionals via existing relationships** — `email-invite-field-he.md` + `whatsapp-field-he.txt`. Pre-brief at a regional meeting; hand out the field one-pager (`../copy/one-pager-field-he.md`).
-3. **Partners / responsible-AI** — `linkedin-post-en.md` only after 1–2 reference operators are using it and can vouch.
+3. **Partners / responsible-AI** — `linkedin-post-en.md` only after 1–2 reference users are using it and can vouch.
 
 ## Per-channel notes
 
-- **Operator email:** attach or link the recorded demo (`../copy/demo-script.md` → record first). One CTA.
+- **User email:** attach or link the recorded demo (`../copy/demo-script.md` → record first). One CTA.
 - **Field WhatsApp:** short blurb + link to the HE field one-pager PDF. Never paste the whole kit into a group.
-- **HQ brochure** (`../print/brochure-hq-en.html` → PDF per `EXPORT.md`): attach or hand out at operator briefings; note PDF export date below.
+- **HQ brochure** (`../print/brochure-hq-en.html` → PDF per `EXPORT.md`): attach or hand out at user briefings; note PDF export date below.
 - **Poster** (`../print/poster-a3-field-he.md`): print for ops rooms after QR is generated and test-scanned.
 - **Business card** (`../print/business-card.md`): events / in-person; same QR gate.
 

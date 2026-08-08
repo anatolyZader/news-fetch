@@ -1,5 +1,5 @@
 /**
- * Locale / translation status for operator UI.
+ * Locale / translation status for user UI.
  */
 export function getLocaleStatus(env = process.env) {
   const pretranslateLocales = String(env.PRETRANSLATE_LOCALES ?? 'he,ru')

@@ -27,7 +27,7 @@ describe('attachDecisionBrief', () => {
       const assessment = {
         date: '2026-05-01',
         components: [],
-        operator_recommendations: [],
+        user_recommendations: [],
         pattern_alerts: [],
       };
       const client = {

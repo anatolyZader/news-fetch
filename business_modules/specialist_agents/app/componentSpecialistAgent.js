@@ -39,7 +39,7 @@ import { shouldAbstainFromInvestigation } from '../domain/services/investigation
 import { narrativeInvestigationPermissive } from '../../resilience_scorer/index.js';
 import {
   buildComponentNarrative,
-  buildOperatorQualitativeNarrative,
+  buildUserQualitativeNarrative,
   buildAbstentionNarrative,
   INSUFFICIENT_SYNTHESIS_NARRATIVE,
   shouldAllowTemplateNarrative,
@@ -87,7 +87,7 @@ function buildSpecialistSystem(componentId, epistemicProfile, evidenceGraph, ass
     'Tool order: use retrieve_for_claim, cross_source_compare, or expand_source_neighborhood FIRST; ' +
     'then lookup_signals to verify catalog refs; use get_source for verbatim quotes. ' +
     'Submit via submit_component_assessment. Every claim MUST have evidence_refs. ' +
-    'Write the narrative as concise, operator-readable English prose that summarizes the evidence; ' +
+    'Write the narrative as concise, user-readable English prose that summarizes the evidence; ' +
     'when evidence_refs include URLs, each factual sentence must include an inline markdown citation [source_label](url) using article_source or source type as the label. ' +
     'Put verbatim quotes only in evidence_refs and never paste raw or multi-language evidence text into the narrative. ' +
     'If evidence carries narrativeContextOnly or signalProvenance narrative_national_context / macro_national / regional_press_context, use it for narrative context only — never treat it as scope-local scored evidence. ' +
@@ -127,7 +127,7 @@ function abstentionAssessment(componentId, epistemicProfile, traceId, specialist
     component_id: componentId,
     severity: 'abstain',
     confidence: 'low',
-    operator_status: 'insufficient_data',
+    user_status: 'insufficient_data',
     claims: [],
     narrative: buildAbstentionNarrative(componentId, ep),
     dissent_summary: '',
@@ -323,24 +323,24 @@ function buildFallbackAssessment(componentId, evidenceGraph, epistemicProfile, t
     const claimTexts = claims.map((c) => String(c.text ?? '').trim()).filter(Boolean).slice(0, 3);
     narrative = claimTexts.length > 1
       ? claimTexts.join(' Separately, ')
-      : (claimTexts[0] ?? buildOperatorQualitativeNarrative({ componentId, ep }));
+      : (claimTexts[0] ?? buildUserQualitativeNarrative({ componentId, ep }));
   } else if (investigationUsed >= 5 || !shouldAllowTemplateNarrative(ep, claims.length)) {
     narrative = INSUFFICIENT_SYNTHESIS_NARRATIVE;
   } else {
     narrative = buildComponentNarrative({ componentId, ep, claimCount: claims.length });
   }
   const thinAbstain = ep.thin_evidence === true && claims.length === 0;
-  let operatorStatus = 'stable';
+  let userStatus = 'stable';
   if (thinAbstain) {
-    operatorStatus = 'insufficient_data';
+    userStatus = 'insufficient_data';
   } else if (ep.thin_evidence) {
-    operatorStatus = 'provisional';
+    userStatus = 'provisional';
   }
   return {
     component_id: componentId,
     severity: thinAbstain ? 'abstain' : 'moderate',
     confidence: ep.certainty_band === 'high' ? 'medium' : 'low',
-    operator_status: operatorStatus,
+    user_status: userStatus,
     claims,
     narrative,
     dissent_summary: ep.contested ? 'Evidence appears contested across sources.' : '',

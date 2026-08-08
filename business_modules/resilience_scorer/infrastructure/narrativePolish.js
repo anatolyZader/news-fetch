@@ -1,5 +1,5 @@
 /**
- * Sonnet polish pass: turn validated narrative_claims into operator-readable prose.
+ * Sonnet polish pass: turn validated narrative_claims into user-readable prose.
  */
 import { resolveLlmPort, transportMeta } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { SONNET_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
@@ -74,14 +74,14 @@ function buildPolishSystemPrompt({ includeSynthesis = true, synthesisOnly = fals
 
   const academicRules = academicProseStyleEnabled()
     ? (
-      '- narrative: write 2–4 connected paragraphs per component in academic operator register (topic sentence + synthesis across claims).\n'
+      '- narrative: write 2–4 connected paragraphs per component in academic user register (topic sentence + synthesis across claims).\n'
       + '- State uncertainty explicitly when evidence is thin, contested, or context-only.\n'
       + '- Never include PBO dashboard metadata (avg=, percentage tuples) or raw Hebrew/Arabic quotes in narrative prose — paraphrase in English.\n'
     )
     : '';
 
   return (
-    'You write operator-readable English resilience narratives grounded in cited claims.\n' +
+    'You write user-readable English resilience narratives grounded in cited claims.\n' +
     'Return ONLY valid JSON:\n' +
     '{\n' +
     '  "components": [\n' +
@@ -195,7 +195,7 @@ function formatPolishUserMessage(
 
   const claimsBlock = formatClaimsBlock(mergedNarratives, registry, narrativeScored, componentIds);
   return (
-    `${prefix}Write operator narratives for each component from these validated claims.\n\n` +
+    `${prefix}Write user narratives for each component from these validated claims.\n\n` +
     `${claimsBlock}${feedbackBlock}`
   );
 }
@@ -289,7 +289,7 @@ async function invokePolishStream(params) {
   const parsed = extractJson(textBlock.text);
   const stopReason = message.stop_reason ?? null;
   if (stopReason === 'max_tokens') {
-    console.error(`[operator-narrative] Polish hit max_tokens (${progressLabel ?? 'polish'})`);
+    console.error(`[user-narrative] Polish hit max_tokens (${progressLabel ?? 'polish'})`);
   }
   return {
     ...normalizePolishOutput(parsed, mergedNarratives),

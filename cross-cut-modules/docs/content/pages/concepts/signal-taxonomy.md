@@ -10,7 +10,7 @@ tags: ["concepts", "signals"]
 ---
 
 ## Purpose
-Define what a "signal" is in Srulik's lab, why we use a closed vocabulary, and the rules that extraction must follow. If the taxonomy is sharp, extraction is comparable across days, sources, and operators. If it's fuzzy, scores drift in ways no one can explain.
+Define what a "signal" is in Srulik's lab, why we use a closed vocabulary, and the rules that extraction must follow. If the taxonomy is sharp, extraction is comparable across days, sources, and users. If it's fuzzy, scores drift in ways no one can explain.
 
 ## Prerequisites
 - **Required**: You've read [Resilience model](resilience-model.md) and understand that signals feed components.
@@ -67,7 +67,7 @@ Expected:
 
 - "The atmosphere is tense." → Narrative framing, no observable fact.
 - "Many residents are worried." → Unattributed generalization. If a specific report says "60% of respondents in today's municipal survey reported worry," use **`population_survey_finding`** with the number and provenance.
-- "This shows a breakdown in trust." → Editorial interpretation. The underlying event might be a signal; the interpretation is the analyst's job.
+- "This shows a breakdown in trust." → Editorial interpretation. The underlying event might be a signal; the interpretation is the developer's job.
 
 ### Versioning the taxonomy
 

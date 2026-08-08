@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import {
   summarizeStageEvents,
   readCostLogStagesForDate,
-  extractionTelemetryForOperator,
+  extractionTelemetryForUser,
 } from '../../../../../business_modules/resilience_scorer/domain/services/pipeline/pipelineStageTelemetry.js';
 
 describe('pipelineStageTelemetry', () => {
@@ -51,8 +51,8 @@ describe('pipelineStageTelemetry', () => {
     }
   });
 
-  it('extractionTelemetryForOperator strips reason_counts', () => {
-    const op = extractionTelemetryForOperator({
+  it('extractionTelemetryForUser strips reason_counts', () => {
+    const op = extractionTelemetryForUser({
       assess: {
         totals: { kept: 5, dropped: 1, input: 6 },
         perStage: { v: { kept: 5, dropped: 1, input: 6, reason_counts: { x: 1 } } },

@@ -7,7 +7,7 @@ const NORTH_LOCALITIES_HE = [
 
 /**
  * Default OSINT search query templates per language for citizen-voice gathering.
- * Operators or agents expand these with locality + platform-specific syntax.
+ * Users or agents expand these with locality + platform-specific syntax.
  */
 export function buildDefaultGatherQueries({ localities = NORTH_LOCALITIES_HE } = {}) {
   const heSample = HOMEFRONT_KEYWORDS.slice(0, 6);

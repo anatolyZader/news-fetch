@@ -24,8 +24,8 @@ import { IngestArticleCard } from './ingest/IngestArticleCard.jsx';
 import { ResponsiveItemList } from './ingest/ResponsiveItemList.jsx';
 
 export function RadioTab({
-  operatorScope = 'national',
-  onOperatorScopeChange,
+  userScope = 'national',
+  onUserScopeChange,
   districtAccess = null,
 }) {
   const { t, lang } = useLanguage();
@@ -34,7 +34,7 @@ export function RadioTab({
     getIdToken,
     getAppCheckToken,
     apiReady,
-    operatorScope,
+    userScope,
   });
 
   const dates = useMemo(
@@ -51,13 +51,13 @@ export function RadioTab({
     getIdToken,
     getAppCheckToken,
     apiReady,
-    operatorScope,
+    userScope,
   });
 
-  const districtScope = onOperatorScopeChange ? (
+  const districtScope = onUserScopeChange ? (
     <DistrictScopeSwitcher
-      value={operatorScope}
-      onChange={onOperatorScopeChange}
+      value={userScope}
+      onChange={onUserScopeChange}
       districtAccess={districtAccess}
     />
   ) : null;
@@ -93,9 +93,9 @@ export function RadioTab({
     <Stack spacing={2.5}>
       <PageHeader title={t('tab.radio')} subtitle={t('radio.subtitle')} scope={districtScope} />
 
-      {isRegionalReportScope(operatorScope) && (
+      {isRegionalReportScope(userScope) && (
         <Alert severity="info" variant="outlined">
-          {t('radio.districtScopeHint', { scope: t(`district.${operatorScope}`) })}
+          {t('radio.districtScopeHint', { scope: t(`district.${userScope}`) })}
         </Alert>
       )}
 
@@ -159,7 +159,7 @@ export function RadioTab({
 }
 
 RadioTab.propTypes = {
-  operatorScope: PropTypes.string,
-  onOperatorScopeChange: PropTypes.func,
+  userScope: PropTypes.string,
+  onUserScopeChange: PropTypes.func,
   districtAccess: PropTypes.object,
 };

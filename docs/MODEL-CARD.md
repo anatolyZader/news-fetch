@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Decision-support instrument for Home Front Command: extracts **observable behavioral signals** from multi-source text, scores eight resilience components deterministically, and generates operator-safe narratives.
+Decision-support instrument for Home Front Command: extracts **observable behavioral signals** from multi-source text, scores eight resilience components deterministically, and generates user-safe narratives.
 
 **Not an oracle.** Scores narrow attention; humans decide under explicit uncertainty.
 
@@ -24,11 +24,11 @@ LLM extract (closed vocabulary, ~165 tags) → verify evidence → deterministic
 
 Feature flag: `RESILIENCE_EPISTEMIC_GEO_V2=0` disables metrics gating (legacy).
 
-## Operator instruments (Option C — thin evidence)
+## User instruments (Option C — thin evidence)
 
 When `evidence_mass < 1.5`:
 
-| Condition | Operator sees |
+| Condition | User sees |
 |-----------|----------------|
 | `salience_critical` (high-salience bypass) | `critical_single_signal` — **shows 1–10** with alert |
 | Raw score inside [3,8] | `limited_evidence_neutral` — no 1–10 scale |
@@ -37,7 +37,7 @@ When `evidence_mass < 1.5`:
 
 ### High-salience bypass (Outlier Bypass)
 
-When `evidence_mass < 1.5`, a verified high-stakes single signal may bypass the min-mass floor and surface as operator-visible. Gates (all required): one dominant contributor (≥85% mass), critical signal type or severe `event`, plus a credibility booster (high-trust evidence, field/PBO source, dual-pass agreement, or elevated scope). Floor skip is **asymmetric**: raw scores below 3 may pass through; thin positive hype above 8 remains capped. Flags: `salience_critical`, `floor_bypassed`, `salience_bypass_reasons`. Disable with `RESILIENCE_HIGH_SALIENCE_BYPASS=0`.
+When `evidence_mass < 1.5`, a verified high-stakes single signal may bypass the min-mass floor and surface as user-visible. Gates (all required): one dominant contributor (≥85% mass), critical signal type or severe `event`, plus a credibility booster (high-trust evidence, field/PBO source, dual-pass agreement, or elevated scope). Floor skip is **asymmetric**: raw scores below 3 may pass through; thin positive hype above 8 remains capped. Flags: `salience_critical`, `floor_bypassed`, `salience_bypass_reasons`. Disable with `RESILIENCE_HIGH_SALIENCE_BYPASS=0`.
 
 ## Data void / digital darkness
 
@@ -46,7 +46,7 @@ Separate from component scores. Multi-channel EWMA baselines + z-score drop dete
 **Critical triggers:** `digital_darkness` (digital silent, field/PBO/`field_whatsapp` active), `total_silence`, `partial_silence`, `connectivity_outage`, `infrastructure_probe` outage.
 
 **Epistemic gates (deterministic):**
-- `level >= elevated` (non-darkness) → **abstention**: all component scores null, `assessment_mode: abstained`, operator instrument `sampling_blind`
+- `level >= elevated` (non-darkness) → **abstention**: all component scores null, `assessment_mode: abstained`, user instrument `sampling_blind`
 - `digital_darkness` → **field-anchor-only**: re-score using field-family sources only; `assessment_mode: field_anchor_only`; stale digital-inclusive snapshot in `stale_digital_scores`
 - `level === warning` → scores kept; `epistemic_status.sampling_status: degraded`
 
@@ -63,7 +63,7 @@ Flag: `RESILIENCE_DATA_VOID=0` disables void index.
 | `RESILIENCE_NARRATIVE_NATIONAL_CAP` | 60 | Max national/regional press context signals for regional reports |
 | `RESILIENCE_FIELD_GEO_DISCOUNT` | 0.5 | Discount when field signal lacks geo/locality binding |
 
-## Suppression transparency (analyst)
+## Suppression transparency (developer)
 
 - `score_raw` — pre-cap, pre-floor
 - `score_headline` — published score
@@ -79,25 +79,25 @@ Flag: `RESILIENCE_DUAL_BASELINE=0` disables chronic metrics.
 
 ## Presence gates
 
-When `RESILIENCE_PRESENCE_GATES` is on (default), verified **grounded** signals of curated types force `operator_status: critical_failure` on mapped components (e.g. `infrastructure_damage_acute` → `functional_continuity`), independent of aggregate score. Operator instrument: `critical_presence_failure` (no 1–10). Flags: `presence_gate_triggered`, `presence_gate.rule_id`, `presence_gate.signal_type`.
+When `RESILIENCE_PRESENCE_GATES` is on (default), verified **grounded** signals of curated types force `user_status: critical_failure` on mapped components (e.g. `infrastructure_damage_acute` → `functional_continuity`), independent of aggregate score. User instrument: `critical_presence_failure` (no 1–10). Flags: `presence_gate_triggered`, `presence_gate.rule_id`, `presence_gate.signal_type`.
 
-## OOV burst (operator)
+## OOV burst (user)
 
-`assessment.oov_burst` evaluates `business_modules/resilience_scorer/data/oov_captures/oov-capture-{date}.jsonl` unknown-type records **before scoring**. Operator attention when total ≥ `RESILIENCE_OOV_OPERATOR_MIN` (default 5) or largest cluster ≥ threshold.
+`assessment.oov_burst` evaluates `business_modules/resilience_scorer/data/oov_captures/oov-capture-{date}.jsonl` unknown-type records **before scoring**. User attention when total ≥ `RESILIENCE_OOV_OPERATOR_MIN` (default 5) or largest cluster ≥ threshold.
 
-During **abstention** (`sampling_blind`, `digital_darkness`, elevated `data_void`), the **anomaly strip** (`anomaly_strip` on report API) lowers the operator visibility threshold to cluster count ≥ 1 — surfaced in `OovAnomalyClustersPanel` with label “not in synthesis summary.”
+During **abstention** (`sampling_blind`, `digital_darkness`, elevated `data_void`), the **anomaly strip** (`anomaly_strip` on report API) lowers the user visibility threshold to cluster count ≥ 1 — surfaced in `OovAnomalyClustersPanel` with label “not in synthesis summary.”
 
 **Synthesizer OOV coverage:** slim synthesizer mode retains `oov_claims`; `synthesisOovChecks.js` appends deterministic bullets and attention items when OOV clusters are missing from cross-component narrative.
 
 **OOV scoring (default on):** alerting clusters synthesize `novel_behavior_observed` signals at reduced weight (`RESILIENCE_OOV_SCORE_WEIGHT`, default 0.4). `assessment.oov_scoring_applied` records synthetic count. Disable with `RESILIENCE_OOV_SCORING=0`.
 
-## Action compass (operator, abstention)
+## Action compass (user, abstention)
 
 When assessment abstains or epistemic instruments fire, `action_compass` on `GET /api/report/today` provides ordinal **uncertainty bands** (`unknown` | `watch` | `elevated` | `critical`) and ranked suggested actions — **no numeric 1–10 scores**. Sources: attention items, decision brief, gap closure tasks, void-specific defaults. UI: `ActionCompassPanel.jsx`. Flag: `RESILIENCE_ACTION_COMPASS` (default on).
 
 ## OSINT channel quarantine (auto)
 
-Detect high polarization on `source_type=social` and `telegram` (`RESILIENCE_SOCIAL_QUARANTINE`, default on). When thresholds fire, **auto-exclude** OSINT from metrics (`RESILIENCE_OSINT_QUARANTINE_AUTO`, default on). Analyst **dismiss_social_quarantine** in validation UI suppresses auto-exclusion for that date+scope. Confirm remains for audit.
+Detect high polarization on `source_type=social` and `telegram` (`RESILIENCE_SOCIAL_QUARANTINE`, default on). When thresholds fire, **auto-exclude** OSINT from metrics (`RESILIENCE_OSINT_QUARANTINE_AUTO`, default on). Developer **dismiss_social_quarantine** in validation UI suppresses auto-exclusion for that date+scope. Confirm remains for audit.
 
 ## Digital quarantine persistence
 
@@ -105,7 +105,7 @@ When partition quarantines digital signals, `assessment.digital_quarantine_state
 
 ## Assessment agent (v2, Option B)
 
-Default pipeline: planner → component specialists → critic → synthesizer produce **assessment.v2** with evidence refs and trace JSONL. Deterministic **shadow scoring** (`RESILIENCE_SHADOW_SCORING=1`) writes `shadow-scores-*.json` and `divergence-*.json` for analyst calibration.
+Default pipeline: planner → component specialists → critic → synthesizer produce **assessment.v2** with evidence refs and trace JSONL. Deterministic **shadow scoring** (`RESILIENCE_SHADOW_SCORING=1`) writes `shadow-scores-*.json` and `divergence-*.json` for developer calibration.
 
 **Degrade ladder** (replaces legacy narrative escape hatch): agent failure, per-run budget exhaustion, or daily HTTP budget → `runDeterministicAssessment` (evidence graph + instruments, no LLM) → cached prior report if scores are empty. Report field `assessment_degraded` documents the mode.
 
@@ -133,9 +133,9 @@ Default pipeline: planner → component specialists → critic → synthesizer p
 | `RESILIENCE_ASSESS_GLOBAL_RAG` | `1` | Global hybrid retrieve before specialists |
 | `RESILIENCE_ASSESS_GLOBAL_TOPK` | `8` | Global retrieve final top-K (was 20) |
 
-## Rich operator surface (Track B)
+## Rich user surface (Track B)
 
-When `RESILIENCE_OPERATOR_SURFACE_MODE=rich`, scoring epistemics are unchanged and **assessment-agent specialists are skipped**, but assess still runs the **hybrid narrative pipeline** (facts → judge → Sonnet polish) for academic English `narrative_operator` prose with inline `[source](url)` citations (translated to operator locale via `getTranslatedReport` when `lang=he|ru`). After polish, a deterministic **investigation pool** is attached per component (`scored`, `context_only`, `quarantined`, `investigation_only`) for drill-down. Product rule: scoring may abstain; operator surface must not starve.
+When `RESILIENCE_OPERATOR_SURFACE_MODE=rich`, scoring epistemics are unchanged and **assessment-agent specialists are skipped**, but assess still runs the **hybrid narrative pipeline** (facts → judge → Sonnet polish) for academic English `narrative_user` prose with inline `[source](url)` citations (translated to user locale via `getTranslatedReport` when `lang=he|ru`). After polish, a deterministic **investigation pool** is attached per component (`scored`, `context_only`, `quarantined`, `investigation_only`) for drill-down. Product rule: scoring may abstain; user surface must not starve.
 
 | Env | Default | Effect |
 |-----|---------|--------|
@@ -147,7 +147,7 @@ When `RESILIENCE_OPERATOR_SURFACE_MODE=rich`, scoring epistemics are unchanged a
 
 **Cost:** rich north replays incur hybrid narrative LLM cost (not $0). Budget degrade uses epistemic fallback prose when `dailyBudgetExceeded` or prompt budget skips LLM.
 
-Chat: `get_component_evidence_bundle` reads `operator_investigation_pool` from the current report. UI: dual evidence accordion (highlighted + full pool) and claim-linked evidence list.
+Chat: `get_component_evidence_bundle` reads `user_investigation_pool` from the current report. UI: dual evidence accordion (highlighted + full pool) and claim-linked evidence list.
 
 | `RESILIENCE_ASSESS_OPEN_RAG` | `1` | Per-component RAG seeding (set `0` to disable all) |
 | `RESILIENCE_ASSESS_COMPACT_TOOL_LOOP` | `1` | Compact tool-loop message history via working memory |
@@ -159,7 +159,7 @@ Report metadata: `investigation_plan.planner_source` (`deterministic`|`llm`|`rep
 
 ### Economy rollback
 
-Lowest-risk rollback for optional LLM economy (does not affect scoring or operator `display_view` redaction):
+Lowest-risk rollback for optional LLM economy (does not affect scoring or user `display_view` redaction):
 
 | Action | Effect |
 |--------|--------|
@@ -167,7 +167,7 @@ Lowest-risk rollback for optional LLM economy (does not affect scoring or operat
 | `RESILIENCE_ASSESS_TIERED_SPECIALISTS=0` | Full-depth specialist investigation (depth A) for every component |
 | `POST /api/chat` body `{ "economy": "full" }` | One-turn override: full context, no compact tool loop |
 
-Eval: `npm run agent:eval`. Trace replay: `GET /api/report/agent-trace/:traceId` (analyst).
+Eval: `npm run agent:eval`. Trace replay: `GET /api/report/agent-trace/:traceId` (developer).
 
 ## Extraction (cost-optimized)
 
@@ -210,14 +210,14 @@ Telemetry: per-invocation JSONL + `getLlmTelemetry()` feature rollup — see [CO
 |------|---------|--------|
 | `RESILIENCE_EPISTEMIC_GEO_V2` | on | Keyword/macro excluded from metrics |
 | `RESILIENCE_DATA_VOID` | on | Data void index + epistemic gates |
-| `RESILIENCE_THIN_EVIDENCE_POLICY` | on | Option C operator abstention |
+| `RESILIENCE_THIN_EVIDENCE_POLICY` | on | Option C user abstention |
 | `RESILIENCE_DECISION_BRIEF_ENABLED` | on | Batch Haiku decision brief on `assessment.decision_brief` after assess |
 | `RESILIENCE_DECISION_BRIEF_MODEL` | Haiku fallback | Model for decision brief generation |
 | `RESILIENCE_HIGH_SALIENCE_BYPASS` | on | High-salience bypass for verified critical single signals |
 | `RESILIENCE_DUAL_BASELINE` | on | Chronic baseline metrics |
 | `RESILIENCE_OOV_CAPTURE` | on | Log unknown signal types, uncertain self-check, zero-signal articles |
 | `RESILIENCE_OOV_OPERATOR_MIN` | 5 | OOV burst critical threshold (unknown-type count) |
-| `RESILIENCE_PRESENCE_GATES` | on | Verified presence → critical_failure operator state |
+| `RESILIENCE_PRESENCE_GATES` | on | Verified presence → critical_failure user state |
 | `RESILIENCE_SOCIAL_QUARANTINE` | on | Detect polarized OSINT (social + telegram) |
 | `RESILIENCE_OSINT_QUARANTINE_AUTO` | on | Auto-exclude OSINT from metrics when polarized |
 | `RESILIENCE_SOCIAL_QUARANTINE_MIN_SIGNALS` | 4 | Min OSINT signals to evaluate quarantine |

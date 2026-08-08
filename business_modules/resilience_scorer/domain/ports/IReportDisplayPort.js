@@ -2,7 +2,7 @@
  * Shapes a cached assessment report payload before it is served to HTTP/chat clients.
  *
  * Pipeline position: post-PERSIST read path — called when reportRoutes or chatRoutes
- * load a cached report for operator display.
+ * load a cached report for user display.
  *
  * Owns: contract surface (methods/typedefs below).
  * Does NOT: implement adapters (those live in infrastructure/).
@@ -18,7 +18,7 @@
  * @property {(payload: object, displayView?: string) => object} redactReportPayload
  * Attach per-component instrument state to a cached report before serving.
  * The `displayView` parameter is retained for call-site compatibility only; min-math
- * serves a single operator view with no analyst/operator split.
+ * serves a single user view with no developer/user split.
  */
 
 export {};

@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildActionCompass, deriveUncertaintyBand } from '../../../../../business_modules/resilience_scorer/domain/services/actionCompass/actionCompass.js';
 import { ACTION_KINDS } from '../../../../../business_modules/resilience_scorer/domain/services/actionCompass/actionCompassKinds.js';
-import { buildAttentionItems } from '../../../../../business_modules/resilience_scorer/domain/services/operator/attentionItems.js';
+import { buildAttentionItems } from '../../../../../business_modules/resilience_scorer/domain/services/user/attentionItems.js';
 
 describe('buildActionCompass', () => {
   it('returns a corroborate action for abstained assessment without scores', () => {
@@ -12,10 +12,10 @@ describe('buildActionCompass', () => {
       data_void: { level: 'critical', digital_darkness: true, information_vacuum_index: 0.9 },
       components: [{
         component_id: 'lifesaving_behavior',
-        instrument: { operator_shows_score: false, thin_evidence_instrument: 'sampling_blind' },
+        instrument: { user_shows_score: false, thin_evidence_instrument: 'sampling_blind' },
       }],
     };
-    const attention = buildAttentionItems(assessment, { view: 'operator' });
+    const attention = buildAttentionItems(assessment, { view: 'user' });
     const compass = buildActionCompass(assessment, attention);
     assert.ok(compass);
     assert.equal(compass.uncertainty_band, 'critical');
@@ -25,14 +25,14 @@ describe('buildActionCompass', () => {
     assert.doesNotMatch(blob, /\/10/);
   });
 
-  it('does not leak internal field names into operator output', () => {
+  it('does not leak internal field names into user output', () => {
     const assessment = {
       assessment_mode: 'abstained',
       epistemic_status: { sampling_status: 'blind', assessment_mode: 'abstained' },
       data_void: { level: 'critical', digital_darkness: true, reason: 'digital_darkness', information_vacuum_index: 0.9 },
       components: [],
     };
-    const attention = buildAttentionItems(assessment, { view: 'operator' });
+    const attention = buildAttentionItems(assessment, { view: 'user' });
     const compass = buildActionCompass(assessment, attention);
     const blob = JSON.stringify(compass);
     assert.doesNotMatch(blob, /vacuum_index/);
@@ -58,7 +58,7 @@ describe('buildActionCompass', () => {
     const assessment = {
       assessment_mode: 'normal',
       epistemic_status: { sampling_status: 'normal' },
-      components: [{ component_id: 'narrative', instrument: { operator_shows_score: true } }],
+      components: [{ component_id: 'narrative', instrument: { user_shows_score: true } }],
     };
     const compass = buildActionCompass(assessment, []);
     assert.equal(compass, null);
@@ -69,10 +69,10 @@ describe('buildActionCompass', () => {
       assessment_mode: 'normal',
       epistemic_status: { sampling_status: 'normal' },
       data_void: { level: 'none' },
-      components: [{ component_id: 'narrative', instrument: { operator_shows_score: true } }],
+      components: [{ component_id: 'narrative', instrument: { user_shows_score: true } }],
       macro_signals: new Array(9).fill({ id: 'm' }),
     };
-    const attention = buildAttentionItems(assessment, { view: 'operator' });
+    const attention = buildAttentionItems(assessment, { view: 'user' });
     assert.ok(attention.some((i) => i.code === 'macro_signals'));
     const compass = buildActionCompass(assessment, attention);
     assert.equal(compass, null);
@@ -86,7 +86,7 @@ describe('buildActionCompass', () => {
       digital_quarantine_state: { active: true, reason: 'digital_darkness', since: '2026-06-13T13:33:15.877Z' },
       components: [],
     };
-    const attention = buildAttentionItems(assessment, { view: 'operator' });
+    const attention = buildAttentionItems(assessment, { view: 'user' });
     const compass = buildActionCompass(assessment, attention);
     const corroborate = compass.actions.filter((a) => a.kind === ACTION_KINDS.corroborate);
     assert.equal(corroborate.length, 1);
@@ -115,7 +115,7 @@ describe('buildActionCompass', () => {
         { component_id: 'c', instrument: { contested: true } },
       ],
     };
-    const attention = buildAttentionItems(assessment, { view: 'operator' });
+    const attention = buildAttentionItems(assessment, { view: 'user' });
     const compass = buildActionCompass(assessment, attention);
     const investigate = compass.actions.filter((a) => a.kind === ACTION_KINDS.investigate);
     assert.ok(investigate.length <= 2, `expected <=2 investigate, got ${investigate.length}`);
@@ -138,7 +138,7 @@ describe('buildActionCompass', () => {
         ],
       },
     };
-    const attention = buildAttentionItems(assessment, { view: 'operator' });
+    const attention = buildAttentionItems(assessment, { view: 'user' });
     const compass = buildActionCompass(assessment, attention);
     const sourceMix = compass.actions.filter(
       (a) => /diversify sources|over-represented/i.test(a.suggested_next_step ?? ''),
@@ -162,7 +162,7 @@ describe('buildActionCompass', () => {
         }],
       },
     };
-    const attention = buildAttentionItems(assessment, { view: 'operator' });
+    const attention = buildAttentionItems(assessment, { view: 'user' });
     const compass = buildActionCompass(assessment, attention);
     const brief = compass.actions.find((a) => a.suggested_next_step === 'Contact the field team for Kiryat Shmona.');
     assert.ok(brief);
@@ -183,9 +183,9 @@ describe('buildActionCompass', () => {
       assessment_mode: 'normal',
       epistemic_status: { sampling_status: 'degraded', reason: 'digital_z_drop' },
       data_void: { level: 'warning', reason: 'digital_z_drop' },
-      components: [{ component_id: 'narrative', instrument: { operator_shows_score: true } }],
+      components: [{ component_id: 'narrative', instrument: { user_shows_score: true } }],
     };
-    const attention = buildAttentionItems(assessment, { view: 'operator' });
+    const attention = buildAttentionItems(assessment, { view: 'user' });
     assert.ok(!attention.some((i) => i.code === 'data_void_drop'));
     const compass = buildActionCompass(assessment, attention);
     assert.ok(compass);

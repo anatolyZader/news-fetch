@@ -1,5 +1,5 @@
 /**
- * Geo unknown locality review queue — read/update for analysts.
+ * Geo unknown locality review queue — read/update for developers.
  */
 import { geoUnknownReviewReadEnabled } from '../../../cross-cut-modules/retrieval/ragConfig.js';
 

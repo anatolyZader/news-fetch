@@ -12,6 +12,7 @@
  */
 
 import { signalArticleKey } from '../narrative/signalRefRegistry.js';
+import { classifyClaimRef, canonicalClaimRef, CLAIM_REF_NAMESPACES } from '../narrative/claimRefNamespace.js';
 
 const FIELD_FAMILY = new Set(['field', 'visits', 'pbo', 'pbo_regional', 'naftali', 'whatsapp']);
 
@@ -116,10 +117,18 @@ export function validateClaimRelation(refs, relation, registry) {
   }
   if (refs.length === 1) return { ok: true, relation: relation ?? 'none' };
 
-  const entries = refs.map((r) => resolveEntry(r, registry)).filter(Boolean);
-  if (entries.length !== refs.length) {
+  // Only signal-namespace refs can be co-occurrence checked; chunk, OOV and
+  // open-observation citations carry no article identity and live in other
+  // stores. Requiring them to resolve here reported every mixed-namespace
+  // claim as `unknown_ref`.
+  const signalRefs = refs.filter(
+    (r) => classifyClaimRef(r).namespace === CLAIM_REF_NAMESPACES.SIGNAL,
+  );
+  const entries = signalRefs.map((r) => resolveEntry(r, registry)).filter(Boolean);
+  if (entries.length !== signalRefs.length) {
     return { ok: false, reason: 'unknown_ref' };
   }
+  if (entries.length < 2) return { ok: true, relation: relation ?? 'none' };
 
   const urls = new Set(entries.map((e) => e.signal?.article_url).filter(Boolean));
   const sameUrl = urls.size === 1;
@@ -144,7 +153,7 @@ export function validateClaimRelation(refs, relation, registry) {
 }
 
 function resolveEntry(ref, registry) {
-  return registry?.byRef?.get(ref) ?? null;
+  return registry?.byRef?.get(canonicalClaimRef(ref)) ?? null;
 }
 
 /**

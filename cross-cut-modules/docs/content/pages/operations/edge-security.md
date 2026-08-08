@@ -57,7 +57,7 @@ Expected: `TRUST_PROXY=true` and `ENABLE_HSTS=true` in production `.env`, or the
 | `SECURITY_CONTACT_EMAIL` | required | Dynamic `/.well-known/security.txt` |
 | `ENABLE_SWAGGER` | unset / `false` | Must not be `true` (startup fails) |
 
-Public health check: `GET /api/monitoring/health` returns `{ "status": "ok"|"degraded"|"unhealthy" }` only. Detailed paths: `GET /api/monitoring/health/detail` (auth + analyst).
+Public health check: `GET /api/monitoring/health` returns `{ "status": "ok"|"degraded"|"unhealthy" }` only. Detailed paths: `GET /api/monitoring/health/detail` (auth + developer).
 
 **Production cutover:** [production-cutover-checklist.md](./production-cutover-checklist.md) · [manual GCP / Cloudflare runbook](./manual-cutover-gcp-cloudflare.md)
 

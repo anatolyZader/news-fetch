@@ -97,7 +97,7 @@ function buildMarkdown(assessment, parsedLog, sourceFile) {
   }
 
   // ── Caveats ────────────────────────────────────────────────────────────────
-  lines.push(`## Analyst Caveats`, ``, assessment.analyst_caveats, ``);
+  lines.push(`## Developer Caveats`, ``, assessment.developer_caveats, ``);
 
   return lines.join('\n');
 }

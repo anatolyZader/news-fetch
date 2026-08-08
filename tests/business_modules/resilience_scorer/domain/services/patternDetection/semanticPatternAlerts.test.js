@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { detectSemanticPatterns } from '../../../../../../business_modules/resilience_scorer/domain/services/patternDetection/semanticPatternAlerts.js';
-import { buildOperatorRecommendations } from '../../../../../../business_modules/resilience_scorer/domain/services/patternDetection/operatorRecommendations.js';
+import { buildUserRecommendations } from '../../../../../../business_modules/resilience_scorer/domain/services/patternDetection/userRecommendations.js';
 
 describe('semanticPatternAlerts', () => {
   it('detects information vacuum with rumor spread', () => {
@@ -24,13 +24,13 @@ describe('semanticPatternAlerts', () => {
     assert.ok(patterns.some((p) => p.pattern_code === 'official_local_conflict'));
   });
 
-  it('builds pending operator recommendations', () => {
+  it('builds pending user recommendations', () => {
     const patterns = detectSemanticPatterns([
       { signal_type: 'rumor_spread', article_url: 'a1', source_type: 'whatsapp' },
       { signal_type: 'rumor_spread', article_url: 'a2', source_type: 'social' },
       { signal_type: 'information_confusion', article_url: 'a3', source_type: 'news' },
     ]);
-    const recs = buildOperatorRecommendations(patterns);
+    const recs = buildUserRecommendations(patterns);
     assert.equal(recs.length, patterns.length);
     assert.equal(recs[0].status, 'pending');
     assert.ok(recs[0].id.startsWith('rec:'));

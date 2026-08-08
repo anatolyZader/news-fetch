@@ -4,7 +4,7 @@ Update after `/compact` or end-of-task. Prune monthly — one line per rule, max
 
 ## Architecture decisions
 
-- Primary assess path: assessment agent + RAG; operator UI hides headline 1–10 scores.
+- Primary assess path: assessment agent + RAG; user UI hides headline 1–10 scores.
 - Business modules: `app/`, `domain/`, `infrastructure/`; `input/` only for transport.
 - Cross-module wiring: composition root + ports/events only.
 

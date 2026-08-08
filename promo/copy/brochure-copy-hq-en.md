@@ -1,4 +1,4 @@
-# Brochure copy — HQ / Operators (EN)
+# Brochure copy — HQ / Users (EN)
 
 > 4-page A4 booklet · locked brand per [`../brand/BRAND-LOCK.md`](../brand/BRAND-LOCK.md). Passes [`../source-corpus/do-not-say.md`](../source-corpus/do-not-say.md). Embed in [`../print/brochure-hq-en.html`](../print/brochure-hq-en.html).
 
@@ -32,7 +32,7 @@ srulik.ai structures one daily read across eight components. Every narrative lin
 1. **Extract** — observable behavioral signals from multi-source text  
 2. **Verify** — evidence behind each signal  
 3. **Assess** — eight community-resilience components  
-4. **Narrate** — operator prose with inline source citations  
+4. **Narrate** — user prose with inline source citations  
 
 ### Data ribbon (visual)
 

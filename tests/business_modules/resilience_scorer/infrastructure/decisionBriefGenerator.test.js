@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   normalizeDecisionBriefOutput,
-  assertOperatorSafeBrief,
+  assertUserSafeBrief,
   generateDecisionBrief,
   decisionBriefEnabled,
 } from '../../../../business_modules/resilience_scorer/infrastructure/decisionBriefGenerator.js';
@@ -23,9 +23,9 @@ describe('decisionBriefGenerator', () => {
     assert.equal(out.priority_items.length, 1);
   });
 
-  it('assertOperatorSafeBrief rejects score notation', () => {
+  it('assertUserSafeBrief rejects score notation', () => {
     assert.throws(
-      () => assertOperatorSafeBrief({ summary: 'Component at 7/10 is weak', priority_items: [] }),
+      () => assertUserSafeBrief({ summary: 'Component at 7/10 is weak', priority_items: [] }),
       /forbidden score/,
     );
   });

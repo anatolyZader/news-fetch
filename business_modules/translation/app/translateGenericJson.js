@@ -31,8 +31,8 @@ function extractJsonText(raw) {
 }
 
 const GENERIC_SYSTEM = {
-  he: `You translate JSON string values into modern Israeli Hebrew for civil-defense operator UI. Preserve URLs, markdown links, IDs, and numbers. Return ONLY valid JSON with the exact same structure.`,
-  ru: `You translate JSON string values into formal Russian for civil-defense operator UI. Preserve URLs, markdown links, IDs, and numbers. Return ONLY valid JSON with the exact same structure.`,
+  he: `You translate JSON string values into modern Israeli Hebrew for civil-defense user UI. Preserve URLs, markdown links, IDs, and numbers. Return ONLY valid JSON with the exact same structure.`,
+  ru: `You translate JSON string values into formal Russian for civil-defense user UI. Preserve URLs, markdown links, IDs, and numbers. Return ONLY valid JSON with the exact same structure.`,
 };
 
 /**

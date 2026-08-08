@@ -57,7 +57,7 @@ test('discourse-only studio mention does not attach geo or north scope', () => {
   const signal = {
     source_type: 'news',
     signal_type: 'panic_behavior',
-    evidence: 'Analysts in Tel Aviv discussed Kiryat Shmona shelters.',
+    evidence: 'Developers in Tel Aviv discussed Kiryat Shmona shelters.',
     article_url: 'https://example.com/studio',
   };
 

@@ -5,7 +5,7 @@ import {
   decisionBriefEnabled,
   generateDecisionBrief,
 } from '../../infrastructure/decisionBriefGenerator.js';
-import { operatorEpistemicOverlayEnabled } from '../../domain/contracts/operatorEpistemicOverlay.js';
+import { userEpistemicOverlayEnabled } from '../../domain/contracts/userEpistemicOverlay.js';
 
 /**
  * @param {object} assessment — mutated in place when brief is generated
@@ -18,7 +18,7 @@ import { operatorEpistemicOverlayEnabled } from '../../domain/contracts/operator
  */
 export async function attachDecisionBrief(assessment, opts = {}) {
   if (!decisionBriefEnabled()) return null;
-  if (!operatorEpistemicOverlayEnabled()) return null;
+  if (!userEpistemicOverlayEnabled()) return null;
   if (!assessment || typeof assessment !== 'object') return null;
 
   try {

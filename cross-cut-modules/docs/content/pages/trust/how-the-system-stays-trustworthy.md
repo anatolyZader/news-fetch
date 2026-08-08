@@ -10,7 +10,7 @@ tags: ["trust", "user"]
 ---
 
 ## Core principles
-- **Decision-support first** — scores and narratives narrow attention; operators record judgment via the review bar.
+- **Decision-support first** — scores and narratives narrow attention; users record judgment via the review bar.
 - **Evidence-first** — every claim should trace to concrete sources you can expand in the report.
 - **Deterministic scoring** — LLMs extract and narrate; code scores. Same inputs should yield the same numbers.
 

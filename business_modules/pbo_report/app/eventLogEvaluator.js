@@ -173,7 +173,7 @@ export async function classifyEvents(parsedLog, options = {}) {
 export async function synthesizeFromEvents(parsedLog, classifications, date, options = {}) {
   const { onUsage } = options;
   const systemPrompt =
-    `You are an expert community resilience analyst specialising in field observation data. ` +
+    `You are an expert community resilience developer specialising in field observation data. ` +
     `Based on classified PBO event log entries, synthesise and score each of the 8 resilience components.\n\n` +
     `THE 8 RESILIENCE COMPONENTS:\n\n${formatComponentsForPrompt()}\n\n` +
     `SCORING RUBRIC (1–10):\n` +
@@ -195,11 +195,11 @@ export async function synthesizeFromEvents(parsedLog, classifications, date, opt
     `  date, total_events_analyzed, overall_resilience_score (1-10),\n` +
     `  incident_summary (1 paragraph describing the event sequence),\n` +
     `  cross_component_synthesis (3–4 paragraphs),\n` +
-    `  analyst_caveats (1–2 paragraphs on limitations of field observation data)\n\n` +
+    `  developer_caveats (1–2 paragraphs on limitations of field observation data)\n\n` +
     `Return ONLY valid JSON:\n` +
     `{\n` +
     `  "date": "...", "total_events_analyzed": N, "overall_resilience_score": N,\n` +
-    `  "incident_summary": "...", "cross_component_synthesis": "...", "analyst_caveats": "...",\n` +
+    `  "incident_summary": "...", "cross_component_synthesis": "...", "developer_caveats": "...",\n` +
     `  "components": [ { component_id, score, confidence, key_positive_behaviors, key_negative_behaviors,\n` +
     `                     temporal_trend, missing_observations, narrative } ... ]\n` +
     `}`;

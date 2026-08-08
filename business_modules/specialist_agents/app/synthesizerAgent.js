@@ -44,7 +44,7 @@ function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClust
   const stable =
     'Synthesize cross-component resilience assessment. Use submit_synthesis tool. ' +
     'Do not invent facts not present in component assessments. ' +
-    'Write cross_component_synthesis as 2–4 sentences of operator-readable English prose (not bullet lists); ' +
+    'Write cross_component_synthesis as 2–4 sentences of user-readable English prose (not bullet lists); ' +
     'include inline markdown citations [source_label](url) when component narratives or claims reference URLs. ' +
     'When component assessments reference national press (narrative_national_context / macro_national), weave how those national themes may influence northern communities — use phrasing like "National press (not north-local evidence):" where appropriate. ' +
     'do not paste raw or multi-language evidence quotes into the synthesis. ' +
@@ -79,7 +79,7 @@ function buildSynthesizerSystem(componentAssessments, epistemicProfile, oovClust
 }
 
 function isAbstained(component) {
-  return component.severity === 'abstain' || component.operator_status === 'insufficient_data';
+  return component.severity === 'abstain' || component.user_status === 'insufficient_data';
 }
 
 function widespreadSingleChannelDominance(epistemicProfile, componentAssessments) {
@@ -116,8 +116,8 @@ function buildDeterministicSummary(componentAssessments, epistemicProfile, gapCo
     sentences.push(coverage);
   }
 
-  // Operator register: signal the single-channel concentration qualitatively;
-  // the named source family and shares stay in analyst-only surfaces.
+  // User register: signal the single-channel concentration qualitatively;
+  // the named source family and shares stay in developer-only surfaces.
   const widespreadDominance = widespreadSingleChannelDominance(epistemicProfile, componentAssessments);
   if (widespreadDominance) {
     sentences.push('Evidence is concentrated in a single evidence channel across most components; treat component reads as provisional.');
@@ -197,7 +197,7 @@ export async function runSynthesizerAgent(params) {
       cross_component_synthesis: synthesis.cross_component_synthesis,
       retrieval_gaps: synthesis.retrieval_gaps ?? [],
     };
-    const attention_items = buildAttentionItems(draftAssessment, { view: 'operator' });
+    const attention_items = buildAttentionItems(draftAssessment, { view: 'user' });
     return {
       cross_component_synthesis: synthesis.cross_component_synthesis,
       attention_items,
@@ -256,7 +256,7 @@ export async function runSynthesizerAgent(params) {
   };
   const attention_items = synthesis.attention_items?.length
     ? synthesis.attention_items
-    : buildAttentionItems(draftAssessment, { view: 'operator' });
+    : buildAttentionItems(draftAssessment, { view: 'user' });
 
   return {
     cross_component_synthesis: synthesis.cross_component_synthesis,

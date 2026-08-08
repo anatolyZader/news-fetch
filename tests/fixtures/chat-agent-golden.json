@@ -1,5 +1,5 @@
 {
-  "description": "Gold analyst questions for offline tool-selection eval (no live Anthropic in CI).",
+  "description": "Gold developer questions for offline tool-selection eval (no live Anthropic in CI).",
   "cases": [
     {
       "id": "sources_search",
@@ -29,7 +29,7 @@
       "id": "hub_decision_brief",
       "question": "Summarize the decision brief and pending recommendations.",
       "toolProfile": "default",
-      "expectedTools": ["get_decision_brief", "list_operator_recommendations"]
+      "expectedTools": ["get_decision_brief", "list_user_recommendations"]
     }
   ]
 }

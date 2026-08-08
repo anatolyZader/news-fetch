@@ -14,7 +14,7 @@
  * **Does NOT:** call LLMs, run specialist agents, or add numeric scores.
  *
  * **Collaborators:** `infrastructure/claudeNarratives.buildAssessmentPayload`,
- * `closedCoreNarrate`, `operatorNarrativePipeline`.
+ * `closedCoreNarrate`, `userNarrativePipeline`.
  */
 import { RESILIENCE_COMPONENTS } from '../../domain/resilienceComponents.js';
 import { buildAssessmentPayload } from '../../infrastructure/claudeNarratives.js';

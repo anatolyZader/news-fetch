@@ -24,7 +24,7 @@ test('searchProductDocs returns docs namespace hit by slug', async () => {
     namespace: 'docs',
     parentId: 'docs:troubleshooting/data-void',
     date: DOCS_INDEX_DATE,
-    body: 'slug: troubleshooting/data-void\ntitle: Data void\ngated: false\n\nOperators document data voids and abstention rules.',
+    body: 'slug: troubleshooting/data-void\ntitle: Data void\ngated: false\n\nUsers document data voids and abstention rules.',
     sourceType: 'docs',
     title: 'Data void',
     kind: 'docs_public',

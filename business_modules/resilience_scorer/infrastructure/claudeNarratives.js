@@ -15,7 +15,7 @@ import {
   isNarrativeGroundingBlockEnabled,
   narrativeGroundingMinScore,
 } from '../domain/services/narrativeGrounding/index.js';
-import { topContributorsFromScored } from '../domain/services/operator/topContributors.js';
+import { topContributorsFromScored } from '../domain/services/user/topContributors.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamMessageWithRetry } from './llmStreamCall.js';
 import { extractNarrativeFacts } from './narrativeFactsExtract.js';
@@ -306,7 +306,7 @@ function buildSocialQuarantineContext(socialQuarantine) {
   if (socialQuarantine.active === true) {
     return (
       `━━━ SOCIAL CHANNEL QUARANTINE (ACTIVE) ━━━\n` +
-      `Analyst confirmed exclusion of social OSINT from component metrics for this assessment.\n` +
+      `Developer confirmed exclusion of social OSINT from component metrics for this assessment.\n` +
       `Headline scores exclude source_type=social; social signals may still appear in evidence for context.\n` +
       `Note this methodological limit in evidence_quality_note or data_quality_caveat where relevant.\n\n`
     );
@@ -314,7 +314,7 @@ function buildSocialQuarantineContext(socialQuarantine) {
   return (
     `━━━ SOCIAL CHANNEL QUARANTINE (SUGGESTED) ━━━\n` +
     `Social OSINT shows high polarization (pol≈${socialQuarantine.social_polarization ?? 'n/a'}, n=${socialQuarantine.social_signal_count ?? 0}).\n` +
-    `Scores still include social until analyst review; add a brief data_quality caveat that social-channel evidence is contested and under review.\n\n`
+    `Scores still include social until developer review; add a brief data_quality caveat that social-channel evidence is contested and under review.\n\n`
   );
 }
 
@@ -405,7 +405,7 @@ function buildNarrativeSystemPrompt({
   const coOccurrence = coOccurrenceBlock ?? '';
 
   return (
-    `You are a community resilience analyst writing behavioral narratives for a structured report.\n` +
+    `You are a community resilience developer writing behavioral narratives for a structured report.\n` +
     scoreIntro +
     scopeContext +
     dataVoidContext +
@@ -465,7 +465,7 @@ function buildAssessmentComponent(def, scored, narr, groundingMeta) {
     salience_dominant_signal_type: scored.salience_dominant_signal_type ?? null,
     presence_gate_triggered: scored.presence_gate_triggered === true,
     presence_gate: scored.presence_gate ?? null,
-    operator_status: scored.operator_status ?? null,
+    user_status: scored.user_status ?? null,
     top_contributors: topContributorsFromScored(scored, def.id),
     manifestations_evidenced: narr.manifestations_evidenced ?? [],
     manifestations_absent: narr.manifestations_absent ?? [],

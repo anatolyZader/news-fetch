@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
+import { withUserDistrictQuery } from '../lib/clampUserDistrictScope.js';
 import { authFetch } from '../lib/authFetch.js';
 import { localizedAuthFetch } from '../lib/localizedAuthFetch.js';
 
-/** @param {{ getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
-export function useRadioDashboard({ getIdToken, getAppCheckToken, apiReady, operatorScope = 'national' }) {
+/** @param {{ getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean, userScope?: string }} opts */
+export function useRadioDashboard({ getIdToken, getAppCheckToken, apiReady, userScope = 'national' }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,13 +14,13 @@ export function useRadioDashboard({ getIdToken, getAppCheckToken, apiReady, oper
     setLoading(true);
     setError(null);
     try {
-      setData(await authFetch(withOperatorDistrictQuery('/api/radio', operatorScope), auth));
+      setData(await authFetch(withUserDistrictQuery('/api/radio', userScope), auth));
     } catch (e) {
       setError(e?.message ?? 'Failed');
     } finally {
       setLoading(false);
     }
-  }, [getIdToken, getAppCheckToken, operatorScope]);
+  }, [getIdToken, getAppCheckToken, userScope]);
 
   useEffect(() => {
     if (!apiReady) return;
@@ -29,7 +29,7 @@ export function useRadioDashboard({ getIdToken, getAppCheckToken, apiReady, oper
       setLoading(true);
       setError(null);
       try {
-        const out = await authFetch(withOperatorDistrictQuery('/api/radio', operatorScope), auth);
+        const out = await authFetch(withUserDistrictQuery('/api/radio', userScope), auth);
         if (!cancelled) setData(out);
       } catch (e) {
         if (!cancelled) setError(e?.message ?? 'Failed');
@@ -38,13 +38,13 @@ export function useRadioDashboard({ getIdToken, getAppCheckToken, apiReady, oper
       }
     })();
     return () => { cancelled = true; };
-  }, [apiReady, getIdToken, getAppCheckToken, operatorScope]);
+  }, [apiReady, getIdToken, getAppCheckToken, userScope]);
 
   return { data, loading, error, reload };
 }
 
-/** @param {{ date: string, lang?: string, getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
-export function useRadioDailyFeed({ date, lang = 'en', getIdToken, getAppCheckToken, apiReady, operatorScope = 'national' }) {
+/** @param {{ date: string, lang?: string, getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean, userScope?: string }} opts */
+export function useRadioDailyFeed({ date, lang = 'en', getIdToken, getAppCheckToken, apiReady, userScope = 'national' }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -56,9 +56,9 @@ export function useRadioDailyFeed({ date, lang = 'en', getIdToken, getAppCheckTo
       setLoading(true);
       setError(null);
       try {
-        const base = withOperatorDistrictQuery(
+        const base = withUserDistrictQuery(
           `/api/radio/daily?date=${encodeURIComponent(date)}`,
-          operatorScope,
+          userScope,
         );
         const out = await localizedAuthFetch(base, { lang, getIdToken, getAppCheckToken });
         if (!cancelled) setData(out);
@@ -72,7 +72,7 @@ export function useRadioDailyFeed({ date, lang = 'en', getIdToken, getAppCheckTo
       }
     })();
     return () => { cancelled = true; };
-  }, [date, lang, apiReady, getIdToken, getAppCheckToken, operatorScope]);
+  }, [date, lang, apiReady, getIdToken, getAppCheckToken, userScope]);
 
   return { data, loading, error };
 }

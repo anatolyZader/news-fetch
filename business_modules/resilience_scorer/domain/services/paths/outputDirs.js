@@ -5,7 +5,7 @@
  * omission audits, and epistemic profile snapshots land under these dirs.
  *
  * Owns: output directory resolvers (reports, captures, audits, epistemic profiles,
- * analyst shadow artifacts).
+ * developer shadow artifacts).
  * Does NOT: write artifacts (app/infrastructure adapters do), parse report names
  * (see `reportNames.js`), or ingest signal bundles.
  *
@@ -60,18 +60,27 @@ export function epistemicProfilesDir(rootDir) {
   return resolve(resolveRepoRoot(rootDir), 'business_modules/resilience_scorer/data/epistemic_profiles');
 }
 
+/**
+ * Cross-report critique artifacts (post-hoc user QA over finished reports).
+ * @param {string} [rootDir]
+ * @returns {string}
+ */
+export function resilienceCritiquesDir(rootDir) {
+  return resolve(resolveRepoRoot(rootDir), 'business_modules/resilience_scorer/data/critiques');
+}
+
 // ---------------------------------------------------------------------------
-// Analyst / shadow eval tooling
+// Developer / shadow eval tooling
 // ---------------------------------------------------------------------------
 
 /**
- * Analyst shadow-scoring artifact directory.
+ * Developer shadow-scoring artifact directory.
  * Consumed by `specialist_agents/infrastructure/adapters/shadowArtifactsFileAdapter.js`.
  * @param {string} [rootDir]
  * @returns {string}
  */
-export function analystShadowDir(rootDir) {
-  return resolve(resolveRepoRoot(rootDir), 'business_modules/resilience_scorer/analyst/data/shadow');
+export function developerShadowDir(rootDir) {
+  return resolve(resolveRepoRoot(rootDir), 'business_modules/resilience_scorer/developer/data/shadow');
 }
 
 /**
@@ -82,5 +91,5 @@ export function analystShadowDir(rootDir) {
  * @returns {string}
  */
 export function divergenceArtifactPath(scope, date, rootDir) {
-  return resolve(analystShadowDir(rootDir), `divergence-${scope}-${date}.json`);
+  return resolve(developerShadowDir(rootDir), `divergence-${scope}-${date}.json`);
 }

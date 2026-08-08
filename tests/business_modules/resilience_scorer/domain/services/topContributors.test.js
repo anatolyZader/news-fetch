@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { topContributorsFromScored } from '../../../../../business_modules/resilience_scorer/domain/services/operator/topContributors.js';
+import { topContributorsFromScored } from '../../../../../business_modules/resilience_scorer/domain/services/user/topContributors.js';
 
 describe('topContributorsFromScored', () => {
   it('prefers strong catalog links over weak links', () => {

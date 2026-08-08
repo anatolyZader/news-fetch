@@ -10,4 +10,4 @@ Signal extraction and narratives use LLMs; numeric component scores are computed
 
 ## Consequences
 
-- Analyst tier may see raw scores; operator tier uses redacted payloads.
+- Developer tier may see raw scores; user tier uses redacted payloads.

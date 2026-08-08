@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-import { updateOperatorRecommendationStatus } from '../../../../business_modules/resilience_scorer/infrastructure/recommendationStatusWriter.js';
+import { updateUserRecommendationStatus } from '../../../../business_modules/resilience_scorer/infrastructure/recommendationStatusWriter.js';
 import { resetReportFileCacheForTests } from '../../../../business_modules/resilience_scorer/infrastructure/reportFileCache.js';
 
 const dir = mkdtempSync(join(tmpdir(), 'recstatus-'));
@@ -19,7 +19,7 @@ function seedReport() {
     assessment: {
       date: DATE,
       total_articles_analyzed: 5,
-      operator_recommendations: [
+      user_recommendations: [
         { id: 'rec-1', status: 'open' },
         { id: 'rec-2', status: 'open' },
       ],
@@ -32,9 +32,9 @@ beforeEach(() => {
   resetReportFileCacheForTests();
 });
 
-describe('updateOperatorRecommendationStatus', () => {
+describe('updateUserRecommendationStatus', () => {
   it('acknowledges a recommendation', async () => {
-    const result = await updateOperatorRecommendationStatus(
+    const result = await updateUserRecommendationStatus(
       DATE, 'national', 'rec-1',
       { action: 'acknowledge', userEmail: 'op@example.com', rationale: 'done' },
       { reportsDir: dir },
@@ -42,15 +42,15 @@ describe('updateOperatorRecommendationStatus', () => {
     assert.equal(result.ok, true);
     assert.equal(result.recommendation.status, 'acknowledged');
     const onDisk = JSON.parse(readFileSync(FILE, 'utf8'));
-    assert.equal(onDisk.assessment.operator_recommendations[0].status, 'acknowledged');
+    assert.equal(onDisk.assessment.user_recommendations[0].status, 'acknowledged');
   });
 
   it('does not lose updates under concurrent acknowledges', async () => {
     const [a, b] = await Promise.all([
-      updateOperatorRecommendationStatus(
+      updateUserRecommendationStatus(
         DATE, 'national', 'rec-1', { action: 'acknowledge' }, { reportsDir: dir },
       ),
-      updateOperatorRecommendationStatus(
+      updateUserRecommendationStatus(
         DATE, 'national', 'rec-2', { action: 'dismiss', rationale: 'n/a' }, { reportsDir: dir },
       ),
     ]);
@@ -58,18 +58,18 @@ describe('updateOperatorRecommendationStatus', () => {
     assert.equal(b.ok, true);
     const onDisk = JSON.parse(readFileSync(FILE, 'utf8'));
     const byId = Object.fromEntries(
-      onDisk.assessment.operator_recommendations.map((r) => [r.id, r.status]),
+      onDisk.assessment.user_recommendations.map((r) => [r.id, r.status]),
     );
     assert.equal(byId['rec-1'], 'acknowledged');
     assert.equal(byId['rec-2'], 'dismissed');
   });
 
   it('returns not-found errors', async () => {
-    const missing = await updateOperatorRecommendationStatus(
+    const missing = await updateUserRecommendationStatus(
       DATE, 'national', 'nope', { action: 'acknowledge' }, { reportsDir: dir },
     );
     assert.deepEqual(missing, { ok: false, error: 'recommendation_not_found' });
-    const noReport = await updateOperatorRecommendationStatus(
+    const noReport = await updateUserRecommendationStatus(
       '1999-01-01', 'national', 'rec-1', { action: 'acknowledge' }, { reportsDir: dir },
     );
     assert.deepEqual(noReport, { ok: false, error: 'report_not_found' });

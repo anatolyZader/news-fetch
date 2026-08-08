@@ -1,21 +1,24 @@
 {
-  "operatorDistrictEnforcementEnabled": false,
+  "userDistrictEnforcementEnabled": false,
+  "mailingAdmins": [
+    "myzader@gmail.com"
+  ],
   "users": [
     {
       "email": "myzader@gmail.com",
-      "level": "analyst"
+      "level": "developer"
     },
     {
       "email": "naji22eyal11@gmail.com",
-      "level": "operator"
+      "level": "user"
     },
     {
       "email": "razheyman@gmail.com",
-      "level": "operator"
+      "level": "user"
     },
     {
       "email": "amirs456@gmail.com",
-      "level": "operator"
+      "level": "user"
     }
   ]
 }

@@ -31,15 +31,15 @@
 | **Evidence tree** | The per-component claim set surfaced to UI/API. |
 | **Decision brief** | Advisory summary + priority items; forbidden from using numeric 1-10 scores or claiming dispatch. |
 | **Attention items** | Ranked queue of what deserves a closer look. |
-| **Action compass** | Ranked operator actions under uncertainty, without numeric scores. |
+| **Action compass** | Ranked user actions under uncertainty, without numeric scores. |
 | **Abstention / `insufficient_data`** | A valid first-class outcome when evidence is too thin; never rendered as "all clear." |
 | **Evidence mass** | Sum of capped positive and negative contributions; how much evidence landed on a component. |
 | **Source cap** | Limits one `source_type` to 50% and one `article_source` to 35% of polarity mass (anti echo-chamber). |
 | **Certainty** | `1 - exp(-evidence_mass / certM)`; continuous strength-of-evidence measure. |
-| **Instrument** | Operator-facing evidence-quality readout (sufficiency, contested, significant delta, status) that replaces the headline score. |
-| **`display_view` (operator/analyst)** | API/UI redaction tier. Operators never see numeric scores; analysts (allow-listed) do. |
-| **Headline 1-10 / `overall_resilience_score`** | The de-emphasized deterministic score. Computed via `scoringFacade.js`, used as a shadow/analyst artifact, set to null and redacted for operators. |
-| **Shadow scoring** | The deterministic component/overall score (`analyst/`, via `scoringFacade.js`) computed on every assess run — the load-bearing headline score, hidden from operators and visible to analysts. The separate per-report divergence-vs-agent artifact and analyst calibration UI (drift, validation review) have been retired; an unrelated offline agent-quality-eval divergence check remains in `specialist_agents/` for engineering use only. |
+| **Instrument** | User-facing evidence-quality readout (sufficiency, contested, significant delta, status) that replaces the headline score. |
+| **`display_view` (user/developer)** | API/UI redaction tier. Users never see numeric scores; developers (allow-listed) do. |
+| **Headline 1-10 / `overall_resilience_score`** | The de-emphasized deterministic score. Computed via `scoringFacade.js`, used as a shadow/developer artifact, set to null and redacted for users. |
+| **Shadow scoring** | The deterministic component/overall score (`developer/`, via `scoringFacade.js`) computed on every assess run — the load-bearing headline score, hidden from users and visible to developers. The separate per-report divergence-vs-agent artifact and developer calibration UI (drift, validation review) have been retired; an unrelated offline agent-quality-eval divergence check remains in `specialist_agents/` for engineering use only. |
 | **OOV capture** | Out-of-vocabulary observations buffered for the closed catalog. |
 | **`business_modules/resilience_scorer/data/reports/`** | Output directory for assessment artifacts (`.md`, `-brief.md`, `.json`). |
 | **report_build** | Interactive field-report drafting module (input source), distinct from the daily assessment. |
@@ -61,14 +61,14 @@
 | Assessment agent | `business_modules/specialist_agents/app/assessmentOrchestrator.js` (`runAssessmentAgent`) | `assessmentV2` (claims, synthesis, brief) |
 | Planner / specialist / critic / synthesizer | `plannerAgent.js` / `componentSpecialistAgent.js` / `criticAgent.js` / `synthesizerAgent.js` | plan, component assessments, repairs, synthesis |
 | Evidence graph | `cross-cut-modules/retrieval/evidenceGraph.js` (`buildEvidenceGraph`) | per-component claims graph |
-| Shadow score (de-emphasized) | `business_modules/resilience_scorer/app/scoringFacade.js` (-> `business_modules/resilience_scorer/analyst/`) | numeric scores (visible to analysts only) |
+| Shadow score (de-emphasized) | `business_modules/resilience_scorer/app/scoringFacade.js` (-> `business_modules/resilience_scorer/developer/`) | numeric scores (visible to developers only) |
 | Score abstention gate | `business_modules/resilience_scorer/domain/services/dataVoid/epistemicGate.js` | null score + `epistemic_abstention` |
-| Operator instrument + redaction | `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js` | instrument; operator redaction |
-| Display view | `cross-cut-modules/resilience-contracts/displayViews.js` | operator vs analyst |
+| User instrument + redaction | `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js` | instrument; user redaction |
+| Display view | `cross-cut-modules/resilience-contracts/displayViews.js` | user vs developer |
 | Scope filter | `business_modules/resilience_scorer/domain/services/regionSignalFilter.js`, `IReportScopePolicy.js` | scope-local signals |
 | Write report | `business_modules/resilience_scorer/infrastructure/reportWriter.js` (`writeReport`) | `business_modules/resilience_scorer/data/reports/{scope}-{date}-{HHMM}.{md,brief.md,json}` |
 | Serve report | `business_modules/resilience_scorer/input/reportRoutes.js`, `app/reportCacheService.js` | HTTP API |
-| Operator UI | `client/src/components/ReportView.jsx` | operator view |
+| User UI | `client/src/components/ReportView.jsx` | user view |
 | Chat | `business_modules/chat/app/chatLlmOrchestrator.js`, `chatService.js` | tool-driven Q&A |
 | Field report intake | `business_modules/report_build/app/reportBuildService.js` | drafted `field` source |
 
@@ -77,19 +77,19 @@
 Paste these against a notebook containing files 00-07.
 
 1. In one paragraph, explain why this is a decision-support system and not a scoring mechanism. Cite the redaction layer.
-2. Who is the intended operator, and how does their job differ from a local emergency responder? (File 01.)
+2. Who is the intended user, and how does their job differ from a local emergency responder? (File 01.)
 3. What does "twice daily" actually mean here, and what does the code schedule? Be precise about the difference.
 4. Describe the dual-path pipeline. Which path is primary, which is supporting, and why? (File 02.)
 5. What does open extraction deliberately NOT do, per the prompt rules?
 6. Name the artifact filenames for the open path and the closed path, including the directory.
 7. List the eight components in canonical order. Where are the ids defined?
 8. Walk through the assessment agent stages from planner to synthesizer, naming the function for each. (File 04.)
-9. What is the difference between `specialist_depth` (A/B/C) and `display_view` (operator/analyst)?
+9. What is the difference between `specialist_depth` (A/B/C) and `display_view` (user/developer)?
 10. Define a "claim" and list its fields. Why are claims the unit of decision support?
 11. How is abstention enforced at the planner, specialist, critic, and scoring layers?
 12. Explain evidence mass, the 50%/35% source caps, and certainty. What failure mode do the caps prevent?
-13. List every layer that hides or nulls the headline 1-10 score for operators. (File 05.)
-14. What is the operator "instrument," and which fields does it expose instead of a score?
+13. List every layer that hides or nulls the headline 1-10 score for users. (File 05.)
+14. What is the user "instrument," and which fields does it expose instead of a score?
 15. How is a report scoped to the northern district? Describe the three ways a signal can be kept for `north`. (File 03.)
 16. What three files does each assessment run write, and how do they differ?
 17. Distinguish `business_modules/resilience_scorer/data/reports/`, `report_build`, and `report_bot`. (File 06.)

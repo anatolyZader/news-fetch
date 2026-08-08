@@ -22,14 +22,14 @@ import PropTypes from 'prop-types';
 import { SocialMediaPostCard } from './SocialMediaPostCard.jsx';
 import { ResponsiveItemList } from '../ingest/ResponsiveItemList.jsx';
 
-export function SocialMediaDailyPanel({ operatorScope = 'national' }) {
+export function SocialMediaDailyPanel({ userScope = 'national' }) {
   const { t, lang } = useLanguage();
   const { apiReady, getIdToken, getAppCheckToken } = useAuth();
   const { data: dashboard, loading: dashLoading, error: dashError } = useSocialMediaDashboard({
     getIdToken,
     getAppCheckToken,
     apiReady,
-    operatorScope,
+    userScope,
   });
 
   const dates = useMemo(
@@ -48,7 +48,7 @@ export function SocialMediaDailyPanel({ operatorScope = 'national' }) {
     getIdToken,
     getAppCheckToken,
     apiReady,
-    operatorScope,
+    userScope,
   });
 
   if (dashLoading) return <LoadingState>{t('socialMedia.loading')}</LoadingState>;
@@ -151,5 +151,5 @@ export function SocialMediaDailyPanel({ operatorScope = 'national' }) {
 }
 
 SocialMediaDailyPanel.propTypes = {
-  operatorScope: PropTypes.string,
+  userScope: PropTypes.string,
 };

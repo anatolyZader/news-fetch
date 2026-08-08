@@ -13,17 +13,17 @@ const SUB_TABS = [
 ];
 
 export function SocialMediaTab({
-  operatorScope = 'national',
-  onOperatorScopeChange,
+  userScope = 'national',
+  onUserScopeChange,
   districtAccess = null,
 }) {
   const { t } = useLanguage();
   const [subTab, setSubTab] = useState('daily');
 
-  const districtScope = onOperatorScopeChange ? (
+  const districtScope = onUserScopeChange ? (
     <DistrictScopeSwitcher
-      value={operatorScope}
-      onChange={onOperatorScopeChange}
+      value={userScope}
+      onChange={onUserScopeChange}
       districtAccess={districtAccess}
     />
   ) : null;
@@ -57,7 +57,7 @@ export function SocialMediaTab({
       </Stack>
 
       {subTab === 'daily' && (
-        <SocialMediaDailyPanel operatorScope={operatorScope} />
+        <SocialMediaDailyPanel userScope={userScope} />
       )}
       {subTab === 'topic' && <SocialMediaTopicFetchPanel />}
     </Stack>
@@ -65,7 +65,7 @@ export function SocialMediaTab({
 }
 
 SocialMediaTab.propTypes = {
-  operatorScope: PropTypes.string,
-  onOperatorScopeChange: PropTypes.func,
+  userScope: PropTypes.string,
+  onUserScopeChange: PropTypes.func,
   districtAccess: PropTypes.object,
 };

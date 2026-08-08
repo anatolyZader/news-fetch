@@ -1,5 +1,5 @@
 /**
- * Append-only JSONL store for operator signal flags raised from chat
+ * Append-only JSONL store for user signal flags raised from chat
  * (propose_signal_flag → user confirm → append). Flags are immutable events
  * mined later by the catalog-harvest workflow, like oov-capture-*.jsonl.
  * The default directory lives under resilience_scorer/data by design — this is

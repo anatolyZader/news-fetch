@@ -12,8 +12,15 @@
  */
 import { promptCacheEnabledForFeature } from '../../../../cross-cut-modules/llm/promptCacheConfig.js';
 
-/** Current extraction prompt version identifier. */
-export const EXTRACT_PROMPT_VERSION = 'extract-v3';
+/**
+ * Current extraction prompt version identifier.
+ *
+ * Keys the per-article extraction cache (extractionCacheIntegration.js), so any
+ * prompt edit MUST bump this — otherwise a re-extraction is served from cache
+ * and the new instruction silently never runs.
+ * v4: field reports must emit both halves of adversative answers.
+ */
+export const EXTRACT_PROMPT_VERSION = 'extract-v4';
 
 /** Stable prompt id for telemetry and cache keys. */
 export const EXTRACT_PROMPT_ID = 'signal-extraction';

@@ -4,7 +4,7 @@
  * Base glossary: business_modules/translation/glossary/resilience-translation-glossary.json
  * (maintained in-repo).
  * Manual overrides: business_modules/translation/glossary/translation-glossary-overrides.json
- * (operator-edited) —
+ * (user-edited) —
  * merged over the base by `id`, so hand-tuned translations survive future
  * automated glossary expansions.
  *

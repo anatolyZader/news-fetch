@@ -14,7 +14,7 @@ This page is for people who want to **use** Srulik's lab in the browser: read to
 
 ## Getting into the app
 1. Open the srulik.ai link your organization uses.
-2. If you see a sign-in prompt, sign in with the Google account your operator approved.
+2. If you see a sign-in prompt, sign in with the Google account your user approved.
 
 You should land on the **Report** tab.
 
@@ -30,7 +30,7 @@ The report supports **decision support**, not automated verdicts. Use two passes
 - For any surprising item, open **evidence** under that component.
 - Ask: "What changed in the evidence compared to yesterday?"
 
-If you can point to evidence behind a concern, the system is behaving correctly. See [Operator workflow](../guides/operator-workflow.md) and [Decision support model](../concepts/decision-support-model.md).
+If you can point to evidence behind a concern, the system is behaving correctly. See [User workflow](../guides/user-workflow.md) and [Decision support model](../concepts/decision-support-model.md).
 
 ## Asking follow-up questions (chat)
 After the report loads, you can ask questions like:
@@ -61,13 +61,13 @@ The **Daily assessment** report is built from many input feeds — news, WhatsAp
 ## Troubleshooting
 - **I see "No assessment is available yet"**
   - **What it usually means**: today's ingestion/analysis didn't run.
-  - **What to do**: ask your operator to run the daily pipeline for today (see [Operate the daily pipeline](https://docs.vibeswitch.ai/guides/operating-daily-pipeline)).
+  - **What to do**: ask your user to run the daily pipeline for today (see [Operate the daily pipeline](https://docs.vibeswitch.ai/guides/operating-daily-pipeline)).
 - **The report date is old (yellow banner)**
   - **What it usually means**: you're looking at the last successful cached run.
   - **What to do**: have today's pipeline run, then refresh.
 - **I'm stuck in a sign-in loop / "Unauthorized"**
   - **What it usually means**: your account isn't authorized for this instance.
-  - **What to do**: ask your operator to authorize your account or verify auth config (see [Auth setup](https://docs.vibeswitch.ai/getting-started/auth-setup)).
+  - **What to do**: ask your user to authorize your account or verify auth config (see [Auth setup](https://docs.vibeswitch.ai/getting-started/auth-setup)).
 - **A score looks wrong**
   - **What it usually means**: evidence changed (or is too thin).
-  - **What to do**: open the evidence items under that component; if evidence is thin, add/ingest more. If evidence is strong but scoring seems off, flag it to the operator and include the evidence links.
+  - **What to do**: open the evidence items under that component; if evidence is thin, add/ingest more. If evidence is strong but scoring seems off, flag it to the user and include the evidence links.

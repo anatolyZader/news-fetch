@@ -168,7 +168,7 @@ export function catalogProposalLlmEnabled() {
   return process.env.CATALOG_PROPOSAL_LLM_ENABLED !== '0';
 }
 
-export function chatAnalystToolsEnabledFlag() {
+export function chatDeveloperToolsEnabledFlag() {
   return process.env.CHAT_ANALYST_TOOLS_ENABLED !== '0';
 }
 

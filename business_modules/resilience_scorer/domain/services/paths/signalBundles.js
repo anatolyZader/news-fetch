@@ -29,7 +29,8 @@ import {
   temporalWeightForOffset,
 } from './assessmentWindow.js';
 import { isVisitsSourceType, normalizePipelineSourceKey, normalizeVisitsSourceType } from '../signals/visitsSourceType.js';
-import { sanitizeFieldReportSignal } from '../signals/hygiene/fieldReportHygiene.js';
+import { sanitizeFieldReportSignalDetailed } from '../signals/hygiene/fieldReportHygiene.js';
+import { assertPboBundleContract } from './pboBundleContract.js';
 import {
   ISRAEL_REGIONAL_DISTRICT_ORDER,
   normalizeIsraelDistrictId,
@@ -306,7 +307,8 @@ function visitAgeDays(signal, sourceType, fileDate, targetDate) {
 
 /**
  * Enrich one signal with temporal weight / district / source metadata.
- * Returns null when load-time hygiene drops a contentless field/PBO row.
+ * Returns `{ signal: null, dropReason }` when load-time hygiene drops a
+ * contentless or channel-inventory field/PBO row.
  */
 function enrichLoadedSignal(signal, {
   weight, sourceType, fileDate, targetDate, canonicalType, bundleDistrictId, applyHygiene,
@@ -320,13 +322,15 @@ function enrichLoadedSignal(signal, {
     ...(ageDays == null ? {} : { visit_date: visitDateOf(signal, fileDate), signal_age_days: ageDays }),
     ...(signal.district_id == null && bundleDistrictId ? { district_id: bundleDistrictId } : {}),
   };
-  if (!applyHygiene) return enriched;
-  return sanitizeFieldReportSignal(enriched);
+  if (!applyHygiene) return { signal: enriched, dropReason: null };
+  return sanitizeFieldReportSignalDetailed(enriched);
 }
 
-function recordHygieneDrop(hygieneDrops, canonicalType) {
+function recordHygieneDrop(hygieneDrops, canonicalType, dropReason) {
   hygieneDrops.total += 1;
   hygieneDrops.by_source[canonicalType] = (hygieneDrops.by_source[canonicalType] ?? 0) + 1;
+  const reason = dropReason ?? 'unspecified';
+  hygieneDrops.by_reason[reason] = (hygieneDrops.by_reason[reason] ?? 0) + 1;
 }
 
 /**
@@ -345,11 +349,12 @@ function recordHygieneDrop(hygieneDrops, canonicalType) {
  * @returns {{ allSignals: Array<object>, totalArticles: number, sourceFiles: string[], sourceTypesSeen: Set<string>, hygieneDrops: { total: number, by_source: Record<string, number> }, temporalExpiryDrops: { total: number, by_source: Record<string, number> } }}
  */
 export function mergeLoadedSignalFiles(loadedFiles, { targetDate } = {}) {
+  assertPboBundleContract(loadedFiles);
   let allSignals = [];
   let totalArticles = 0;
   const sourceFiles = [];
   const sourceTypesSeen = new Set();
-  const hygieneDrops = { total: 0, by_source: {} };
+  const hygieneDrops = { total: 0, by_source: {}, by_reason: {} };
   const temporalExpiryDrops = { total: 0, by_source: {} };
 
   for (const { weight, data, sourceType, fileDate, fileDistrictId } of loadedFiles) {
@@ -364,11 +369,11 @@ export function mergeLoadedSignalFiles(loadedFiles, { targetDate } = {}) {
         temporalExpiryDrops.by_source[canonicalType] = (temporalExpiryDrops.by_source[canonicalType] ?? 0) + 1;
         continue;
       }
-      const enriched = enrichLoadedSignal(s, {
+      const { signal: enriched, dropReason } = enrichLoadedSignal(s, {
         weight, sourceType, fileDate, targetDate, canonicalType, bundleDistrictId, applyHygiene,
       });
       if (!enriched) {
-        recordHygieneDrop(hygieneDrops, canonicalType);
+        recordHygieneDrop(hygieneDrops, canonicalType, dropReason);
         continue;
       }
       weighted.push(enriched);
@@ -381,7 +386,9 @@ export function mergeLoadedSignalFiles(loadedFiles, { targetDate } = {}) {
 
   if (hygieneDrops.total > 0) {
     const parts = Object.entries(hygieneDrops.by_source).map(([k, n]) => `${k}: ${n}`);
+    const reasons = Object.entries(hygieneDrops.by_reason).map(([k, n]) => `${k}: ${n}`);
     console.log(`  ℹ Load-time hygiene dropped ${hygieneDrops.total} contentless field/PBO rows (${parts.join(', ')})`);
+    console.log(`    by reason — ${reasons.join(', ')}`);
   }
 
   if (temporalExpiryDrops.total > 0) {

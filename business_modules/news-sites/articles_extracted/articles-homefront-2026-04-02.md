@@ -1782,7 +1782,7 @@ The fire brigade said it has received hundreds of calls to rescue people trapped
 
 Early on Thursday, crews were still removing debris, pumping water from flooded buildings, and repairing damaged infrastructure east of the capital. Authorities also banned some ferries from sailing from the port of Piraeus near Athens to the Greek islands.
 
-Greece, which sits at Europe's southernmost tip, has suffered destructive floods and wildfires in recent years, which analysts attribute to a rapidly warming climate.
+Greece, which sits at Europe's southernmost tip, has suffered destructive floods and wildfires in recent years, which developers attribute to a rapidly warming climate.
 
 ---
 

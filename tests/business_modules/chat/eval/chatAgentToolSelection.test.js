@@ -16,7 +16,7 @@ const golden = JSON.parse(
 describe('chatAgentToolSelection (offline eval)', () => {
   it('sources profile only exposes source tools', () => {
     const tools = buildChatToolList({
-      analystToolsEnabled: true,
+      developerToolsEnabled: true,
       richTools: true,
       confirmActionsEnabled: true,
       toolProfile: 'sources',
@@ -33,7 +33,7 @@ describe('chatAgentToolSelection (offline eval)', () => {
     assert.ok(golden.cases.length >= 5);
     for (const c of golden.cases) {
       const tools = buildChatToolList({
-        analystToolsEnabled: true,
+        developerToolsEnabled: true,
         richTools: true,
         confirmActionsEnabled: true,
         toolProfile: c.toolProfile ?? 'default',
@@ -44,12 +44,12 @@ describe('chatAgentToolSelection (offline eval)', () => {
     }
   });
 
-  it('default profile excludes guidance tools when operator epistemic overlay is off', () => {
+  it('default profile excludes guidance tools when user epistemic overlay is off', () => {
     const prev = process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY;
     process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY = '0';
     try {
       const tools = buildChatToolList({
-        analystToolsEnabled: true,
+        developerToolsEnabled: true,
         richTools: false,
         confirmActionsEnabled: true,
         toolProfile: 'default',
@@ -57,8 +57,8 @@ describe('chatAgentToolSelection (offline eval)', () => {
       const names = new Set(tools.map((t) => t.name));
       assert.equal(names.has('list_attention_items'), false);
       assert.equal(names.has('get_decision_brief'), false);
-      assert.equal(names.has('list_operator_recommendations'), false);
-      assert.equal(names.has('propose_operator_recommendation'), false);
+      assert.equal(names.has('list_user_recommendations'), false);
+      assert.equal(names.has('propose_user_recommendation'), false);
       assert.ok(names.has('lookup_signals'));
       assert.ok(names.has('trace_component_timeline'));
     } finally {
@@ -67,12 +67,12 @@ describe('chatAgentToolSelection (offline eval)', () => {
     }
   });
 
-  it('default profile keeps guidance tools for analyst users when operator epistemic overlay is off', () => {
+  it('default profile keeps guidance tools for developer users when user epistemic overlay is off', () => {
     const prev = process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY;
     process.env.RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY = '0';
     try {
       const tools = buildChatToolList({
-        analystToolsEnabled: true,
+        developerToolsEnabled: true,
         richTools: true,
         confirmActionsEnabled: true,
         toolProfile: 'default',

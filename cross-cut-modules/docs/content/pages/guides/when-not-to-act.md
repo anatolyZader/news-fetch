@@ -10,10 +10,10 @@ tags: ["guides", "user"]
 ---
 
 ## Purpose
-Help operators recognize when Srulik's lab is **correctly refusing** to support a strong conclusion—and what to do instead of treating silence or neutral wording as stability.
+Help users recognize when Srulik's lab is **correctly refusing** to support a strong conclusion—and what to do instead of treating silence or neutral wording as stability.
 
 ## Prerequisites
-- **Required**: [Operator workflow](operator-workflow.md) or [Using the app](../getting-started/using-the-app.md).
+- **Required**: [User workflow](user-workflow.md) or [Using the app](../getting-started/using-the-app.md).
 - **Useful**: [Decision support model](../concepts/decision-support-model.md).
 
 ## Do not act on headline scores alone when…
@@ -44,9 +44,9 @@ Help operators recognize when Srulik's lab is **correctly refusing** to support 
 - Significant delta with contested but heavy evidence—human review required, not automatic dismissal.
 
 ## Troubleshooting
-- **Operators want a number but operator view hides it**
-  - **Check**: by design—operator tier shows instruments, not oracle scores.
-  - **Fix**: if you are an analyst calibrating the model, use analyst view; for ops, stay in narrative mode.
+- **Users want a number but user view hides it**
+  - **Check**: by design—user tier shows instruments, not oracle scores.
+  - **Fix**: if you are a developer calibrating the model, use developer view; for ops, stay in narrative mode.
 - **I submitted evidence but today's report unchanged**
   - **Check**: submissions apply on the **next** assess run.
   - **Fix**: rerun pipeline when available; evidence submissions apply on the next assess run.

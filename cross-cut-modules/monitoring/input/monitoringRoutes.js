@@ -19,17 +19,17 @@ function resolveQueryDate(dateRaw, timezone) {
  * @param {{
  *   monitoringService: ReturnType<import('../app/monitoringService.js').createMonitoringService>,
  *   authPreHandler?: Function,
- *   requireAnalystView?: (request: object, reply: object) => boolean,
+ *   requireDeveloperView?: (request: object, reply: object) => boolean,
  *   timezone?: string,
  * }} opts
  */
 export async function registerMonitoringRoutes(app, opts) {
   const monitoringService = opts?.monitoringService ?? null;
   const authPreHandler = opts?.authPreHandler;
-  const requireAnalystView = opts?.requireAnalystView ?? null;
+  const requireDeveloperView = opts?.requireDeveloperView ?? null;
   const timezone = opts?.timezone ?? process.env.TZ_ARTICLES ?? 'Asia/Jerusalem';
 
-  const analystPreHandler = authPreHandler
+  const developerPreHandler = authPreHandler
     ? { preHandler: authPreHandler }
     : {};
 
@@ -46,8 +46,8 @@ export async function registerMonitoringRoutes(app, opts) {
     }
   });
 
-  app.get('/api/monitoring/health/detail', analystPreHandler, async (request, reply) => {
-    if (requireAnalystView && !requireAnalystView(request, reply)) return;
+  app.get('/api/monitoring/health/detail', developerPreHandler, async (request, reply) => {
+    if (requireDeveloperView && !requireDeveloperView(request, reply)) return;
     if (!monitoringService) {
       return reply.code(503).send({ error: 'monitoring service not configured' });
     }
@@ -61,7 +61,7 @@ export async function registerMonitoringRoutes(app, opts) {
   });
 
   async function handlePipelineQuery(request, reply) {
-    if (requireAnalystView && !requireAnalystView(request, reply)) return;
+    if (requireDeveloperView && !requireDeveloperView(request, reply)) return;
     if (!monitoringService) {
       return reply.code(503).send({ error: 'monitoring service not configured' });
     }
@@ -85,7 +85,7 @@ export async function registerMonitoringRoutes(app, opts) {
   }
 
   async function handleSummaryQuery(request, reply) {
-    if (requireAnalystView && !requireAnalystView(request, reply)) return;
+    if (requireDeveloperView && !requireDeveloperView(request, reply)) return;
     if (!monitoringService) {
       return reply.code(503).send({ error: 'monitoring service not configured' });
     }
@@ -108,15 +108,15 @@ export async function registerMonitoringRoutes(app, opts) {
     }
   }
 
-  app.get('/api/monitoring/pipeline', analystPreHandler, handlePipelineQuery);
-  app.get('/api/monitoring/summary', analystPreHandler, handleSummaryQuery);
+  app.get('/api/monitoring/pipeline', developerPreHandler, handlePipelineQuery);
+  app.get('/api/monitoring/summary', developerPreHandler, handleSummaryQuery);
 
   async function handleAgentsQuery(request, reply) {
     if (!monitoringService) {
       return reply.code(503).send({ error: 'monitoring service not configured' });
     }
 
-    if (requireAnalystView && !requireAnalystView(request, reply)) return;
+    if (requireDeveloperView && !requireDeveloperView(request, reply)) return;
 
     const date = resolveQueryDate(
       request.query?.date ?? request.query?.end_date ?? null,
@@ -135,10 +135,10 @@ export async function registerMonitoringRoutes(app, opts) {
     }
   }
 
-  app.get('/api/monitoring/agents', analystPreHandler, handleAgentsQuery);
+  app.get('/api/monitoring/agents', developerPreHandler, handleAgentsQuery);
 
   /** @deprecated use GET /api/monitoring/pipeline */
-  app.get('/api/pipeline/status', analystPreHandler, async (request, reply) => {
+  app.get('/api/pipeline/status', developerPreHandler, async (request, reply) => {
     await handlePipelineQuery(request, reply);
   });
 }

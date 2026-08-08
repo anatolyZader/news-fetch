@@ -8,7 +8,7 @@
  * Does NOT: decide assessment_mode or quarantine policy.
  *
  * Key collaborators: `dataVoid/computeDataVoidIndex.js`, `dataVoid/scoringPartition.js`,
- * `dataVoid/epistemicGate.js`, `operator/componentDiagnostics.js`.
+ * `dataVoid/epistemicGate.js`, `user/componentDiagnostics.js`.
  */
 
 // ── Source type sets ──────────────────────────────────────────────────────────

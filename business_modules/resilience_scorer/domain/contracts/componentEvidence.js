@@ -135,6 +135,38 @@ export function deriveConcentrationWarning(items) {
 }
 
 /**
+ * PBO municipal-review completeness across a component's primary evidence.
+ *
+ * `incomplete_share` is a share of the component's TOTAL primary mass, not of
+ * its PBO subset: 2 incomplete PBO signals inside 40 primary signals is a 5%
+ * quality problem, not a 100% one. Counts only — nothing is removed or rerouted.
+ *
+ * Signals with no `pbo_review_state` count as `unreviewed`; a legacy
+ * `pbo_completeness` field is deliberately ignored, because the pre-2026-06-20
+ * extractor wrote `'incomplete'` there for merely-unreviewed municipalities.
+ *
+ * @param {Array<{signal: object}>} items primary items
+ * @returns {null | {pbo_primary_count:number, reviewed_sufficient:number, reviewed_incomplete:number, unreviewed:number, incomplete_share:number}}
+ */
+export function derivePboReviewCompleteness(items) {
+  const pboItems = items.filter((it) => it.signal?.pbo_review_state != null);
+  if (pboItems.length === 0) return null;
+  const counts = { reviewed_sufficient: 0, reviewed_incomplete: 0, unreviewed: 0 };
+  for (const it of pboItems) {
+    const state = it.signal.pbo_review_state;
+    if (state in counts) counts[state] += 1;
+    else counts.unreviewed += 1;
+  }
+  return {
+    pbo_primary_count: pboItems.length,
+    ...counts,
+    incomplete_share: items.length === 0
+      ? 0
+      : Math.round((counts.reviewed_incomplete / items.length) * 100) / 100,
+  };
+}
+
+/**
  * First grounded critical-bypass signal in the component pool (if any), for
  * narrative salience when evidence is otherwise thin.
  */
@@ -248,6 +280,7 @@ function buildOneComponent(items, componentId, samplingStatus, poolTypeCounts = 
     }),
     balance: deriveBalance(pos, neg),
     concentration_warning: deriveConcentrationWarning(primary),
+    review_completeness: derivePboReviewCompleteness(primary),
     mirror_context: deriveMirrorContext(componentId, primary, poolTypeCounts),
     inferred_context: {
       count: inferred.length,

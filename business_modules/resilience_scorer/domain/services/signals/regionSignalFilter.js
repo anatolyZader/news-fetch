@@ -3,7 +3,7 @@
  *
  * Pipeline position: assess — after district/geo enrichment, before evidenceEligibility partition.
  *
- * Owns: scopeDecision traces, filterSignalsForScope, report scope metadata for operator surfaces.
+ * Owns: scopeDecision traces, filterSignalsForScope, report scope metadata for user surfaces.
  * Does NOT: district default-north logic (signalDistrictId.js), metrics gating, or geo resolution rules.
  *
  * Key collaborators: signalDistrictId.js, scopeAttributionMetrics.js, evidenceEligibility.js, business_modules/geo/index.js.
@@ -161,7 +161,7 @@ const REGIONAL_SCOPE_LABELS = Object.freeze({
 });
 
 /**
- * Operator-facing metadata for a report scope (label, comparison scope).
+ * User-facing metadata for a report scope (label, comparison scope).
  *
  * @param {string} scope
  * @returns {{ id: string, label: string, labelKey?: string, comparison_scope: string|null }}

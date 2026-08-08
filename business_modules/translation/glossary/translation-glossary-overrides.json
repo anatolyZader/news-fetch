@@ -1019,15 +1019,15 @@
     }
   },
   {
-    "id": "operator_abstention",
+    "id": "user_abstention",
     "category": "methodology",
     "he": "הימנעות מפעולה / abstention",
-    "en": "operator abstention",
+    "en": "user abstention",
     "ru": "воздержание оператора",
     "aliases": [
       "abstention",
       "הימנעות",
-      "operator abstention"
+      "user abstention"
     ],
     "examples": {
       "en": "Five components — `narrative`, `information_communication`, `lifesaving_behavior`, `leadership`, and `belonging_solidarity` — returned Tier C abstentions with thin evidence profiles and zero claims.",
@@ -1087,7 +1087,7 @@
       "אימות"
     ],
     "examples": {
-      "en": "Narrative validation incomplete — component prose may not meet grounding standards; prefer evidence_operator bullets and operator display states.",
+      "en": "Narrative validation incomplete — component prose may not meet grounding standards; prefer evidence_user bullets and user display states.",
       "he": "ציוני האפקטיביות ברמת הקהילה משקפים נתוני הערכה מובנים ממקור זה; אימות עצמאי מוגבל מאוד ויש לפרש את הממצאים בהתאם."
     }
   },

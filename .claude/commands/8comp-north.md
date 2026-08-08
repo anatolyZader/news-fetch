@@ -78,7 +78,7 @@ export RESILIENCE_ASSESSMENT_AGENT_MAX_USD=2.50
 npm run pipeline:run:cli -- --preset 8comp-north-replay --assess-only --force --date YYYY-MM-DD 2>> logs/pipeline-run-north-<target date>.log
 ```
 
-Unset `RESILIENCE_CLOSED_CORE_ASSESS` (or `=1`) for daily/cron. Narrative strict mode (analyst replays only): `RESILIENCE_NARRATIVE_GROUNDING_BLOCK=1`.
+Unset `RESILIENCE_CLOSED_CORE_ASSESS` (or `=1`) for daily/cron. Narrative strict mode (developer replays only): `RESILIENCE_NARRATIVE_GROUNDING_BLOCK=1`.
 
 ---
 

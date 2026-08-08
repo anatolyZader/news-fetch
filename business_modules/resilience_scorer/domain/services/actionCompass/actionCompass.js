@@ -1,5 +1,5 @@
 /**
- * Action compass — ranked operator actions during abstention/uncertainty (no numeric scores).
+ * Action compass — ranked user actions during abstention/uncertainty (no numeric scores).
  *
  * Pipeline position: STAGE-2 assess finalize — collects candidates from attention,
  * recommendations, brief, gaps, and void/geo signals; ranks and phrases top actions.
@@ -10,10 +10,10 @@
  * (min-math — count-based evidence only).
  *
  * Key collaborators: `actionCompass/actionCompassKinds.js`, `actionCompass/actionCompassRanking.js`,
- * `actionCompass/actionCompassPhrasing.js`, `services/operator/attentionItems.js`.
+ * `actionCompass/actionCompassPhrasing.js`, `services/user/attentionItems.js`.
  *
  * Pipeline: collect candidates → drop info-noise → classify KINDS → cluster duplicates →
- * value-rank → kind-diversity select top 5 → operator-language phrasing.
+ * value-rank → kind-diversity select top 5 → user-language phrasing.
  */
 
 import { THIN_EVIDENCE_INSTRUMENT } from '../../epistemic/thinEvidencePolicy.js';
@@ -23,7 +23,7 @@ import { scoreAction, selectWithKindDiversity } from './actionCompassRanking.js'
 import { buildGroundingContext } from './actionCompassGrounding.js';
 import { phraseAction } from './actionCompassPhrasing.js';
 
-export { ATTENTION_LEVELS } from '../operator/attentionItems.js';
+export { ATTENTION_LEVELS } from '../user/attentionItems.js';
 export { ACTION_KINDS } from './actionCompassKinds.js';
 
 // ---------------------------------------------------------------------------
@@ -107,12 +107,12 @@ function collectCandidates(assessment, attentionItems, band, geoUnknownCount) {
       level: it.level ?? 'watch',
       component_id: it.component_id ?? null,
       suggested_action_key: it.suggested_action_key ?? null,
-      analyst_detail: it.detail_params ?? {},
+      developer_detail: it.detail_params ?? {},
       novelty: CODE_NOVELTY[it.code] ?? null,
     });
   }
 
-  const pendingRecs = (assessment.operator_recommendations ?? []).filter((r) => r.status === 'pending');
+  const pendingRecs = (assessment.user_recommendations ?? []).filter((r) => r.status === 'pending');
   for (const rec of pendingRecs.slice(0, 4)) {
     candidates.push({
       id: `compass:rec:${rec.id}`,
@@ -121,7 +121,7 @@ function collectCandidates(assessment, attentionItems, band, geoUnknownCount) {
       level: rec.level ?? 'watch',
       component_id: rec.component_id ?? null,
       suggested_action_key: rec.suggested_action_key ?? 'attention.suggested.reviewEvidence',
-      analyst_detail: rec.detail_params ?? {},
+      developer_detail: rec.detail_params ?? {},
       novelty: 'new',
     });
   }
@@ -227,7 +227,7 @@ function mergeIntoExisting(existing, c) {
   existing.why_now_text = existing.why_now_text ?? c.why_now_text ?? null;
   existing.success_text = existing.success_text ?? c.success_text ?? null;
   existing.suggested_action_key = existing.suggested_action_key ?? c.suggested_action_key ?? null;
-  existing.analyst_detail = existing.analyst_detail ?? c.analyst_detail;
+  existing.developer_detail = existing.developer_detail ?? c.developer_detail;
   if (c.novelty === 'new') existing.novelty = 'new';
 }
 
@@ -303,7 +303,7 @@ export function buildActionCompass(assessment, attentionItems = [], opts = {}) {
     const inst = c.instrument?.thin_evidence_instrument ?? c.thin_evidence_instrument;
     return inst === THIN_EVIDENCE_INSTRUMENT.insufficient_data
       || inst === THIN_EVIDENCE_INSTRUMENT.sampling_blind
-      || c.instrument?.operator_shows_score === false;
+      || c.instrument?.user_shows_score === false;
   });
 
   if (selected.length === 0 && uncertainty_band === 'unknown' && !hasAbstention) {

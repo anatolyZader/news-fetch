@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { buildReportContext, formatHeader } from '../../../../business_modules/chat/domain/reportContext.js';
 import { compareReports } from '../../../../business_modules/chat/domain/signalLookup.js';
-import { DISPLAY_VIEWS } from '../../../../business_modules/resilience_scorer/domain/services/operator/assessmentDisplayTier.js';
+import { DISPLAY_VIEWS } from '../../../../business_modules/resilience_scorer/domain/services/user/assessmentDisplayTier.js';
 
 const fixture = {
   assessment: {
@@ -22,7 +22,7 @@ const fixture = {
 };
 
 describe('buildReportContext', () => {
-  it('operator context has no /10', () => {
+  it('user context has no /10', () => {
     const { context } = buildReportContext(fixture, { includeScores: false, contextSlice: 'full' });
     assert.ok(!context.includes('/10'));
     assert.match(context, /adequate evidence/);
@@ -30,9 +30,9 @@ describe('buildReportContext', () => {
     assert.match(context, /\[Chat context slice: full/);
   });
 
-  it('analyst context may include scores', () => {
+  it('developer context may include scores', () => {
     const { context } = buildReportContext(
-      { ...fixture, display_view: DISPLAY_VIEWS.analyst },
+      { ...fixture, display_view: DISPLAY_VIEWS.developer },
       { includeScores: true, contextSlice: 'full' },
     );
     assert.match(context, /8\/10/);
@@ -113,7 +113,7 @@ describe('formatHeader today vs stale', () => {
   });
 });
 
-describe('compareReports operator mode', () => {
+describe('compareReports user mode', () => {
   it('does not emit /10 when includeScores is false', () => {
     // Uses on-disk reports if present; skip when none
     const text = compareReports('2099-01-01', '2099-01-02', { includeScores: false });

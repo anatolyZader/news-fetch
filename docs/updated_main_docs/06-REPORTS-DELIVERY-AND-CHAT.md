@@ -4,7 +4,7 @@
 
 - What a **daily report artifact** actually is (files and fields).
 - How reports are **served** (HTTP API) and **scoped** (national / north).
-- How the operator **reads and interrogates** a report (UI + chat tools).
+- How the user **reads and interrogates** a report (UI + chat tools).
 - The difference between three things that all say "report": **daily assessment artifacts** (`business_modules/resilience_scorer/data/reports/`), **report_build** (field-report drafting), and **report_bot** (manual inbox).
 
 ## 1. Context recap
@@ -33,8 +33,8 @@ export function writeReport(assessment, signals, sourceFiles, outputBase, { scor
 
 | File | Audience | Notes |
 |------|----------|-------|
-| `{base}.md` | Analyst | Full markdown, **with** scores |
-| `{base}-brief.md` | Operator | Same narrative + signal appendix, **no scores** (`includeScores: false`) |
+| `{base}.md` | Developer | Full markdown, **with** scores |
+| `{base}-brief.md` | User | Same narrative + signal appendix, **no scores** (`includeScores: false`) |
 | `{base}.json` | Machine / API | `{ assessment, signals, source_files, generated_at, geo versions, score_by_source? }` |
 
 Output base (`business_modules/resilience_scorer/app/assessment/assessSignalsCli.js`): `business_modules/resilience_scorer/data/reports/{prefix}-{date}-{HHMM}`, where prefix is `resilience-report` (national) or `resilience-report-north`. The `HHMM` suffix is what allows multiple runs per day (the twice-daily workflow). Backfill of briefs from existing JSON: `npm run backfill:report-brief` (`business_modules/resilience_scorer/app/assessment/backfillReportBriefMdCli.js`).
@@ -47,10 +47,10 @@ The `assessment` object inside the JSON is the `assessmentV2` structure describe
 
 | Route | Purpose |
 |-------|---------|
-| `GET /api/report/today` | Cached report for a scope; operator redaction via `display_view` |
+| `GET /api/report/today` | Cached report for a scope; user redaction via `display_view` |
 | `GET /api/report/dates` | Available report dates per scope (regional scopes require district access) |
-| `POST /api/report/claim-feedback` | Analyst accept/reject a claim -> institutional memory |
-| `POST /api/report/recommendations/:id/acknowledge` | Operator acknowledge/dismiss a recommendation |
+| `POST /api/report/claim-feedback` | Developer accept/reject a claim -> institutional memory |
+| `POST /api/report/recommendations/:id/acknowledge` | User acknowledge/dismiss a recommendation |
 | `GET /api/municipalities`, `GET /api/pbo/*` | PBO municipality / regional dashboards |
 | `POST /api/translate` | Report translation |
 | `GET /articles` | News articles for a day |
@@ -61,9 +61,9 @@ A regional scope with no report yet returns a hint to run `assess-signals --scop
 
 ## 4. Reading and interrogating a report
 
-### 4.1 Operator UI
+### 4.1 User UI
 
-`client/src/components/ReportView.jsx` is rendered for operators with `displayView="operator"`; the separate `analyst-site/` SPA that formerly hosted analyst-only tooling has been retired — analysts now use score-revealing panels within this same component, gated by `displayView="analyst"`. The operator sees:
+`client/src/components/ReportView.jsx` is rendered for users with `displayView="user"`; the separate `developer-site/` SPA that formerly hosted developer-only tooling has been retired — developers now use score-revealing panels within this same component, gated by `displayView="developer"`. The user sees:
 
 - Epistemic status banner, attention queue, evidence overview.
 - Instrument badges (sufficiency, contested, significant delta).
@@ -72,7 +72,7 @@ A regional scope with no report yet returns a hint to run `assess-signals --scop
 
 ### 4.2 Chat assistant
 
-The chat module lets the officer ask questions against the current report. Operator vs analyst is resolved per user, and scores are included only in analyst view. Relevant tools include `get_decision_brief` and `list_attention_items`; the orchestrator is instructed to call tools before answering (`business_modules/chat/app/chatLlmOrchestrator.js`). State-changing actions are **propose-only** and require human confirmation (`propose_*` tools). Operator-facing chat context is built without scores (`business_modules/chat/app/chatService.js`, `reportContext.js`).
+The chat module lets the officer ask questions against the current report. User vs developer is resolved per user, and scores are included only in developer view. Relevant tools include `get_decision_brief` and `list_attention_items`; the orchestrator is instructed to call tools before answering (`business_modules/chat/app/chatLlmOrchestrator.js`). State-changing actions are **propose-only** and require human confirmation (`propose_*` tools). User-facing chat context is built without scores (`business_modules/chat/app/chatService.js`, `reportContext.js`).
 
 ## 5. Three different "reports" - do not conflate
 
@@ -98,9 +98,9 @@ A separate mailing digest (`business_modules/mailing/`, `npm run mail:digest`) c
 | Report HTTP API | `business_modules/resilience_scorer/input/reportRoutes.js` |
 | Report cache / date resolution | `business_modules/resilience_scorer/app/reportCacheService.js` |
 | Scope ids / filename prefix | `cross-cut-modules/geo/reportScopeIds.js` |
-| Operator UI | `client/src/components/ReportView.jsx` |
+| User UI | `client/src/components/ReportView.jsx` |
 | Chat orchestrator | `business_modules/chat/app/chatLlmOrchestrator.js` |
-| Operator chat context | `business_modules/chat/app/chatService.js`, `reportContext.js` |
+| User chat context | `business_modules/chat/app/chatService.js`, `reportContext.js` |
 | Field report builder | `business_modules/report_build/app/reportBuildService.js` |
 | Report bot inbox | `business_modules/report_bot/` |
 | Mailing digest | `business_modules/mailing/input/runDailyDigest.js` |

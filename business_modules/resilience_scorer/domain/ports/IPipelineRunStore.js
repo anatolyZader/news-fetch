@@ -1,5 +1,5 @@
 /**
- * Persists per-run pipeline stage completion metadata for operator monitoring.
+ * Persists per-run pipeline stage completion metadata for user monitoring.
  *
  * Pipeline position: spans INGEST→PERSIST — written by pipelineRunTracker during
  * runResilienceAssessment; read by pipeline-status CLI and monitoring surfaces.

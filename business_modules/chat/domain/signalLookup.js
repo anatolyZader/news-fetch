@@ -10,7 +10,7 @@ import { join } from 'node:path';
 import { formatAnalysisDateTime } from '../../../utils/dateUtils.js';
 import {
   deriveInstrumentState,
-  operatorAssessmentSummary,
+  userAssessmentSummary,
   resilienceReportsDir,
   listReportJsonFilenamesForDate,
   parseReportFilename,
@@ -112,7 +112,7 @@ export function loadSignals({ date, dateFrom, dateTo, sourceType } = {}) {
 }
 
 /**
- * Load open observations (unmapped) from open_observation_extraction bundles for analyst lookup.
+ * Load open observations (unmapped) from open_observation_extraction bundles for developer lookup.
  * @param {{ date?: string, profile?: string, limit?: number }} [opts]
  * @returns {Array<object>}
  */
@@ -517,8 +517,8 @@ function formatOverallComparison(dateA, dateB, reportA, reportB, includeScores) 
     );
   } else {
     header.push(
-      `Summary A: ${operatorAssessmentSummary(reportA.assessment)}`,
-      `Summary B: ${operatorAssessmentSummary(reportB.assessment)}`,
+      `Summary A: ${userAssessmentSummary(reportA.assessment)}`,
+      `Summary B: ${userAssessmentSummary(reportB.assessment)}`,
     );
   }
   header.push(

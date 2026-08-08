@@ -57,7 +57,7 @@ test('containsReferenceNameAsToken rejects substring false positive', () => {
 });
 
 test('isDiscourseOnlyMention skips analytic framing without locative context', () => {
-  const evidence = 'Analysts in Tel Aviv discussed Kiryat Shmona shelters';
+  const evidence = 'Developers in Tel Aviv discussed Kiryat Shmona shelters';
   assert.equal(isDiscourseOnlyMention(evidence, 'Kiryat Shmona'), true);
 });
 
@@ -68,7 +68,7 @@ test('matchLongestReferenceNameInText requires locative context for news', () =>
     ],
   };
   const discourse = matchLongestReferenceNameInText(
-    'Analysts in Tel Aviv discussed Kiryat Shmona shelters',
+    'Developers in Tel Aviv discussed Kiryat Shmona shelters',
     nameIndex,
     { requireLocativeContext: true },
   );
@@ -91,7 +91,7 @@ test('inferLocalityCandidateForSignal returns null for discourse-only news menti
   const { candidate } = inferLocalityCandidateForSignal(
     {
       source_type: 'news',
-      evidence: 'Analysts in Tel Aviv discussed Kiryat Shmona shelters',
+      evidence: 'Developers in Tel Aviv discussed Kiryat Shmona shelters',
     },
     { nameIndex },
   );

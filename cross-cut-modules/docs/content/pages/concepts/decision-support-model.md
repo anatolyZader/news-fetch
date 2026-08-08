@@ -8,13 +8,13 @@ canonical: "https://docs.vibeswitch.ai/concepts/decision-support-model"
 version: "current"
 tags: ["concepts", "decision-support"]
 llm:
-  chunkHint: "Anchor page for operator vs system responsibilities."
+  chunkHint: "Anchor page for user vs system responsibilities."
 ---
 
 ## Purpose
-Define what Srulik's lab is **for**: supporting human operator judgment on homefront resilience—not replacing it with automated verdicts.
+Define what Srulik's lab is **for**: supporting human user judgment on homefront resilience—not replacing it with automated verdicts.
 
-**Not an oracle.** Scores and narratives narrow attention; operators decide under explicit uncertainty.
+**Not an oracle.** Scores and narratives narrow attention; users decide under explicit uncertainty.
 
 ## Prerequisites
 - **Required**: None.
@@ -22,15 +22,15 @@ Define what Srulik's lab is **for**: supporting human operator judgment on homef
 
 ## Inputs
 - **Multi-source evidence**: news, WhatsApp, audio/radio, field reports, manual submissions.
-- **Operator context**: scope (national/regional), role (operator vs analyst).
+- **User context**: scope (national/regional), role (user vs developer).
 
 ## Outputs
 - **Attention items**: what changed, what is thin, what is contested.
-- **Instrument flags** (operator view): evidence sufficiency—not headline scores alone.
+- **Instrument flags** (user view): evidence sufficiency—not headline scores alone.
 
 ## Constraints
 - **Human-in-the-loop is mandatory.** The system abstains when evidence is insufficient (`insufficient_data`, sampling blind, data void).
-- **Operator vs analyst tiers.** Default UI hides headline 1–10 scores; analysts may inspect model internals for calibration.
+- **User vs developer tiers.** Default UI hides headline 1–10 scores; developers may inspect model internals for calibration.
 - **Evidence before action.** Every operational decision should trace to cited sources under the relevant component.
 
 ## Examples
@@ -47,8 +47,8 @@ Data void or sampling blind modes are **features**, not failures. Treat them as 
 - **I expected a number but see "limited evidence"**
   - **Check**: component `instrument` flags and evidence count.
   - **Fix**: read evidence; if thin, submit field reports or wait for more ingest—do not treat absence of score as "all clear."
-- **Analyst and operator views disagree**
-  - **Check**: you may be in analyst mode (scores visible) vs narrative mode.
-  - **Fix**: use narrative mode for operational decisions; analyst mode for calibration only.
+- **Developer and user views disagree**
+  - **Check**: you may be in developer mode (scores visible) vs narrative mode.
+  - **Fix**: use narrative mode for operational decisions; developer mode for calibration only.
 
-See [Operator workflow](../guides/operator-workflow.md) and [When not to act](../guides/when-not-to-act.md).
+See [User workflow](../guides/user-workflow.md) and [When not to act](../guides/when-not-to-act.md).

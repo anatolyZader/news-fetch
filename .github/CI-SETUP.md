@@ -252,7 +252,7 @@ You need **Admin** or a custom role with `secrets` write access to add repositor
 | Secret | Required? | Workflow | What to put in the value |
 |--------|-----------|----------|---------------------------|
 | `TELEGRAM_BOT_TOKEN` | Optional | `ci.yml` (Red Team, Security audit, Integrity verify); `security-integrity.yml` | Bot token from [@BotFather](https://t.me/BotFather) |
-| `TELEGRAM_SECURITY_CHAT_ID` | Optional | same | Chat ID for operator alerts (numeric or `@channel`) |
+| `TELEGRAM_SECURITY_CHAT_ID` | Optional | same | Chat ID for user alerts (numeric or `@channel`) |
 
 When unset, `notifySecurityEvent()` still writes to the audit log; Telegram is skipped.
 
@@ -533,7 +533,7 @@ Reference: [`docs/env.server.example`](../docs/env.server.example), [`docs/IDENT
 | `AUTH_REQUIRED`, `FIREBASE_PROJECT_ID` | API auth |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Local dev only (path to JSON); production uses workload identity |
 | `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `COHERE_API_KEY` | LLM / transcription / chat RAG rerank |
-| `RESILIENCE_ANALYST_EMAILS` | Analyst-tier report view |
+| `RESILIENCE_ANALYST_EMAILS` | Developer-tier report view |
 | `GEO_ASSERT_ENVELOPE` | Validate geo envelope immediately after attach (`1` in CI test job) |
 | `GEO_LEGACY_SUBREGION_ID` | Set `1` only to emit deprecated flat `subregionId` duplicate (default off) |
 | `GEO_OVERRIDES_SQLITE` / `GEO_UNKNOWN_REVIEW_JSONL` / `GEO_UNKNOWN_REVIEW_SQLITE` | Geo ops review and manual override queues |

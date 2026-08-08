@@ -9,7 +9,7 @@
  * Does NOT: score signals or run narrative LLM calls.
  *
  * Key collaborators: `signals/regionSignalFilter.js`, `signals/evidenceEligibility.js`,
- * `narrative/buildFullSignalDigest.js`, operator investigation surface.
+ * `narrative/buildFullSignalDigest.js`, user investigation surface.
  */
 
 import { isRegionalReportScope } from '../../../../../cross-cut-modules/geo/reportScopeIds.js';
@@ -340,7 +340,7 @@ export function scopedSignalKeys(scopedSignals) {
 }
 
 /**
- * Slim shape for operator national context UI.
+ * Slim shape for user national context UI.
  * @param {object} signal
  * @returns {object}
  */

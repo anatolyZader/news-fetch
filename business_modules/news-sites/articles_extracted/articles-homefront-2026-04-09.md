@@ -3764,9 +3764,9 @@ Several Israeli citizens charged with building explosives on Iran's orders to as
 
 Several Israeli citizens were arrested on suspicion of producing explosives to harm a senior Israeli official and carrying out security missions for Iran, the police and Shin Bet announced.
 
-The Shin Bet security agency and Lahav 433 anti-corruption and serious crime unit conducted the arrest and found during investigations that the primary suspect had carried out numerous missions for which he received over 70,000 shekels ($22,685) in payments, according to their statement. They added that the suspect purchased dedicated phones to communicate with his Iranian operator and documented the production of explosives as "evidence of his compliance with instructions," and rented a Haifa apartment for his missions to keep watch over the city's port with a fixed camera, according to police.
+The Shin Bet security agency and Lahav 433 anti-corruption and serious crime unit conducted the arrest and found during investigations that the primary suspect had carried out numerous missions for which he received over 70,000 shekels ($22,685) in payments, according to their statement. They added that the suspect purchased dedicated phones to communicate with his Iranian user and documented the production of explosives as "evidence of his compliance with instructions," and rented a Haifa apartment for his missions to keep watch over the city's port with a fixed camera, according to police.
 
-In addition to footage of the port, the suspect was instructed by his operator to send photos of missile impact sites in Israel's north.
+In addition to footage of the port, the suspect was instructed by his user to send photos of missile impact sites in Israel's north.
 
 The security and police agencies added that the suspect worked with multiple friends to purchase raw materials, hide and test the explosives, who were arrested for questioning.
 

@@ -4,7 +4,7 @@
  */
 
 import { readTodayCostSpendForOwner } from '../../log/index.js';
-import { canViewAnalystDisplay } from '../../auth/userAccess.js';
+import { canViewDeveloperDisplay } from '../../auth/userAccess.js';
 
 const DEFAULT_USER_DAILY_BUDGET_USD = 5;
 
@@ -21,12 +21,12 @@ export function userDailyBudgetLimitUsd(env = process.env) {
 }
 
 /**
- * Analyst/maintainer accounts (the operator's own) are unmetered; operators are metered.
+ * Developer/maintainer accounts (the user's own) are unmetered; users are metered.
  * @param {string | null | undefined} email
  * @returns {boolean}
  */
 export function isUserBudgetExempt(email) {
-  return canViewAnalystDisplay(email);
+  return canViewDeveloperDisplay(email);
 }
 
 /** @returns {string} ISO timestamp of the next UTC midnight (when the budget renews) */

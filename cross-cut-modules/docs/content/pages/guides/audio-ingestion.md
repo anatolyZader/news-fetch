@@ -13,7 +13,7 @@ tags: ["guides", "audio", "ingestion", "user"]
 If you have a radio broadcast / interview / podcast clip that matters for today’s assessment, this guide turns it into text evidence (a markdown transcript) and then runs the same analysis pipeline used for news and WhatsApp.
 
 ## What you will see in the app
-- Some evidence items will cite audio/radio coverage as a source (if enabled by your operator).
+- Some evidence items will cite audio/radio coverage as a source (if enabled by your user).
 - Audio-derived evidence often shows up as direct quotes or summarized transcript fragments, depending on privacy settings.
 
 ## Troubleshooting

@@ -21,10 +21,10 @@ export {
 // --- Display tier / report shaping (domain) ---
 export {
   deriveInstrumentState,
-  operatorAssessmentSummary,
+  userAssessmentSummary,
   redactReportPayload,
   redactScoreBySource,
-} from './domain/services/operator/assessmentDisplayTier.js';
+} from './domain/services/user/assessmentDisplayTier.js';
 
 // --- Attention items & scope (domain) ---
 export {
@@ -34,23 +34,23 @@ export {
   sortAttentionItems,
   ATTENTION_KINDS,
   ATTENTION_LEVELS,
-} from './domain/services/operator/attentionItems.js';
+} from './domain/services/user/attentionItems.js';
 export { buildActionCompass, actionCompassEnabled } from './domain/services/actionCompass/actionCompass.js';
 export {
-  operatorEpistemicOverlayEnabled,
-} from './domain/contracts/operatorEpistemicOverlay.js';
+  userEpistemicOverlayEnabled,
+} from './domain/contracts/userEpistemicOverlay.js';
 export {
   narrativeEpistemicMode,
   narrativeInvestigationPermissive,
 } from './domain/contracts/narrativeEpistemicMode.js';
 export {
-  operatorSurfaceMode,
+  userSurfaceMode,
   richSurfaceDeterministicOnly,
   shouldUseRichDeterministicPath,
-  operatorEvidenceChars,
-  operatorMaxClaims,
-  operatorHighlightPerSource,
-} from './domain/contracts/operatorSurfaceMode.js';
+  userEvidenceChars,
+  userMaxClaims,
+  userHighlightPerSource,
+} from './domain/contracts/userSurfaceMode.js';
 export {
   groupPoolItemsBySource,
   poolItemSourceBucket,
@@ -94,6 +94,11 @@ export {
   isTrivialFieldReportEvidence,
 } from './domain/services/signals/hygiene/fieldReportHygiene.js';
 export {
+  PBO_EXTRACTOR_CONTRACT,
+  PBO_EXTRACTOR_CONTRACT_VERSION,
+  PBO_CONTRACT_GATE_BLOCK_ENV_KEY,
+} from './domain/services/paths/pboBundleContract.js';
+export {
   resolveSignalTypeAlias,
   applySignalTypeHygiene,
   rewriteMisclassifiedSignalType,
@@ -112,7 +117,7 @@ export {
   splitEvidenceClauses,
   classifyHarmInfrastructureClause,
 } from './domain/services/signals/hygiene/harmInfrastructureSplit.js';
-export { topContributorsFromScored } from './domain/services/operator/topContributors.js';
+export { topContributorsFromScored } from './domain/services/user/topContributors.js';
 
 // --- Application services ---
 export {
@@ -126,9 +131,9 @@ export {
   parseReportRunIdFromFilename,
 } from './infrastructure/reportCacheService.js';
 export {
-  parseOperatorRecommendationRequest,
-} from './app/operator/operatorRecommendationService.js';
-export { updateOperatorRecommendationStatus } from './infrastructure/recommendationStatusWriter.js';
+  parseUserRecommendationRequest,
+} from './app/user/userRecommendationService.js';
+export { updateUserRecommendationStatus } from './infrastructure/recommendationStatusWriter.js';
 export { archiveMarkdownFiles } from './app/extraction/archiveMarkdownFromMd.js';
 export { runResilienceAssessment } from './app/resilienceAnalysisService.js';
 export { contentBatchFromMdArticles } from './app/extraction/contentBatchFromMdArticles.js';
@@ -174,32 +179,56 @@ export {
   scoreTextGrounding,
   computeGroundingScores,
 } from './domain/services/narrativeGrounding/sentenceGroundingChecker.js';
-export { buildSignalRefRegistry } from './domain/services/narrative/signalRefRegistry.js';
+export {
+  buildSignalRefRegistry,
+  buildRefKey,
+  signalArticleKey,
+} from './domain/services/narrative/signalRefRegistry.js';
+export {
+  CLAIM_REF_NAMESPACES,
+  classifyClaimRef,
+  canonicalClaimRef,
+  resolveClaimRef,
+} from './domain/services/narrative/claimRefNamespace.js';
+
+// --- Cross-report critique (post-hoc user QA) ---
+export {
+  CLAIM_WEAKNESS_KINDS,
+  CLAIM_WEAKNESS_TIERS,
+  critiqueClaim,
+  critiqueReport,
+  aggregateCritiques,
+} from './domain/services/critique/crossReportCritique.js';
+export {
+  selectReportFiles,
+  buildCrossReportCritique,
+  buildAndWriteCrossReportCritique,
+} from './app/assessment/crossReportCritiqueService.js';
 export {
   resolveNarrativePipelineMode,
   hybridNarrativeEnabled,
   legacyNarrativeOnly,
-  operatorNarrativePipelineEnabled,
+  userNarrativePipelineEnabled,
 } from './domain/services/narrativeGrounding/groundingConfig.js';
 export {
-  applyOperatorNarrativePipeline,
-  runOperatorNarrativePipeline,
-  applyOperatorNarrativeToAssessment,
-} from './app/assessment/operatorNarrativePipeline.js';
+  applyUserNarrativePipeline,
+  runUserNarrativePipeline,
+  applyUserNarrativeToAssessment,
+} from './app/assessment/userNarrativePipeline.js';
 export {
-  finalizeOperatorNarrativeSurface,
-  resolveOperatorComponentNarrative,
+  finalizeUserNarrativeSurface,
+  resolveUserComponentNarrative,
   buildProseFromClaims,
   buildCuratedEvidenceBullets,
   isStubNarrative,
   INSUFFICIENT_SYNTHESIS_NARRATIVE,
-} from './domain/services/operator/operatorNarrativeSurface.js';
+} from './domain/services/user/userNarrativeSurface.js';
 export {
-  attachRichOperatorSurface,
+  attachRichUserSurface,
   attachRichInvestigationPool,
   buildDeterministicNarrativeFromClaims,
-  assignOperatorEpistemicRole,
-} from './domain/services/operator/operatorInvestigationSurface.js';
+  assignUserEpistemicRole,
+} from './domain/services/user/userInvestigationSurface.js';
 export {
   SIGNAL_TO_COMPONENTS,
   NON_SCORING_FALLBACK_TYPES,

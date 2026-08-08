@@ -1,5 +1,5 @@
 /**
- * Action compass — per-kind operator phrasing (i18n keys, no LLM).
+ * Action compass — per-kind user phrasing (i18n keys, no LLM).
  *
  * Pipeline position: STAGE-2 assess finalize — produces title/why-now/success-signal
  * i18n keys and params for each selected compass action.
@@ -33,7 +33,7 @@ function tplKey(kind, suffix) {
 
 /**
  * Produce i18n keys and params for a merged compass action.
- * @param {object} action merged action `{ kind, source, ground, analyst_detail, evidence_codes }`
+ * @param {object} action merged action `{ kind, source, ground, developer_detail, evidence_codes }`
  * @param {object} [ground] grounding context from `buildGroundingContext`
  * @returns {{
  *   title_key: string,
@@ -67,9 +67,9 @@ export function phraseAction(action, ground = {}) {
       break;
     }
     case ACTION_KINDS.communicate: {
-      const keywords = action.analyst_detail?.keywords
-        || (Array.isArray(action.analyst_detail?.top_cluster_keywords)
-          ? action.analyst_detail.top_cluster_keywords.join(', ')
+      const keywords = action.developer_detail?.keywords
+        || (Array.isArray(action.developer_detail?.top_cluster_keywords)
+          ? action.developer_detail.top_cluster_keywords.join(', ')
           : '');
       if (keywords) {
         base.why_now_params = { keywords };

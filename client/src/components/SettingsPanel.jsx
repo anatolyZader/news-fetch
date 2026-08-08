@@ -11,9 +11,15 @@ import FormGroup from '@mui/material/FormGroup';
 import Divider from '@mui/material/Divider';
 import Link from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import IconButton from '@mui/material/IconButton';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { LanguageSelector } from './LanguageSelector.jsx';
+import { buildDigestRecipientRows } from '../lib/digestRecipientRows.js';
 import { ModalPanel } from '../ui/ModalPanel.jsx';
 import { PanelWindowShell } from '../ui/PanelWindowShell.jsx';
 import PropTypes from 'prop-types';
@@ -102,26 +108,33 @@ function parseProductsFromApi(data) {
 }
 
 async function loadMailingPreferences({ user, authRequired, apiReady, getIdToken, lang }) {
+  // The token is sent to /api/mail/config too: the endpoint stays reachable
+  // anonymously, but only computes canManageRecipients when a user is attached.
+  const tok = await getIdToken().catch(() => null);
+
   let mailServerEnabled;
+  let canManageRecipients = false;
   try {
-    const cfgR = await fetch('/api/mail/config');
+    const cfgHeaders = new Headers();
+    if (tok) cfgHeaders.set('Authorization', `Bearer ${tok}`);
+    const cfgR = await fetch('/api/mail/config', { headers: cfgHeaders });
     const cfg = await cfgR.json().catch(() => ({}));
     mailServerEnabled = Boolean(cfg.enabled);
+    canManageRecipients = Boolean(cfg.canManageRecipients);
   } catch {
     mailServerEnabled = false;
   }
 
   const canLoadServerPrefs = Boolean(user) || !authRequired;
   if (!canLoadServerPrefs || !apiReady) {
-    return { mailServerEnabled, ...mirrorLocalMailingFallback(lang) };
+    return { mailServerEnabled, canManageRecipients, ...mirrorLocalMailingFallback(lang) };
   }
 
   const headers = new Headers();
-  const tok = await getIdToken();
   if (tok) headers.set('Authorization', `Bearer ${tok}`);
   const r = await fetch('/api/mail/preferences', { headers });
   if (!r.ok) {
-    return { mailServerEnabled, ...mirrorLocalMailingFallback(lang) };
+    return { mailServerEnabled, canManageRecipients, ...mirrorLocalMailingFallback(lang) };
   }
 
   const data = await r.json();
@@ -131,7 +144,10 @@ async function loadMailingPreferences({ user, authRequired, apiReady, getIdToken
   let digestLang = ['en', 'he', 'ru'].includes(data.language) ? data.language : lang;
   let pro = parseProductsFromApi(data);
 
-  if (!email && localEmail.trim() && tok) {
+  // Same reason as in saveMailingPreferences: for a mailing admin an empty
+  // server-side email is the intended end state, not a gap to backfill from
+  // localStorage. Their address is on the shared list instead.
+  if (!canManageRecipients && !email && localEmail.trim() && tok) {
     const putR = await fetch('/api/mail/preferences', {
       method: 'PUT',
       headers: new Headers({
@@ -151,11 +167,40 @@ async function loadMailingPreferences({ user, authRequired, apiReady, getIdToken
   mirrorMailingToLocalStorage(email, pro);
   return {
     mailServerEnabled,
+    canManageRecipients,
     savedMailingEmail: email,
     mailingEmail: '',
     mailingLanguage: digestLang,
     products: pro,
   };
+}
+
+/** Shared distribution list; maintainer-only, so a 403 simply means "no list to show". */
+async function fetchRecipients(getIdToken) {
+  const headers = new Headers();
+  const tok = await getIdToken();
+  if (tok) headers.set('Authorization', `Bearer ${tok}`);
+  const r = await fetch('/api/mail/recipients', { headers });
+  if (!r.ok) return [];
+  const data = await r.json().catch(() => ({}));
+  return Array.isArray(data.recipients) ? data.recipients : [];
+}
+
+async function mutateRecipients(getIdToken, { method, email }) {
+  const headers = new Headers({ 'Content-Type': 'application/json' });
+  const tok = await getIdToken();
+  if (tok) headers.set('Authorization', `Bearer ${tok}`);
+  const url = method === 'DELETE'
+    ? `/api/mail/recipients/${encodeURIComponent(email)}`
+    : '/api/mail/recipients';
+  const r = await fetch(url, {
+    method,
+    headers,
+    ...(method === 'POST' ? { body: JSON.stringify({ email }) } : {}),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error ?? `HTTP ${r.status}`);
+  return Array.isArray(data.recipients) ? data.recipients : [];
 }
 
 function Section({ title, children }) {
@@ -186,6 +231,10 @@ export function SettingsPanel({ open, onClose, onOpenDocs, variant = 'modal' }) 
   const [saveBusy, setSaveBusy] = useState(false);
   const [sendBusy, setSendBusy] = useState(false);
   const [mailFeedback, setMailFeedback] = useState(null);
+  const [canManageRecipients, setCanManageRecipients] = useState(false);
+  const [recipients, setRecipients] = useState([]);
+  const [newRecipient, setNewRecipient] = useState('');
+  const [recipientBusy, setRecipientBusy] = useState(false);
   const accountEmail = user?.email ?? '';
   const canUseMailing = Boolean(user) || !authRequired;
 
@@ -200,10 +249,15 @@ export function SettingsPanel({ open, onClose, onOpenDocs, variant = 'modal' }) 
         const prefs = await loadMailingPreferences({ user, authRequired, apiReady, getIdToken, lang });
         if (!cancelled) {
           setMailServerEnabled(prefs.mailServerEnabled);
+          setCanManageRecipients(prefs.canManageRecipients);
           setSavedMailingEmail(prefs.savedMailingEmail);
           setMailingEmail(prefs.mailingEmail);
           setMailingLanguage(prefs.mailingLanguage);
           setProducts(prefs.products);
+        }
+        if (prefs.canManageRecipients) {
+          const list = await fetchRecipients(getIdToken).catch(() => []);
+          if (!cancelled) setRecipients(list);
         }
       } finally {
         if (!cancelled) setMailPrefsLoading(false);
@@ -232,7 +286,10 @@ export function SettingsPanel({ open, onClose, onOpenDocs, variant = 'modal' }) 
     const body = { products, language: mailingLanguage };
     if (nextEmail) {
       body.email = nextEmail;
-    } else if (!savedMailingEmail && accountEmail) {
+    } else if (!canManageRecipients && !savedMailingEmail && accountEmail) {
+      // Never auto-fill a personal destination for a mailing admin: the server
+      // deliberately blanked it when folding their address onto the shared list,
+      // and refilling it here would resurrect the duplicate delivery path.
       body.email = accountEmail;
     }
 
@@ -257,7 +314,7 @@ export function SettingsPanel({ open, onClose, onOpenDocs, variant = 'modal' }) 
     });
     mirrorMailingToLocalStorage(savedEmail, savedProducts);
     return { email: savedEmail, language: savedLanguage, products: savedProducts };
-  }, [accountEmail, canUseMailing, getIdToken, mailingEmail, mailingLanguage, products, savedMailingEmail]);
+  }, [accountEmail, canManageRecipients, canUseMailing, getIdToken, mailingEmail, mailingLanguage, products, savedMailingEmail]);
 
   const handleSaveMailing = useCallback(async () => {
     if (!canUseMailing) return;
@@ -299,6 +356,40 @@ export function SettingsPanel({ open, onClose, onOpenDocs, variant = 'modal' }) 
     }
   }, [canUseMailing, getIdToken, mailingEmail, saveMailingPreferences, t]);
 
+  const handleAddRecipient = useCallback(async () => {
+    const email = newRecipient.trim();
+    if (!email) return;
+    setRecipientBusy(true);
+    setMailFeedback(null);
+    try {
+      setRecipients(await mutateRecipients(getIdToken, { method: 'POST', email }));
+      setNewRecipient('');
+    } catch (e) {
+      setMailFeedback({ severity: 'error', message: e?.message ?? t('settings.mailingRecipientAddError') });
+    } finally {
+      setRecipientBusy(false);
+    }
+  }, [getIdToken, newRecipient, t]);
+
+  const handleRemoveRecipient = useCallback(async (email) => {
+    setRecipientBusy(true);
+    setMailFeedback(null);
+    try {
+      setRecipients(await mutateRecipients(getIdToken, { method: 'DELETE', email }));
+    } catch (e) {
+      setMailFeedback({ severity: 'error', message: e?.message ?? t('settings.mailingRecipientRemoveError') });
+    } finally {
+      setRecipientBusy(false);
+    }
+  }, [getIdToken, t]);
+
+  // Your own address is delivered via your preferences row rather than the shared
+  // list, so merge it in — otherwise no single place shows who gets the digest.
+  const recipientRows = buildDigestRecipientRows({
+    storedRecipients: recipients,
+    selfEmail: savedMailingEmail || accountEmail,
+  });
+
   const showLocalOnlyNote = !mailServerEnabled;
   const mailingActionsDisabled = !canUseMailing || mailPrefsLoading || saveBusy || sendBusy;
 
@@ -328,7 +419,7 @@ export function SettingsPanel({ open, onClose, onOpenDocs, variant = 'modal' }) 
 
         <Section title={t('settings.section.mailing')}>
           <Typography variant="body2" color="text.secondary" sx={{ marginBottom: 1.5, lineHeight: 1.55 }}>
-            {t('settings.mailingIntro')}
+            {t(canManageRecipients ? 'settings.mailingIntroShared' : 'settings.mailingIntro')}
           </Typography>
 
           {!mailServerEnabled && (
@@ -349,21 +440,26 @@ export function SettingsPanel({ open, onClose, onOpenDocs, variant = 'modal' }) 
             </Alert>
           )}
 
-          <TextField
-            size="small"
-            fullWidth
-            type="email"
-            autoComplete="email"
-            label={t('settings.mailingDestinationEmail')}
-            value={mailingEmail}
-            onChange={onMailingEmailChange}
-            placeholder={savedMailingEmail || accountEmail || t('settings.mailingEmailPlaceholder')}
-            helperText={t('settings.mailingDestinationHelp').replace('{accountEmail}', accountEmail || '—')}
-            disabled={!canUseMailing || mailPrefsLoading}
-            sx={{ marginBottom: 1 }}
-          />
+          {/* Mailing admins have no personal destination: their address lives on
+              the shared list below, which is the single roster. Users without
+              list access still need this field to say where their digest goes. */}
+          {!canManageRecipients && (
+            <TextField
+              size="small"
+              fullWidth
+              type="email"
+              autoComplete="email"
+              label={t('settings.mailingDestinationEmail')}
+              value={mailingEmail}
+              onChange={onMailingEmailChange}
+              placeholder={savedMailingEmail || accountEmail || t('settings.mailingEmailPlaceholder')}
+              helperText={t('settings.mailingDestinationHelp').replace('{accountEmail}', accountEmail || '—')}
+              disabled={!canUseMailing || mailPrefsLoading}
+              sx={{ marginBottom: 1 }}
+            />
+          )}
 
-          {(savedMailingEmail || accountEmail) && (
+          {!canManageRecipients && (savedMailingEmail || accountEmail) && (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginBottom: 2 }}>
               {t('settings.mailingSavedDestination')
                 .replace('{email}', savedMailingEmail || accountEmail)}
@@ -377,7 +473,7 @@ export function SettingsPanel({ open, onClose, onOpenDocs, variant = 'modal' }) 
             label={t('settings.mailingLanguage')}
             value={mailingLanguage}
             onChange={(e) => setMailingLanguage(e.target.value)}
-            helperText={t('settings.mailingLanguageHelp')}
+            helperText={t(canManageRecipients ? 'settings.mailingLanguageHelpShared' : 'settings.mailingLanguageHelp')}
             disabled={!canUseMailing || mailPrefsLoading}
             sx={{ marginBottom: 2 }}
           >
@@ -407,11 +503,85 @@ export function SettingsPanel({ open, onClose, onOpenDocs, variant = 'modal' }) 
             </Button>
           </Stack>
 
+          {canManageRecipients && (
+            <Box sx={{ marginBottom: 2 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ marginBottom: 0.5, fontWeight: 600 }}>
+                {t('settings.mailingRecipientsHeading')}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginBottom: 1 }}>
+                {t('settings.mailingRecipientsSub')}
+              </Typography>
+
+              {/* Empty state tracks the stored list, not the rendered rows: your
+                  own address always occupies a row but is not "a recipient". */}
+              {recipients.length === 0 && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginBottom: 1 }}>
+                  {t('settings.mailingRecipientsEmpty')}
+                </Typography>
+              )}
+
+              {recipientRows.length > 0 && (
+                <List dense disablePadding sx={{ marginBottom: 1 }}>
+                  {recipientRows.map((r) => (
+                    <ListItem
+                      key={r.email}
+                      disableGutters
+                      secondaryAction={r.removable ? (
+                        <IconButton
+                          edge="end"
+                          size="small"
+                          aria-label={t('settings.mailingRecipientRemove').replace('{email}', r.email)}
+                          disabled={recipientBusy}
+                          onClick={() => void handleRemoveRecipient(r.email)}
+                        >
+                          <DeleteOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      ) : null}
+                    >
+                      <ListItemText
+                        primary={r.email}
+                        secondary={r.isSelf ? t('settings.mailingRecipientSelf') : null}
+                        slotProps={{ primary: { variant: 'body2' }, secondary: { variant: 'caption' } }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  type="email"
+                  label={t('settings.mailingRecipientAddLabel')}
+                  value={newRecipient}
+                  onChange={(e) => setNewRecipient(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      void handleAddRecipient();
+                    }
+                  }}
+                  disabled={recipientBusy}
+                />
+                <Button
+                  variant="outlined"
+                  size="small"
+                  sx={{ marginTop: 0.25 }}
+                  disabled={recipientBusy || !newRecipient.trim()}
+                  onClick={() => void handleAddRecipient()}
+                >
+                  {t('settings.mailingRecipientAdd')}
+                </Button>
+              </Stack>
+            </Box>
+          )}
+
           <Typography variant="body2" color="text.secondary" sx={{ marginBottom: 1, fontWeight: 600 }}>
             {t('settings.mailingProductsHeading')}
           </Typography>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginBottom: 1.5 }}>
-            {t('settings.mailingProductsSub')}
+            {t(canManageRecipients ? 'settings.mailingProductsSubShared' : 'settings.mailingProductsSub')}
           </Typography>
 
           <FormGroup>

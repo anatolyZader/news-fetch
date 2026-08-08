@@ -34,14 +34,14 @@ Wiring: composition root registers `geoService` and `IGeoEnrichmentPort` for res
 **Unknown** (`kind: 'unknown'`):
 
 - `reason`, optional `candidates`, audit fields
-- Recorded to unknown queue for analyst review
+- Recorded to unknown queue for developer review
 
 **Provisional** (`kind: 'provisional'`) — landmark gazetteer fallback:
 
 - Matched via `landmarkGazetteer.js` + `data/landmark-gazetteer.json` when fuzzy resolution fails (flag `GEO_LANDMARK_GAZETTEER`, default on)
 - Required: `probableDistrict`, `probableSubregionId`, `resolutionMethod: 'landmark_gazetteer'`, low `matchConfidence` (~0.6)
 - **Policy:** `usableForMetrics: false`, `requiresReview: true`, `quality: 'low'` — context-only; does **not** enable component scoring
-- Still recorded to unknown queue with `reason: 'PROVISIONAL_LANDMARK'` for analyst review
+- Still recorded to unknown queue with `reason: 'PROVISIONAL_LANDMARK'` for developer review
 
 **Provenance** (`geoProvenance.js`): `structured`, `text_inferred`, `message_level`, `direct` — affects epistemic metrics eligibility when geo v2 enabled.
 
@@ -55,8 +55,8 @@ Registered via `registerGeoRoutes(app, opts)`:
 |-------|------|
 | `GET /api/geo/localities?q=` | Search localities (limit 20) |
 | `GET /api/geo/resolve?name=` | Resolve single name to envelope |
-| `GET /api/geo/unknown-queue` | Analyst-only — review backlog |
-| `POST /api/geo/unknown-queue/:id/status` | Analyst-only — update queue item |
+| `GET /api/geo/unknown-queue` | Developer-only — review backlog |
+| `POST /api/geo/unknown-queue/:id/status` | Developer-only — update queue item |
 
 ---
 
@@ -64,13 +64,13 @@ Registered via `registerGeoRoutes(app, opts)`:
 
 ## Locality candidate guards
 
-Before `geoService` resolves an envelope, **`localityCandidate.js`** (`cross-cut-modules/geo/`) infers a candidate place name from signal metadata. Guards added Jun 2026 prevent news headlines and analyst discourse from being treated as geographic localities.
+Before `geoService` resolves an envelope, **`localityCandidate.js`** (`cross-cut-modules/geo/`) infers a candidate place name from signal metadata. Guards added Jun 2026 prevent news headlines and developer discourse from being treated as geographic localities.
 
 | Guard | Rule | Why |
 |-------|------|-----|
 | **Em-dash field titles** | `parseFieldReportTitleLocality(title)` returns a municipality only when the title contains an em dash (`—`); plain headlines without a dash return `null` | Stops news obituary/headline text from parsing as a place |
 | **Field-only title parsing** | `inferLocalityCandidateForSignal` uses title parsing **only** when `source_type === 'field'` | News/radio/whatsapp titles are not locality sources |
-| **Discourse filter** | `isDiscourseOnlyMention` + `hasLocativeContext` skip analyst-studio framing ("analysts discussed X") unless locative Hebrew/English patterns are present | Reduces false positives from broadcast commentary |
+| **Discourse filter** | `isDiscourseOnlyMention` + `hasLocativeContext` skip developer-studio framing ("developers discussed X") unless locative Hebrew/English patterns are present | Reduces false positives from broadcast commentary |
 
 **Assess-time re-resolve:** `attachGeoToSignals` uses `shouldAttachGeoToSignal` (see [§ geoAttachPolicy](#geoattachpolicy)) — only signals without `geo` are enriched; locality guards above apply to candidate inference.
 
@@ -114,15 +114,15 @@ WhatsApp, survey, news paths use geo service through enrichment port — no dupl
 
 ---
 
-## Analyst unknown queue
+## Developer unknown queue
 
 Unknown resolutions sink to SQLite/JSONL adapters (`geoUnknownSqliteQueueAdapter.js`, `geoUnknownJsonlSinkAdapter.js`).
 
-**Canonical resolution path (analyst HITL):** `/api/geo/unknown-queue` (analyst-only) and chat tools `list_geo_unknown` / `propose_geo_unknown_update` (confirm-gated). Operators do **not** resolve unknown localities directly in the geo API.
+**Canonical resolution path (developer HITL):** `/api/geo/unknown-queue` (developer-only) and chat tools `list_geo_unknown` / `propose_geo_unknown_update` (confirm-gated). Users do **not** resolve unknown localities directly in the geo API.
 
-**Operator surfacing:** `GET /api/report/today` passes pending `new` queue count into `buildActionCompass` as `geoUnknownCount` — operators see a **warning** in the action compass when unresolved localities exist; i18n directs them to analyst triage before dispatch.
+**User surfacing:** `GET /api/report/today` passes pending `new` queue count into `buildActionCompass` as `geoUnknownCount` — users see a **warning** in the action compass when unresolved localities exist; i18n directs them to developer triage before dispatch.
 
-See [LLM-CHAT-AND-AGENTS.md](./LLM-CHAT-AND-AGENTS.md) and [SYSTEM-AND-OPERATOR-MODEL.md § UI surfaces](./SYSTEM-AND-OPERATOR-MODEL.md#ui-surfaces-operator-app).
+See [LLM-CHAT-AND-AGENTS.md](./LLM-CHAT-AND-AGENTS.md) and [SYSTEM-AND-USER-MODEL.md § UI surfaces](./SYSTEM-AND-USER-MODEL.md#ui-surfaces-user-app).
 
 ---
 

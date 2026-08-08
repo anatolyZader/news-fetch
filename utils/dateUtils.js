@@ -38,7 +38,7 @@ export function validateDate(dateStr, timezone = 'Asia/Jerusalem') {
 const DEFAULT_ANALYSIS_TZ = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
 
 /**
- * Format an analysis timestamp for operator display (date + time in project timezone).
+ * Format an analysis timestamp for user display (date + time in project timezone).
  * @param {string|null|undefined} isoOrDate - ISO-8601 datetime or YYYY-MM-DD
  * @param {{ timezone?: string }} [opts]
  * @returns {string|null} e.g. "2026-03-21 14:32" or date-only if no time available

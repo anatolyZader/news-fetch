@@ -54,3 +54,52 @@ describe('evidenceComponentAdapter confidence', () => {
     assert.equal(comp.confidence, 'low');
   });
 });
+
+describe('evidenceComponentAdapter review completeness', () => {
+  function reviewBasis(incomplete_share, extra = {}) {
+    return {
+      review_completeness: {
+        pbo_primary_count: 10,
+        reviewed_sufficient: 0,
+        reviewed_incomplete: 10,
+        unreviewed: 0,
+        incomplete_share,
+      },
+      ...extra,
+    };
+  }
+
+  it('downgrades one step when a majority of evidence was reviewed as incomplete', () => {
+    const comp = evidenceComponentAdapter(evEntry(reviewBasis(0.5)));
+    assert.equal(comp.confidence, 'medium');
+    assert.match(comp.confidence_caveat, /50% of evidence from PBO reports reviewed as incomplete/);
+  });
+
+  it('leaves confidence alone just below the threshold', () => {
+    const comp = evidenceComponentAdapter(evEntry(reviewBasis(0.49)));
+    assert.equal(comp.confidence, 'high');
+    assert.equal(comp.confidence_caveat, null);
+  });
+
+  it('treats a null review_completeness as a no-op', () => {
+    const comp = evidenceComponentAdapter(evEntry({ review_completeness: null }));
+    assert.equal(comp.confidence, 'high');
+    assert.equal(comp.confidence_caveat, null);
+  });
+
+  it('does not stack downgrades when concentration and review both fire', () => {
+    // Both reasons hold on PBO-dominated components, so stacking would be the
+    // common case and would flatten high straight to low, skipping medium.
+    const comp = evidenceComponentAdapter(evEntry(reviewBasis(1, {
+      concentration_warning: { layer: 'source_type', key: 'pbo', share: 0.96 },
+    })));
+    assert.equal(comp.confidence, 'medium');
+    assert.match(comp.confidence_caveat, /source type "pbo" holds 96% of signals/);
+    assert.match(comp.confidence_caveat, /100% of evidence from PBO reports reviewed as incomplete/);
+  });
+
+  it('floors at low rather than dropping below it', () => {
+    const comp = evidenceComponentAdapter(evEntry(reviewBasis(1, { sufficiency: 'thin' })));
+    assert.equal(comp.confidence, 'low');
+  });
+});

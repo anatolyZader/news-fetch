@@ -2,7 +2,7 @@
  * Build chat tool execution context from injected services.
  */
 import { canUseRichChatTools } from '../../../cross-cut-modules/auth/userAccess.js';
-import { chatAnalystToolsEnabled, chatConfirmActionsEnabled } from '../domain/chatConfig.js';
+import { chatDeveloperToolsEnabled, chatConfirmActionsEnabled } from '../domain/chatConfig.js';
 import { buildChatToolList } from '../domain/tools/chatToolSchemas.js';
 
 /**
@@ -28,13 +28,13 @@ import { buildChatToolList } from '../domain/tools/chatToolSchemas.js';
 export function createChatToolContext(deps = {}) {
   const userEmail = deps.userEmail ?? '';
   const richTools = canUseRichChatTools(userEmail);
-  const analystToolsEnabled = chatAnalystToolsEnabled();
+  const developerToolsEnabled = chatDeveloperToolsEnabled();
   const confirmActionsEnabled = chatConfirmActionsEnabled();
 
   return {
     userEmail,
     richTools,
-    analystToolsEnabled,
+    developerToolsEnabled,
     confirmActionsEnabled,
     reportData: deps.reportData ?? null,
     redactReportPayload: deps.redactReportPayload ?? null,
@@ -57,7 +57,7 @@ export function createChatToolContext(deps = {}) {
     uiLang: deps.uiLang ?? 'en',
     resolvedModel: deps.resolvedModel ?? null,
     tools: buildChatToolList({
-      analystToolsEnabled,
+      developerToolsEnabled,
       richTools,
       confirmActionsEnabled,
       toolProfile: deps.toolProfile ?? 'default',
@@ -70,11 +70,11 @@ export function requireRichTools(ctx, toolName) {
   if (!ctx.richTools) {
     return `Tool "${toolName}" requires a listed account.`;
   }
-  if (!ctx.analystToolsEnabled) {
+  if (!ctx.developerToolsEnabled) {
     return `Extended chat tools are disabled (CHAT_ANALYST_TOOLS_ENABLED=0).`;
   }
   return null;
 }
 
 /** @deprecated use {@link requireRichTools} — kept as alias. */
-export const requireAnalyst = requireRichTools;
+export const requireDeveloper = requireRichTools;

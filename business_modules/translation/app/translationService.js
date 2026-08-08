@@ -90,8 +90,8 @@ async function writeDiskCache(report, lang, translatedReport, coverage = null) {
           components_evidence: true,
           components_interpretive: true,
           evidence: false,
-          evidence_operator_structured: true,
-          operator_investigation_pool: true,
+          evidence_user_structured: true,
+          user_investigation_pool: true,
           score_by_source_signals_evidence: false,
         },
         updatedAt: new Date().toISOString(),
@@ -205,8 +205,8 @@ function collectReportStrings(components) {
   for (const c of components) {
     const { evidenceSource } = componentEvidenceSource(c);
     for (const e of evidenceSource) add(e.textOriginal ?? e.text ?? '');
-    for (const e of c.operator_investigation_pool ?? []) add(e.textOriginal ?? e.evidence ?? '');
-    for (const g of c.operator_investigation_pool_by_source ?? []) {
+    for (const e of c.user_investigation_pool ?? []) add(e.textOriginal ?? e.evidence ?? '');
+    for (const g of c.user_investigation_pool_by_source ?? []) {
       for (const e of g.items ?? []) add(e.textOriginal ?? e.evidence ?? '');
     }
     add(c.interpretive_summary ?? '');
@@ -444,10 +444,10 @@ function mergeSocialTranslation(posts, result, lang) {
  * @returns {{ useEvidenceField: boolean, evidenceSource: object[] }}
  */
 function componentEvidenceSource(c) {
-  if (c.evidence_operator_structured?.length) {
+  if (c.evidence_user_structured?.length) {
     return {
       useEvidenceField: false,
-      evidenceSource: c.evidence_operator_structured,
+      evidenceSource: c.evidence_user_structured,
     };
   }
   const useEvidenceField = Array.isArray(c.evidence)
@@ -460,7 +460,7 @@ function componentEvidenceSource(c) {
 
 /**
  * Routing rationale suffix carried on structured evidence items (stamped by
- * resilience_scorer's operator surface). Markdown is rebuilt from text+url
+ * resilience_scorer's user surface). Markdown is rebuilt from text+url
  * after translation, so the label must be re-appended or it is lost.
  * @param {{ signal_type?: string|null, routing_role?: string|null }} e
  * @returns {string}
@@ -478,8 +478,8 @@ function routingLabelSuffix(e) {
  * @returns {object}
  */
 function translatedEvidenceFields(c, useEvidenceField, translatedStructured) {
-  if (c.evidence_operator_structured?.length) {
-    return { evidence_operator_structured: translatedStructured };
+  if (c.evidence_user_structured?.length) {
+    return { evidence_user_structured: translatedStructured };
   }
   if (useEvidenceField && translatedStructured.length) {
     return { evidence: translatedStructured };
@@ -502,8 +502,8 @@ function cleanDiskCacheHit(fromDisk, report, lang) {
   const synthesisHead = String(fromDisk?.cross_component_synthesis ?? '').trim();
   const looksLikeEnglish = synthesisHead.length > 0 && (synthesisHead.codePointAt(0) ?? 0) <= 0x7f;
   const needsSynthesisUpgrade = !metaSaysSynthesisTranslated && looksLikeEnglish && (lang === 'he' || lang === 'ru');
-  const needsStructuredEvidenceUpgrade = !meta?.fields?.evidence_operator_structured
-    && (report.components ?? []).some((c) => c.evidence_operator_structured?.length > 0);
+  const needsStructuredEvidenceUpgrade = !meta?.fields?.evidence_user_structured
+    && (report.components ?? []).some((c) => c.evidence_user_structured?.length > 0);
 
   if (!isCurrentSchema || needsSynthesisUpgrade || needsStructuredEvidenceUpgrade) {
     return null;
@@ -538,7 +538,7 @@ export async function getTranslatedReport(report, lang) {
   }
 
   const components = report.components ?? [];
-  const synthesisSource = report.cross_component_synthesis_operator ?? report.cross_component_synthesis ?? '';
+  const synthesisSource = report.cross_component_synthesis_user ?? report.cross_component_synthesis ?? '';
   const ctx = {
     lang,
     queryHint: String(synthesisSource).slice(0, 600),
@@ -549,7 +549,7 @@ export async function getTranslatedReport(report, lang) {
 
   const translatedSynthesis = await translateProseField(synthesisSource, ctx);
   const translatedNarratives = await runWithConcurrencyLimit(
-    components.map((c) => () => translateProseField(c.narrative_operator ?? c.narrative, ctx)),
+    components.map((c) => () => translateProseField(c.narrative_user ?? c.narrative, ctx)),
     CONCURRENCY_COMPONENTS,
   );
   const stringMap = await translateReportStrings(collectReportStrings(components), ctx);
@@ -574,9 +574,9 @@ export async function getTranslatedReport(report, lang) {
   const translatedReport = {
     ...report,
     cross_component_synthesis: translatedSynthesis ?? synthesisSource,
-    ...(report.cross_component_synthesis_operator == null
+    ...(report.cross_component_synthesis_user == null
       ? {}
-      : { cross_component_synthesis_operator: translatedSynthesis ?? report.cross_component_synthesis_operator }),
+      : { cross_component_synthesis_user: translatedSynthesis ?? report.cross_component_synthesis_user }),
     components: components.map((c, i) => mergeTranslatedComponent(c, lookup, translatedNarratives[i])),
   };
 
@@ -613,18 +613,18 @@ function mergeTranslatedComponent(c, lookup, translatedNarrative) {
   });
   return {
     ...c,
-    ...(c.narrative_operator == null
+    ...(c.narrative_user == null
       ? { narrative: translatedNarrative }
-      : { narrative: c.narrative, narrative_operator: translatedNarrative }),
+      : { narrative: c.narrative, narrative_user: translatedNarrative }),
     interpretive_summary: lookup(c.interpretive_summary) ?? c.interpretive_summary,
     data_quality_caveat: lookup(c.data_quality_caveat) ?? c.data_quality_caveat,
     ...translatedEvidenceFields(c, useEvidenceField, translatedStructured),
-    ...(c.operator_investigation_pool
-      ? { operator_investigation_pool: translatePoolItems(c.operator_investigation_pool, lookup) }
+    ...(c.user_investigation_pool
+      ? { user_investigation_pool: translatePoolItems(c.user_investigation_pool, lookup) }
       : {}),
-    ...(c.operator_investigation_pool_by_source
+    ...(c.user_investigation_pool_by_source
       ? {
-        operator_investigation_pool_by_source: c.operator_investigation_pool_by_source.map(
+        user_investigation_pool_by_source: c.user_investigation_pool_by_source.map(
           (g) => ({ ...g, items: translatePoolItems(g.items, lookup) }),
         ),
       }

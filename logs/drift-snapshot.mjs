@@ -1,7 +1,7 @@
 // One-off: per-component pos/neg contribution mass on frozen signal fixtures.
 // Usage: node logs/drift-snapshot.mjs <out.json>
 import { readFileSync, writeFileSync } from 'node:fs';
-import { collectComponentItems } from '../business_modules/resilience_scorer/analyst/scoring/scoreSingleComponent.js';
+import { collectComponentItems } from '../business_modules/resilience_scorer/developer/scoring/scoreSingleComponent.js';
 import { buildDuplicateOccurrenceIndex } from '../business_modules/resilience_scorer/domain/epistemic/massContribution.js';
 import { defaultSignalWeights } from '../business_modules/resilience_scorer/domain/services/signals/signalWeights.js';
 import { COMPONENT_IDS } from '../business_modules/resilience_scorer/domain/contracts/componentIds.js';

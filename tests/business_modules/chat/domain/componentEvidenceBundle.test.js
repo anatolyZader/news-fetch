@@ -7,15 +7,15 @@ describe('componentEvidenceBundle', () => {
   const reportData = {
     assessment: {
       date: '2026-04-10',
-      operator_surface_mode: 'rich',
+      user_surface_mode: 'rich',
       components: [{
         component_id: 'leadership',
-        narrative_operator: 'Leadership narrative paragraph.',
+        narrative_user: 'Leadership narrative paragraph.',
         narrative_claims: [{ text: 'Claim one', signal_refs: ['fear@url:http://x'] }],
-        operator_investigation_pool: [{
+        user_investigation_pool: [{
           ref: 'fear@url:http://x',
           evidence: 'Field observation about leadership.',
-          operator_epistemic_role: 'scored',
+          user_epistemic_role: 'scored',
           source_type: 'visits',
         }],
       }],
@@ -30,14 +30,14 @@ describe('componentEvidenceBundle', () => {
     assert.equal(parsed.claims.length, 1);
   });
 
-  it('falls back to structured operator evidence when the investigation pool is absent', () => {
+  it('falls back to structured user evidence when the investigation pool is absent', () => {
     const nonRich = {
       assessment: {
         date: '2026-04-10',
         components: [{
           component_id: 'leadership',
           narrative: 'Narrative.',
-          evidence_operator_structured: [
+          evidence_user_structured: [
             {
               evidence: 'Mayor held nightly briefings in the shelter.',
               signal_type: 'leadership_visible_presence',
@@ -64,11 +64,11 @@ describe('componentEvidenceBundle', () => {
         date: '2026-04-10',
         components: [{
           component_id: 'leadership',
-          narrative_operator: 'N'.repeat(5000),
-          operator_investigation_pool: [{
+          narrative_user: 'N'.repeat(5000),
+          user_investigation_pool: [{
             ref: 'r1',
             evidence: 'E'.repeat(2000),
-            operator_epistemic_role: 'scored',
+            user_epistemic_role: 'scored',
             signal_type: 'leadership_action',
             source_type: 'news',
           }],
@@ -89,11 +89,11 @@ describe('componentEvidenceBundle', () => {
         components: [{
           component_id: 'leadership',
           narrative: 'N.',
-          operator_investigation_pool: [
-            { ref: 'q1', evidence: 'quarantined lead', operator_epistemic_role: 'quarantined' },
-            { ref: 's1', evidence: 'scored basis A', operator_epistemic_role: 'scored' },
-            { ref: 'c1', evidence: 'context item', operator_epistemic_role: 'context_only' },
-            { ref: 's2', evidence: 'scored basis B', operator_epistemic_role: 'scored' },
+          user_investigation_pool: [
+            { ref: 'q1', evidence: 'quarantined lead', user_epistemic_role: 'quarantined' },
+            { ref: 's1', evidence: 'scored basis A', user_epistemic_role: 'scored' },
+            { ref: 'c1', evidence: 'context item', user_epistemic_role: 'context_only' },
+            { ref: 's2', evidence: 'scored basis B', user_epistemic_role: 'scored' },
           ],
         }],
       },

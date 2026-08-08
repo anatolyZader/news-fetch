@@ -19,9 +19,9 @@ const MAX_HISTORY_MESSAGES = 20;
 
 function chatReportData(raw, redactReportPayload) {
   if (!raw) return raw;
-  if (raw.display_view === DISPLAY_VIEWS.analyst) return raw;
+  if (raw.display_view === DISPLAY_VIEWS.developer) return raw;
   if (!redactReportPayload) return raw;
-  return redactReportPayload(raw, DISPLAY_VIEWS.operator);
+  return redactReportPayload(raw, DISPLAY_VIEWS.user);
 }
 
 function throwIfAborted(abortSignal) {
@@ -188,7 +188,7 @@ function isBillingError(err) {
   return /credit|balance|billing|payment|insufficient funds/i.test(msg);
 }
 
-function operatorChatErrorMessage(err) {
+function userChatErrorMessage(err) {
   if (isBillingError(err)) {
     return 'AI service unavailable — Anthropic API credits exhausted. Top up your account and try again.';
   }
@@ -218,7 +218,7 @@ async function handleStreamChatLlmError(err, send, {
     });
     return;
   }
-  const errorMessage = operatorChatErrorMessage(err);
+  const errorMessage = userChatErrorMessage(err);
   send({ type: 'error', message: errorMessage });
   send({ type: 'done', error: true, message: errorMessage });
 }
@@ -268,7 +268,7 @@ export async function streamChat(message, history, rawReply, getReportData, opts
     throw new Error('streamChat requires chatLlmPort with streamChatResponse');
   }
   const reportData = chatReportData(getReportData(), redactReportPayload);
-  const includeScores = reportData?.display_view === DISPLAY_VIEWS.analyst;
+  const includeScores = reportData?.display_view === DISPLAY_VIEWS.developer;
   const reportScopeId = opts.reportGeoScope
     ?? reportData?.assessment?.report_scope?.id
     ?? 'national';

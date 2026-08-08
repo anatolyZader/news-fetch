@@ -1,6 +1,6 @@
 # Application architecture and analysis — deep-dive review
 
-**Audience:** engineers, data scientists, operators, and technical stakeholders.  
+**Audience:** engineers, data scientists, users, and technical stakeholders.  
 **Intent:** single entry point for how this system works end-to-end: purpose, structure, data acquisition, transformation, scoring mathematics, geographic enrichment, strengths and gaps, and directions for evolution.  
 **Companion docs:** this synthesizes behavior described in more detail elsewhere; prefer those sources when you need step-by-step operational instructions or full geo field semantics.
 
@@ -43,7 +43,7 @@ Evidence is drawn from **multiple channels** (news sites via NewsAPI.ai, optiona
 - The LLM classifies evidence into types from `SIGNAL_CATALOG` in [`cross-cut-modules/resilience-contracts/signalCatalog.js`](../../cross-cut-modules/resilience-contracts/signalCatalog.js) (re-exported via [`behaviorSignals.js`](../../business_modules/resilience_scorer/domain/services/behaviorSignals.js)). Unknown types are dropped by validation.  
 - A fixed many-to-many map `SIGNAL_TO_COMPONENTS` defines how each signal type moves the eight component scores.  
 - Component scores, confidence, coverage, diversity, bootstrap intervals, counterfactuals, and facets are computed in code (`scoreComponents` in [`scoreComponentsOrchestrator.js`](../../business_modules/resilience_scorer/domain/services/scoring/scoreComponentsOrchestrator.js) and helpers).  
-- A second LLM pass generates human-readable narratives conditioned on those numbers. Default operator UI **redacts** headline scores at the API boundary ([`assessmentDisplayTier.js`](../../business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js)).
+- A second LLM pass generates human-readable narratives conditioned on those numbers. Default user UI **redacts** headline scores at the API boundary ([`assessmentDisplayTier.js`](../../business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js)).
 
 ### 1.3 End-to-end dataflow (conceptual)
 
@@ -102,7 +102,7 @@ The workspace follows a **hexagonal / DDD-style** layout:
 | [`cross-cut-modules/`](../../cross-cut-modules/) | Persistence, budget, shared adapters, and helpers used by multiple modules (e.g. `signalGeoSummary.js` re-exports geo helpers for report code that must not deep-import geo internals). |
 | [`reportCacheService.js`](../../business_modules/resilience_scorer/app/reportCacheService.js) | Report path resolution by **scope** (national vs north) and cached report reads (`getCachedReport`, `resolveReportJsonPathForDate`). |
 | [`composition/createApp.js`](../../composition/createApp.js) / [`composition/wireApplication.js`](../../composition/wireApplication.js) | Fastify shell: auth, routes, **composition root** (wires `geoService`, `geoEnrichmentPort`, WhatsApp analyzer, cached report readers). |
-| [`client/`](../../client/) | Operator + analyst React SPA: report scope toggle, dashboards, docs panel; analyst-only score-revealing components are gated inline by `displayView`, not a separate app. |
+| [`client/`](../../client/) | User + developer React SPA: report scope toggle, dashboards, docs panel; developer-only score-revealing components are gated inline by `displayView`, not a separate app. |
 
 **Composition rule:** business modules do not import each other arbitrarily; shared abstractions are expressed as **ports** (e.g. `IGeoEnrichmentPort`) and implemented by adapters wired only from `composition/createApp.js` / `wireApplication.js` or dedicated scripts.
 
@@ -119,11 +119,11 @@ Readers often conflate these; they serve different operational models.
 
 ### 2.3 Client and API contract for scope and display_view
 
-- [`GET /api/report/today`](../../business_modules/resilience_scorer/input/reportRoutes.js) accepts `?scope=north` or default national, and `?view=operator` (default) or `?view=analyst` (when `canViewAnalystDisplay(email)` — `config/userAccess.json` or `RESILIENCE_ANALYST_EMAILS`).  
-- Responses include `display_view` and redact numeric scores for operator display_view via [`assessmentDisplayTier.js`](../../business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js).  
-- [`GET /api/resilience/display-capabilities`](../../business_modules/resilience_scorer/input/reportRoutes.js) returns `{ canViewAnalyst }` for the optional signed-in user.  
+- [`GET /api/report/today`](../../business_modules/resilience_scorer/input/reportRoutes.js) accepts `?scope=north` or default national, and `?view=user` (default) or `?view=developer` (when `canViewDeveloperDisplay(email)` — `config/userAccess.json` or `RESILIENCE_ANALYST_EMAILS`).  
+- Responses include `display_view` and redact numeric scores for user display_view via [`assessmentDisplayTier.js`](../../business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js).  
+- [`GET /api/resilience/display-capabilities`](../../business_modules/resilience_scorer/input/reportRoutes.js) returns `{ canViewDeveloper }` for the optional signed-in user.  
 - [`useTodayReport(scope, view)`](../../client/src/hooks/useAnalysis.js) passes scope and view query params.  
-- [`MainApp.jsx`](../../client/src/MainApp.jsx) gates `CrisisBudgetPanel` on `canViewAnalyst`; there is no separate analyst SPA or header link anymore — the former `analyst-site/` and its drift/validation/catalog-proposal panels have been retired. Analyst-only score detail is shown inline in `ReportView.jsx` via `displayView="analyst"`.
+- [`MainApp.jsx`](../../client/src/MainApp.jsx) gates `CrisisBudgetPanel` on `canViewDeveloper`; there is no separate developer SPA or header link anymore — the former `developer-site/` and its drift/validation/catalog-proposal panels have been retired. Developer-only score detail is shown inline in `ReportView.jsx` via `displayView="developer"`.
 
 ---
 
@@ -184,7 +184,7 @@ The table below lists **primary entrypoints** (npm scripts reference [`package.j
 
 ## 5. Data science, algorithms, and mathematics
 
-This section translates the implementation in [`behaviorSignals.js`](../../business_modules/resilience_scorer/domain/services/behaviorSignals.js) into formulas an analyst can reason about.
+This section translates the implementation in [`behaviorSignals.js`](../../business_modules/resilience_scorer/domain/services/behaviorSignals.js) into formulas a developer can reason about.
 
 ### 5.1 Per-signal contribution (before capping)
 
@@ -205,7 +205,7 @@ Where:
 | \(\tau\) | **Temporal weight** (`temporal_weight`, default 1.0) from article or batch metadata. |
 | \(\gamma\) | **Extraction confidence** clamped to \([0,1]\) (`extraction_confidence`, default 1.0). |
 
-**v4 add-ons (not in the baseline formula above):** the live path in [`scoringShared.js`](../../business_modules/resilience_scorer/domain/services/scoring/scoringShared.js) also multiplies by **intensity** (`INTENSITY_WEIGHT`), **grounding outcome** (`groundingWeightMultiplier`), **field source multiplier**, **gaming caps**, **phase mismatch discount**, and optional **half-life decay** on `article_date`. Only **metrics-eligible** signals contribute when `RESILIENCE_EPISTEMIC_GEO_V2` is on (`metricsEligible` in `scoreComponentsOrchestrator.js`). Post-score: **salience policy**, **presence gates**, **epistemic gate + EWMA** in [`scoringPipelinePrep.js`](../../business_modules/resilience_scorer/app/scoringPipelinePrep.js). Operator-facing presentation: [`assessmentDisplayTier.js`](../../business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js) — see [RESILIENCE-ENGINE-REFERENCE.md](../main_docu_files/RESILIENCE-ENGINE-REFERENCE.md) §3–§5.
+**v4 add-ons (not in the baseline formula above):** the live path in [`scoringShared.js`](../../business_modules/resilience_scorer/domain/services/scoring/scoringShared.js) also multiplies by **intensity** (`INTENSITY_WEIGHT`), **grounding outcome** (`groundingWeightMultiplier`), **field source multiplier**, **gaming caps**, **phase mismatch discount**, and optional **half-life decay** on `article_date`. Only **metrics-eligible** signals contribute when `RESILIENCE_EPISTEMIC_GEO_V2` is on (`metricsEligible` in `scoreComponentsOrchestrator.js`). Post-score: **salience policy**, **presence gates**, **epistemic gate + EWMA** in [`scoringPipelinePrep.js`](../../business_modules/resilience_scorer/app/scoringPipelinePrep.js). User-facing presentation: [`assessmentDisplayTier.js`](../../business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js) — see [RESILIENCE-ENGINE-REFERENCE.md](../main_docu_files/RESILIENCE-ENGINE-REFERENCE.md) §3–§5.
 
 Polarity is tracked separately: positive vs negative mass is accumulated from contributions whose base weight sign is positive vs negative.
 
@@ -278,7 +278,7 @@ Some components expose **sub-facets** (see `computeFacets` and [`componentFacets
 
 - Weights and tuning constants are **author-set**, not learned from labeled data inside this repo. `COMPONENT_TUNING` comments note intent to revisit with **30+ days** of history for calibration-style work.  
 - LLM extraction introduces **stochastic bias** (temperature 0 still leaves model versioning and prompt sensitivity).  
-- **Survey path (archived):** former offline Excel CLI lived under `archive/survey-excel-cli/` — not integrated with daily assess or operator UI.
+- **Survey path (archived):** former offline Excel CLI lived under `archive/survey-excel-cli/` — not integrated with daily assess or user UI.
 
 ---
 
@@ -362,11 +362,11 @@ Unknown or ambiguous localities can be routed to review sinks when configured (`
 
 ## 8. Weaknesses and risks
 
-**Phase-1 transparency (addressed in code, not eliminated):** Each assess run persists `assessment.methodology` (author-set weights manifest on disk, scope-decision counts, epistemic copy, advisory `tuning_proposal`). Operator UI shows epistemic banners (data void, sampling blind, thin evidence); `GET /api/report/today?scope=north` returns `north_requires_assess_signals` when no north artifact exists. **Still deferred:** multi-district scope beyond phase-1 districts, fitted weights, auto-applied tanhK/certM, merging `runResilienceAssessment` with `filterSignalsForScope`.
+**Phase-1 transparency (addressed in code, not eliminated):** Each assess run persists `assessment.methodology` (author-set weights manifest on disk, scope-decision counts, epistemic copy, advisory `tuning_proposal`). User UI shows epistemic banners (data void, sampling blind, thin evidence); `GET /api/report/today?scope=north` returns `north_requires_assess_signals` when no north artifact exists. **Still deferred:** multi-district scope beyond phase-1 districts, fitted weights, auto-applied tanhK/certM, merging `runResilienceAssessment` with `filterSignalsForScope`.
 
 1. **Documentation drift:** [`docs/main_docu_files/PIPELINE-AND-SOURCES.md`](../main_docu_files/PIPELINE-AND-SOURCES.md) points at `business_modules/resilience_scorer/`; keep other docs in sync when modules move.  
 2. **North scope without geo on news:** signals without resolved north geo are excluded from north scope (no keyword fallback). Hyperlocal placenames only count when geo attach succeeds — monitor `summarizeGeoCoverage` / unknown rates.  
-3. **Dual pipelines (`runResilienceAssessment` vs `assess-signals`):** easy to misconfigure if operators expect scope filtering in the API-run path when only national scoring ran.  
+3. **Dual pipelines (`runResilienceAssessment` vs `assess-signals`):** easy to misconfigure if users expect scope filtering in the API-run path when only national scoring ran.  
 4. **LLM brittleness:** model upgrades, prompt drift, and multilingual edge cases affect extraction rates; monitoring is mostly operational (logs, costs) rather than a packaged offline benchmark suite in-repo.  
 5. **Hand-tuned weights:** political and ethical tradeoffs are embedded in `SIGNAL_TO_COMPONENTS`; stakeholders may read scores as “objective” without seeing the normative choices.  
 6. **Deployment coupling:** single Node serves API and static client per product architecture — acceptable at current scale, limits independent scaling.
@@ -386,7 +386,7 @@ Unknown or ambiguous localities can be routed to review sinks when configured (`
 
 ## 10. Future functionality
 
-- **Time-series and drift:** the drift routes/service and analyst drift UI that used to exist here have been retired along with the rest of the analyst-facing tooling; a future time-series/anomaly-detection feature on component scores would need to be rebuilt, not extended.  
+- **Time-series and drift:** the drift routes/service and developer drift UI that used to exist here have been retired along with the rest of the developer-facing tooling; a future time-series/anomaly-detection feature on component scores would need to be rebuilt, not extended.  
 - **Stronger temporal modeling:** explicit half-life decay by `publishedAt` instead of only `temporal_weight` where present.  
 - **Geo review UI:** operational queue for unknowns feeding reference JSON builders (`npm run build:north-reference` pipeline).  
 - **Multilingual normalization:** cross-lingual dedup and translation-gated extraction for Arabic and Russian sources where licenses permit.  
@@ -415,7 +415,7 @@ Non-exhaustive list of variables referenced across analysis, geo, and client-fac
 | `RESILIENCE_EPISTEMIC_GEO_V2` | Exclude text-inferred / metrics-unsafe geo from component scores (default on; `=0` for legacy). |
 | `TRANSLATION_ENABLED` | Gate server-side report translation. |
 | `AUTH_REQUIRED` | Gate API routes and docs pages. |
-| `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails allowed analyst `display_view`. |
+| `RESILIENCE_ANALYST_EMAILS` | Comma-separated emails allowed developer `display_view`. |
 | `RESILIENCE_NARRATIVE_INCLUDE_SCORES` | Default `false`; set `true` to pass 1–10 scores into narrative LLM prompts. |
 
 Always treat this table as **hints**; authoritative behavior is the code path that reads each variable.

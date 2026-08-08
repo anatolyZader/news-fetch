@@ -1,12 +1,12 @@
 /**
- * Confidence display labels for report and operator surfaces.
+ * Confidence display labels for report and user surfaces.
  *
  * Pipeline position: report — presentation helper for confidence strings on signals and components.
  *
  * Owns: normalizing confidence values to a display string (including insufficient_data).
  * Does NOT: confidence assignment during extraction, grounding tiers, or epistemic certainty bands.
  *
- * Key collaborators: groundingPolicy.js, ../../contracts/componentEvidence.js, domain/services/operator/.
+ * Key collaborators: groundingPolicy.js, ../../contracts/componentEvidence.js, domain/services/user/.
  */
 
 /**

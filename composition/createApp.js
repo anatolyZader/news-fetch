@@ -28,7 +28,7 @@ import { tryAuthPreHandler } from '../cross-cut-modules/auth/tryAuthPreHandler.j
 import { initFirebaseAdminForAuth } from '../cross-cut-modules/auth/firebaseAdmin.js';
 import { syncAllUserAccessClaims } from '../cross-cut-modules/auth/userAccessClaims.js';
 import { hasPrivilegedUserAccessConfigured } from '../cross-cut-modules/auth/userAccess.js';
-import { requireAnalystView } from '../cross-cut-modules/auth/requireAnalystAccess.js';
+import { requireDeveloperView } from '../cross-cut-modules/auth/requireDeveloperAccess.js';
 import {
   createMonitoringService,
   registerMonitoringRoutes,
@@ -57,7 +57,7 @@ import { chatRoutes } from '../business_modules/chat/input/chatRoutes.js';
 import { registerCrisisBudgetRoutes } from '../cross-cut-modules/budget/index.js';
 import { reportRoutes } from '../business_modules/resilience_scorer/input/reportRoutes.js';
 import { authRoutes } from '../cross-cut-modules/auth/authRoutes.js';
-import { operatorRoutes } from '../cross-cut-modules/monitoring/input/operatorRoutes.js';
+import { userRoutes } from '../cross-cut-modules/monitoring/input/userRoutes.js';
 import { docsRoutes, resolveProductDocsRoot } from '../cross-cut-modules/docs/input/docsRoutes.js';
 import { maybeLocalize } from '../business_modules/translation/index.js';
 import {
@@ -247,7 +247,7 @@ async function registerApplicationRoutes(app, ctx) {
     geoUnknownReviewService: w.geoUnknownReviewService ?? null,
   });
 
-  await operatorRoutes(app);
+  await userRoutes(app);
 
   await chatRoutes(app, {
     authHook,
@@ -292,7 +292,7 @@ async function registerApplicationRoutes(app, ctx) {
     authPreHandler: protectedAuthPreHandler,
     // In no-auth mode (local dev / loadtest) there is no user identity to
     // gate on; every other route is already open in that mode.
-    requireAnalystView: authRequired ? requireAnalystView : null,
+    requireDeveloperView: authRequired ? requireDeveloperView : null,
     timezone,
   });
 

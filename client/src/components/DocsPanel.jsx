@@ -57,7 +57,7 @@ function buildDocsNavPriority() {
     ['index', -3],
     ['getting-started/get-started', -2],
     ['getting-started/using-the-app', -1],
-    ['guides/operator-workflow', 20],
+    ['guides/user-workflow', 20],
     ['guides/when-not-to-act', 21],
     ['guides/whatsapp-integration', 22],
     ['guides/news-ingestion', 23],

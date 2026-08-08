@@ -5,7 +5,7 @@ import { resolveChatContextTier } from '../domain/chatContextTier.js';
 import { handleChatToolCall } from './chatToolHandlers.js';
 import { createChatToolContext } from './createChatToolContext.js';
 import { extractMunicipalityFromMessage } from '../domain/municipalityResolve.js';
-import { operatorEpistemicOverlayEnabled } from '../../resilience_scorer/index.js';
+import { userEpistemicOverlayEnabled } from '../../resilience_scorer/index.js';
 
 function planCompareToolCalls(reportData, assessmentDate) {
   const dates = reportData?.report_dates ?? reportData?.available_dates ?? [];
@@ -38,8 +38,8 @@ function planTemporalToolCalls(text, componentId) {
 export function planDeterministicToolCalls(contextSlice, message, reportData, opts = {}) {
   const assessmentDate = reportData?.assessment?.date ?? reportData?.reportDate ?? null;
   const text = String(message ?? '').trim();
-  const narrativeFocus = !operatorEpistemicOverlayEnabled();
-  const isRichSurface = reportData?.assessment?.operator_surface_mode === 'rich';
+  const narrativeFocus = !userEpistemicOverlayEnabled();
+  const isRichSurface = reportData?.assessment?.user_surface_mode === 'rich';
   const componentId = opts.componentId;
 
   switch (contextSlice) {

@@ -1,9 +1,9 @@
 /**
- * Stratified spot-check sampling of extraction signals for operator review.
+ * Stratified spot-check sampling of extraction signals for user review.
  *
  * Picks a small, reproducible sample of the report's scoped signals — the
  * high-confidence happy path that otherwise reaches reports unreviewed — so
- * the operator can verify extraction quality per report without reading the
+ * the user can verify extraction quality per report without reading the
  * whole pool. Stratified by source_type × signal_type (≥1 pick per stratum,
  * round-robin, until the budget is spent) and seeded from reportDate+scope so
  * re-runs of the same report sample the same signals.

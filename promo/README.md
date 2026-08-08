@@ -41,7 +41,7 @@ cd promo/print && ./generate-qr.sh
 
 ## Screenshots + PDF export
 
-Production **requires sign-in** — pass operator credentials or a saved session:
+Production **requires sign-in** — pass user credentials or a saved session:
 
 ```bash
 PROMO_AUTH_EMAIL='you@example.com' PROMO_AUTH_PASSWORD='…' \

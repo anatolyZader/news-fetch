@@ -3612,7 +3612,7 @@ This pressure has not been placed on Energean, which operates the Karish and Tan
 
 BDO chief economist Chen Herzog, advisor to the Natural Gas Association, estimates that the closure has cost Israel NIS 1.5 billion in the last month in electricity production costs, lower gas royalties and a decrease in natural gas company assets. Of this, NIS 1 billion comes from the Leviathan field and NIS 500 million from the Karish field.
 
-Energean, the operator of the Karish platform, which remains closed, said, "Energean welcomes the resumption of operations at the Leviathan platform, and the indication that risk assessments now support increased offshore production. The company remains in close engagement with the Ministry of Energy and security authorities regarding the status of Karish.
+Energean, the user of the Karish platform, which remains closed, said, "Energean welcomes the resumption of operations at the Leviathan platform, and the indication that risk assessments now support increased offshore production. The company remains in close engagement with the Ministry of Energy and security authorities regarding the status of Karish.
 
 "While operational decisions are shaped by asset specific security considerations, Karish remains a critical component of Israel's energy system, supplying a significant share of domestic demand. Energean expects that, as conditions permit, actions will be taken soon to enable the prompt and safe return of Karish to production."
 

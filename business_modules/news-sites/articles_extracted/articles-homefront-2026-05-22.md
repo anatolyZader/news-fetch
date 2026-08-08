@@ -688,7 +688,7 @@ Beirut said an Israeli strike on the town of Hannouiyeh killed four rescuers fro
 
 It said a later strike on Deir Qanun al-Nahr killed a Syrian girl, as well as two rescuers from the Amal-linked Risala Scouts association, one of whom was also working as a freelance photographer.
 
-Separately, the Israel Defense Forces said surveillance operators overnight identified two armed terror operatives approaching the northern border from the direction of the southern Lebanese village of Yaroun. Within minutes, an Israeli Air Force fighter jet struck the suspects under the direction of forces on the ground. After movement was detected in the area following the initial strike, the pair was targeted again and killed.
+Separately, the Israel Defense Forces said surveillance users overnight identified two armed terror operatives approaching the northern border from the direction of the southern Lebanese village of Yaroun. Within minutes, an Israeli Air Force fighter jet struck the suspects under the direction of forces on the ground. After movement was detected in the area following the initial strike, the pair was targeted again and killed.
 
 Local security squads in the nearby communities of Dovev, Matat, and Baram were dispatched to their communities' entrances during the incident.
 

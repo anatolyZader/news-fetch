@@ -10,7 +10,7 @@ tags: ["architecture", "storage"]
 ---
 
 ## Purpose
-Explain what Srulik's lab persists, where those bytes live, how persistence interacts with ingestion and analysis, and what operators need to know to keep data safe across restarts and deploys. Understanding the storage model is prerequisite for productionizing the app.
+Explain what Srulik's lab persists, where those bytes live, how persistence interacts with ingestion and analysis, and what users need to know to keep data safe across restarts and deploys. Understanding the storage model is prerequisite for productionizing the app.
 
 ## Prerequisites
 - **Required**: Understanding that SQLite is a single-file database served in-process by the application. There is no separate database daemon.

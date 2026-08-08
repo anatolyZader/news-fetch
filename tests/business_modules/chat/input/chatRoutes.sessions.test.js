@@ -8,7 +8,7 @@ import { chatRoutes } from '../../../../business_modules/chat/input/chatRoutes.j
 import { createChatStore } from '../../../../business_modules/chat/infrastructure/chatStore.js';
 
 async function testAuthPreHandler(request) {
-  request.user = { uid: request.headers['x-test-uid'] ?? 'u1', email: 'operator@test.com' };
+  request.user = { uid: request.headers['x-test-uid'] ?? 'u1', email: 'user@test.com' };
 }
 
 describe('chatRoutes session delete', () => {

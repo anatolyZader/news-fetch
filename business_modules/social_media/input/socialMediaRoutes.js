@@ -5,7 +5,7 @@
  * @param {{ socialMediaService?: ReturnType<import('../app/socialMediaService.js').createSocialMediaService>, authPreHandler?: any }} opts
  */
 import { checkOptionalDistrictQueryAccess } from '../../../cross-cut-modules/auth/checkOptionalDistrictQueryAccess.js';
-import { canRunAnalysisDisplay, canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
+import { canRunAnalysisDisplay, canViewDeveloperDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
 import { costlyRoutePreHandlers } from '../../../cross-cut-modules/security/input/costlyRoutePreHandlers.js';
 import { normalizeAuthPreHandlers } from '../../../cross-cut-modules/auth/buildAuthHooks.js';
@@ -14,7 +14,7 @@ import { assertService, dateParam } from '../../../cross-cut-modules/security/ap
 
 function socialFetchAllowed(request) {
   if (canRunAnalysisDisplay(request.user?.email)) return true;
-  return process.env.SOCIAL_FETCH_ANALYST_OK === 'true' && canViewAnalystDisplay(request.user?.email);
+  return process.env.SOCIAL_FETCH_ANALYST_OK === 'true' && canViewDeveloperDisplay(request.user?.email);
 }
 
 export async function socialMediaRoutes(app, opts) {
@@ -57,7 +57,7 @@ export async function socialMediaRoutes(app, opts) {
       return reply.code(403).send({
         error: 'Forbidden',
         code: 'maintainer_required',
-        message: 'fetch-topic requires maintainer access (or SOCIAL_FETCH_ANALYST_OK with analyst role).',
+        message: 'fetch-topic requires maintainer access (or SOCIAL_FETCH_ANALYST_OK with developer role).',
       });
     }
     if (!assertService(socialMediaService, reply, 'social media service not configured')) return;

@@ -8,7 +8,7 @@
  * Does NOT: score sentences or validate LLM JSON (see sibling modules).
  *
  * Key collaborators: `sentenceGroundingChecker.js`, `narrativeSchemaValidator.js`,
- * app narrative orchestrator, `operator/assessmentDisplayTier.js` (min score for interpretive_summary).
+ * app narrative orchestrator, `user/assessmentDisplayTier.js` (min score for interpretive_summary).
  */
 
 import { envFlagOn } from '../../../../../cross-cut-modules/config/envFlags.js';
@@ -128,10 +128,10 @@ export function legacyNarrativeOnly() {
 }
 
 /**
- * Whether operator narrative finalize pipeline should run (hybrid or legacy).
+ * Whether user narrative finalize pipeline should run (hybrid or legacy).
  *
  * @returns {boolean}
  */
-export function operatorNarrativePipelineEnabled() {
+export function userNarrativePipelineEnabled() {
   return hybridNarrativeEnabled() || legacyNarrativeOnly();
 }

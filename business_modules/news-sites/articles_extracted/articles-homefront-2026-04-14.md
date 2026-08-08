@@ -3496,7 +3496,7 @@ Meanwhile, French President Macron decided to ban US cargo planes delivering mun
 
 This time, Israel took action, canceling all its military contracts with a democracy all too happy to acquire Israeli hi-tech knowhow, but too gutless to back a friendly nation lest it upset France's Arab street.
 
-And then amidst the nonstop ballistic missile attacks and Hamas' continuing efforts to attack Israelis from Gaza and the West Bank, that Israel's Knesset voted 62-48 to install the death penalty for terrorists. Many analysts saw this as a victory for Israel's far-right National Security Minister Itamar Ben-Gvir.
+And then amidst the nonstop ballistic missile attacks and Hamas' continuing efforts to attack Israelis from Gaza and the West Bank, that Israel's Knesset voted 62-48 to install the death penalty for terrorists. Many developers saw this as a victory for Israel's far-right National Security Minister Itamar Ben-Gvir.
 
 Israel was subject to withering verbal attacks. One anti-Israel protest in Damascus would have turned into a lynch mob in Damascus, but alas all Jews had been driven out years ago by the Assads. The corrupt Palestinian Authority led by President President Abbas now in his 17th year of his 4-year term was apoplectic: It condemned the law as a "dangerous escalation" and a "war crime." The PA Foreign Ministry calling it a tool to legalize extrajudicial killings. The reality is that for every attack carried out by Hamas, the PA's Pay-to-Slay law ensure that murderers are turned into millionaires, and their families guaranteed a monthly stipend.
 

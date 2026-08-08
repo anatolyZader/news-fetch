@@ -15,7 +15,7 @@ const BRACKET_LOCALITY_RE = /\[([^\]]{2,40})\]/;
 const ARTICLE_SOURCE_LOCALITY_RE = /^(?:pbo|naftali)-(.+)$/i;
 
 const DISCOURSE_PATTERNS = [
-  /\b(?:analysts?|pundits?|commentators?)\b/i,
+  /\b(?:developers?|pundits?|commentators?)\b/i,
   /\b(?:studio|debate|discussed|discussion)\b/i,
   /\b(?:according to|reported from)\b/i,
   /(?:לדון|דנו|דיון|באולפן|לפי\s+ה)/,
@@ -102,7 +102,7 @@ function isPlausibleLocalityPhrase(name) {
   if (!n || n.length < 2) return false;
   const words = n.split(/\s+/);
   if (words.length > 4) return false;
-  if (/\b(discussed|discussion|analysts|analyst|studio|debate|reported from)\b/i.test(n)) return false;
+  if (/\b(discussed|discussion|developers|developer|studio|debate|reported from)\b/i.test(n)) return false;
   return true;
 }
 

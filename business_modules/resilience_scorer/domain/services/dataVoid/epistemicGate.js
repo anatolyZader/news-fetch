@@ -19,7 +19,7 @@ const ELEVATED_OR_ABOVE = new Set(['elevated', 'critical']);
 // ── Score abstention ──────────────────────────────────────────────────────────
 
 /**
- * Legacy compat: null headline score fields while preserving analyst raw fields.
+ * Legacy compat: null headline score fields while preserving developer raw fields.
  *
  * @param {Record<string, object>} scored
  * @returns {Record<string, object>}

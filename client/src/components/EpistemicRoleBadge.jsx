@@ -9,7 +9,7 @@ const ROLE_COLORS = {
 };
 
 /**
- * @param {{ operator_epistemic_role?: string }} props
+ * @param {{ user_epistemic_role?: string }} props
  */
 export function EpistemicRoleBadge({ role, t }) {
   const r = String(role ?? '').trim();

@@ -19,7 +19,7 @@ Files indexed: 43 (38 markdown + 5 assets; excludes this index itself)
 | [IDENTITY_PLATFORM_SETUP.md](IDENTITY_PLATFORM_SETUP.md) | Step-by-step GCP Identity Platform + Firebase Auth setup: console clicks, service account, env vars, verification curls | 2026-05-27 | — |
 | [MODEL-CARD.md](MODEL-CARD.md) | Policy card for the resilience engine — provenance gates, thin-evidence instruments, data-void abstention, agent flags, known limits, feature-flag index | 2026-07-19 | ⚠ stale paths |
 | [README.md](README.md) | Orientation for the `docs/` tree: docs are optional, runtime content lives elsewhere, subfolder purposes, docs:check/sync/reindex commands | 2026-07-22 | — |
-| [audio-pipeline.md](audio-pipeline.md) | Operator guide for audio→markdown→extract→assess: OpenAI diarized transcription, CLI flags, 25 MB split rule, module file map | 2026-07-07 | — |
+| [audio-pipeline.md](audio-pipeline.md) | User guide for audio→markdown→extract→assess: OpenAI diarized transcription, CLI flags, 25 MB split rule, module file map | 2026-07-07 | — |
 | [figma-code-map.md](figma-code-map.md) | Stable Figma-MCP mapping of design surfaces to `client/src` primitives, CSS score/chart tokens, shared score helpers | 2026-04-26 | ⚠ stale paths |
 | [figma-readiness-checklist.md](figma-readiness-checklist.md) | Pre-flight checklist for Figma MCP: required design-system styles, semantic component naming, component→code targets | 2026-04-26 | ⚠ stale paths |
 | [ui-componentization-audit.md](ui-componentization-audit.md) | Prioritized catalog of client UI duplication (modal shells, load states, score colors) and recommended refactor order | 2026-04-26 | ⚠ stale paths |
@@ -28,7 +28,7 @@ Files indexed: 43 (38 markdown + 5 assets; excludes this index itself)
 
 | File | What it covers | Last commit | Flags |
 |---|---|---|---|
-| [ubiquitous-language.md](architecture/ubiquitous-language.md) | Shared glossary: operator/analyst/maintainer roles, pipeline artifacts, epistemic terms, ban on the overloaded word "tier" | 2026-07-18 | ⚠ stale paths |
+| [ubiquitous-language.md](architecture/ubiquitous-language.md) | Shared glossary: user/developer/maintainer roles, pipeline artifacts, epistemic terms, ban on the overloaded word "tier" | 2026-07-18 | ⚠ stale paths |
 
 ## architecture/decisions/
 
@@ -64,23 +64,23 @@ Files indexed: 43 (38 markdown + 5 assets; excludes this index itself)
 |---|---|---|---|
 | [README.md](main_docu_files/README.md) | Entry point/reading order for the 8-file engineering reference, NotebookLM upload bundle, docs:sync markers, module-boundary rules | 2026-07-18 | ⚠ stale paths |
 | [COST-CONTROLS.md](main_docu_files/COST-CONTROLS.md) | Daily HTTP budget cap, costly-route prehandlers, chat soft-gate fallback, cost-log telemetry, per-pipeline token report, crisis chat budget | 2026-07-18 | ⚠ stale paths |
-| [GEOGRAPHIC-ANALYSIS.md](main_docu_files/GEOGRAPHIC-ANALYSIS.md) | Developer guide to deterministic geo: module layout, v3 envelope contract, attach policy, district scoping, analyst unknown queue | 2026-07-07 | ⚠ stale paths |
+| [GEOGRAPHIC-ANALYSIS.md](main_docu_files/GEOGRAPHIC-ANALYSIS.md) | Developer guide to deterministic geo: module layout, v3 envelope contract, attach policy, district scoping, developer unknown queue | 2026-07-07 | ⚠ stale paths |
 | [LLM-CHAT-AND-AGENTS.md](main_docu_files/LLM-CHAT-AND-AGENTS.md) | Separates batch assessment agent from interactive report chat; tool loop kernel, HITL confirms, grounding, observability, env vars | 2026-07-26 | ⚠ stale paths |
 | [PIPELINE-AND-SOURCES.md](main_docu_files/PIPELINE-AND-SOURCES.md) | Canonical daily-run reference: run-pipeline.js orchestrator, extract/assess stages, per-source ingest modules, PBO review, artifacts on disk | 2026-07-18 | ⚠ stale paths |
 | [RAG.md](main_docu_files/RAG.md) | Hybrid retrieval platform: rag_chunks + FTS5 + embeddings + RRF/rerank, namespace table, consumption tiers, reindex commands | 2026-07-18 | — |
 | [RESILIENCE-ENGINE-REFERENCE.md](main_docu_files/RESILIENCE-ENGINE-REFERENCE.md) | Deepest implementation reference: stage-by-stage pipeline, epistemic tiers, key modules, code-derived catalog appendix (auto-synced) | 2026-07-28 | ⚠ stale paths |
-| [SYSTEM-AND-OPERATOR-MODEL.md](main_docu_files/SYSTEM-AND-OPERATOR-MODEL.md) | What operators actually see: scan→proof→decide loop, display-tier redaction, UI surfaces, report file selection, post-report side effects | 2026-07-24 | ⚠ stale paths |
+| [SYSTEM-AND-USER-MODEL.md](main_docu_files/SYSTEM-AND-USER-MODEL.md) | What users actually see: scan→proof→decide loop, display-tier redaction, UI surfaces, report file selection, post-report side effects | 2026-07-24 | ⚠ stale paths |
 
 ## updated_main_docs/ — stalled generation (prefer main_docu_files/)
 
 | File | What it covers | Last commit | Flags |
 |---|---|---|---|
 | [00-INDEX-AND-READING-GUIDE.md](updated_main_docs/00-INDEX-AND-READING-GUIDE.md) | NotebookLM bundle index: system in one paragraph, audience map, four throughlines, cadence/scope caveats | 2026-07-08 | ⚠ superseded · stale paths |
-| [01-MISSION-AND-OPERATOR-MODEL.md](updated_main_docs/01-MISSION-AND-OPERATOR-MODEL.md) | Mission framing: decision support not scoring, district population-behavior officer, twice-daily report workflow, abstention as valid | 2026-07-18 | ⚠ superseded · stale paths |
+| [01-MISSION-AND-USER-MODEL.md](updated_main_docs/01-MISSION-AND-USER-MODEL.md) | Mission framing: decision support not scoring, district population-behavior officer, twice-daily report workflow, abstention as valid | 2026-07-18 | ⚠ superseded · stale paths |
 | [02-DUAL-PATH-PIPELINE.md](updated_main_docs/02-DUAL-PATH-PIPELINE.md) | Open (primary) vs closed (supporting) extraction tracks, where they merge, orchestration, artifact map, env flags, degraded mode | 2026-07-21 | ⚠ superseded · stale paths |
 | [03-DATA-SOURCES-AND-GEOGRAPHY.md](updated_main_docs/03-DATA-SOURCES-AND-GEOGRAPHY.md) | Every ingest source with npm entry/artifact/signal output, northern-district geographic model, scope filtering, code locations | 2026-07-09 | ⚠ superseded · stale paths |
-| [04-ASSESSMENT-AGENT.md](updated_main_docs/04-ASSESSMENT-AGENT.md) | Planner→specialists→critic→synthesizer flow with code refs, evidence graph, claim shape, per-stage abstention, operator outputs | 2026-07-08 | ⚠ superseded · stale paths |
-| [05-EPISTEMICS-AND-INSTRUMENTS.md](updated_main_docs/05-EPISTEMICS-AND-INSTRUMENTS.md) | Evidence mass, source caps, certainty, the operator instrument replacing the score, `display_view` redaction, dual epistemic status | 2026-07-18 | ⚠ superseded · stale paths |
+| [04-ASSESSMENT-AGENT.md](updated_main_docs/04-ASSESSMENT-AGENT.md) | Planner→specialists→critic→synthesizer flow with code refs, evidence graph, claim shape, per-stage abstention, user outputs | 2026-07-08 | ⚠ superseded · stale paths |
+| [05-EPISTEMICS-AND-INSTRUMENTS.md](updated_main_docs/05-EPISTEMICS-AND-INSTRUMENTS.md) | Evidence mass, source caps, certainty, the user instrument replacing the score, `display_view` redaction, dual epistemic status | 2026-07-18 | ⚠ superseded · stale paths |
 | [06-REPORTS-DELIVERY-AND-CHAT.md](updated_main_docs/06-REPORTS-DELIVERY-AND-CHAT.md) | What a report artifact is (3 files), HTTP serving and scopes, UI/chat interrogation, the three distinct things called "report" | 2026-07-18 | ⚠ superseded · stale paths |
 | [07-GLOSSARY-TRACEABILITY-AND-PROMPTS.md](updated_main_docs/07-GLOSSARY-TRACEABILITY-AND-PROMPTS.md) | Consolidated glossary, stage→file→artifact traceability table, ready-to-paste NotebookLM study prompts | 2026-07-21 | ⚠ superseded · stale paths |
 

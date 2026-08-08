@@ -11,7 +11,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 
 /**
  * Crisis chat budget pool panel — status for every listed user; activate/deactivate
- * controls only when `canControl` (analyst+).
+ * controls only when `canControl` (developer+).
  */
 export function CrisisBudgetPanel({ budgetStatus, suggestCrisisBudget, canControl = true, onUpdated }) {
   const { t } = useLanguage();
@@ -54,7 +54,7 @@ export function CrisisBudgetPanel({ budgetStatus, suggestCrisisBudget, canContro
       <Stack spacing={1.25}>
         <Typography variant="subtitle2">{t('crisisBudget.panelTitle')}</Typography>
         {suggestCrisisBudget && !crisisActive && (
-          <Typography variant="body2">{t('crisisBudget.operatorSuggest')}</Typography>
+          <Typography variant="body2">{t('crisisBudget.userSuggest')}</Typography>
         )}
         {budgetStatus?.daily_exceeded && (
           <Typography variant="caption" color="text.secondary">

@@ -7,7 +7,7 @@
 **Relationship to the canonical reference.** Exhaustive implementation detail (per-component essays, full prompt rules, QA harness, API tables) lives in:
 
 - [docs/main_docu_files/RESILIENCE-ENGINE-REFERENCE.md](../main_docu_files/RESILIENCE-ENGINE-REFERENCE.md)
-- [docs/main_docu_files/SYSTEM-AND-OPERATOR-MODEL.md](../main_docu_files/SYSTEM-AND-OPERATOR-MODEL.md)
+- [docs/main_docu_files/SYSTEM-AND-USER-MODEL.md](../main_docu_files/SYSTEM-AND-USER-MODEL.md)
 
 Use this NotebookLM file for **end-to-end flow, definitions, and study-style Q&A**; use the canonical doc when you need **line-level spec parity** with the codebase.
 
@@ -15,19 +15,19 @@ Use this NotebookLM file for **end-to-end flow, definitions, and study-style Q&A
 
 | Audience | How to use this file |
 |----------|----------------------|
-| Analysts / officers | Sections 2–3, 5–6, 9–10 — what scores mean and how to read uncertainty |
+| Developers / officers | Sections 2–3, 5–6, 9–10 — what scores mean and how to read uncertainty |
 | Engineers | Sections 4–8, 11 — implementation traceability |
 | NotebookLM workflows | Section 12 (study prompts) + glossary — paste as source instructions or flashcards |
 
 **How to use this file in NotebookLM**
 
-1. Upload **this file** as a source; optionally add [RESILIENCE-ENGINE-REFERENCE.md](../main_docu_files/RESILIENCE-ENGINE-REFERENCE.md) and [SYSTEM-AND-OPERATOR-MODEL.md](../main_docu_files/SYSTEM-AND-OPERATOR-MODEL.md) for deeper follow-up.
+1. Upload **this file** as a source; optionally add [RESILIENCE-ENGINE-REFERENCE.md](../main_docu_files/RESILIENCE-ENGINE-REFERENCE.md) and [SYSTEM-AND-USER-MODEL.md](../main_docu_files/SYSTEM-AND-USER-MODEL.md) for deeper follow-up.
 2. In notebook instructions, ask the model to **cite section numbers** and to treat **deterministic scoring** (code) as authoritative over natural-language paraphrases.
 3. For “where is X implemented?”, rely on **Section 11 (traceability)** first.
 
 **Version note.** Descriptions match the repository layout under `business_modules/resilience_scorer/` and the batch CLI `assess-signals.js` as of the document’s authoring; if behavior diverges, the linked source files win.
 
-**Phase 1 scope (2026).** Only **`national`** and **`north`** report scopes are supported for population-behavior officers and analysts. North is the sole regional slice until a generic district model replaces hardcoded `regionSignalFilter` logic. Reports include `assessment.methodology` (scope-decision telemetry, epistemic disclaimers, advisory tuning proposals).
+**Phase 1 scope (2026).** Only **`national`** and **`north`** report scopes are supported for population-behavior officers and developers. North is the sole regional slice until a generic district model replaces hardcoded `regionSignalFilter` logic. Reports include `assessment.methodology` (scope-decision telemetry, epistemic disclaimers, advisory tuning proposals).
 
 ---
 
@@ -60,7 +60,7 @@ Use this NotebookLM file for **end-to-end flow, definitions, and study-style Q&A
 - **Narratives** (LLM-generated) that **do not re-score**; they explain and quote evidence while treating scores as fixed inputs.
 - **Persisted reports** (Markdown + JSON) and **API/UI** consumption.
 
-**Operator-facing UI (default):** The web app and `GET /api/report/today` default to **operator tier** — narratives, evidence, and instrument flags (sufficiency, contested, significant delta) **without** showing headline 1–10 scores. Full scores remain in on-disk JSON and in **analyst tier** (`?view=analyst` + `RESILIENCE_ANALYST_EMAILS`). See [SYSTEM-AND-OPERATOR-MODEL.md](../main_docu_files/SYSTEM-AND-OPERATOR-MODEL.md).
+**User-facing UI (default):** The web app and `GET /api/report/today` default to **user tier** — narratives, evidence, and instrument flags (sufficiency, contested, significant delta) **without** showing headline 1–10 scores. Full scores remain in on-disk JSON and in **developer tier** (`?view=developer` + `RESILIENCE_ANALYST_EMAILS`). See [SYSTEM-AND-USER-MODEL.md](../main_docu_files/SYSTEM-AND-USER-MODEL.md).
 
 **Design invariants (non-negotiable in code).**
 
@@ -195,7 +195,7 @@ Stable IDs (used in JSON, code, and i18n):
 
 ## 5. Combining sources in the assessment window
 
-**Entry point (batch).** `business_modules/resilience_scorer/input/assess-signals.js` implements the **merge → dedupe → score** path for operator runs.
+**Entry point (batch).** `business_modules/resilience_scorer/input/assess-signals.js` implements the **merge → dedupe → score** path for user runs.
 
 ### 5.1 Window and temporal decay
 
@@ -374,17 +374,17 @@ export function overallScore(componentScores) {
 
 ### 10.3 Web UI highlights
 
-**Operator tier (default)** — `ReportView.jsx` with `displayTier="operator"`:
+**User tier (default)** — `ReportView.jsx` with `displayTier="user"`:
 
 - Epistemic banner, attention queue, evidence overview, instrument badges (sufficiency, contested, significant delta)
 - Component narratives and cited evidence — **no headline 1–10 scores** (redacted at API via `assessmentDisplayTier.js`)
 
-**Analyst tier** — same operator app, gated by `displayView="analyst"` (`?view=analyst`); the separate `analyst-site/` SPA and its drift-sparkline, validation-review, and catalog-proposal panels have been retired:
+**Developer tier** — same user app, gated by `displayView="developer"` (`?view=developer`); the separate `developer-site/` SPA and its drift-sparkline, validation-review, and catalog-proposal panels have been retired:
 
 - Score-revealing components inline in `ReportView.jsx` (`WhyThisScore`, `DeltaLine`, `InstrumentMetricsBadges`, facet bars, etc.)
 - Many numeric score fields still API-redacted; full scores on disk in `business_modules/resilience_scorer/data/reports/*.json` for calibration
 
-**On-disk / analyst diagnostics** (when present in JSON, not default operator UI):
+**On-disk / developer diagnostics** (when present in JSON, not default user UI):
 
 - Bootstrap CI, EWMA `score_smoothed`, `floor_clamped`, `ci_unstable`, top contributors (post-cap)
 - Evidence accordions grouped by **`scoreBySource`** when present (`assess-signals.js` emits per–`source_type` score maps)

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { scopeAndPartitionSignals } from '../../../../business_modules/resilience_scorer/app/assessment/signalScopePartition.js';
 import { prepareInvestigationSignals, prepareScoringSignals } from '../../../../business_modules/resilience_scorer/app/assessment/prepareSignals.js';
 import { runEvidencePipeline } from '../../../../business_modules/resilience_scorer/app/assessment/evidencePipelinePrep.js';
-import { attachInvestigationDiagnostics } from '../../../../business_modules/resilience_scorer/domain/services/operator/componentDiagnostics.js';
+import { attachInvestigationDiagnostics } from '../../../../business_modules/resilience_scorer/domain/services/user/componentDiagnostics.js';
 import { runPostExtractionAssessmentCore } from '../../../../business_modules/resilience_scorer/app/assessment/assessmentStageRunner.js';
 import { createGeoWiring } from '../../../../cross-cut-modules/geo/createGeoWiring.js';
 import { attachGeoToSignals } from '../../../../cross-cut-modules/geo/attachGeoToSignals.js';

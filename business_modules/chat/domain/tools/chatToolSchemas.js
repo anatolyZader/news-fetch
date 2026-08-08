@@ -1,7 +1,7 @@
 /**
  * Claude tool schemas for chat agent.
  */
-import { operatorEpistemicOverlayEnabled, SIGNAL_TYPES } from '../../../resilience_scorer/index.js';
+import { userEpistemicOverlayEnabled, SIGNAL_TYPES } from '../../../resilience_scorer/index.js';
 import { pboReviewRagEnabled } from '../../../../cross-cut-modules/retrieval/ragConfig.js';
 import { SIGNAL_FLAG_REASONS } from '../chatConfig.js';
 
@@ -71,7 +71,7 @@ export const CORE_CHAT_TOOLS = [
       'THE default deep-dive tool for component questions: the full evidence pool behind a component ' +
       '(claims, epistemic roles, signal types, evidence text, urls) — far more than the curated evidence ' +
       'rendered on the site. Works on the current report or a past one when date is set; ' +
-      'falls back to structured operator evidence on non-rich reports.',
+      'falls back to structured user evidence on non-rich reports.',
     input_schema: {
       type: 'object',
       properties: {
@@ -79,7 +79,7 @@ export const CORE_CHAT_TOOLS = [
         role: {
           type: 'string',
           enum: ['scored', 'context_only', 'quarantined', 'investigation_only'],
-          description: 'Filter by operator epistemic role (optional).',
+          description: 'Filter by user epistemic role (optional).',
         },
         limit: { type: 'number', description: 'Max pool items (default 50, max 100).' },
         date: { type: 'string', description: 'Past report date YYYY-MM-DD (optional; defaults to the current report).' },
@@ -123,13 +123,13 @@ export const CORE_CHAT_TOOLS = [
   {
     name: 'generate_brief',
     description:
-      'Generate a structured resilience brief for commanders, analysts, or the public.',
+      'Generate a structured resilience brief for commanders, developers, or the public.',
     input_schema: {
       type: 'object',
       properties: {
         scope: { type: 'string', enum: ['overall', 'municipality'] },
         municipality: { type: 'string', description: 'Required when scope is municipality.' },
-        audience: { type: 'string', enum: ['commander', 'analyst', 'public'] },
+        audience: { type: 'string', enum: ['commander', 'developer', 'public'] },
         language: { type: 'string', enum: ['he', 'en', 'ru'] },
       },
       required: ['scope', 'audience', 'language'],
@@ -184,7 +184,7 @@ export const CORE_CHAT_TOOLS = [
   {
     name: 'get_report',
     description:
-      'Load a past resilience assessment report by date — compact operator-view summary ' +
+      'Load a past resilience assessment report by date — compact user-view summary ' +
       '(header + per-component instrument lines). Use compare_dates for pairwise deltas, ' +
       'trace_component_timeline for evolution.',
     input_schema: {
@@ -245,9 +245,9 @@ export const CORE_CHAT_TOOLS = [
     },
   },
   {
-    name: 'list_operator_recommendations',
+    name: 'list_user_recommendations',
     description:
-      'List operator recommendations from the loaded assessment (pending, acknowledged, dismissed).',
+      'List user recommendations from the loaded assessment (pending, acknowledged, dismissed).',
     input_schema: {
       type: 'object',
       properties: {
@@ -258,7 +258,7 @@ export const CORE_CHAT_TOOLS = [
   {
     name: 'get_decision_brief',
     description:
-      'Get the batch-generated operator decision brief (summary and priority items) for the loaded assessment.',
+      'Get the batch-generated user decision brief (summary and priority items) for the loaded assessment.',
     input_schema: { type: 'object', properties: {} },
   },
   {
@@ -333,10 +333,10 @@ export const CORE_CHAT_TOOLS = [
   },
 ];
 
-export const ANALYST_READ_TOOLS = [
+export const DEVELOPER_READ_TOOLS = [
   {
     name: 'search_pbo_history',
-    description: 'Search historical PBO municipal reports via archive RAG (analyst only).',
+    description: 'Search historical PBO municipal reports via archive RAG (developer only).',
     input_schema: {
       type: 'object',
       properties: {
@@ -352,7 +352,7 @@ export const ANALYST_READ_TOOLS = [
   },
   {
     name: 'list_pbo_reviews',
-    description: 'List municipal PBO review records for a date (analyst only).',
+    description: 'List municipal PBO review records for a date (developer only).',
     input_schema: {
       type: 'object',
       properties: {
@@ -363,7 +363,7 @@ export const ANALYST_READ_TOOLS = [
   },
   {
     name: 'get_pbo_review',
-    description: 'Get PBO review detail for a municipality on a date (analyst only).',
+    description: 'Get PBO review detail for a municipality on a date (developer only).',
     input_schema: {
       type: 'object',
       properties: {
@@ -375,7 +375,7 @@ export const ANALYST_READ_TOOLS = [
   },
   {
     name: 'list_observations',
-    description: 'List open (unmapped) behavioral observations from extraction bundles (analyst only).',
+    description: 'List open (unmapped) behavioral observations from extraction bundles (developer only).',
     input_schema: {
       type: 'object',
       properties: {
@@ -387,7 +387,7 @@ export const ANALYST_READ_TOOLS = [
   },
   {
     name: 'list_geo_unknown',
-    description: 'List geo unknown locality review queue entries (analyst only).',
+    description: 'List geo unknown locality review queue entries (developer only).',
     input_schema: {
       type: 'object',
       properties: {
@@ -415,16 +415,16 @@ export const PROPOSE_TOOLS = [
   },
 ];
 
-export const OPERATOR_PROPOSE_TOOLS = [
+export const USER_PROPOSE_TOOLS = [
   {
-    name: 'propose_operator_recommendation',
+    name: 'propose_user_recommendation',
     description:
-      'Propose acknowledging or dismissing a pending operator recommendation from the loaded assessment ' +
+      'Propose acknowledging or dismissing a pending user recommendation from the loaded assessment ' +
       '(requires user confirmation in UI). Does NOT execute immediately.',
     input_schema: {
       type: 'object',
       properties: {
-        recommendation_id: { type: 'string', description: 'ID from operator_recommendations (e.g. rec:information_vacuum_rumor).' },
+        recommendation_id: { type: 'string', description: 'ID from user_recommendations (e.g. rec:information_vacuum_rumor).' },
         scope: { type: 'string', description: 'Report scope (national, north, …).' },
         date: { type: 'string', description: 'Assessment date YYYY-MM-DD.' },
         action: { type: 'string', enum: ['acknowledge', 'dismiss'] },
@@ -452,16 +452,16 @@ export const OPERATOR_PROPOSE_TOOLS = [
   },
 ];
 
-/** Guidance tools suppressed when RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY=0 (narrative-first operator UI). */
+/** Guidance tools suppressed when RESILIENCE_OPERATOR_EPISTEMIC_OVERLAY=0 (narrative-first user UI). */
 export const GUIDANCE_CHAT_TOOL_NAMES = new Set([
   'list_attention_items',
   'get_decision_brief',
-  'list_operator_recommendations',
-  'propose_operator_recommendation',
+  'list_user_recommendations',
+  'propose_user_recommendation',
 ]);
 
 function excludeGuidanceTools(tools, opts = {}) {
-  if (operatorEpistemicOverlayEnabled() || opts.richTools) return tools;
+  if (userEpistemicOverlayEnabled() || opts.richTools) return tools;
   return tools.filter((t) => !GUIDANCE_CHAT_TOOL_NAMES.has(t.name));
 }
 
@@ -514,10 +514,10 @@ export function buildChatToolList(opts = {}) {
   const profile = opts.toolProfile ?? 'default';
   let tools = [...CORE_CHAT_TOOLS];
   if (opts.confirmActionsEnabled) {
-    tools.push(...OPERATOR_PROPOSE_TOOLS);
+    tools.push(...USER_PROPOSE_TOOLS);
   }
-  if (opts.analystToolsEnabled && opts.richTools) {
-    tools.push(...ANALYST_READ_TOOLS);
+  if (opts.developerToolsEnabled && opts.richTools) {
+    tools.push(...DEVELOPER_READ_TOOLS);
     if (opts.confirmActionsEnabled) {
       tools.push(...PROPOSE_TOOLS);
     }
@@ -552,20 +552,20 @@ export function buildSystemTemplateToolList(opts = {}) {
     '- search_reports: free-text search across past report narratives',
     '- get_signal: full untruncated signal by id from lookup_signals',
   ];
-  if (operatorEpistemicOverlayEnabled() || opts.richTools) {
+  if (userEpistemicOverlayEnabled() || opts.richTools) {
     core.push(
       '- list_attention_items: ranked what-needs-attention queue',
-      '- list_operator_recommendations: pending suggested actions',
-      '- get_decision_brief: batch operator decision brief',
+      '- list_user_recommendations: pending suggested actions',
+      '- get_decision_brief: batch user decision brief',
     );
   } else {
     core.push(
       '- Default to evidence-first answers: cite component narratives and lookup_signals / get_source quotes.',
     );
   }
-  if (opts.confirmActionsEnabled && (operatorEpistemicOverlayEnabled() || opts.richTools)) {
+  if (opts.confirmActionsEnabled && (userEpistemicOverlayEnabled() || opts.richTools)) {
     core.push(
-      '- propose_operator_recommendation: acknowledge/dismiss pending operator recommendations (user must confirm)',
+      '- propose_user_recommendation: acknowledge/dismiss pending user recommendations (user must confirm)',
     );
   }
   if (opts.confirmActionsEnabled) {
@@ -573,9 +573,9 @@ export function buildSystemTemplateToolList(opts = {}) {
       '- propose_signal_flag: flag a wrong/misrouted/noteworthy signal for review (user must confirm; never claim it was applied)',
     );
   }
-  if (opts.analystToolsEnabled && opts.richTools) {
+  if (opts.developerToolsEnabled && opts.richTools) {
     const pboLines = [
-      '- list_pbo_reviews / get_pbo_review: PBO analyst tools',
+      '- list_pbo_reviews / get_pbo_review: PBO developer tools',
     ];
     if (pboReviewRagEnabled()) {
       pboLines.unshift('- search_pbo_history: PBO archive RAG search');

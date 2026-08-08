@@ -15,7 +15,7 @@ export {
 } from './domain/sourceArchiveQuery.js';
 export {
   chatCompressToolsEnabled,
-  OPERATOR_PROPOSE_TOOL_NAMES,
+  USER_PROPOSE_TOOL_NAMES,
 } from './domain/chatConfig.js';
 export { chatContextSlicingEnabled } from './domain/chatContextTier.js';
 export { chatDeterministicFallbackEnabled } from './domain/chatConfig.js';

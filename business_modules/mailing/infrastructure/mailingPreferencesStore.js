@@ -4,6 +4,7 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { openAppDatabase } from '../../../db/persistence/openDatabase.js';
+import { normalizeRecipientEmail } from '../domain/services/recipientEmail.js';
 
 const DDL = `
 CREATE TABLE IF NOT EXISTS mailing_preferences (
@@ -15,6 +16,17 @@ CREATE TABLE IF NOT EXISTS mailing_preferences (
   product_platform INTEGER NOT NULL DEFAULT 0,
   language TEXT NOT NULL DEFAULT 'en' CHECK(language IN ('en', 'he', 'ru')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Shared digest distribution list. One list for the whole install, editable by
+-- maintainers only (see mailingRoutes). Language/products are not stored per
+-- recipient: each address inherits the preferences of the maintainer who added
+-- it, so added_by_uid is the settings source, not just an audit column.
+CREATE TABLE IF NOT EXISTS mailing_digest_recipients (
+  email TEXT PRIMARY KEY NOT NULL,
+  added_by_uid TEXT NOT NULL DEFAULT '',
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 `;
 
@@ -99,6 +111,55 @@ export function createMailingPreferencesStore(dbPath) {
         userUid: row.user_uid,
         ...rowToPrefs(row),
       }));
+    },
+
+    /**
+     * Shared digest distribution list, newest first.
+     * @param {{ includeInactive?: boolean }} [opts]
+     * @returns {Array<{ email: string, addedByUid: string, active: boolean, createdAt: string }>}
+     */
+    listRecipients(opts = {}) {
+      const where = opts.includeInactive ? '' : 'WHERE active = 1';
+      const rows = db.prepare(`
+        SELECT email, added_by_uid, active, created_at
+        FROM mailing_digest_recipients ${where}
+        ORDER BY created_at DESC, email ASC
+      `).all();
+      return rows.map((row) => ({
+        email: row.email,
+        addedByUid: row.added_by_uid ?? '',
+        active: Boolean(row.active),
+        createdAt: row.created_at,
+      }));
+    },
+
+    /**
+     * Add (or re-activate) an address on the shared list.
+     * @param {{ email: string, addedByUid: string }} args
+     * @returns {{ email: string, addedByUid: string, active: boolean, createdAt: string }}
+     */
+    addRecipient({ email, addedByUid }) {
+      const normalized = normalizeRecipientEmail(email);
+      if (!normalized) throw new Error('valid email required');
+      db.prepare(`
+        INSERT INTO mailing_digest_recipients (email, added_by_uid, active, created_at)
+        VALUES (?, ?, 1, datetime('now'))
+        ON CONFLICT(email) DO UPDATE SET
+          added_by_uid = excluded.added_by_uid,
+          active = 1
+      `).run(normalized, String(addedByUid ?? '').trim());
+      return this.listRecipients({ includeInactive: true }).find((r) => r.email === normalized);
+    },
+
+    /**
+     * @param {string} email
+     * @returns {boolean} true when a row was removed
+     */
+    removeRecipient(email) {
+      const normalized = normalizeRecipientEmail(email);
+      if (!normalized) return false;
+      const info = db.prepare('DELETE FROM mailing_digest_recipients WHERE email = ?').run(normalized);
+      return info.changes > 0;
     },
   };
 }

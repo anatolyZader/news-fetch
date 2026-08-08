@@ -6,7 +6,7 @@ argument-hint: dd:mm:yyyy
 
 ## Your task
 
-Run municipal PBO completeness review for the given date and write an operator-revisable batch JSON. **Do not send email.**
+Run municipal PBO completeness review for the given date and write a user-revisable batch JSON. **Do not send email.**
 
 **Step 1 — Parse date**
 
@@ -25,4 +25,4 @@ npm run pbo:review-muni -- --date <YYYY-MM-DD>
 - Print the batch file path (default: `business_modules/pbo_report_review/data/reviews/batches/pbo-muni-review-<YYYY-MM-DD>.json`).
 - Print the `summary` object (`total`, `sufficient`, `needsFeedback`, `missingOfficerEmail`).
 - Explicitly state: **no mail was sent**.
-- Tell the operator they may edit the batch (`send`, `officer.email`, and per-component `components.<id>.questions` / `general.questions`) then run `/send-report-feedback-muni <dd:mm:yyyy>` after confirmation.
+- Tell the user they may edit the batch (`send`, `officer.email`, and per-component `components.<id>.questions` / `general.questions`) then run `/send-report-feedback-muni <dd:mm:yyyy>` after confirmation.

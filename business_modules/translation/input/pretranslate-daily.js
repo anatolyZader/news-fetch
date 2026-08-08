@@ -39,8 +39,8 @@ async function warmReport(date, scope, lang, runId) {
     console.warn(`[pretranslate] no report for ${date} scope=${scope}`);
     return;
   }
-  const redacted = redactReportPayload(cached, DISPLAY_VIEWS.operator);
-  await localizeReportTodayPayload({ found: true, display_view: DISPLAY_VIEWS.operator, ...redacted }, lang);
+  const redacted = redactReportPayload(cached, DISPLAY_VIEWS.user);
+  await localizeReportTodayPayload({ found: true, display_view: DISPLAY_VIEWS.user, ...redacted }, lang);
   console.log(`[pretranslate] report ${date} ${scope} ${lang}`);
 }
 

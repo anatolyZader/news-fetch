@@ -19,7 +19,7 @@ import {
   buildScoringModelManifest,
   formatSubgroupCoverageLogLine,
 } from '../../domain/epistemic/assessmentMethodology.js';
-import { attachInvestigationDiagnostics } from '../../domain/services/operator/componentDiagnostics.js';
+import { attachInvestigationDiagnostics } from '../../domain/services/user/componentDiagnostics.js';
 import { COMPONENT_IDS } from '../../domain/contracts/componentIds.js';
 import { attachDecisionBrief } from './attachDecisionBrief.js';
 import {

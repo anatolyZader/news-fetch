@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 
 /**
- * Whether the signed-in user may request analyst display (`?view=analyst`).
+ * Whether the signed-in user may request developer display (`?view=developer`).
  */
 export function useDisplayCapabilities() {
   const { getIdToken, apiReady, user } = useAuth();
-  const [canViewAnalyst, setCanViewAnalyst] = useState(false);
+  const [canViewDeveloper, setCanViewDeveloper] = useState(false);
   const [showBudgetPanel, setShowBudgetPanel] = useState(false);
   const [canControlBudget, setCanControlBudget] = useState(false);
   const [ready, setReady] = useState(false);
@@ -25,18 +25,18 @@ export function useDisplayCapabilities() {
         if (res.ok) {
           const body = await res.json();
           if (!cancelled) {
-            setCanViewAnalyst(body.canViewAnalyst === true);
-            setShowBudgetPanel(body.showBudgetPanel === true || body.canViewAnalyst === true);
-            setCanControlBudget(body.canControlBudget === true || body.canViewAnalyst === true);
+            setCanViewDeveloper(body.canViewDeveloper === true);
+            setShowBudgetPanel(body.showBudgetPanel === true || body.canViewDeveloper === true);
+            setCanControlBudget(body.canControlBudget === true || body.canViewDeveloper === true);
           }
         } else if (!cancelled) {
-          setCanViewAnalyst(false);
+          setCanViewDeveloper(false);
           setShowBudgetPanel(false);
           setCanControlBudget(false);
         }
       } catch {
         if (!cancelled) {
-          setCanViewAnalyst(false);
+          setCanViewDeveloper(false);
           setShowBudgetPanel(false);
           setCanControlBudget(false);
         }
@@ -47,5 +47,5 @@ export function useDisplayCapabilities() {
     return () => { cancelled = true; };
   }, [apiReady, getIdToken, user?.email]);
 
-  return { canViewAnalyst, showBudgetPanel, canControlBudget, ready };
+  return { canViewDeveloper, showBudgetPanel, canControlBudget, ready };
 }

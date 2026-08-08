@@ -107,8 +107,8 @@ describe('translationService', () => {
           cross_component_synthesis: true,
           components_narrative: true,
           components_evidence: true,
-          evidence_operator_structured: true,
-          operator_investigation_pool: true,
+          evidence_user_structured: true,
+          user_investigation_pool: true,
         },
       },
     };
@@ -191,9 +191,9 @@ describe('translationService', () => {
       {
         component_id: 'narrative',
         narrative: 'Plain narrative in English.',
-        narrative_operator: 'Operator narrative in English.',
+        narrative_user: 'User narrative in English.',
         interpretive_summary: 'Interpretive summary in English text.',
-        evidence_operator_structured: [
+        evidence_user_structured: [
           {
             ref: 'sig@idx:0',
             evidence: 'Shared evidence line in English.',
@@ -203,12 +203,12 @@ describe('translationService', () => {
             routing_role: 'primary',
           },
         ],
-        operator_investigation_pool: [
+        user_investigation_pool: [
           { ref: 'sig@idx:0', evidence: 'Shared evidence line in English.', url: 'https://example.com/a' },
           { ref: 'sig@idx:1', evidence: 'Pool-only evidence line in English.', url: null },
           { ref: 'sig@idx:2', evidence: 'עדות בעברית שנאספה בביקור שטח ביישוב מסוים', url: null },
         ],
-        operator_investigation_pool_by_source: [
+        user_investigation_pool_by_source: [
           {
             key: 'press',
             items: [
@@ -228,30 +228,30 @@ describe('translationService', () => {
     const out = await getTranslatedReport(richReport, 'he');
     const comp = out.components[0];
 
-    // prose: operator variant gets the translation, plain narrative preserved
-    assert.equal(comp.narrative_operator, HE_PROSE);
+    // prose: user variant gets the translation, plain narrative preserved
+    assert.equal(comp.narrative_user, HE_PROSE);
     assert.equal(comp.narrative, 'Plain narrative in English.');
     assert.equal(out.cross_component_synthesis, HE_PROSE);
 
     // evidence rows translated everywhere, original preserved
-    assert.ok(comp.evidence_operator_structured[0].text.startsWith(HE_ROW));
-    assert.equal(comp.evidence_operator_structured[0].textOriginal, 'Shared evidence line in English.');
-    assert.ok(comp.evidence_operator_structured[0].markdown.includes('[source](https://example.com/a)'));
-    assert.ok(comp.operator_investigation_pool[0].text.startsWith(HE_ROW));
-    assert.equal(comp.operator_investigation_pool[0].evidence, 'Shared evidence line in English.');
-    assert.ok(comp.operator_investigation_pool_by_source[0].items[0].text.startsWith(HE_ROW));
+    assert.ok(comp.evidence_user_structured[0].text.startsWith(HE_ROW));
+    assert.equal(comp.evidence_user_structured[0].textOriginal, 'Shared evidence line in English.');
+    assert.ok(comp.evidence_user_structured[0].markdown.includes('[source](https://example.com/a)'));
+    assert.ok(comp.user_investigation_pool[0].text.startsWith(HE_ROW));
+    assert.equal(comp.user_investigation_pool[0].evidence, 'Shared evidence line in English.');
+    assert.ok(comp.user_investigation_pool_by_source[0].items[0].text.startsWith(HE_ROW));
     assert.ok(comp.interpretive_summary.startsWith(HE_ROW));
 
     // dedupe: the shared string went out exactly once
     assert.equal(rowTexts.filter((t) => t === 'Shared evidence line in English.').length, 1);
     // Hebrew source row for a Hebrew target is never sent, and stays as-is
     assert.equal(rowTexts.filter((t) => t.includes('עדות בעברית')).length, 0);
-    assert.equal(comp.operator_investigation_pool[2].text, 'עדות בעברית שנאספה בביקור שטח ביישוב מסוים');
+    assert.equal(comp.user_investigation_pool[2].text, 'עדות בעברית שנאספה בביקור שטח ביישוב מסוים');
 
     // v7 meta with coverage and pool flag
     const cachedRaw = JSON.parse(readFileSync(join(tempDir, 'translation-v2-north-2026-06-02-7-he.json'), 'utf8'));
     assert.equal(cachedRaw._translation_meta.schema, 'v7');
-    assert.equal(cachedRaw._translation_meta.fields.operator_investigation_pool, true);
+    assert.equal(cachedRaw._translation_meta.fields.user_investigation_pool, true);
     assert.equal(cachedRaw._translation_meta.coverage.failed, 0);
     assert.ok(cachedRaw._translation_meta.coverage.translated > 0);
   });
@@ -266,7 +266,7 @@ describe('translationService', () => {
 
     const out = await getTranslatedReport(richReport, 'he');
     const comp = out.components[0];
-    assert.ok(comp.operator_investigation_pool[1].text.startsWith(HE_ROW));
+    assert.ok(comp.user_investigation_pool[1].text.startsWith(HE_ROW));
 
     // dropped row was re-sent exactly once more
     assert.equal(rowTexts.filter((t) => t === 'Pool-only evidence line in English.').length, 2);
@@ -284,7 +284,7 @@ describe('translationService', () => {
 
     const out = await getTranslatedReport(richReport, 'he');
     // source text preserved, nothing cached
-    assert.equal(out.components[0].narrative_operator, 'Operator narrative in English.');
+    assert.equal(out.components[0].narrative_user, 'User narrative in English.');
     assert.equal(existsSync(join(tempDir, 'translation-v2-north-2026-06-02-7-he.json')), false);
   });
 
@@ -318,7 +318,7 @@ describe('translationService', () => {
     const out = await getTranslatedReport(richReport, 'ru');
     const comp = out.components[0];
     // the Hebrew field-visit row IS translated for a Russian target
-    assert.ok(comp.operator_investigation_pool[2].text.startsWith('Русский перевод'));
+    assert.ok(comp.user_investigation_pool[2].text.startsWith('Русский перевод'));
     const stringsCalls = userContents.filter((c) => c.includes('"strings"'));
     assert.ok(stringsCalls.some((c) => c.includes('Values may be in English or Hebrew')));
   });

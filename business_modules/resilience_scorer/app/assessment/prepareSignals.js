@@ -24,7 +24,7 @@ async function prepareSignalsBase({
   digitalDarknessHint,
   allSignalsForDiagnostics = null,
 }) {
-  // Analyst confirm/dismiss overrides were decommissioned along with analyst/validation —
+  // Developer confirm/dismiss overrides were decommissioned along with developer/validation —
   // social-channel quarantine now runs on auto-detection only.
   const osintChannelQuarantine = evaluateOsintChannelQuarantine(signals, {
     active: false,

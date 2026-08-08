@@ -25,4 +25,4 @@ Open **Data sources** → **Pools**. Switch between Naftali and Education dashbo
 
 ## Troubleshooting
 - **Data looks old** — pools update on weekly or bi-weekly cadence by design.
-- **Missing pool** — your deployment may enable only one theme; ask your operator.
+- **Missing pool** — your deployment may enable only one theme; ask your user.

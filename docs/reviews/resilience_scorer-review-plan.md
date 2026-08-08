@@ -1,6 +1,6 @@
 # resilience_scorer cleanup — review plan, as executed
 
-**Status: completed and pushed** — 7 refactor commits on `rich-narrative` (`b1b314d…ed5f181`), plus `12112c0` carrying the pre-existing analyst-flattening WIP, plus the flagged retry follow-up (§8). Full suite green after every commit and on the final pushed state: **1589 tests, 1587 pass, 0 fail, 2 skipped**.
+**Status: completed and pushed** — 7 refactor commits on `rich-narrative` (`b1b314d…ed5f181`), plus `12112c0` carrying the pre-existing developer-flattening WIP, plus the flagged retry follow-up (§8). Full suite green after every commit and on the final pushed state: **1589 tests, 1587 pass, 0 fail, 2 skipped**.
 
 ## Context
 
@@ -49,14 +49,14 @@ Deleted: `runAssessment` alias, `SIGNAL_FILE_PATTERN`, `isNorthSignal`, `getComp
 
 - `app/assessment/assessmentPipeline.js` → **`signalScopePartition.js`** (it is a scope-filter/partition step, not a pipeline). `assessmentStage.js` kept its accurate name — swapping names within one series is git-archaeology poison.
 - `paths/reportNames.js` header now states it is parameter-driven filename format/parsing *by design*, unlike its repoRoot-based siblings.
-- Module `AGENTS.md` § Terminology now maps: **open** vocabulary (extraction) / observations (artifacts) / evidence (scoring); **closed** catalogue (extraction) / core (assessment path) / signalBundle (artifact); and the two unrelated **groundings** — `GROUNDING_TIER` scoring tiers (`comp.grounding_score`, written by specialist_agents) vs `narrativeGrounding/` prose QA (`comp.narrative_grounding_score`, written by claudeNarratives / operatorNarrativePipeline).
+- Module `AGENTS.md` § Terminology now maps: **open** vocabulary (extraction) / observations (artifacts) / evidence (scoring); **closed** catalogue (extraction) / core (assessment path) / signalBundle (artifact); and the two unrelated **groundings** — `GROUNDING_TIER` scoring tiers (`comp.grounding_score`, written by specialist_agents) vs `narrativeGrounding/` prose QA (`comp.narrative_grounding_score`, written by claudeNarratives / userNarrativePipeline).
 
 ### 5. `1e90033` — Config consolidation, repo-wide (§3.6)
 
 - **`cross-cut-modules/config/sqlitePath.js`** — `resolveSqlitePath(env?, rootDir?)`; 31 call sites migrated (resilience_scorer, cross-cut llm/retrieval, pbo_report, social_media, translation, audio, radio, mailing, visits, video, db/input, …). Flagged nuance: `resilienceAnalysisService`, `extractionCacheStore`, `youtubeToMdCli`, `loadConfig` previously defaulted cwd-relative; identical behavior when run from repo root (the universal case).
 - **`cross-cut-modules/config/envFlags.js`** — `envFlagOn` / `envFlagOff` / `envFlag(env, name, default)`. Only **exact-polarity** matches migrated (6 files). Everything with bespoke semantics (`envFlagEnabled`'s unset→true/`'on'`→false, the ragConfig `!== '0'` family, `extractionPrompt`'s `'full'` value, etc.) was deliberately left local — approximating them would flip flag polarity.
 - **`cross-cut-modules/llm/modelIds.js`** — `HAIKU_MODEL` / `SONNET_MODEL`; 23 production files migrated with env-override chains preserved (`process.env.X ?? HAIKU_MODEL`). `agentConfig.js` re-exports, so its importers are untouched. `llmPricing.js` intentionally keeps literal ids.
-- **`divergenceArtifactPath(scope, date)`** added next to `analystShadowDir()` in `paths/outputDirs.js`, exported via the module facade, used by `pipeline-run-audit.js`.
+- **`divergenceArtifactPath(scope, date)`** added next to `developerShadowDir()` in `paths/outputDirs.js`, exported via the module facade, used by `pipeline-run-audit.js`.
 - Magic numbers in `infrastructure/`: **skipped** — single-use constants next to their logic; a central tuning module would destroy locality for no payoff.
 
 ### 6. `734c2db` — Error handling (§3.7)
@@ -68,9 +68,9 @@ Deleted: `runAssessment` alias, `SIGNAL_FILE_PATTERN`, `isNorthSignal`, `getComp
 ### 7. `ed5f181` — Oversized-file splits (§3.8) — pure code motion
 
 - `assessSignalsCli.js` **840 → 164 lines**, + `assessSignalsDeps.js` (bundle loading, safe service factories), `buildScopedScoring.js`, `finalizeReport.js`. Acyclic import graph; `runAssessSignalsCli` unchanged.
-- New `operator/evidenceFormatting.js` holds the shared signal-resolution/evidence-bullet formatting and absorbed `routingLabel.js` (deleted) — inheriting its cycle-breaker role: it never imports from either surface file.
-- `operatorNarrativePipeline.js`: the two identical token-overflow loops are now one `runWithOverflowRebudget()` helper, parameterized on the three observable differences (label, attempt body, fallback). The facts/polish attempt loops differ legitimately and were left alone.
-- `componentDiagnostics.js` (516 → ~350): the display-state machine moved to `operatorDisplayState.js`, re-exported from the original path so tests and callers are untouched.
+- New `user/evidenceFormatting.js` holds the shared signal-resolution/evidence-bullet formatting and absorbed `routingLabel.js` (deleted) — inheriting its cycle-breaker role: it never imports from either surface file.
+- `userNarrativePipeline.js`: the two identical token-overflow loops are now one `runWithOverflowRebudget()` helper, parameterized on the three observable differences (label, attempt body, fallback). The facts/polish attempt loops differ legitimately and were left alone.
+- `componentDiagnostics.js` (516 → ~350): the display-state machine moved to `userDisplayState.js`, re-exported from the original path so tests and callers are untouched.
 - `signalTypeHygiene.js` → three files: hygiene core + `harmInfrastructureSplit.js` (clause splitting) + `fieldReportHygiene.js`. Every previously-public name still resolves from the module facade.
 
 ### 8. Follow-up — LLM retries on the four single-call sites (§3.7c, flagged behavior change)

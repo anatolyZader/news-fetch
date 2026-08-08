@@ -401,6 +401,12 @@ const FIELD_REPORT_SIGNAL_EXTRACTION_PREFIX =
   `One signal per DISTINCT behavioral fact — not one signal per form row or component column.\n` +
   `  If the same fact touches multiple resilience domains, emit ONE signal with the best-fitting signal_type;\n` +
   `  cross-component effects are applied later by the scoring graph (do not duplicate the observation).\n\n` +
+  `⚠ Adversative answers carry TWO facts. The connectors אך / אבל / לצד / עם זאת / יחד עם זאת separate a\n` +
+  `  positive claim from a negative one. Emit BOTH halves as separate signals, each with the signal_type its\n` +
+  `  own half deserves. Never drop the negative half because the sentence opens positively.\n` +
+  `  Example: "שיפור בהנגשת המידע לצד צורך בהגברת בהירות ואחידות במסרים"\n` +
+  `  → TWO signals: information_clarity (the improvement) AND information_effectiveness_gap (the unmet need).\n` +
+  `  A clause naming a gap, shortage, friction, or unmet need is a signal even when it is the shorter clause.\n\n` +
   `⚠ Field reports are dense — each community paragraph often contains 5-15 distinct facts spanning multiple\n` +
   `  resilience domains (leadership, services, protection, wellbeing, community capital, etc.).\n` +
   `  Split every distinct fact into its own signal. Do NOT collapse a paragraph into one or two summary signals.\n` +

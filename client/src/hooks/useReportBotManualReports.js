@@ -1,20 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import { localizedAuthFetch } from '../lib/localizedAuthFetch.js';
-import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
+import { withUserDistrictQuery } from '../lib/clampUserDistrictScope.js';
 
 /**
  * @param {{
  *   getIdToken: () => Promise<string|null>,
  *   getAppCheckToken?: () => Promise<string|null>,
  *   apiReady: boolean,
- *   operatorScope?: string,
+ *   userScope?: string,
  * }} opts
  */
 export function useReportBotManualReports({
   getIdToken,
   getAppCheckToken,
   apiReady,
-  operatorScope = 'national',
+  userScope = 'national',
   lang = 'en',
 }) {
   const [data, setData] = useState(null);
@@ -26,7 +26,7 @@ export function useReportBotManualReports({
     setError(null);
     try {
       const json = await localizedAuthFetch(
-        withOperatorDistrictQuery('/api/report-bot/manual-reports', operatorScope),
+        withUserDistrictQuery('/api/report-bot/manual-reports', userScope),
         { lang, getIdToken, getAppCheckToken },
       );
       setData(json);
@@ -35,14 +35,14 @@ export function useReportBotManualReports({
     } finally {
       setLoading(false);
     }
-  }, [getIdToken, getAppCheckToken, operatorScope, lang]);
+  }, [getIdToken, getAppCheckToken, userScope, lang]);
 
   useEffect(() => {
     if (!apiReady) return;
     void (async () => {
       await reload();
     })();
-  }, [apiReady, reload, operatorScope]);
+  }, [apiReady, reload, userScope]);
 
   return { data, loading, error, reload };
 }

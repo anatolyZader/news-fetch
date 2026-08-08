@@ -87,7 +87,7 @@
         {
           "component_id": "leadership",
           "severity": "moderate",
-          "operator_status": "stable",
+          "user_status": "stable",
           "instrument": { "thin_evidence_instrument": "adequate" }
         }
       ],

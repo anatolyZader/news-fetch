@@ -176,7 +176,7 @@ export const SPECIALIST_TOOLS = [
         component_id: { type: 'string' },
         severity: { type: 'string', enum: ['low', 'moderate', 'high', 'critical', 'abstain'] },
         confidence: { type: 'string', enum: ['low', 'medium', 'high'] },
-        operator_status: {
+        user_status: {
           type: 'string',
           enum: ['stable', 'watch', 'critical_failure', 'insufficient_data'],
         },

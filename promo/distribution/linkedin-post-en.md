@@ -1,6 +1,6 @@
 # LinkedIn post (EN) — partners / responsible-AI angle
 
-> For a partner/tech/responsible-AI audience. Credibility over hype. Operator-facing core only. Passes `do-not-say.md`. Brand locked per `../brand/BRAND-LOCK.md`.
+> For a partner/tech/responsible-AI audience. Credibility over hype. User-facing core only. Passes `do-not-say.md`. Brand locked per `../brand/BRAND-LOCK.md`.
 
 ---
 
@@ -12,9 +12,9 @@ It's a daily homefront resilience assessment across eight community-resilience c
 
 → **Every claim is traceable.** Each component narrative links to the raw evidence behind it. No free-floating model opinion — you can open the source.
 
-→ **You can ask the reports.** Operators chat in plain language — across today's assessment and past ones (compare dates, trace a component over time) — and every answer cites the same evidence, not the open internet.
+→ **You can ask the reports.** Users chat in plain language — across today's assessment and past ones (compare dates, trace a component over time) — and every answer cites the same evidence, not the open internet.
 
-→ **No single number.** Operators read a narrative and check the evidence, not a headline score that flattens eight distinct dimensions into one.
+→ **No single number.** Users read a narrative and check the evidence, not a headline score that flattens eight distinct dimensions into one.
 
 → **Humans decide.** It structures the picture and shows the evidence. It doesn't dispatch, and it doesn't replace field judgment.
 

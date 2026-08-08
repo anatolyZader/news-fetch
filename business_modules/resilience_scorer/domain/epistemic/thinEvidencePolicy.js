@@ -35,7 +35,7 @@ export const THIN_EVIDENCE_INSTRUMENT = Object.freeze({
  *
  * @param {object|null|undefined} dataVoid
  * @param {object|null|undefined} epistemicStatus
- * @returns {{ globalOperatorShowsScore: boolean, instrumentDefault: string|null }}
+ * @returns {{ globalUserShowsScore: boolean, instrumentDefault: string|null }}
  */
 export function deriveAssessmentEpistemicPolicy(dataVoid, epistemicStatus) {
   const status = epistemicStatus ?? null;
@@ -44,7 +44,7 @@ export function deriveAssessmentEpistemicPolicy(dataVoid, epistemicStatus) {
 
   if (sampling === 'blind' || mode === 'abstained') {
     return {
-      globalOperatorShowsScore: false,
+      globalUserShowsScore: false,
       instrumentDefault: THIN_EVIDENCE_INSTRUMENT.sampling_blind,
     };
   }
@@ -53,10 +53,10 @@ export function deriveAssessmentEpistemicPolicy(dataVoid, epistemicStatus) {
     || dataVoid?.digital_darkness === true
     || isSoftVoidWarning(dataVoid)
     || sampling === 'degraded') {
-    return { globalOperatorShowsScore: true, instrumentDefault: null };
+    return { globalUserShowsScore: true, instrumentDefault: null };
   }
 
-  return { globalOperatorShowsScore: true, instrumentDefault: null };
+  return { globalUserShowsScore: true, instrumentDefault: null };
 }
 
 // --- Per-component instrument resolution ---
@@ -83,16 +83,16 @@ function sufficiencyOf(comp) {
  * → salience critical → thin/contested → adequate.
  *
  * @param {object} comp — evidence component (or legacy stored component)
- * @param {{ assessmentEpistemic?: { globalOperatorShowsScore: boolean, instrumentDefault: string|null } }} [ctx]
- * @returns {{ instrument: string, operatorShowsScore: boolean, contested_thin: boolean }}
+ * @param {{ assessmentEpistemic?: { globalUserShowsScore: boolean, instrumentDefault: string|null } }} [ctx]
+ * @returns {{ instrument: string, userShowsScore: boolean, contested_thin: boolean }}
  */
 export function deriveThinEvidencePolicy(comp, ctx = {}) {
   const assessmentEpistemic = ctx.assessmentEpistemic ?? null;
 
-  if (assessmentEpistemic?.globalOperatorShowsScore === false) {
+  if (assessmentEpistemic?.globalUserShowsScore === false) {
     return {
       instrument: assessmentEpistemic.instrumentDefault ?? THIN_EVIDENCE_INSTRUMENT.sampling_blind,
-      operatorShowsScore: false,
+      userShowsScore: false,
       contested_thin: false,
     };
   }
@@ -101,13 +101,13 @@ export function deriveThinEvidencePolicy(comp, ctx = {}) {
   const balance = comp?.evidence_basis?.balance ?? null;
 
   if (comp?.epistemic_abstention === true || sufficiency === 'none') {
-    return { instrument: THIN_EVIDENCE_INSTRUMENT.insufficient_data, operatorShowsScore: false, contested_thin: false };
+    return { instrument: THIN_EVIDENCE_INSTRUMENT.insufficient_data, userShowsScore: false, contested_thin: false };
   }
 
-  if (comp?.presence_gate_triggered === true || comp?.operator_status === 'critical_failure') {
+  if (comp?.presence_gate_triggered === true || comp?.user_status === 'critical_failure') {
     return {
       instrument: THIN_EVIDENCE_INSTRUMENT.critical_presence_failure,
-      operatorShowsScore: false,
+      userShowsScore: false,
       contested_thin: false,
     };
   }
@@ -117,13 +117,13 @@ export function deriveThinEvidencePolicy(comp, ctx = {}) {
     if (reasons.includes(UNVERIFIED_CRITICAL_GROUNDING_REASON)) {
       return {
         instrument: THIN_EVIDENCE_INSTRUMENT.unverified_alert,
-        operatorShowsScore: false,
+        userShowsScore: false,
         contested_thin: false,
       };
     }
     return {
       instrument: THIN_EVIDENCE_INSTRUMENT.critical_single_signal,
-      operatorShowsScore: true,
+      userShowsScore: true,
       contested_thin: false,
     };
   }
@@ -131,16 +131,16 @@ export function deriveThinEvidencePolicy(comp, ctx = {}) {
   if (sufficiency === 'thin') {
     return {
       instrument: THIN_EVIDENCE_INSTRUMENT.limited_evidence_neutral,
-      operatorShowsScore: false,
+      userShowsScore: false,
       contested_thin: balance === 'contested',
     };
   }
 
   if (balance === 'contested' && sufficiency !== 'adequate') {
-    return { instrument: THIN_EVIDENCE_INSTRUMENT.limited_evidence_neutral, operatorShowsScore: false, contested_thin: true };
+    return { instrument: THIN_EVIDENCE_INSTRUMENT.limited_evidence_neutral, userShowsScore: false, contested_thin: true };
   }
 
-  return { instrument: THIN_EVIDENCE_INSTRUMENT.adequate, operatorShowsScore: true, contested_thin: false };
+  return { instrument: THIN_EVIDENCE_INSTRUMENT.adequate, userShowsScore: true, contested_thin: false };
 }
 
 // --- Feature flag ---

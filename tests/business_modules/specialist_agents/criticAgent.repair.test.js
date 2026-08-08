@@ -8,7 +8,7 @@ function baseAssessment(overrides = {}) {
     component_id: 'leadership',
     severity: 'moderate',
     confidence: 'medium',
-    operator_status: 'watch',
+    user_status: 'watch',
     narrative: 'Leadership guidance was issued.',
     claims: [{ claim_id: 'c1', text: 'Leadership guidance was issued.', evidence_refs: ['sig:1'] }],
     tool_usage: { lookup: 1, multiHop: 1 },
@@ -37,7 +37,7 @@ describe('criticAgent repair wiring', () => {
     assert.ok(repaired.repair_log.some((r) => r.action === 'noted_dominance_gap'));
   });
 
-  it('missing_evidence_refs repair adds a synthetic ref, logs it, and does not change the grounding score', () => {
+  it('missing_evidence_refs repair drops the claim instead of manufacturing a ref', () => {
     const assessment = baseAssessment({
       claims: [{ claim_id: 'c1', text: 'Leadership guidance was issued.', evidence_refs: [] }],
     });
@@ -45,25 +45,40 @@ describe('criticAgent repair wiring', () => {
     assert.ok(before.issues.some((i) => i.type === 'missing_evidence_refs'));
 
     const repaired = applyCriticRepair({ ...assessment }, before.issues);
-    assert.deepEqual(repaired.claims[0].evidence_refs, ['synthetic:leadership:0']);
-    assert.ok(repaired.repair_log.some((r) => r.action === 'added_synthetic_ref'));
+    assert.equal(repaired.claims.length, 0, 'unsupported claim must not survive');
+    assert.ok(!JSON.stringify(repaired.claims).includes('synthetic:'));
+    assert.ok(repaired.repair_log.some((r) => r.action === 'dropped_unsupported_claim'));
 
     const after = runCriticChecks(repaired, {});
-    assert.equal(after.grounding_score, before.grounding_score);
     assert.ok(!after.issues.some((i) => i.type === 'missing_evidence_refs'));
+  });
+
+  it('drops the right claims when several lack refs (positional indices must not shift)', () => {
+    const assessment = baseAssessment({
+      claims: [
+        { claim_id: 'c1', text: 'No refs one.', evidence_refs: [] },
+        { claim_id: 'c2', text: 'Has a ref.', evidence_refs: ['shelter_use@idx:2'] },
+        { claim_id: 'c3', text: 'No refs two.', evidence_refs: [] },
+      ],
+    });
+    const before = runCriticChecks({ ...assessment, claims: assessment.claims.map((c) => ({ ...c })) }, {});
+    const repaired = applyCriticRepair({ ...assessment }, before.issues);
+
+    assert.deepEqual(repaired.claims.map((c) => c.claim_id), ['c2']);
+    assert.equal(repaired.repair_log.filter((r) => r.action === 'dropped_unsupported_claim').length, 2);
   });
 
   it('synthetic refs do not count as grounding for cross-component contradictions', () => {
     const negative = baseAssessment({
       component_id: 'leadership',
       severity: 'high',
-      operator_status: 'degrading',
+      user_status: 'degrading',
       claims: [{ claim_id: 'c1', text: 'x', evidence_refs: ['synthetic:leadership:0'] }],
     });
     const positive = baseAssessment({
       component_id: 'narrative',
       severity: 'low',
-      operator_status: 'stable',
+      user_status: 'stable',
       claims: [{ claim_id: 'c2', text: 'y', evidence_refs: ['sig:9'] }],
     });
     const issues = detectCrossComponentContradictions([negative, positive]);

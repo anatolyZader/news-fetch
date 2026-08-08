@@ -36,7 +36,7 @@ const config = {
             '**/README.md',
             '**/_template.page.md',
             '**/frontmatter.schema.json',
-            // Internal-only: deploy/operator/dev runbooks should not be public.
+            // Internal-only: deploy/user/dev runbooks should not be public.
             'getting-started/quickstart.md',
             'getting-started/install-and-run.md',
             'getting-started/deploy.md',
@@ -104,7 +104,7 @@ const config = {
             title: 'Docs',
             items: [
               { label: 'Getting started', to: '/getting-started/using-the-app' },
-              { label: 'Guides', to: '/guides/operator-workflow' },
+              { label: 'Guides', to: '/guides/user-workflow' },
               { label: 'API reference', to: '/api' },
             ],
           },

@@ -28,8 +28,8 @@ describe('GET /api/auth/me', () => {
   beforeEach(async () => {
     process.env.AUTH_REQUIRE_LISTED_USER = 'true';
     setUserAccessConfigForTests({
-      operatorDistrictEnforcementEnabled: false,
-      users: [{ email: LISTED_EMAIL, level: 'operator' }],
+      userDistrictEnforcementEnabled: false,
+      users: [{ email: LISTED_EMAIL, level: 'user' }],
     });
     setDefaultAuthPort(stubPort({
       'valid-listed': { decoded: { uid: 'u1', email: LISTED_EMAIL, email_verified: true } },
@@ -62,7 +62,7 @@ describe('GET /api/auth/me', () => {
     const res = await me('valid-listed');
     assert.equal(res.statusCode, 200);
     assert.equal(res.json().email, LISTED_EMAIL);
-    assert.equal(res.json().level, 'operator');
+    assert.equal(res.json().level, 'user');
   });
 
   it('returns 401 invalid_token for an expired/invalid token (enables client refresh-retry)', async () => {

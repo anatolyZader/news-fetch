@@ -49,6 +49,10 @@ import {
   whatsappSignalsPath,
 } from '../../domain/services/paths/ingestPaths.js';
 import { resolveRepoRoot } from '../../domain/services/paths/repoRoot.js';
+import {
+  isPboContractGateBlocking,
+  pboBundleContractSatisfied,
+} from '../../domain/services/paths/pboBundleContract.js';
 import { openPipelineObsNeedsExtract } from './pipelineOpenObsGuard.js';
 
 /** Canonical ingest action names consumed by `pipelineOrchestrator.executeIngestStep`. */
@@ -314,6 +318,19 @@ function pushWhatsappStepsForDate(steps, date, ctx) {
   steps.push({ stage: 'whatsapp', date, action: 'extract_whatsapp' });
 }
 
+/**
+ * Whether an existing PBO bundle predates the current extractor contract.
+ * An unparseable bundle counts as stale — it cannot prove otherwise.
+ */
+function pboBundleStale(path) {
+  if (!fileNonEmpty(path)) return false;
+  try {
+    return !pboBundleContractSatisfied(JSON.parse(readFileSync(path, 'utf8')));
+  } catch {
+    return true;
+  }
+}
+
 function pushPboStepsForWindowDates(steps, windowDates, ctx) {
   const { enabledSources, force = false, rootDir, replayMode, env, ingestPolicy } = ctx;
   if (!isEnabled(enabledSources, 'pbo')) return;
@@ -323,16 +340,23 @@ function pushPboStepsForWindowDates(steps, windowDates, ctx) {
   for (const date of windowDates) {
     const closedPath = pboSignalsPath(date, rootDir);
     const closedOk = fileNonEmpty(closedPath);
+    const staleContract = closedOk && pboBundleStale(closedPath) && isPboContractGateBlocking(env);
     const openNeeds = openPipelineObsNeedsExtract(pipelineOpenObservationsPath('pbo', date, rootDir));
 
     const wantsExtract = force
       || wantsAlwaysReextractPbo(ingestPolicy)
       || !closedOk
+      || staleContract
       || (parallel && openNeeds)
       || (replayMode && !shouldReuseInReplay('pbo', { replayMode, force, env }));
 
     if (wantsExtract) {
-      steps.push({ stage: 'pbo', date, action: 'extract_pbo_date' });
+      steps.push({
+        stage: 'pbo',
+        date,
+        action: 'extract_pbo_date',
+        ...(staleContract ? { detail: 'stale extractor contract' } : {}),
+      });
     } else {
       steps.push({ stage: 'pbo', date, action: 'reuse' });
     }

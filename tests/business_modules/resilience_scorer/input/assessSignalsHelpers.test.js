@@ -255,6 +255,8 @@ describe('mergeLoadedSignalFiles', () => {
         fileDate: '2026-05-01',
         fileDistrictId: 'south',
         data: {
+          extractor_contract: 'pbo_llm_field_report',
+          extractor_contract_version: 1,
           district_id: 'south',
           signals: [
             { evidence: 'Volunteers distributed supplies' },
@@ -276,6 +278,8 @@ describe('mergeLoadedSignalFiles', () => {
         fileDate: '2026-04-01',
         fileDistrictId: 'north',
         data: {
+          extractor_contract: 'pbo_llm_field_report',
+          extractor_contract_version: 1,
           signals: [
             { signal_type: 'resilience_narrative_positive', evidence: '[אעבלין] נרטיב: avg=81% (100%, 75%) — מתמודדים ברובם' },
             { signal_type: 'community_volunteering', evidence: '[מגדל תפן] הון ומשאבי קהילה: avg=100% (100%, 100%) — לא רלוונטי' },
@@ -295,7 +299,41 @@ describe('mergeLoadedSignalFiles', () => {
     assert.equal(allSignals[0].evidence, '[אעבלין] מתמודדים ברובם');
     // News bundles are untouched by field hygiene (short evidence survives).
     assert.equal(allSignals[1].evidence, 'ok');
-    assert.deepEqual(hygieneDrops, { total: 2, by_source: { pbo: 2 } });
+    assert.deepEqual(hygieneDrops, {
+      total: 2,
+      by_source: { pbo: 2 },
+      by_reason: { boilerplate: 2 },
+    });
+  });
+
+  it('drops bare channel inventories at load and attributes the reason', () => {
+    const { allSignals, hygieneDrops } = mergeLoadedSignalFiles([
+      {
+        weight: 1,
+        sourceType: 'pbo',
+        fileDate: '2026-04-01',
+        fileDistrictId: 'north',
+        data: {
+          extractor_contract: 'pbo_llm_field_report',
+          extractor_contract_version: 1,
+          signals: [
+            // Pure channel/actor list — names the pipes, asserts nothing.
+            { signal_type: 'information_actionable_effective', evidence: '[אעבלין] מידע: avg=100% (100%) — פקער,רשות,תקשורת' },
+            { signal_type: 'information_actionable_effective', evidence: "[ג'דיידה מכר] מדיה חברתית" },
+            // Same channels, but an uptake claim rides along — must survive.
+            {
+              signal_type: 'information_actionable_effective',
+              evidence: '[בועינה] המידע מועבר באמצעות רשתות חברתיות. רוב הציבור מתעדכן ופועל בהתאם להנחיות',
+            },
+            // Negation makes an all-channel-token line a real negative finding.
+            { signal_type: 'information_effectiveness_gap', evidence: '[מגדל] אין ווטסאפ רשותי' },
+          ],
+        },
+      },
+    ]);
+    assert.equal(allSignals.length, 2);
+    assert.equal(hygieneDrops.total, 2);
+    assert.deepEqual(hygieneDrops.by_reason, { channel_inventory: 2 });
   });
 });
 
@@ -385,6 +423,55 @@ describe('discoverSignalBundles field history', () => {
       assert.ok(fieldFiles.includes('signals-visits-2026-04-10.json'));
     } finally {
       rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('PBO extractor-contract gate (assess load)', () => {
+  const bundle = (sourceType, data) => [{ weight: 1, sourceType, fileDate: '2026-04-03', fileDistrictId: 'north', data }];
+  const stale = { signals: [{ evidence: 'Volunteers distributed supplies' }] };
+  const marked = {
+    extractor_contract: 'pbo_llm_field_report',
+    extractor_contract_version: 1,
+    signals: [{ evidence: 'Volunteers distributed supplies' }],
+  };
+
+  it('refuses a marker-less PBO municipal bundle and names the offending file', () => {
+    assert.throws(
+      () => mergeLoadedSignalFiles(bundle('pbo', stale)),
+      (err) => {
+        assert.equal(err.code, 'stale_pbo_bundle_contract');
+        assert.deepEqual(err.files, ['signals-pbo-2026-04-03.json']);
+        return true;
+      },
+    );
+  });
+
+  it('refuses a bundle whose contract version is below the minimum', () => {
+    assert.throws(
+      () => mergeLoadedSignalFiles(bundle('pbo', { ...marked, extractor_contract_version: 0 })),
+      (err) => err.code === 'stale_pbo_bundle_contract',
+    );
+  });
+
+  it('accepts a bundle carrying the current contract', () => {
+    const { allSignals } = mergeLoadedSignalFiles(bundle('pbo', marked));
+    assert.equal(allSignals.length, 1);
+  });
+
+  it('does not gate pbo_regional or visits — a different extractor never wrote the marker', () => {
+    assert.equal(mergeLoadedSignalFiles(bundle('pbo_regional', stale)).allSignals.length, 1);
+    assert.equal(mergeLoadedSignalFiles(bundle('visits', stale)).allSignals.length, 1);
+  });
+
+  it('loads stale bundles when the gate is disabled', () => {
+    const prev = process.env.RESILIENCE_PBO_CONTRACT_GATE_BLOCK;
+    process.env.RESILIENCE_PBO_CONTRACT_GATE_BLOCK = '0';
+    try {
+      assert.equal(mergeLoadedSignalFiles(bundle('pbo', stale)).allSignals.length, 1);
+    } finally {
+      if (prev == null) delete process.env.RESILIENCE_PBO_CONTRACT_GATE_BLOCK;
+      else process.env.RESILIENCE_PBO_CONTRACT_GATE_BLOCK = prev;
     }
   });
 });

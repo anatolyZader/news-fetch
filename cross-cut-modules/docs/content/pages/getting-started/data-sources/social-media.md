@@ -20,5 +20,5 @@ Open **Data sources** → **Social media**. Audit what was collected and which t
 - Review collection scope before treating a spike as representative
 
 ## Troubleshooting
-- **Tab empty or limited** — platform toggles are deployment-specific; ask your operator.
+- **Tab empty or limited** — platform toggles are deployment-specific; ask your user.
 - **Do not treat as census** — social samples are indicative; prefer multi-source proof on the daily report.

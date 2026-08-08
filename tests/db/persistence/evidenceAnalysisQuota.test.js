@@ -27,7 +27,7 @@ describe('evidenceAnalysisQuota sqlite', () => {
   });
 
   it('persists daily analysis count per owner', () => {
-    const request = { user: { uid: 'user-a', email: 'operator@example.com' } };
+    const request = { user: { uid: 'user-a', email: 'user@example.com' } };
     assert.equal(canRunEvidenceLlmAnalysis(request, store), true);
     recordEvidenceLlmAnalysis(request, store);
     recordEvidenceLlmAnalysis(request, store);

@@ -114,7 +114,7 @@ const CRITIC_REPAIR_HANDLERS = {
   thin_evidence_strong_claim(assessment, issue, repairLog) {
     assessment.severity = 'abstain';
     assessment.confidence = 'low';
-    assessment.operator_status = 'insufficient_data';
+    assessment.user_status = 'insufficient_data';
     repairLog.push({ issue: issue.type, action: 'downgraded_to_abstain' });
   },
   lookup_only_no_retrieval(assessment, issue, repairLog) {
@@ -123,7 +123,7 @@ const CRITIC_REPAIR_HANDLERS = {
   },
   oov_critical_severity(assessment, issue, repairLog) {
     assessment.severity = 'moderate';
-    assessment.operator_status = 'watch';
+    assessment.user_status = 'watch';
     repairLog.push({ issue: issue.type, action: 'downgraded_oov_severity' });
   },
   contested_without_dissent(assessment, issue, repairLog) {
@@ -133,10 +133,22 @@ const CRITIC_REPAIR_HANDLERS = {
   },
   missing_evidence_refs(assessment, issue, repairLog) {
     const claim = assessment.claims?.[issue.index];
-    if (claim && !claim.evidence_refs?.length) {
-      claim.evidence_refs = [`synthetic:${assessment.component_id}:${issue.index}`];
-      repairLog.push({ issue: issue.type, action: 'added_synthetic_ref', index: issue.index });
-    }
+    if (!claim || claim.evidence_refs?.length) return;
+    // A claim with no evidence is dropped, never given a manufactured citation.
+    // This used to assign `synthetic:<component>:<index>`, which satisfied the
+    // check while leaving a citation that resolves to nothing anywhere — the
+    // exact defect the ref-namespace work exists to eliminate.
+    //
+    // Marked rather than spliced: issues carry positional indices and are
+    // applied in a loop, so removing one here would shift every later index.
+    // `sweepUnsupportedClaims` removes them in one pass afterwards.
+    claim.unsupported_drop = true;
+    repairLog.push({
+      issue: issue.type,
+      action: 'dropped_unsupported_claim',
+      index: issue.index,
+      claim_text: String(claim.text ?? '').slice(0, 160),
+    });
   },
   dominance_unacknowledged(assessment, issue, repairLog) {
     const note = 'Evidence relies on a single source channel; treat component reads as provisional.';
@@ -148,7 +160,7 @@ const CRITIC_REPAIR_HANDLERS = {
   },
   gap_unaddressed(assessment, issue, repairLog) {
     const note = `Gap not fully resolved: ${issue.action}`;
-    // Keep the note in retrieval_gaps metadata only — never mutate the operator
+    // Keep the note in retrieval_gaps metadata only — never mutate the user
     // narrative / evidence tree. Dedup so repeated repair rounds (or several
     // components sharing one systemic gap) don't stack identical notes.
     const existing = assessment.retrieval_gaps ?? [];
@@ -175,11 +187,29 @@ const REPAIR_ISSUE_TYPES = new Set(Object.keys(CRITIC_REPAIR_HANDLERS));
  * @param {object[]} issues
  * @returns {object} same assessment reference
  */
+/**
+ * Remove claims marked unsupported by repair, in one pass once every
+ * positional issue index has been consumed.
+ *
+ * @param {object} assessment
+ */
+function sweepUnsupportedClaims(assessment) {
+  if (!Array.isArray(assessment.claims)) return;
+  const kept = assessment.claims.filter((c) => c?.unsupported_drop !== true);
+  if (kept.length === assessment.claims.length) return;
+  assessment.claims = kept;
+  // evidence_tree is the claim list on the specialist path; keep them in step.
+  if (Array.isArray(assessment.evidence_tree)) {
+    assessment.evidence_tree = assessment.evidence_tree.filter((c) => c?.unsupported_drop !== true);
+  }
+}
+
 export function applyCriticRepair(assessment, issues) {
   const repair_log = [...(assessment.repair_log ?? [])];
   for (const issue of issues) {
     CRITIC_REPAIR_HANDLERS[issue.type]?.(assessment, issue, repair_log);
   }
+  sweepUnsupportedClaims(assessment);
   assessment.repair_log = repair_log;
   return assessment;
 }

@@ -13,7 +13,7 @@ Run before saving `brochure-hq-en-print.pdf` or sending to a print shop.
 - [ ] All nine brochure screenshots from [`../screenshots/SCREENSHOT-MANIFEST.md`](../screenshots/SCREENSHOT-MANIFEST.md) present (no placeholders):
   - `01-home_screen.png`, `02_component_narrative.png`, `03_evidence_visits.png`, `04_evidence_pbo.png`, `05_evidence_press.png`, `06_chat.png`, `07_data_source_ribbon.png`, `09_send_data_window.png`, `11_write_report_window.png`
 - [ ] Assessment **date visible** in at least cover screenshot
-- [ ] Operator view only — no analyst UI
+- [ ] User view only — no developer UI
 - [ ] `qr-srulik-ai.png` present; test-scanned from screen and from printed proof
 - [ ] Logo renders from `client/public/logo_srulik_1_no_text.png`
 

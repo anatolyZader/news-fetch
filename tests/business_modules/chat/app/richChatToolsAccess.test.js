@@ -11,10 +11,10 @@ describe('rich chat tools open to all listed users', () => {
   beforeEach(() => {
     resetUserAccessCache();
     setUserAccessConfigForTests({
-      operatorDistrictEnforcementEnabled: false,
+      userDistrictEnforcementEnabled: false,
       users: [
-        { email: 'colleague@example.com', level: 'operator' },
-        { email: 'analyst@example.com', level: 'analyst' },
+        { email: 'colleague@example.com', level: 'user' },
+        { email: 'developer@example.com', level: 'developer' },
       ],
     });
   });
@@ -23,7 +23,7 @@ describe('rich chat tools open to all listed users', () => {
     resetUserAccessCache();
   });
 
-  it('listed operator gets the extended tool list', () => {
+  it('listed user gets the extended tool list', () => {
     const ctx = createChatToolContext({ userEmail: 'colleague@example.com' });
     assert.equal(ctx.richTools, true);
     const names = ctx.tools.map((t) => t.name);
@@ -39,7 +39,7 @@ describe('rich chat tools open to all listed users', () => {
     assert.match(requireRichTools(ctx, 'list_observations'), /listed account/i);
   });
 
-  it('listed operator may confirm non-operator propose actions', async () => {
+  it('listed user may confirm non-user propose actions', async () => {
     let called = null;
     const pending = {
       toolName: 'propose_geo_unknown_update',
@@ -56,7 +56,7 @@ describe('rich chat tools open to all listed users', () => {
     assert.deepEqual(called, { id: 7, status: 'resolved' });
   });
 
-  it('unlisted user still cannot confirm non-operator propose actions', async () => {
+  it('unlisted user still cannot confirm non-user propose actions', async () => {
     const pending = { toolName: 'propose_geo_unknown_update', params: { id: 7, status: 'resolved' } };
     await assert.rejects(
       executePendingAction(pending, { userEmail: 'stranger@example.com' }),

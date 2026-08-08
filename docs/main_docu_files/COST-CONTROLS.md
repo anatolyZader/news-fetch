@@ -46,7 +46,7 @@ Routes using **`costlyRoutePreHandlers`** (full chain):
 
 **Extract** calls `checkDailyBudget()` before LLM work (hard exit when exceeded).
 
-**Assess** uses `getDailyBudgetStatus()` — when the daily cap is exceeded, the assessment agent LLM is skipped and **deterministic degrade** runs (shadow scoring still completes; report includes `assessment_degraded`). The report is still written; operators are not left without a daily artifact.
+**Assess** uses `getDailyBudgetStatus()` — when the daily cap is exceeded, the assessment agent LLM is skipped and **deterministic degrade** runs (shadow scoring still completes; report includes `assessment_degraded`). The report is still written; users are not left without a daily artifact.
 
 - Script ids: `extract-signals`, `assess-signals`
 - Logged to same `cost-log.jsonl`
@@ -161,7 +161,7 @@ Optional `--full-assess` with `--live` is reserved for manual full `assess-signa
 
 ## Crisis chat budget (C+B hybrid)
 
-When daily HTTP budget is exhausted during crisis epistemic conditions, operators see a **suggest activation** banner; **analysts** HITL-activate an extra **chat-only** pool.
+When daily HTTP budget is exhausted during crisis epistemic conditions, users see a **suggest activation** banner; **developers** HITL-activate an extra **chat-only** pool.
 
 | Variable | Default | Role |
 |----------|---------|------|
@@ -172,7 +172,7 @@ When daily HTTP budget is exhausted during crisis epistemic conditions, operator
 
 **Spend scripts:** normal chat → `http:chat`; crisis pool → `http:chat:crisis`. Evidence upload, report build, etc. **do not** use the crisis pool — they still hard **429** at daily cap.
 
-**Routes (analyst):** `GET /api/budget/crisis-status`, `POST /api/budget/crisis/activate`, `POST /api/budget/crisis/deactivate` (`cross-cut-modules/budget/input/crisisBudgetRoutes.js`).
+**Routes (developer):** `GET /api/budget/crisis-status`, `POST /api/budget/crisis/activate`, `POST /api/budget/crisis/deactivate` (`cross-cut-modules/budget/input/crisisBudgetRoutes.js`).
 
 **Auto-suggest:** `suggest_crisis_budget: true` on report API when chat budget is exhausted **and** (`data_void.level === 'critical'` OR `digital_darkness` OR `sampling_status === 'blind'` OR `assessment_mode === 'abstained'`) — no auto-activate.
 

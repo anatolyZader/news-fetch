@@ -2,7 +2,7 @@
 
 Read this before any file under `business_modules/resilience_scorer/` or `specialist_agents/`.
 
-**min-math design:** this fork is narrative-first. There are **no numeric resilience scores** anywhere — no 1–10 headline, no evidence mass, no caps/CI/EWMA. Per-component assessment = verified signals + count-based `evidence_basis` (sufficiency/balance/concentration) + critical flags + LLM narrative grounded in evidence. Single report view (no operator/analyst redaction split).
+**min-math design:** this fork is narrative-first. There are **no numeric resilience scores** anywhere — no 1–10 headline, no evidence mass, no caps/CI/EWMA. Per-component assessment = verified signals + count-based `evidence_basis` (sufficiency/balance/concentration) + critical flags + LLM narrative grounded in evidence. Single report view (no user/developer redaction split).
 
 ## Entry
 
@@ -13,12 +13,13 @@ Read this before any file under `business_modules/resilience_scorer/` or `specia
 - `domain/epistemic/` — presence gates, critical-signal salience, thin-evidence policy, epistemic profile — all count-based
 - `domain/services/signals/routing/` — signal taxonomy routing (signalRouter facade, SIGNAL_TO_COMPONENTS, weights, hygiene, catalog prompt)
 - `domain/services/pipeline/` — ingest policy, stage telemetry, replay/reuse config
-- `domain/services/operator/` — the report surface (single view; "operator" is historical naming, there is no separate redacted view)
+- `domain/services/user/` — the report surface (single view; "user" is historical naming, there is no separate redacted view)
 - `input/extract-signals.js`, `input/assess-signals.js` — pipeline CLIs (`app/extraction/extractSignalsCli.js`, `app/assessment/assessSignalsCli.js`)
 - `input/run-pipeline.js` — unified ingest+assess orchestrator CLI (`npm run pipeline:run -- --preset 8comp-3`)
 - `app/pipeline/pipelineOrchestrator.js`, `app/pipeline/pipelineIngestPlan.js` — ingest plan + spawn orchestration
 - `domain/services/paths/` — canonical artifact paths
 - `input/reportRoutes.js` — report HTTP API
+- `input/run-cross-report-critique.js` — post-hoc QA CLI: recurring weak/unsupported claims across N finished reports (`domain/services/critique/`, `app/assessment/crossReportCritiqueService.js`, slash command `/critique-reports`)
 
 ## Assessment agent (sibling module)
 
@@ -52,4 +53,4 @@ Assessment agent uses **specialist_depth** (A/B/C). See `docs/architecture/ubiqu
 
 - **Novel / non-catalogue signal discovery** ("open X") is named per stage: **open vocabulary** at extraction (`openVocabularyExtractService.js`), **open observations** at load/artifact level (`loadOpenObservationsForAssess.js`, openObs bundles), **open evidence** at verification (`openEvidenceVerification.js`, `openEvidenceScoringSignals.js`). `oov/` is the same family (out-of-vocabulary).
 - **Fixed-taxonomy flow** ("closed X"): **closed catalogue** at extraction (`closedCatalogueExtractService.js`), **closed core** for the assessment shell/narrate path (`buildClosedCoreAssessmentShell.js`, `closedCoreNarrate.js`), **closedSignalBundle** at the infra port/adapter and artifact level.
-- **"Grounding" means two unrelated things.** `GROUNDING_TIER` (`contracts/groundingTier.js`, `signals/groundingPolicy.js`) is an evidence-verification confidence tier; `comp.grounding_score` is written by `specialist_agents`. `narrativeGrounding/*` is post-hoc QA of generated prose against cited evidence; `comp.narrative_grounding_score` is written by `claudeNarratives.js` / `operatorNarrativePipeline.js`. They never call each other.
+- **"Grounding" means two unrelated things.** `GROUNDING_TIER` (`contracts/groundingTier.js`, `signals/groundingPolicy.js`) is an evidence-verification confidence tier; `comp.grounding_score` is written by `specialist_agents`. `narrativeGrounding/*` is post-hoc QA of generated prose against cited evidence; `comp.narrative_grounding_score` is written by `claudeNarratives.js` / `userNarrativePipeline.js`. They never call each other.

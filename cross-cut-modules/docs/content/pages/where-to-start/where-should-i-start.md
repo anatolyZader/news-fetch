@@ -16,13 +16,13 @@ tags: ["getting-started", "user"]
 - **How does the system stay trustworthy?** → [How the system stays trustworthy](../trust/how-the-system-stays-trustworthy.md)
 
 ## Operating the system
-- **Daily operator routine** → [Operator workflow](../guides/operator-workflow.md)
+- **Daily user routine** → [User workflow](../guides/user-workflow.md)
 - **I want to connect WhatsApp** → [WhatsApp integration](../guides/whatsapp-integration.md)
 - **I run this every day** → [Operate the daily pipeline](https://docs.vibeswitch.ai/guides/operating-daily-pipeline)
 - **Something is broken** → [Common failures](https://docs.vibeswitch.ai/operations/common-failures)
 
 ## Deploying a new instance
-If you're a developer or operator standing up a new deployment:
+If you're a developer or user standing up a new deployment:
 - [Install & run (local)](https://docs.vibeswitch.ai/getting-started/install-and-run)
 - [Deploy (production)](https://docs.vibeswitch.ai/getting-started/deploy)
 - [Auth setup](https://docs.vibeswitch.ai/getting-started/auth-setup)

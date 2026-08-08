@@ -91,24 +91,24 @@ describe('userDailyBudget', () => {
     assert.deepEqual(getUserDailyBudgetStatus(null, {}).metered, false);
   });
 
-  it('exempts analyst and maintainer accounts, meters operators', () => {
+  it('exempts developer and maintainer accounts, meters users', () => {
     setUserAccessConfigForTests({
-      operatorDistrictEnforcementEnabled: false,
+      userDistrictEnforcementEnabled: false,
       users: [
-        { email: 'analyst@example.com', level: 'analyst' },
+        { email: 'developer@example.com', level: 'developer' },
         { email: 'boss@example.com', level: 'maintainer' },
-        { email: 'colleague@example.com', level: 'operator' },
+        { email: 'colleague@example.com', level: 'user' },
       ],
     });
-    assert.equal(isUserBudgetExempt('analyst@example.com'), true);
+    assert.equal(isUserBudgetExempt('developer@example.com'), true);
     assert.equal(isUserBudgetExempt('boss@example.com'), true);
     assert.equal(isUserBudgetExempt('colleague@example.com'), false);
   });
 
   it('preHandler 429s a metered user over their budget, with renewal info', async () => {
     setUserAccessConfigForTests({
-      operatorDistrictEnforcementEnabled: false,
-      users: [{ email: 'colleague@example.com', level: 'operator' }],
+      userDistrictEnforcementEnabled: false,
+      users: [{ email: 'colleague@example.com', level: 'user' }],
     });
     process.env.CHAT_USER_DAILY_BUDGET_USD = '1';
     writeFileSync(process.env.COST_LOG_PATH, ownerCostLine('op-1', 1.2));
@@ -121,14 +121,14 @@ describe('userDailyBudget', () => {
     assert.ok(reply.payload.resets_at);
   });
 
-  it('preHandler lets an exempt analyst through even with heavy personal spend', async () => {
+  it('preHandler lets an exempt developer through even with heavy personal spend', async () => {
     setUserAccessConfigForTests({
-      operatorDistrictEnforcementEnabled: false,
-      users: [{ email: 'analyst@example.com', level: 'analyst' }],
+      userDistrictEnforcementEnabled: false,
+      users: [{ email: 'developer@example.com', level: 'developer' }],
     });
     process.env.CHAT_USER_DAILY_BUDGET_USD = '1';
     writeFileSync(process.env.COST_LOG_PATH, ownerCostLine('an-1', 5));
-    const request = { user: { uid: 'an-1', email: 'analyst@example.com' } };
+    const request = { user: { uid: 'an-1', email: 'developer@example.com' } };
     const reply = fakeReply();
     await createHttpChatBudgetPreHandler()(request, reply);
     assert.equal(reply.statusCode, undefined);

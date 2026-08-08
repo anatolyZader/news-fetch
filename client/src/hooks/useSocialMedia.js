@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
+import { withUserDistrictQuery } from '../lib/clampUserDistrictScope.js';
 import { authFetch } from '../lib/authFetch.js';
 import { localizedAuthFetch } from '../lib/localizedAuthFetch.js';
 
-/** @param {{ getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
-export function useSocialMediaDashboard({ getIdToken, getAppCheckToken, apiReady, operatorScope = 'national' }) {
+/** @param {{ getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean, userScope?: string }} opts */
+export function useSocialMediaDashboard({ getIdToken, getAppCheckToken, apiReady, userScope = 'national' }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,13 +14,13 @@ export function useSocialMediaDashboard({ getIdToken, getAppCheckToken, apiReady
     setLoading(true);
     setError(null);
     try {
-      setData(await authFetch(withOperatorDistrictQuery('/api/social-media', operatorScope), auth));
+      setData(await authFetch(withUserDistrictQuery('/api/social-media', userScope), auth));
     } catch (e) {
       setError(e?.message ?? 'Failed');
     } finally {
       setLoading(false);
     }
-  }, [getIdToken, getAppCheckToken, operatorScope]);
+  }, [getIdToken, getAppCheckToken, userScope]);
 
   useEffect(() => {
     if (!apiReady) return;
@@ -29,7 +29,7 @@ export function useSocialMediaDashboard({ getIdToken, getAppCheckToken, apiReady
       setLoading(true);
       setError(null);
       try {
-        const out = await authFetch(withOperatorDistrictQuery('/api/social-media', operatorScope), auth);
+        const out = await authFetch(withUserDistrictQuery('/api/social-media', userScope), auth);
         if (!cancelled) setData(out);
       } catch (e) {
         if (!cancelled) setError(e?.message ?? 'Failed');
@@ -38,13 +38,13 @@ export function useSocialMediaDashboard({ getIdToken, getAppCheckToken, apiReady
       }
     })();
     return () => { cancelled = true; };
-  }, [apiReady, getIdToken, getAppCheckToken, operatorScope]);
+  }, [apiReady, getIdToken, getAppCheckToken, userScope]);
 
   return { data, loading, error, reload };
 }
 
-/** @param {{ date: string, categoryId?: string, lang?: string, getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean, operatorScope?: string }} opts */
-export function useSocialMediaDailyFeed({ date, categoryId, lang, getIdToken, getAppCheckToken, apiReady, operatorScope = 'national' }) {
+/** @param {{ date: string, categoryId?: string, lang?: string, getIdToken: () => Promise<string|null>, getAppCheckToken?: () => Promise<string|null>, apiReady: boolean, userScope?: string }} opts */
+export function useSocialMediaDailyFeed({ date, categoryId, lang, getIdToken, getAppCheckToken, apiReady, userScope = 'national' }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -59,7 +59,7 @@ export function useSocialMediaDailyFeed({ date, categoryId, lang, getIdToken, ge
         const q = new URLSearchParams({ date });
         if (categoryId) q.set('category', categoryId);
         if (lang) q.set('lang', lang);
-        const base = withOperatorDistrictQuery(`/api/social-media/daily?${q.toString()}`, operatorScope);
+        const base = withUserDistrictQuery(`/api/social-media/daily?${q.toString()}`, userScope);
         const out = await localizedAuthFetch(base, { lang, getIdToken, getAppCheckToken });
         if (!cancelled) setData(out);
       } catch (e) {
@@ -72,7 +72,7 @@ export function useSocialMediaDailyFeed({ date, categoryId, lang, getIdToken, ge
       }
     })();
     return () => { cancelled = true; };
-  }, [date, categoryId, lang, apiReady, getIdToken, getAppCheckToken, operatorScope]);
+  }, [date, categoryId, lang, apiReady, getIdToken, getAppCheckToken, userScope]);
 
   return { data, loading, error };
 }

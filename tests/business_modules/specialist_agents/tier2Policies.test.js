@@ -13,13 +13,13 @@ describe('crossComponentConsistency', () => {
       {
         component_id: 'leadership',
         severity: 'high',
-        operator_status: 'critical_failure',
+        user_status: 'critical_failure',
         claims: [{ evidence_refs: ['src:a'] }],
       },
       {
         component_id: 'narrative',
         severity: 'moderate',
-        operator_status: 'stable',
+        user_status: 'stable',
         claims: [{ evidence_refs: ['src:b'] }],
       },
     ]);

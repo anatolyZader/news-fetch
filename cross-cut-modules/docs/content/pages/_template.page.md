@@ -7,7 +7,7 @@ stability: beta
 canonical: "https://docs.vibeswitch.ai/<path>"
 version: "current"
 tags: []
-# Optional: judgmentSupport: true — page helps operators decide (documentation convention)
+# Optional: judgmentSupport: true — page helps users decide (documentation convention)
 llm:
   chunkHint: "Keep sections short and self-contained."
 ---

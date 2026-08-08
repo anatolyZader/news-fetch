@@ -1,7 +1,7 @@
 /**
  * Digest report-selection knobs.
  *
- * The defaults below are TEMPORARY operator preferences (set 2026-08-08): the
+ * The defaults below are TEMPORARY user preferences (set 2026-08-08): the
  * digest reads the north scope and shows whichever report was generated most
  * recently, whatever period it covers. Reverting is a config change, not a code
  * change — set MAIL_DIGEST_REPORT_SCOPE=national and

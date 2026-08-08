@@ -5,7 +5,7 @@
  * epistemic gate; output attached to assessment.data_void.
  *
  * Owns: void level/reason, affected_clusters, volume baselines, information_vacuum_index.
- * Does NOT: quarantine signals (scoringPartition) or build operator attention items.
+ * Does NOT: quarantine signals (scoringPartition) or build user attention items.
  *
  * Key collaborators: `dataVoid/channelBaselines.js`, `dataVoid/clusterVoid.js`,
  * `dataVoid/sourceChannels.js`, `dataVoidIndex.js` re-export barrel.

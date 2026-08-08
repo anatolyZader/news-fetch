@@ -1,8 +1,8 @@
 /**
- * Cluster learning-capture records for OOV gap review and operator alerts.
+ * Cluster learning-capture records for OOV gap review and user alerts.
  *
  * Pipeline position: STAGE-2 assess oov path — prefix and embedding clustering
- * used by `dynamicOovCluster.js` and analyst gap review tooling.
+ * used by `dynamicOovCluster.js` and developer gap review tooling.
  *
  * Owns: cosine similarity, prefix/embedding clustering, cluster summarization, ranking.
  * Does NOT: load JSONL captures (see `oovCapture.js`) or emit burst alert levels
@@ -150,7 +150,7 @@ function summarizeCluster(key, records, kinds) {
 }
 
 /**
- * Rank clusters for analyst attention by count, breadth, and novelty.
+ * Rank clusters for developer attention by count, breadth, and novelty.
  * @param {Array<object>} clusters
  * @param {object} [opts]
  * @param {number} [opts.minCount]

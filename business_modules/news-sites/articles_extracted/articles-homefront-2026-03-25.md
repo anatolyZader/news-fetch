@@ -2014,7 +2014,7 @@ The first track is based on a decline in revenue, where refunds given to parents
 
 The second track is intended for smaller frameworks, including family-run daycare centers and private caregivers whose annual revenue is below 300,000 shekels. These frameworks will be eligible for compensation of up to 15,000 shekels per month, depending on the extent of the income loss, including that caused by refunds to parents.
 
-The third track allows daycare operators to place staff on unpaid leave, a step that reduces salary expenses and enables operators to return a significant portion of payments to parents. At the same time, the state does not intervene in determining the refund amount, leaving the decision to each daycare center according to agreements with parents and their expense structure.
+The third track allows daycare users to place staff on unpaid leave, a step that reduces salary expenses and enables users to return a significant portion of payments to parents. At the same time, the state does not intervene in determining the refund amount, leaving the decision to each daycare center according to agreements with parents and their expense structure.
 
 It was also clarified that regulated daycare centers are also eligible for the compensation framework, similar to private daycares, and will be able to use it to return a significant portion of payments to parents.
 

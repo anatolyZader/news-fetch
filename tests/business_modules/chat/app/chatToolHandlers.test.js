@@ -13,7 +13,7 @@ describe('chatToolHandlers', () => {
     const result = await handleChatToolCall('lookup_pbo', { municipality: 'Haifa' }, {
       pboLookup: { Haifa: 'scores here' },
       richTools: false,
-      analystToolsEnabled: true,
+      developerToolsEnabled: true,
       confirmActionsEnabled: true,
       reportData: {},
     });
@@ -21,10 +21,10 @@ describe('chatToolHandlers', () => {
     assert.match(result, /^<<<UNTRUSTED_DATA label="tool:lookup_pbo">>>/);
   });
 
-  it('blocks analyst tools for non-analyst', async () => {
+  it('blocks developer tools for non-developer', async () => {
     const result = await handleChatToolCall('list_geo_unknown', {}, {
       richTools: false,
-      analystToolsEnabled: true,
+      developerToolsEnabled: true,
       confirmActionsEnabled: true,
     });
     assert.match(result, /listed account/i);
@@ -36,7 +36,7 @@ describe('chatToolHandlers', () => {
         assessment: {
           date: '2026-05-30',
           components: [],
-          operator_recommendations: [],
+          user_recommendations: [],
         },
       },
     });
@@ -54,11 +54,11 @@ describe('chatToolHandlers', () => {
     assert.match(result, /Focus on field/);
   });
 
-  it('list_operator_recommendations filters pending', async () => {
-    const result = await handleChatToolCall('list_operator_recommendations', { status: 'pending' }, {
+  it('list_user_recommendations filters pending', async () => {
+    const result = await handleChatToolCall('list_user_recommendations', { status: 'pending' }, {
       reportData: {
         assessment: {
-          operator_recommendations: [{
+          user_recommendations: [{
             id: 'rec:test',
             pattern_code: 'active_rumor_cluster',
             level: 'watch',
@@ -72,16 +72,16 @@ describe('chatToolHandlers', () => {
     assert.match(result, /monitor_rumors/);
   });
 
-  it('propose_operator_recommendation available for operators', async () => {
+  it('propose_user_recommendation available for users', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'chat-pending-op-'));
     const store = createChatPendingActionStore(join(dir, 'test.sqlite'));
     const proposed = [];
     const result = await handleChatToolCall(
-      'propose_operator_recommendation',
+      'propose_user_recommendation',
       { recommendation_id: 'rec:test', action: 'acknowledge', rationale: 'done' },
       {
         richTools: false,
-        analystToolsEnabled: true,
+        developerToolsEnabled: true,
         confirmActionsEnabled: true,
         pendingActionStore: store,
         ownerUid: 'u1',
@@ -120,7 +120,7 @@ describe('lookup_pbo dashboard source', () => {
     reportData: { assessment: { date: '2026-05-23' } },
     getMunicipalityDashboard: () => dashboard,
     richTools: false,
-    analystToolsEnabled: true,
+    developerToolsEnabled: true,
     confirmActionsEnabled: true,
   };
 
@@ -148,7 +148,7 @@ describe('lookup_pbo date awareness', () => {
     pboLookup: {},
     reportData: { assessment: { date: '2026-05-23' } },
     richTools: false,
-    analystToolsEnabled: true,
+    developerToolsEnabled: true,
     confirmActionsEnabled: true,
   };
 
@@ -168,7 +168,7 @@ describe('lookup_pbo date awareness', () => {
 });
 
 describe('empty-layer honesty', () => {
-  const gates = { richTools: false, analystToolsEnabled: true, confirmActionsEnabled: true, pboLookup: {} };
+  const gates = { richTools: false, developerToolsEnabled: true, confirmActionsEnabled: true, pboLookup: {} };
 
   it('attention items: empty list says the layer ran', async () => {
     const result = await handleChatToolCall('list_attention_items', {}, {
@@ -179,15 +179,15 @@ describe('empty-layer honesty', () => {
   });
 
   it('recommendations: absent field vs empty list are distinguished', async () => {
-    const absent = await handleChatToolCall('list_operator_recommendations', {}, {
+    const absent = await handleChatToolCall('list_user_recommendations', {}, {
       ...gates,
       reportData: { assessment: { date: '2026-05-30', components: [] } },
     });
     assert.match(absent, /not generated for this report \(feature off at assess time\)/);
 
-    const empty = await handleChatToolCall('list_operator_recommendations', { status: 'pending' }, {
+    const empty = await handleChatToolCall('list_user_recommendations', { status: 'pending' }, {
       ...gates,
-      reportData: { assessment: { date: '2026-05-30', components: [], operator_recommendations: [] } },
+      reportData: { assessment: { date: '2026-05-30', components: [], user_recommendations: [] } },
     });
     assert.match(empty, /status=pending — the layer ran, none matched/);
   });
@@ -198,7 +198,7 @@ describe('new deterministic tools', () => {
     const result = await handleChatToolCall('get_report', { date: '1999-01-01' }, {
       reportData: {},
       richTools: false,
-      analystToolsEnabled: true,
+      developerToolsEnabled: true,
       confirmActionsEnabled: true,
     });
     assert.match(result, /No report found for 1999-01-01/);
@@ -206,9 +206,9 @@ describe('new deterministic tools', () => {
 
   it('get_report_context with an unknown past date lists available dates', async () => {
     const result = await handleChatToolCall('get_report_context', { slice: 'full', date: '1999-01-01' }, {
-      reportData: { display_view: 'operator', assessment: { report_scope: { id: 'north' } } },
+      reportData: { display_view: 'user', assessment: { report_scope: { id: 'north' } } },
       richTools: false,
-      analystToolsEnabled: true,
+      developerToolsEnabled: true,
       confirmActionsEnabled: true,
     });
     assert.match(result, /No report found for 1999-01-01 \(scope=north\)/);
@@ -220,22 +220,22 @@ describe('new deterministic tools', () => {
       'get_component_evidence_bundle',
       { component: 'leadership', date: '1999-01-01' },
       {
-        reportData: { display_view: 'operator', assessment: {} },
+        reportData: { display_view: 'user', assessment: {} },
         richTools: false,
-        analystToolsEnabled: true,
+        developerToolsEnabled: true,
         confirmActionsEnabled: true,
       },
     );
     assert.match(result, /No report found for 1999-01-01/);
   });
 
-  it('get_report_context redacts a past report for non-analyst sessions', async () => {
+  it('get_report_context redacts a past report for non-developer sessions', async () => {
     let redactedWith = null;
     const result = await handleChatToolCall('get_report_context', { slice: 'full', date: '1999-01-01' }, {
-      reportData: { display_view: 'operator', assessment: {} },
+      reportData: { display_view: 'user', assessment: {} },
       redactReportPayload: (raw, view) => { redactedWith = view; return raw; },
       richTools: false,
-      analystToolsEnabled: true,
+      developerToolsEnabled: true,
       confirmActionsEnabled: true,
     });
     // Unknown date short-circuits before redaction — redactor must not have run.
@@ -246,7 +246,7 @@ describe('new deterministic tools', () => {
   it('get_report_context returns the requested slice of today\'s report', async () => {
     const result = await handleChatToolCall('get_report_context', { slice: 'component', component: 'leadership' }, {
       reportData: {
-        display_view: 'operator',
+        display_view: 'user',
         assessment: {
           date: '2026-07-01',
           components: [
@@ -255,7 +255,7 @@ describe('new deterministic tools', () => {
         },
       },
       richTools: false,
-      analystToolsEnabled: true,
+      developerToolsEnabled: true,
       confirmActionsEnabled: true,
     });
     assert.match(result, /Component detail:/);
@@ -266,16 +266,16 @@ describe('new deterministic tools', () => {
     const result = await handleChatToolCall('signal_stats', { group_by: 'signal_type', date_from: '1999-01-01', date_to: '1999-01-02' }, {
       reportData: {},
       richTools: false,
-      analystToolsEnabled: true,
+      developerToolsEnabled: true,
       confirmActionsEnabled: true,
     });
     assert.match(result, /No signals match/);
   });
 
-  it('list_observations is analyst-gated', async () => {
+  it('list_observations is developer-gated', async () => {
     const result = await handleChatToolCall('list_observations', {}, {
       richTools: false,
-      analystToolsEnabled: true,
+      developerToolsEnabled: true,
       confirmActionsEnabled: true,
     });
     assert.match(result, /listed account/i);
@@ -287,7 +287,7 @@ describe('new deterministic tools', () => {
       pboLookup: {},
       reportData: { assessment: { date: '2026-07-01' } },
       richTools: false,
-      analystToolsEnabled: true,
+      developerToolsEnabled: true,
       confirmActionsEnabled: true,
       sourceArchive: {
         getBySourceId: () => ({
@@ -331,7 +331,7 @@ describe('chatPendingActionStore', () => {
 describe('executePendingAction', () => {
   it('executes geo unknown update on confirm', async () => {
     const prev = process.env.RESILIENCE_ANALYST_EMAILS;
-    process.env.RESILIENCE_ANALYST_EMAILS = 'analyst@test.com';
+    process.env.RESILIENCE_ANALYST_EMAILS = 'developer@test.com';
     let called = false;
     const geoUnknownReviewService = {
       updateStatus(id, { status }) {
@@ -345,7 +345,7 @@ describe('executePendingAction', () => {
           toolName: 'propose_geo_unknown_update',
           params: { id: 1, status: 'resolved' },
         },
-        { userEmail: 'analyst@test.com', geoUnknownReviewService },
+        { userEmail: 'developer@test.com', geoUnknownReviewService },
       );
       assert.equal(called, true);
       assert.equal(result.ok, true);
@@ -388,7 +388,7 @@ describe('executePendingAction', () => {
 });
 
 describe('coverage / catalog / profile / search tools', () => {
-  const gates = { richTools: false, analystToolsEnabled: true, confirmActionsEnabled: true, pboLookup: {} };
+  const gates = { richTools: false, developerToolsEnabled: true, confirmActionsEnabled: true, pboLookup: {} };
   const dashboard = {
     componentsOrder: ['narrative', 'leadership'],
     componentNames: { en: {}, he: {} },
@@ -462,14 +462,14 @@ describe('coverage / catalog / profile / search tools', () => {
     assert.match(noHit, /No report text matches "zzz-nothing-zzz"/);
   });
 
-  it('search_reports redacts for non-analyst sessions', async () => {
+  it('search_reports redacts for non-developer sessions', async () => {
     // daily_reports/ is gitignored — seed a temp fixture so CI invokes redact.
     const reportsDir = mkdtempSync(join(tmpdir(), 'chat-search-reports-'));
     writeFileSync(
       join(reportsDir, 'national-1-150726-1200.json'),
       JSON.stringify({
         assessment: {
-          components: [{ component_id: 'leadership', narrative_operator: 'Mayors held briefings.' }],
+          components: [{ component_id: 'leadership', narrative_user: 'Mayors held briefings.' }],
         },
       }),
     );
@@ -477,14 +477,14 @@ describe('coverage / catalog / profile / search tools', () => {
       let redactedWith = null;
       await handleChatToolCall('search_reports', { query: 'briefings', limit: 1 }, {
         ...gates,
-        reportData: { display_view: 'operator' },
+        reportData: { display_view: 'user' },
         reportsDir,
         redactReportPayload: (raw, view) => {
           redactedWith = view;
           return { assessment: { components: [] } };
         },
       });
-      assert.equal(redactedWith, 'operator');
+      assert.equal(redactedWith, 'user');
     } finally {
       rmSync(reportsDir, { recursive: true, force: true });
     }
@@ -506,9 +506,9 @@ describe('coverage / catalog / profile / search tools', () => {
 });
 
 describe('propose_signal_flag', () => {
-  const gates = { richTools: false, analystToolsEnabled: true, confirmActionsEnabled: true };
+  const gates = { richTools: false, developerToolsEnabled: true, confirmActionsEnabled: true };
 
-  it('proposes a pending action for operators (non-analyst)', async () => {
+  it('proposes a pending action for users (non-developer)', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'chat-pending-flag-'));
     const store = createChatPendingActionStore(join(dir, 'test.sqlite'));
     const proposed = [];
@@ -532,7 +532,7 @@ describe('propose_signal_flag', () => {
     assert.match(noRef, /Provide signal_id .* or source_ref/);
   });
 
-  it('executePendingAction appends to the flag store for a non-analyst operator', async () => {
+  it('executePendingAction appends to the flag store for a non-developer user', async () => {
     const appended = [];
     const result = await executePendingAction(
       {
@@ -541,7 +541,7 @@ describe('propose_signal_flag', () => {
         sessionId: 's9',
       },
       {
-        userEmail: 'operator@test.com',
+        userEmail: 'user@test.com',
         sessionId: 's9',
         signalFlagStore: {
           append(record) {
@@ -555,7 +555,7 @@ describe('propose_signal_flag', () => {
     assert.equal(result.flag_id, 'sf_test_1');
     assert.equal(appended.length, 1);
     assert.equal(appended[0].reason, 'not_a_signal');
-    assert.equal(appended[0].user, 'operator@test.com');
+    assert.equal(appended[0].user, 'user@test.com');
     assert.equal(appended[0].session_id, 's9');
   });
 
@@ -563,7 +563,7 @@ describe('propose_signal_flag', () => {
     await assert.rejects(
       executePendingAction(
         { toolName: 'propose_signal_flag', params: { source_ref: 'x', reason: 'nope' } },
-        { userEmail: 'operator@test.com', signalFlagStore: { append: () => ({}) } },
+        { userEmail: 'user@test.com', signalFlagStore: { append: () => ({}) } },
       ),
       /Invalid flag reason/,
     );

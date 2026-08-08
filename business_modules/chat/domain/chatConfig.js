@@ -3,7 +3,7 @@
  * Invariant: state mutations use propose_* tools only (see chatToolMutations.test.js).
  */
 
-export function chatAnalystToolsEnabled() {
+export function chatDeveloperToolsEnabled() {
   return process.env.CHAT_ANALYST_TOOLS_ENABLED !== '0';
 }
 
@@ -51,12 +51,12 @@ export const PENDING_ACTION_TTL_MS = 15 * 60 * 1000;
 
 export const PROPOSE_TOOL_NAMES = new Set([
   'propose_geo_unknown_update',
-  'propose_operator_recommendation',
+  'propose_user_recommendation',
   'propose_signal_flag',
 ]);
 
-export const OPERATOR_PROPOSE_TOOL_NAMES = new Set([
-  'propose_operator_recommendation',
+export const USER_PROPOSE_TOOL_NAMES = new Set([
+  'propose_user_recommendation',
   'propose_signal_flag',
 ]);
 

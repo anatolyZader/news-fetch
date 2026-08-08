@@ -5,13 +5,13 @@ import {
   DISPLAY_VIEWS,
   resolveDisplayView,
   deriveInstrumentState,
-  operatorAssessmentSummary,
+  userAssessmentSummary,
   redactAssessmentForView,
   redactScoreBySource,
   redactReportPayload,
-} from '../../../../../business_modules/resilience_scorer/domain/services/operator/assessmentDisplayTier.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/user/assessmentDisplayTier.js';
 import {
-  canViewAnalystDisplay,
+  canViewDeveloperDisplay,
   resetUserAccessCache,
   setUserAccessConfigForTests,
 } from '../../../../../cross-cut-modules/auth/userAccess.js';
@@ -22,7 +22,7 @@ describe('assessmentDisplayTier', () => {
   beforeEach(() => {
     prevEmails = process.env.RESILIENCE_ANALYST_EMAILS;
     resetUserAccessCache();
-    setUserAccessConfigForTests({ operatorDistrictEnforcementEnabled: false, users: [] });
+    setUserAccessConfigForTests({ userDistrictEnforcementEnabled: false, users: [] });
   });
 
   afterEach(() => {
@@ -31,27 +31,27 @@ describe('assessmentDisplayTier', () => {
     resetUserAccessCache();
   });
 
-  it('resolveDisplayView defaults to operator', () => {
-    assert.equal(resolveDisplayView({}), DISPLAY_VIEWS.operator);
-    assert.equal(resolveDisplayView({ queryView: 'operator' }), DISPLAY_VIEWS.operator);
+  it('resolveDisplayView defaults to user', () => {
+    assert.equal(resolveDisplayView({}), DISPLAY_VIEWS.user);
+    assert.equal(resolveDisplayView({ queryView: 'user' }), DISPLAY_VIEWS.user);
   });
 
-  it('resolveDisplayView grants analyst only when canViewAnalyst is true', () => {
+  it('resolveDisplayView grants developer only when canViewDeveloper is true', () => {
     assert.equal(
-      resolveDisplayView({ queryView: 'analyst', canViewAnalyst: true }),
-      DISPLAY_VIEWS.analyst,
+      resolveDisplayView({ queryView: 'developer', canViewDeveloper: true }),
+      DISPLAY_VIEWS.developer,
     );
     assert.equal(
-      resolveDisplayView({ queryView: 'analyst', canViewAnalyst: false }),
-      DISPLAY_VIEWS.operator,
+      resolveDisplayView({ queryView: 'developer', canViewDeveloper: false }),
+      DISPLAY_VIEWS.user,
     );
   });
 
-  it('canViewAnalystDisplay mirrors allowlist', () => {
+  it('canViewDeveloperDisplay mirrors allowlist', () => {
     process.env.RESILIENCE_ANALYST_EMAILS = 'a@b.c';
-    assert.equal(canViewAnalystDisplay('a@b.c'), true);
-    assert.equal(canViewAnalystDisplay('x@y.z'), false);
-    assert.equal(canViewAnalystDisplay(''), false);
+    assert.equal(canViewDeveloperDisplay('a@b.c'), true);
+    assert.equal(canViewDeveloperDisplay('x@y.z'), false);
+    assert.equal(canViewDeveloperDisplay(''), false);
   });
 
   it('deriveInstrumentState maps evidence_basis sufficiency to certainty band', () => {
@@ -140,12 +140,12 @@ describe('assessmentDisplayTier', () => {
     });
     assert.equal(inst.presence_gate_triggered, true);
     assert.equal(inst.shows_assessment, false);
-    assert.equal(inst.operator_shows_score, false);
+    assert.equal(inst.user_shows_score, false);
     assert.equal(inst.thin_evidence_instrument, 'critical_presence_failure');
   });
 
-  it('operatorAssessmentSummary has no /10', () => {
-    const line = operatorAssessmentSummary({
+  it('userAssessmentSummary has no /10', () => {
+    const line = userAssessmentSummary({
       report_scope: { label: 'National' },
       components: [
         { evidence_basis: { sufficiency: 'adequate' }, confidence: 'high' },
@@ -168,19 +168,19 @@ describe('assessmentDisplayTier', () => {
         evidence_basis: { sufficiency: 'adequate' },
         confidence: 'high',
         data_quality_caveat: 'Source cap on ynet.',
-        analyst_flags: ['tier_c_skipped'],
+        developer_flags: ['tier_c_skipped'],
       }],
       component_diagnostics: { narrative: { claims_count: 0 } },
     };
-    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.operator);
-    assert.equal(out.display_view, DISPLAY_VIEWS.operator);
+    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.user);
+    assert.equal(out.display_view, DISPLAY_VIEWS.user);
     const comp = out.components[0];
     assert.equal(comp.narrative, 'text');
     assert.deepEqual(comp.evidence, ['e1']);
     assert.equal(comp.instrument.evidence_sufficiency, 'adequate');
     // Passthrough: nothing is stripped any more.
     assert.equal(comp.data_quality_caveat, 'Source cap on ynet.');
-    assert.deepEqual(comp.analyst_flags, ['tier_c_skipped']);
+    assert.deepEqual(comp.developer_flags, ['tier_c_skipped']);
     assert.deepEqual(out.investigation_summary, { synthesis_mode: 'deterministic' });
     assert.deepEqual(out.component_diagnostics, { narrative: { claims_count: 0 } });
   });
@@ -190,30 +190,30 @@ describe('assessmentDisplayTier', () => {
       components: [{
         component_id: 'narrative',
         narrative: 'Agent narrative.',
-        narrative_operator: 'Operator narrative.',
+        narrative_user: 'User narrative.',
       }],
     };
-    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.analyst);
-    assert.equal(out.display_view, DISPLAY_VIEWS.operator);
-    assert.equal(out.components[0].narrative, 'Operator narrative.');
+    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.developer);
+    assert.equal(out.display_view, DISPLAY_VIEWS.user);
+    assert.equal(out.components[0].narrative, 'User narrative.');
   });
 
-  it('redactAssessmentForView prefers narrative_operator and operator synthesis', () => {
+  it('redactAssessmentForView prefers narrative_user and user synthesis', () => {
     const assessment = {
       cross_component_synthesis: 'Agent synthesis.',
-      cross_component_synthesis_operator: 'Operator synthesis.',
+      cross_component_synthesis_user: 'User synthesis.',
       components: [{
         component_id: 'narrative',
         narrative: 'Agent narrative.',
-        narrative_operator: 'Operator narrative.',
+        narrative_user: 'User narrative.',
       }],
     };
-    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.operator);
-    assert.equal(out.components[0].narrative, 'Operator narrative.');
-    assert.equal(out.cross_component_synthesis, 'Operator synthesis.');
+    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.user);
+    assert.equal(out.components[0].narrative, 'User narrative.');
+    assert.equal(out.cross_component_synthesis, 'User synthesis.');
     // Source fields are preserved, not deleted.
-    assert.equal(out.components[0].narrative_operator, 'Operator narrative.');
-    assert.equal(out.cross_component_synthesis_operator, 'Operator synthesis.');
+    assert.equal(out.components[0].narrative_user, 'User narrative.');
+    assert.equal(out.cross_component_synthesis_user, 'User synthesis.');
   });
 
   it('redactAssessmentForView falls back to agent narrative and synthesis', () => {
@@ -221,47 +221,47 @@ describe('assessmentDisplayTier', () => {
       cross_component_synthesis: 'Agent synthesis.',
       components: [{ component_id: 'narrative', narrative: 'Agent narrative.' }],
     };
-    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.operator);
+    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.user);
     assert.equal(out.components[0].narrative, 'Agent narrative.');
     assert.equal(out.cross_component_synthesis, 'Agent synthesis.');
   });
 
-  it('redactAssessmentForView prefers evidence_operator over evidence', () => {
+  it('redactAssessmentForView prefers evidence_user over evidence', () => {
     const assessment = {
       components: [{
         component_id: 'narrative',
         evidence: ['Agent evidence.'],
-        evidence_operator: ['Operator evidence.'],
+        evidence_user: ['User evidence.'],
       }],
     };
-    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.operator);
-    assert.deepEqual(out.components[0].evidence, ['Operator evidence.']);
-    assert.deepEqual(out.components[0].evidence_operator, ['Operator evidence.']);
+    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.user);
+    assert.deepEqual(out.components[0].evidence, ['User evidence.']);
+    assert.deepEqual(out.components[0].evidence_user, ['User evidence.']);
   });
 
-  it('redactAssessmentForView prefers structured evidence_operator', () => {
+  it('redactAssessmentForView prefers structured evidence_user', () => {
     const structured = [{
-      text: 'Operator claim.',
+      text: 'User claim.',
       source_type: 'press',
       article_source: 'ynet.co.il',
-      markdown: '- Operator claim. [source](https://ynet.co.il/x)',
+      markdown: '- User claim. [source](https://ynet.co.il/x)',
     }];
     const assessment = {
       components: [{
         component_id: 'narrative',
-        evidence_operator: ['- bullet'],
-        evidence_operator_structured: structured,
+        evidence_user: ['- bullet'],
+        evidence_user_structured: structured,
       }],
     };
-    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.operator);
+    const out = redactAssessmentForView(assessment, DISPLAY_VIEWS.user);
     assert.equal(out.components[0].evidence.length, 1);
     assert.equal(out.components[0].evidence[0].source_type, 'press');
-    assert.deepEqual(out.components[0].evidence_operator_structured, structured);
+    assert.deepEqual(out.components[0].evidence_user_structured, structured);
   });
 
   it('redactAssessmentForView passes through non-object input', () => {
-    assert.equal(redactAssessmentForView(null, DISPLAY_VIEWS.operator), null);
-    assert.equal(redactAssessmentForView(undefined, DISPLAY_VIEWS.operator), undefined);
+    assert.equal(redactAssessmentForView(null, DISPLAY_VIEWS.user), null);
+    assert.equal(redactAssessmentForView(undefined, DISPLAY_VIEWS.user), undefined);
   });
 
   it('redactScoreBySource is a pure passthrough', () => {
@@ -270,7 +270,7 @@ describe('assessmentDisplayTier', () => {
         narrative: { signals: [{ signal_type: 'x' }], evidence_basis: { sufficiency: 'moderate' } },
       },
     };
-    assert.equal(redactScoreBySource(raw, DISPLAY_VIEWS.operator), raw);
+    assert.equal(redactScoreBySource(raw, DISPLAY_VIEWS.user), raw);
     assert.equal(redactScoreBySource(null), null);
     assert.equal(redactScoreBySource(undefined), null);
   });
@@ -282,9 +282,9 @@ describe('assessmentDisplayTier', () => {
       },
       score_by_source: { news: { narrative: { signals: [] } } },
     };
-    const out = redactReportPayload(payload, DISPLAY_VIEWS.operator);
-    assert.equal(out.display_view, DISPLAY_VIEWS.operator);
-    assert.equal(out.assessment.display_view, DISPLAY_VIEWS.operator);
+    const out = redactReportPayload(payload, DISPLAY_VIEWS.user);
+    assert.equal(out.display_view, DISPLAY_VIEWS.user);
+    assert.equal(out.assessment.display_view, DISPLAY_VIEWS.user);
     assert.equal(out.assessment.components[0].instrument.evidence_sufficiency, 'moderate');
     assert.deepEqual(out.score_by_source, payload.score_by_source);
   });
@@ -294,7 +294,7 @@ describe('assessmentDisplayTier', () => {
       assessment: { components: [] },
       markdown: '# Full report',
       markdown_brief: '# Brief only',
-    }, DISPLAY_VIEWS.operator);
+    }, DISPLAY_VIEWS.user);
     assert.equal(out.markdown, '# Full report');
     assert.equal(out.markdown_brief, '# Brief only');
   });

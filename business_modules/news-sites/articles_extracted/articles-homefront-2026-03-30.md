@@ -4764,7 +4764,7 @@ The organization's program in Jerusalem is smaller and was hit harder by the air
 
 Meanwhile, non-Israeli programs are generally continuing as planned, despite rising incidents of antisemitism around the world, Bloom said.
 
-"We have not seen any hesitancy from customers around that," Bloom said, noting that program operators have all increased security measures since the bloody October 7, 2023, Hamas onslaught. "Sadly, this is part of the times we live in."
+"We have not seen any hesitancy from customers around that," Bloom said, noting that program users have all increased security measures since the bloody October 7, 2023, Hamas onslaught. "Sadly, this is part of the times we live in."
 
 The programs that have taken hits are those that are marketed heavily to Israeli travelers. Off the top of his head, Bloom listed programs in Italy, Greece, Kenya and Azerbaijan among those forced to close.
 
@@ -5918,7 +5918,7 @@ Under the program, eligible residents -- primarily those over age 75 -- are tran
 
 According to organizers, hundreds of hotel rooms have already been secured, with projections that more than 2,000 evacuees will be accommodated by the holiday.
 
-Mifal HaPais, Israel's national lottery operator, recently joined the initiative, contributing 1 million shekels (about $270,000) to expand its scope. The funding is expected to support approximately 300 additional evacuees.
+Mifal HaPais, Israel's national lottery user, recently joined the initiative, contributing 1 million shekels (about $270,000) to expand its scope. The funding is expected to support approximately 300 additional evacuees.
 
 "As part of our activities since the beginning of the war, we are working to provide real-time responses to needs arising from the field," said Mifal HaPais chairman Itzik Lari. "Joining the 'Banu' initiative is a direct continuation of this effort, with the goal of assisting the most vulnerable populations."
 

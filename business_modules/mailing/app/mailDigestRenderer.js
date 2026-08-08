@@ -7,8 +7,8 @@ import { closedSignalsDir } from '../../resilience_scorer/index.js';
 import { getMunicipalityDashboard } from '../../pbo_report/index.js';
 import {
   deriveInstrumentState,
-  operatorAssessmentSummary,
-  resolveOperatorComponentNarrative,
+  userAssessmentSummary,
+  resolveUserComponentNarrative,
 } from '../../resilience_scorer/index.js';
 import {
   COMPONENT_LABELS,
@@ -210,25 +210,25 @@ function paragraphHtml(text) {
 }
 
 /**
- * Executive summary, operator surface first — same precedence the translation
+ * Executive summary, user surface first — same precedence the translation
  * and display-tier paths use.
  */
 function crossComponentSynthesis(assessment) {
   return String(
-    assessment?.cross_component_synthesis_operator ?? assessment?.cross_component_synthesis ?? '',
+    assessment?.cross_component_synthesis_user ?? assessment?.cross_component_synthesis ?? '',
   ).trim();
 }
 
 /**
- * Component prose for the digest. Reports written through the operator narrative
- * pipeline leave `narrative` empty and put the text in `narrative_operator`, so
+ * Component prose for the digest. Reports written through the user narrative
+ * pipeline leave `narrative` empty and put the text in `narrative_user`, so
  * go through the shared resolver rather than reading one field.
  */
 function componentNarrative(c) {
   try {
-    return String(resolveOperatorComponentNarrative(c) ?? '').trim();
+    return String(resolveUserComponentNarrative(c) ?? '').trim();
   } catch {
-    return String(c?.narrative_operator ?? c?.narrative ?? '').trim();
+    return String(c?.narrative_user ?? c?.narrative ?? '').trim();
   }
 }
 
@@ -358,7 +358,7 @@ export function buildReportText({ cached, assessment, labels, lang, noticeText }
   const totalArticles = assessment?.total_articles_analyzed ?? cached?.total_articles_analyzed ?? '';
   const dayBreakdown = buildDayBreakdown(cached, assessment);
   const totalPboReports = dayBreakdown.reduce((sum, d) => sum + (Number(d.pboReports) || 0), 0);
-  const instrumentLine = operatorAssessmentSummary(assessment);
+  const instrumentLine = userAssessmentSummary(assessment);
   const comps = Array.isArray(assessment?.components) ? assessment.components : [];
   const lines = [
     `=== ${labels.reportTitle} (${reportDate}) ===`,
@@ -398,7 +398,7 @@ export function buildReportHtml({ cached, assessment, labels, lang, dir, noticeH
   const totalArticles = assessment?.total_articles_analyzed ?? cached?.total_articles_analyzed ?? '';
   const dayBreakdown = buildDayBreakdown(cached, assessment);
   const totalPboReports = dayBreakdown.reduce((sum, d) => sum + (Number(d.pboReports) || 0), 0);
-  const instrumentLine = operatorAssessmentSummary(assessment);
+  const instrumentLine = userAssessmentSummary(assessment);
   const comps = Array.isArray(assessment?.components) ? assessment.components : [];
   const metaRows = [
     [labels.reportDate, reportDate],

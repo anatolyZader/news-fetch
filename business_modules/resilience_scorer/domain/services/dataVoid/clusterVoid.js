@@ -5,7 +5,7 @@
  * to affected_clusters alongside channel-level voids.
  *
  * Owns: cluster digital darkness detection, channelLevelVoids for global drops.
- * Does NOT: group signals for scoring or build operator cluster attention text.
+ * Does NOT: group signals for scoring or build user cluster attention text.
  *
  * Key collaborators: `geo/index.js` (groupSignalsBySubregion), `dataVoid/channelBaselines.js`,
  * `dataVoid/sourceChannels.js`.

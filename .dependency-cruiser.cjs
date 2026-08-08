@@ -30,7 +30,7 @@ module.exports = {
         pathNot: [
           '^business_modules/$1/',
           '^business_modules/[^/]+/index.js$',
-          '^business_modules/resilience_scorer/analyst/',
+          '^business_modules/resilience_scorer/developer/',
         ],
       },
     },
@@ -84,10 +84,10 @@ module.exports = {
       to: { path: '^business_modules/[^/]+/infrastructure/' },
     },
     {
-      name: 'resilience-no-analyst-except-facades',
+      name: 'resilience-no-developer-except-facades',
       severity: 'error',
       comment:
-        'Operator resilience code must not import analyst/ except scoringFacade, shadowFacade, validation store wiring',
+        'User resilience code must not import developer/ except scoringFacade, shadowFacade, validation store wiring',
       from: {
         path: '^business_modules/resilience_scorer/',
         pathNot: [
@@ -97,23 +97,23 @@ module.exports = {
           '^business_modules/resilience_scorer/app/assessment/assessSignalsCli\\.js$',
           '^business_modules/resilience_scorer/app/assessment/assessmentStage\\.js$',
           '^business_modules/resilience_scorer/domain/services/socialQuarantineOverrides\\.js$',
-          '^business_modules/resilience_scorer/analyst/',
+          '^business_modules/resilience_scorer/developer/',
         ],
       },
-      to: { path: '^business_modules/resilience_scorer/analyst/' },
+      to: { path: '^business_modules/resilience_scorer/developer/' },
     },
     {
-      name: 'client-no-analyst',
+      name: 'client-no-developer',
       severity: 'error',
-      comment: 'Operator client must not import analyst quarantine code',
+      comment: 'User client must not import developer quarantine code',
       from: { path: '^client/' },
-      to: { path: '^business_modules/resilience_scorer/analyst/' },
+      to: { path: '^business_modules/resilience_scorer/developer/' },
     },
     {
       name: 'infrastructure-no-app',
       severity: 'error',
       comment:
-        'Infrastructure must not import app/ (depend on domain/ports only) — sole exception: app/scoringFacade.js, the sanctioned layer-neutral bridge into analyst/. Scoped to resilience_scorer for now: chat/ and translation/ carry pre-existing infra→app edges (see docs/reviews/resilience_scorer-review-2026-07-18.md).',
+        'Infrastructure must not import app/ (depend on domain/ports only) — sole exception: app/scoringFacade.js, the sanctioned layer-neutral bridge into developer/. Scoped to resilience_scorer for now: chat/ and translation/ carry pre-existing infra→app edges (see docs/reviews/resilience_scorer-review-2026-07-18.md).',
       from: { path: '^business_modules/resilience_scorer/infrastructure/' },
       to: {
         path: '^business_modules/resilience_scorer/app/',

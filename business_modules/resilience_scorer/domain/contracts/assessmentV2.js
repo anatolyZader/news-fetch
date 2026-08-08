@@ -19,8 +19,8 @@ export const SEVERITY_VALUES = Object.freeze(['low', 'moderate', 'high', 'critic
 /** Allowed claim confidence labels in assessment.v2. */
 export const CONFIDENCE_VALUES = Object.freeze(['low', 'medium', 'high']);
 
-/** Allowed operator_status values on component rows. */
-export const OPERATOR_STATUS_VALUES = Object.freeze([
+/** Allowed user_status values on component rows. */
+export const USER_STATUS_VALUES = Object.freeze([
   'stable', 'watch', 'critical_failure', 'insufficient_data',
 ]);
 

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildInvestigationSummary } from '../../../../../business_modules/resilience_scorer/domain/services/operator/investigationSummary.js';
+import { buildInvestigationSummary } from '../../../../../business_modules/resilience_scorer/domain/services/user/investigationSummary.js';
 
 const pbo = { source_type: 'pbo', signal_type: 'service_continuity', evidence: 'Field report' };
 const news1 = { source_type: 'news', signal_type: 'fear_expression', evidence: 'News report 1' };

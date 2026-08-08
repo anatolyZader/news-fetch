@@ -282,7 +282,7 @@ export function ChatPanel({
   const chatSendOpts = useMemo(() => ({
     reportGeoScope,
     toolProfile,
-    view: 'operator',
+    view: 'user',
     systemHint,
     scope: reportScope?.type === 'component' ? reportScope.id : null,
     lang,

@@ -9,19 +9,19 @@ import { collectReportHits, searchReports } from '../../../../business_modules/c
 const FIXTURE_REPORT = {
   assessment: {
     cross_component_synthesis: 'National mood steady; generator shortages reported in the north.',
-    cross_component_synthesis_operator: 'Operator synthesis text.',
+    cross_component_synthesis_user: 'User synthesis text.',
     components: [
       {
         component_id: 'functional_continuity',
-        narrative: 'ANALYST-ONLY narrative about generator shortages and fuel.',
-        narrative_operator: 'Municipal services strained by GENERATOR shortages.',
-        evidence_operator: ['Diesel generators sold out in Kiryat Shmona'],
+        narrative: 'DEVELOPER-ONLY narrative about generator shortages and fuel.',
+        narrative_user: 'Municipal services strained by GENERATOR shortages.',
+        evidence_user: ['Diesel generators sold out in Kiryat Shmona'],
         narrative_claims: [{ text: 'Claim: generator imports doubled.' }],
         manifestations_evidenced: ['generator sharing between neighbors'],
       },
       {
         component_id: 'leadership',
-        narrative_operator: 'Mayors held daily briefings.',
+        narrative_user: 'Mayors held daily briefings.',
       },
     ],
   },
@@ -39,8 +39,8 @@ describe('collectReportHits', () => {
     const hits = collectReportHits(FIXTURE_REPORT, { query: 'generator' });
     const fields = hits.map((h) => `${h.component_id}/${h.field}`);
     assert.ok(fields.includes('synthesis/cross_component_synthesis'));
-    assert.ok(fields.includes('functional_continuity/narrative_operator'));
-    assert.ok(fields.includes('functional_continuity/evidence_operator'));
+    assert.ok(fields.includes('functional_continuity/narrative_user'));
+    assert.ok(fields.includes('functional_continuity/evidence_user'));
     assert.ok(fields.includes('functional_continuity/narrative_claims'));
     assert.ok(fields.includes('functional_continuity/manifestations_evidenced'));
     assert.ok(hits.every((h) => h.snippet.toLowerCase().includes('generator')));
@@ -57,7 +57,7 @@ describe('collectReportHits', () => {
   it('bounds snippets to ~200 chars with ellipses', () => {
     const long = `${'x'.repeat(500)} generator ${'y'.repeat(500)}`;
     const hits = collectReportHits(
-      { assessment: { components: [{ component_id: 'leadership', narrative_operator: long }] } },
+      { assessment: { components: [{ component_id: 'leadership', narrative_user: long }] } },
       { query: 'generator' },
     );
     assert.equal(hits.length, 1);

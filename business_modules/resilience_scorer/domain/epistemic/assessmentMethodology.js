@@ -1,5 +1,5 @@
 /**
- * Assessment methodology metadata for auditors and operator-facing copy.
+ * Assessment methodology metadata for auditors and user-facing copy.
  *
  * Pipeline position: assess/report — embedded in artifacts via buildAssessmentMethodology.
  *
@@ -12,7 +12,7 @@
 import { createHash } from 'node:crypto';
 import { CATALOG_VERSION, SIGNAL_TO_COMPONENTS, SIGNAL_TYPES } from '../services/signals/routing/signalRouter.js';
 import { EQUITY_RELEVANT_TYPES } from '../services/signals/signalInstanceSchema.js';
-import { extractionTelemetryForOperator } from '../services/pipeline/pipelineStageTelemetry.js';
+import { extractionTelemetryForUser } from '../services/pipeline/pipelineStageTelemetry.js';
 import { summarizeGeoQuality } from '../../../../cross-cut-modules/geo/signalGeoSummary.js';
 import {
   ISRAEL_REGIONAL_DISTRICT_ORDER,
@@ -82,7 +82,7 @@ export const SCORING_MODEL_CHANGELOG = [
  */
 export const PHASE1_ALWAYS_NORTH_SOURCE_TYPES = [...DEFAULT_NORTH_SOURCE_TYPES];
 
-/** Operator-facing note on how signal.district_id and source_type interact with report scope. */
+/** User-facing note on how signal.district_id and source_type interact with report scope. */
 const SIGNAL_DISTRICT_SCOPE_NOTE =
   'Structured feeds stamp signal.district_id at extract (or inherit from bundle at assess). North-domain feeds (field, pbo, whatsapp, etc.) without district_id default to north — these sources are exclusively north-domain. Regional scope uses signal district plus resolved geo tags — not source_type alone.';
 
@@ -164,9 +164,9 @@ export function summarizeScopeDecisionSources(signals, opts = {}) {
 // --- Model manifest & report methodology ---
 
 /**
- * Full on-disk scoring-model manifest (analyst audit): includes the full
+ * Full on-disk scoring-model manifest (developer audit): includes the full
  * SIGNAL_TO_COMPONENTS edge table and a sha256 of its JSON.
- * Not exposed on the operator API tier (strip via methodologyForOperatorView).
+ * Not exposed on the user API tier (strip via methodologyForUserView).
  * @returns {object}
  */
 export function buildScoringModelManifest() {
@@ -228,13 +228,13 @@ export function buildAssessmentMethodology({
         : {}),
     },
     governance: {
-      weights_steward: 'analyst_and_product_review',
+      weights_steward: 'developer_and_product_review',
       weights_change_process:
         'Edits to SIGNAL_TO_COMPONENTS require bumping scoring_model_version and an entry in SCORING_MODEL_CHANGELOG (assessmentMethodology.js).',
       headline_scores_are:
         'Deterministic model outputs for triage and narrative context—not policy directives or legal findings.',
-      operator_accountability:
-        'Public-facing layer: behavioral narratives and cited evidence. Numeric scores are internal/analyst tooling unless explicitly enabled.',
+      user_accountability:
+        'Public-facing layer: behavioral narratives and cited evidence. Numeric scores are internal/developer tooling unless explicitly enabled.',
     },
     limitations: {
       signal_weights: 'author_set_discrete_edges_not_ml_fitted',
@@ -265,22 +265,22 @@ export function buildAssessmentMethodology({
   };
 }
 
-// --- Operator view & CLI logging ---
+// --- User view & CLI logging ---
 
 /**
- * Operator-safe methodology: drops full weight matrix; redacts tuning and
+ * User-safe methodology: drops full weight matrix; redacts tuning and
  * extraction telemetry to summary fields only.
  * @param {object | null | undefined} methodology
  * @returns {object | null | undefined}
  */
-export function methodologyForOperatorView(methodology) {
+export function methodologyForUserView(methodology) {
   if (!methodology || typeof methodology !== 'object') return methodology;
   const out = { ...methodology };
   delete out.scoring_model;
   if (out.limitations?.extraction_pipeline_stages) {
     out.limitations = {
       ...out.limitations,
-      extraction_pipeline_stages: extractionTelemetryForOperator(
+      extraction_pipeline_stages: extractionTelemetryForUser(
         out.limitations.extraction_pipeline_stages,
       ),
     };

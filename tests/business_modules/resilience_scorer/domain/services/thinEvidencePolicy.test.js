@@ -13,7 +13,7 @@ describe('thinEvidencePolicy', () => {
       evidence_basis: { sufficiency: 'none', balance: null },
     });
     assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.insufficient_data);
-    assert.equal(r.operatorShowsScore, false);
+    assert.equal(r.userShowsScore, false);
   });
 
   it('returns insufficient_data on epistemic abstention', () => {
@@ -22,7 +22,7 @@ describe('thinEvidencePolicy', () => {
       evidence_basis: { sufficiency: 'moderate', balance: 'mixed' },
     });
     assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.insufficient_data);
-    assert.equal(r.operatorShowsScore, false);
+    assert.equal(r.userShowsScore, false);
   });
 
   it('returns critical_presence_failure when presence gate triggered', () => {
@@ -31,16 +31,16 @@ describe('thinEvidencePolicy', () => {
       evidence_basis: { sufficiency: 'moderate', balance: 'mixed' },
     });
     assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.critical_presence_failure);
-    assert.equal(r.operatorShowsScore, false);
+    assert.equal(r.userShowsScore, false);
   });
 
-  it('returns critical_presence_failure for operator_status critical_failure', () => {
+  it('returns critical_presence_failure for user_status critical_failure', () => {
     const r = deriveThinEvidencePolicy({
-      operator_status: 'critical_failure',
+      user_status: 'critical_failure',
       evidence_basis: { sufficiency: 'thin', balance: null },
     });
     assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.critical_presence_failure);
-    assert.equal(r.operatorShowsScore, false);
+    assert.equal(r.userShowsScore, false);
   });
 
   it('returns critical_single_signal for salience_critical components', () => {
@@ -49,7 +49,7 @@ describe('thinEvidencePolicy', () => {
       evidence_basis: { sufficiency: 'thin', balance: 'one_sided_neg' },
     });
     assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.critical_single_signal);
-    assert.equal(r.operatorShowsScore, true);
+    assert.equal(r.userShowsScore, true);
   });
 
   it('returns unverified_alert only via unverified-critical bypass reason', () => {
@@ -59,7 +59,7 @@ describe('thinEvidencePolicy', () => {
       evidence_basis: { sufficiency: 'thin', balance: 'one_sided_neg' },
     });
     assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.unverified_alert);
-    assert.equal(r.operatorShowsScore, false);
+    assert.equal(r.userShowsScore, false);
   });
 
   it('returns limited_evidence_neutral for thin non-critical evidence', () => {
@@ -67,7 +67,7 @@ describe('thinEvidencePolicy', () => {
       evidence_basis: { sufficiency: 'thin', balance: 'one_sided_pos' },
     });
     assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.limited_evidence_neutral);
-    assert.equal(r.operatorShowsScore, false);
+    assert.equal(r.userShowsScore, false);
     assert.equal(r.contested_thin, false);
   });
 
@@ -84,7 +84,7 @@ describe('thinEvidencePolicy', () => {
       evidence_basis: { sufficiency: 'moderate', balance: 'contested' },
     });
     assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.limited_evidence_neutral);
-    assert.equal(r.operatorShowsScore, false);
+    assert.equal(r.userShowsScore, false);
     assert.equal(r.contested_thin, true);
   });
 
@@ -93,7 +93,7 @@ describe('thinEvidencePolicy', () => {
       evidence_basis: { sufficiency: 'moderate', balance: 'mixed' },
     });
     assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.adequate);
-    assert.equal(r.operatorShowsScore, true);
+    assert.equal(r.userShowsScore, true);
     assert.equal(r.contested_thin, false);
   });
 

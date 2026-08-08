@@ -2720,7 +2720,7 @@ These allocations include NIS 1.56 billion ($497 million) for Torah institutions
 
 Opposition lawmakers sharply criticized the coalition funds transferred to Haredi institutions, West Bank settlements, and other party priorities, particularly as other ministries were subjected to a 3% budget cut to finance increased defense spending amid the ongoing war with Iran.
 
-Analysts have suggested that the approval of coalition funds for the ultra-Orthodox was meant to compensate for nearly NIS 1 billion intended for Haredi schools recently frozen by the High Court of Justice over their failure to teach core curriculum subjects as required by law, and to help secure the two ultra-Orthodox parties' backing for the budget after the coalition froze the contentious draft exemption bill earlier this month.
+Developers have suggested that the approval of coalition funds for the ultra-Orthodox was meant to compensate for nearly NIS 1 billion intended for Haredi schools recently frozen by the High Court of Justice over their failure to teach core curriculum subjects as required by law, and to help secure the two ultra-Orthodox parties' backing for the budget after the coalition froze the contentious draft exemption bill earlier this month.
 
 While the ultra-Orthodox United Torah Judaism and Shas parties are expected to back the budget, Hebrew media reported that they were conditioning their backing on the draft exemption bill being reintroduced immediately after the budget is approved.
 

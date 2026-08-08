@@ -4,11 +4,11 @@
 import { canUseRichChatTools } from '../../../cross-cut-modules/auth/userAccess.js';
 import {
   PROPOSE_TOOL_NAMES,
-  OPERATOR_PROPOSE_TOOL_NAMES,
+  USER_PROPOSE_TOOL_NAMES,
   SIGNAL_FLAG_REASONS,
 } from '../domain/chatConfig.js';
 import { normalizeReportScope } from '../../resilience_scorer/index.js';
-import { updateOperatorRecommendationStatus } from '../../resilience_scorer/index.js';
+import { updateUserRecommendationStatus } from '../../resilience_scorer/index.js';
 import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 import { getSignalById } from '../domain/signalLookup.js';
 
@@ -25,15 +25,15 @@ async function executeGeoUnknownUpdate(params, ctx) {
   return { ok: true, message: `Geo unknown entry #${params.id} marked ${status}.` };
 }
 
-async function executeOperatorRecommendation(params, ctx) {
+async function executeUserRecommendation(params, ctx) {
   const action = String(params.action ?? '');
   if (action !== 'acknowledge' && action !== 'dismiss') {
-    throw new Error(`Invalid operator recommendation action: ${action}`);
+    throw new Error(`Invalid user recommendation action: ${action}`);
   }
   const timezone = process.env.TZ_ARTICLES || 'Asia/Jerusalem';
   const reportDate = String(params.date ?? '').trim() || getTodayInTimezone(timezone);
   const scope = normalizeReportScope(params.scope ?? 'national');
-  const result = await updateOperatorRecommendationStatus(
+  const result = await updateUserRecommendationStatus(
     reportDate,
     scope,
     params.recommendation_id,
@@ -44,7 +44,7 @@ async function executeOperatorRecommendation(params, ctx) {
   }
   return {
     ok: true,
-    message: `Operator recommendation "${params.recommendation_id}" marked ${action}.`,
+    message: `User recommendation "${params.recommendation_id}" marked ${action}.`,
     recommendation: result.recommendation,
   };
 }
@@ -78,7 +78,7 @@ async function executeSignalFlag(params, ctx) {
 
 const PENDING_EXECUTORS = {
   propose_geo_unknown_update: executeGeoUnknownUpdate,
-  propose_operator_recommendation: executeOperatorRecommendation,
+  propose_user_recommendation: executeUserRecommendation,
   propose_signal_flag: executeSignalFlag,
 };
 
@@ -87,8 +87,8 @@ const PENDING_EXECUTORS = {
  * @param {object} ctx services + userEmail
  */
 export async function executePendingAction(pending, ctx) {
-  const isOperatorTool = OPERATOR_PROPOSE_TOOL_NAMES.has(pending.toolName);
-  if (!isOperatorTool && !canUseRichChatTools(ctx.userEmail)) {
+  const isUserTool = USER_PROPOSE_TOOL_NAMES.has(pending.toolName);
+  if (!isUserTool && !canUseRichChatTools(ctx.userEmail)) {
     throw new Error('Listed account required');
   }
   if (!PROPOSE_TOOL_NAMES.has(pending.toolName)) {

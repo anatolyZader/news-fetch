@@ -1,19 +1,57 @@
 /**
- * Claim normalization and merging for the operator narrative pipeline.
+ * Claim normalization and merging for the user narrative pipeline.
  *
- * Pipeline position: between specialist agent output and narrative LLM / operator
+ * Pipeline position: between specialist agent output and narrative LLM / user
  * narrative surface finalize.
  *
  * Owns: agentClaimsForComponent shape normalization, merge with facts-pass claims,
  * digest stub claims for degrade levels.
  * Does NOT: run LLM or compute narrative_grounding_score (post-hoc QA elsewhere).
  *
- * Key collaborators: `narrative/signalRefRegistry.js`, `operator/operatorNarrativeSurface.js`,
+ * Key collaborators: `narrative/signalRefRegistry.js`, `user/userNarrativeSurface.js`,
  * narrative LLM orchestrator in app layer.
  */
 
 import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { buildRefKey } from './signalRefRegistry.js';
+import {
+  stripFieldReportScoreBlob,
+  isTrivialFieldReportEvidence,
+} from '../signals/hygiene/fieldReportHygiene.js';
+
+/**
+ * Whether a claim is nothing but a PBO officer score line
+ * (`[municipality] component: avg=75% (75%, 75%, 75%) — אין`).
+ *
+ * Extraction-time hygiene already strips these from signal evidence, but
+ * bundles ingested before that landed still carry them, and the narrative
+ * surface only kept them out of prose — so they survived as claims and
+ * recurred verbatim across every report built from the same bundle.
+ *
+ * @param {string} text
+ * @returns {boolean}
+ */
+function isScoreLineOnlyClaim(text) {
+  if (!hasScoreBlob(text)) return false;
+  return isTrivialFieldReportEvidence(stripFieldReportScoreBlob(text));
+}
+
+/** @param {string} text @returns {boolean} */
+function hasScoreBlob(text) {
+  return /avg=\d+%/i.test(String(text ?? ''));
+}
+
+/**
+ * Claim text with any officer score blob removed, left untouched otherwise so
+ * ordinary claims keep their exact wording.
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+function cleanClaimText(text) {
+  const raw = String(text);
+  return hasScoreBlob(raw) ? stripFieldReportScoreBlob(raw) : raw;
+}
 
 /**
  * @param {object[]} claims
@@ -24,8 +62,9 @@ function normalizeClaims(claims, primaryRefKey) {
   const fallbackRefKey = primaryRefKey === 'signal_refs' ? 'evidence_refs' : 'signal_refs';
   return claims
     .filter((c) => c?.text && (c[primaryRefKey] ?? c[fallbackRefKey] ?? []).length > 0)
+    .filter((c) => !isScoreLineOnlyClaim(c.text))
     .map((c) => ({
-      text: String(c.text),
+      text: cleanClaimText(c.text),
       signal_refs: [...(c[primaryRefKey] ?? c[fallbackRefKey] ?? [])],
       relation: c.relation ?? 'parallel',
     }));

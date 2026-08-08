@@ -13,6 +13,7 @@ import {
   mergeLoadedSignalFiles,
   dedupWithinSource,
 } from './assessSignalsHelpers.js';
+import { PBO_CONTRACT_GATE_BLOCK_ENV_KEY } from '../../domain/services/paths/pboBundleContract.js';
 import { enrichSignalsGeoIfNeeded } from '../../../../cross-cut-modules/geo/enrichSignalsGeoIfNeeded.js';
 import { resolveSqlitePath } from '../../../../cross-cut-modules/config/sqlitePath.js';
 import { loadConnectivityProbeSignals, loadProbeRecordsForDate } from '../../infrastructure/adapters/connectivityProbeFileAdapter.js';
@@ -150,7 +151,23 @@ export async function loadPreparedSignals(targetDate, days, bundleOpts = {}) {
 
   assertLoadedSignalFiles(loadedFiles, useObservations, targetDate, days);
 
-  let { allSignals, totalArticles, sourceFiles, sourceTypesSeen, hygieneDrops } = mergeLoadedSignalFiles(loadedFiles, { targetDate });
+  let merged;
+  try {
+    merged = mergeLoadedSignalFiles(loadedFiles, { targetDate });
+  } catch (err) {
+    if (err?.code === 'stale_pbo_bundle_contract') {
+      const files = err.files ?? [];
+      throw new Error(
+        `${files.length} PBO bundle(s) predate the current extractor and would reproduce its `
+        + `one-signal-per-component output: ${files.join(', ')} — re-extract with `
+        + `\`node business_modules/pbo_report/input/extract-pbo-signals.js --date <date> --force\`, `
+        + `or set ${PBO_CONTRACT_GATE_BLOCK_ENV_KEY}=0 to load them anyway`,
+        { cause: err },
+      );
+    }
+    throw err;
+  }
+  let { allSignals, totalArticles, sourceFiles, sourceTypesSeen, hygieneDrops } = merged;
   allSignals = mergeConnectivityProbeSignals(allSignals, sourceTypesSeen, targetDate);
   archiveProbeRecordsForDate(targetDate);
   allSignals = enrichProbeSignalsInList(allSignals);

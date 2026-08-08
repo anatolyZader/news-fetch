@@ -40,7 +40,7 @@ describe('thinEvidencePolicy — critical single signal', () => {
       salience_critical: true,
     });
     assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.critical_single_signal);
-    assert.equal(r.operatorShowsScore, true);
+    assert.equal(r.userShowsScore, true);
   });
 
   it('escalates to unverified_alert for unverified critical grounding', () => {
@@ -51,6 +51,6 @@ describe('thinEvidencePolicy — critical single signal', () => {
       salience_bypass_reasons: ['critical_signal', UNVERIFIED_CRITICAL_GROUNDING_REASON],
     });
     assert.equal(r.instrument, THIN_EVIDENCE_INSTRUMENT.unverified_alert);
-    assert.equal(r.operatorShowsScore, false);
+    assert.equal(r.userShowsScore, false);
   });
 });

@@ -64,8 +64,8 @@ The **Daily assessment** view is the synthesized report (see [Read the daily rep
 Footer links open the same docs and legal pages without using the menu.
 
 ## Troubleshooting
-- **No report / old date** — today's run may not have finished; ask your operator or refresh later.
+- **No report / old date** — today's run may not have finished; ask your user or refresh later.
 - **Score seems off** — open the evidence under that component first; thin evidence means low confidence.
-- **Can't sign in** — your account may not be authorized; contact your operator.
+- **Can't sign in** — your account may not be authorized; contact your user.
 
 For more detail, see [Using the app (first report)](using-the-app.md).

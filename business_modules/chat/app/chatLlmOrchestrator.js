@@ -15,19 +15,19 @@ import {
 import { handleChatToolCall } from './chatToolHandlers.js';
 import { createChatToolContext } from './createChatToolContext.js';
 import { buildSystemTemplateToolList, describeChatToolCall } from '../domain/tools/chatToolSchemas.js';
-import { chatAnalystToolsEnabled, chatConfirmActionsEnabled, chatStreamDeltasEnabled } from '../domain/chatConfig.js';
+import { chatDeveloperToolsEnabled, chatConfirmActionsEnabled, chatStreamDeltasEnabled } from '../domain/chatConfig.js';
 import { canUseRichChatTools } from '../../../cross-cut-modules/auth/userAccess.js';
 import { UNTRUSTED_CONTENT_INSTRUCTION } from '../../../cross-cut-modules/security/index.js';
-import { operatorEpistemicOverlayEnabled } from '../../resilience_scorer/index.js';
+import { userEpistemicOverlayEnabled } from '../../resilience_scorer/index.js';
 import { semanticOutputGate } from '../../../cross-cut-modules/security/domain/services/semanticOutputGate.js';
 
 function buildSystemTemplate(ctx) {
-  // Every listed user gets the full experience: hub mode + extended tools (operator decision, 2026-07-30).
+  // Every listed user gets the full experience: hub mode + extended tools (user decision, 2026-07-30).
   const richTools = canUseRichChatTools(ctx.userEmail ?? '');
-  const narrativeFocus = !operatorEpistemicOverlayEnabled() && !richTools;
+  const narrativeFocus = !userEpistemicOverlayEnabled() && !richTools;
   const uiLang = String(ctx.uiLang ?? 'en').trim().toLowerCase();
   const toolList = buildSystemTemplateToolList({
-    analystToolsEnabled: chatAnalystToolsEnabled(),
+    developerToolsEnabled: chatDeveloperToolsEnabled(),
     richTools,
     confirmActionsEnabled: chatConfirmActionsEnabled(),
     toolProfile: ctx.toolProfile ?? 'default',
@@ -82,7 +82,7 @@ function buildSystemTemplate(ctx) {
       : '- When the user asks for a summary or brief, use generate_brief or get_decision_brief as appropriate.\n') +
     (narrativeFocus
       ? '- For mutations (validation decisions, geo updates, catalog reviews), use propose_* tools only; tell the user to confirm in the UI.\n'
-      : '- For mutations (validation decisions, geo updates, catalog reviews, operator recommendations), use propose_* tools only; tell the user to confirm in the UI.\n') +
+      : '- For mutations (validation decisions, geo updates, catalog reviews, user recommendations), use propose_* tools only; tell the user to confirm in the UI.\n') +
     langLine +
     `\n` +
     `${UNTRUSTED_CONTENT_INSTRUCTION}\n\n` +

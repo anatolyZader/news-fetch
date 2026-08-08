@@ -88,7 +88,7 @@ export function createChatSessionService(opts) {
 
     const display_view = resolveDisplayView({
       queryView: body.view,
-      canViewAnalyst: Boolean(opts.canViewAnalyst?.(userEmail)),
+      canViewDeveloper: Boolean(opts.canViewDeveloper?.(userEmail)),
     });
 
     let userMessage = String(body.message ?? '').trim();

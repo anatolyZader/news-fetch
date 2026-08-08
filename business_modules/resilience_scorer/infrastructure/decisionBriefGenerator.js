@@ -1,5 +1,5 @@
 /**
- * Single-shot LLM generation for operator decision brief JSON.
+ * Single-shot LLM generation for user decision brief JSON.
  */
 import { resolveLlmPort, transportMeta } from '../../../cross-cut-modules/llm/resolveLlmPort.js';
 import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
@@ -9,7 +9,7 @@ import {
   buildDecisionBriefSystemPrompt,
   buildDecisionBriefUserPrompt,
   buildDecisionBriefPayload,
-} from '../domain/services/operator/decisionBriefPrompt.js';
+} from '../domain/services/user/decisionBriefPrompt.js';
 
 const SCORE_IN_TEXT_RE = /\b([1-9]|10)\s*\/\s*10\b|\bscore\s*[:=]\s*[1-9]\d?\b/i;
 
@@ -50,10 +50,10 @@ export function normalizeDecisionBriefOutput(raw) {
 }
 
 /**
- * Reject operator brief text that leaks numeric scores.
+ * Reject user brief text that leaks numeric scores.
  * @param {object} brief
  */
-export function assertOperatorSafeBrief(brief) {
+export function assertUserSafeBrief(brief) {
   const blob = JSON.stringify(brief);
   if (SCORE_IN_TEXT_RE.test(blob)) {
     throw new Error('Decision brief contains forbidden score notation');
@@ -103,7 +103,7 @@ export async function generateDecisionBrief(assessment, opts = {}) {
   const parsed = normalizeDecisionBriefOutput(extractJson(text));
   if (!parsed) return null;
 
-  assertOperatorSafeBrief(parsed);
+  assertUserSafeBrief(parsed);
 
   return {
     ...parsed,

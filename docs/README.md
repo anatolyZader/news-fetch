@@ -16,7 +16,7 @@ Runtime content the app **does** depend on lives elsewhere:
 
 | Area | Purpose |
 |------|---------|
-| [`main_docu_files/`](./main_docu_files/) | Decision-support engineering reference (operator model, pipeline, resilience engine, RAG, chat, cost) — component tables auto-synced in `RESILIENCE-ENGINE-REFERENCE.md` via `npm run docs:sync` |
+| [`main_docu_files/`](./main_docu_files/) | Decision-support engineering reference (user model, pipeline, resilience engine, RAG, chat, cost) — component tables auto-synced in `RESILIENCE-ENGINE-REFERENCE.md` via `npm run docs:sync` |
 | [`architecture/decisions/`](./architecture/decisions/) | Architecture decision records (ADRs) |
 | [`specs/`](./specs/) | Feature and module specifications |
 | [`reviews/`](./reviews/) | Audits, deep dives, NotebookLM primers |

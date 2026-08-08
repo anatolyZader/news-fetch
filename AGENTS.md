@@ -10,7 +10,7 @@ Lean index + constitution. **Not documentation** — deep docs live in linked fi
 
 | Need | File |
 |------|------|
-| Operator model, evidence tree | `docs/main_docu_files/SYSTEM-AND-OPERATOR-MODEL.md` |
+| User model, evidence tree | `docs/main_docu_files/SYSTEM-AND-USER-MODEL.md` |
 | Daily pipeline, artifacts | `docs/main_docu_files/PIPELINE-AND-SOURCES.md` |
 | Assessment agent, scoring | `docs/main_docu_files/RESILIENCE-ENGINE-REFERENCE.md` |
 | Chat + tools | `docs/main_docu_files/LLM-CHAT-AND-AGENTS.md` |
@@ -29,8 +29,8 @@ Read the routing table first. Do not open other modules until the entry file pro
 | If the task is… | Start here (only) |
 |-----------------|-------------------|
 | Report chat / tools | `business_modules/chat/AGENTS.md` → `input/chatRoutes.js`, `app/chatLlmOrchestrator.js` |
-| Assessment agent / operator scoring prep | `business_modules/resilience_scorer/AGENTS.md` + `business_modules/specialist_agents/app/assessmentOrchestrator.js` — use `app/scoringFacade.js` for headline /10 only |
-| Headline /10 scoring engine (analyst) | `business_modules/resilience_scorer/analyst/README.md` — **not** operator daily work |
+| Assessment agent / user scoring prep | `business_modules/resilience_scorer/AGENTS.md` + `business_modules/specialist_agents/app/assessmentOrchestrator.js` — use `app/scoringFacade.js` for headline /10 only |
+| Headline /10 scoring engine (developer) | `business_modules/resilience_scorer/developer/README.md` — **not** user daily work |
 | Signal extract / assess CLI | `business_modules/resilience_scorer/input/extract-signals.js`, `assess-signals.js` — parallel open bundles `observations-pipeline-{source}-{date}.json` for news/radio/field/whatsapp, social, pbo, pbo_regional, naftali (default ON via `RESILIENCE_OPEN_EXTRACT_PARALLEL`) |
 | Ingest news/audio/social | `composition/registerIngestion.js` → module `input/` (see `scripts/agent-routing.md`) |
 | UI tab / component | `client/src/` + matching `business_modules/*/input/*Routes.js` |
@@ -64,7 +64,7 @@ Name **module + layer + file** in every task message.
 
 - **Module structure:** `business_modules/<name>/{app,domain,infrastructure}`; `input/` only for transport entry points.
 - **No cross-module imports** — use ports/events/composition root.
-- **Scores:** operator UI hides headline 1–10; primary path is agent investigation + claims.
+- **Scores:** user UI hides headline 1–10; primary path is agent investigation + claims.
 - **Abstention is valid** — not "all clear."
 - **Client changes:** run `npm run client:build`; restart `pm2 restart news` (or equivalent).
 - **Secrets:** never read/commit `.env`, `secrets/`, `service-account*.json`.

@@ -8,7 +8,7 @@
  * Does NOT: block publish (see groundingConfig block flag) or validate JSON schema.
  *
  * Key collaborators: `narrativeTextUtils.js`, `groundingConfig.js`, `signalRefRegistry.js`,
- * app claudeNarratives / operatorNarrativePipeline.
+ * app claudeNarratives / userNarrativePipeline.
  */
 
 import { RESILIENCE_COMPONENTS } from '../../resilienceComponents.js';
@@ -16,7 +16,7 @@ import {
   EVIDENCE_OVERLAP_MIN,
   narrativeGroundingMinScore,
 } from './groundingConfig.js';
-import { resolveRef } from '../narrative/signalRefRegistry.js';
+import { resolveClaimRef } from '../narrative/claimRefNamespace.js';
 import {
   bestEvidenceOverlap,
   splitSentences,
@@ -30,7 +30,9 @@ function componentEvidenceTexts(scored, registry, componentId, claims) {
   }
   for (const claim of claims ?? []) {
     for (const ref of claim?.signal_refs ?? []) {
-      const entry = resolveRef(ref, registry);
+      // Namespace-aware so a legacy bare-index ref still contributes its
+      // evidence text; dropping it silently understated the grounding score.
+      const { entry } = resolveClaimRef(ref, { registry });
       if (entry?.signal?.evidence) texts.push(entry.signal.evidence);
     }
   }

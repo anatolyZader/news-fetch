@@ -58,7 +58,7 @@ describe('dynamicOovCluster', () => {
     const result = await evaluateDynamicOovClusters(records, {
       windowHours: 2,
       anchorMs,
-      operatorMin: 20,
+      userMin: 20,
     });
 
     assert.equal(result.alert, true);
@@ -80,7 +80,7 @@ describe('dynamicOovCluster', () => {
     const result = await evaluateDynamicOovClusters(records, {
       windowHours: 2,
       anchorMs,
-      operatorMin: 10,
+      userMin: 10,
     });
 
     assert.equal(result.alert, true);
@@ -121,7 +121,7 @@ describe('dynamicOovCluster', () => {
     const result = await evaluateDynamicOovClusters(records, {
       windowHours: 2,
       anchorMs,
-      operatorMin: 20,
+      userMin: 20,
       embedFn: async (text) => ({
         vector: text.includes('Drone') || text.includes('drone') ? droneVec : barterVec,
       }),

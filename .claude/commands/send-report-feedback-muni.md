@@ -1,12 +1,12 @@
 ---
 allowed-tools: Bash(npm run pbo:send-muni-feedback*), Bash(node business_modules/pbo_report_review/input/sendMunicipalPboFeedback.js*), Read
-description: Send municipal PBO feedback emails from a revised batch after operator confirmation
+description: Send municipal PBO feedback emails from a revised batch after user confirmation
 argument-hint: dd:mm:yyyy
 ---
 
 ## Your task
 
-Send per-municipality PBO feedback emails from the operator-revised batch for the given date.
+Send per-municipality PBO feedback emails from the user-revised batch for the given date.
 
 **Step 1 — Parse date**
 
@@ -17,14 +17,14 @@ Arguments: `$ARGUMENTS` (expected `dd:mm:yyyy`). Convert to ISO `YYYY-MM-DD`. If
 Batch path:
 `business_modules/pbo_report_review/data/reviews/batches/pbo-muni-review-<YYYY-MM-DD>.json`
 
-- If missing, stop and tell the operator to run `/review-pbo-reports-muni` first.
+- If missing, stop and tell the user to run `/review-pbo-reports-muni` first.
 - Read the file. List municipalities that would be mailed (`send !== false`, not sufficient, has `officer.email`).
 - Note any `missingOfficerEmail` / `send: false` skips.
 - Mention `PBO_REVIEW_TEST_EMAIL` redirects all mail when set (safe testing).
 
 **Step 3 — Confirm**
 
-**Ask the operator to confirm** before sending. Do not run the send CLI until they explicitly approve.
+**Ask the user to confirm** before sending. Do not run the send CLI until they explicitly approve.
 
 **Step 4 — Send (only after confirmation)**
 

@@ -1,7 +1,7 @@
 /**
  * Free-text search across past resilience report narratives on disk.
- * Callers must pass a redact hook for non-analyst views — it runs BEFORE any
- * text is searched so analyst-only fields never leak into snippets.
+ * Callers must pass a redact hook for non-developer views — it runs BEFORE any
+ * text is searched so developer-only fields never leak into snippets.
  */
 import { join } from 'node:path';
 import { resolveStateStore } from '../../../cross-cut-modules/persistence/domain/resolveStateStore.js';
@@ -54,10 +54,10 @@ function findHitInList(items, q) {
 
 const COMPONENT_TEXT_FIELDS = [
   ['narrative', (c, q) => findHitInText(c.narrative, q)],
-  ['narrative_operator', (c, q) => findHitInText(c.narrative_operator, q)],
+  ['narrative_user', (c, q) => findHitInText(c.narrative_user, q)],
   ['interpretive_summary', (c, q) => findHitInText(c.interpretive_summary, q)],
   ['evidence', (c, q) => findHitInList(c.evidence, q)],
-  ['evidence_operator', (c, q) => findHitInList(c.evidence_operator, q)],
+  ['evidence_user', (c, q) => findHitInList(c.evidence_user, q)],
   ['manifestations_evidenced', (c, q) => findHitInList(c.manifestations_evidenced, q)],
   ['manifestations_absent', (c, q) => findHitInList(c.manifestations_absent, q)],
   ['narrative_claims', (c, q) => findHitInList((c.narrative_claims ?? []).map((cl) => cl?.text), q)],
@@ -65,7 +65,7 @@ const COMPONENT_TEXT_FIELDS = [
 
 function collectSynthesisHits(a, q) {
   const hits = [];
-  for (const field of ['cross_component_synthesis', 'cross_component_synthesis_operator']) {
+  for (const field of ['cross_component_synthesis', 'cross_component_synthesis_user']) {
     const snippet = findHitInText(a[field], q);
     if (snippet) hits.push({ component_id: 'synthesis', field, snippet });
   }

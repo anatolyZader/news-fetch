@@ -128,7 +128,7 @@ async function assessBatch(batch, batchNum, totalBatches, onUsage) {
     .join('\n');
 
   const systemPrompt =
-    `You are an expert community resilience analyst reviewing field survey reports ` +
+    `You are an expert community resilience developer reviewing field survey reports ` +
     `from population behavior officers (PBOs) who visited municipalities during an emergency.\n\n` +
     `For each municipality, the survey answers are grouped by resilience component.\n` +
     `Produce a qualitative assessment — NO numeric scores.\n\n` +
@@ -217,14 +217,14 @@ async function synthesizeRegional(munAssessments, date, onUsage) {
     .join('\n');
 
   const systemPrompt =
-    `You are an expert community resilience analyst. ` +
+    `You are an expert community resilience developer. ` +
     `Synthesise qualitative field survey findings across ${munAssessments.length} municipalities ` +
     `in the Upper Galilee region into a regional picture.\n\n` +
     `THE 8 COMPONENTS:\n${componentList}\n\n` +
     `Return ONLY valid JSON:\n` +
     `{\n` +
     `  "executive_summary": "<3-4 paragraphs: cross-cutting patterns, notable strengths, main concerns>",\n` +
-    `  "analyst_caveats": "<1 paragraph on limitations of field survey data>",\n` +
+    `  "developer_caveats": "<1 paragraph on limitations of field survey data>",\n` +
     `  "components": [\n` +
     `    {\n` +
     `      "component_id": "<id>",\n` +

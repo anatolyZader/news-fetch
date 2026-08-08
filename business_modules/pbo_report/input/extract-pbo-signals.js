@@ -25,6 +25,7 @@ import { getMunicipalityDashboard } from '../app/pboMunicipalityService.js';
 import { attributeSignalScope } from '../../../cross-cut-modules/geo/attributeSignalScope.js';
 import { listPboDistrictIds } from '../index.js';
 import { loadReviewMetadataMapForDate, shouldForcePboSignalRewrite } from '../../pbo_report_review/index.js';
+import { buildPboReviewStateMap, stampPboSignalReviewState } from '../index.js';
 import { createSourceArchive } from '../../../db/source_archive/createSourceArchive.js';
 import {
   archivePboMunicipalityDay,
@@ -40,6 +41,8 @@ import {
   applyFieldReportSignalHygiene,
   isOpenExtractParallelEnabled,
   pipelineOpenObservationsPath,
+  PBO_EXTRACTOR_CONTRACT,
+  PBO_EXTRACTOR_CONTRACT_VERSION,
 } from '../../resilience_scorer/index.js';
 import { createCostTracker, appendCostLog, checkDailyBudget } from '../../../cross-cut-modules/budget/index.js';
 import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
@@ -65,6 +68,8 @@ function writePboSignalsBundle({ outPath, districtId, day, articles, signals }) 
       {
         source_type: 'pbo',
         content_kind: 'pbo_municipality',
+        extractor_contract: PBO_EXTRACTOR_CONTRACT,
+        extractor_contract_version: PBO_EXTRACTOR_CONTRACT_VERSION,
         district_id: districtId,
         date: day.date,
         extracted_at: new Date().toISOString(),
@@ -166,10 +171,13 @@ async function writeDayBundle(day, districtId, outDir, componentsOrder, componen
     retrievalService: null,
     closedExtractFn: async ({ articles: arts, onUsage: usageCb }) => {
       const rawSignals = await llmPort.extractSignals(arts, { onUsage: usageCb, contentKind: 'field_report' });
+      const hygieneDropsByReason = {};
       let signals = applyFieldReportSignalHygiene(
         rawSignals.map((s) => ({ ...s, source_type: 'pbo' })),
+        { onDrop: (reason) => { hygieneDropsByReason[reason] = (hygieneDropsByReason[reason] ?? 0) + 1; } },
       );
       signals = stampPboSignalSourceIds(signals, muniMap);
+      signals = stampPboSignalReviewState(signals, buildPboReviewStateMap(day, reviewMetaByMuni));
 
       const { signals: attributed, attached, resolved, unknown } = attributeSignalScope(signals, {
         rootDir: REPO_ROOT,
@@ -180,6 +188,10 @@ async function writeDayBundle(day, districtId, outDir, componentsOrder, componen
       signals = attributed.map(stripTraceFields);
 
       console.error(`\n→ ${signals.length} signals extracted`);
+      const dropParts = Object.entries(hygieneDropsByReason).map(([k, n]) => `${k}: ${n}`);
+      if (dropParts.length > 0) {
+        console.error(`  → Hygiene dropped ${dropParts.join(', ')}`);
+      }
       if (attached > 0) {
         console.error(`  → Geo attach: ${attached} signals, ${resolved} resolved, ${unknown} unknown`);
       }

@@ -55,7 +55,7 @@ describe('topicMatcher', () => {
 });
 
 describe('xTopicQueryBuilder', () => {
-  it('omits lang: operators on social media tab (X API returns empty with lang:he)', () => {
+  it('omits lang: users on social media tab (X API returns empty with lang:he)', () => {
     const queries = buildXTopicQueries("ben gvir's visit to Ashdod port", SOCIAL_MEDIA_X_LANGS, SOCIAL_MEDIA_X_QUERY_OPTS);
     assert.doesNotMatch(queries.he, /lang:he/);
     assert.doesNotMatch(queries.en, /lang:en/);

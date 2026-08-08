@@ -1,6 +1,6 @@
 # RAG platform
 
-**Purpose:** Unified **hybrid retrieval** (SQLite `rag_chunks`, FTS5, optional embeddings, RRF, Cohere rerank) feeding **assess-time investigation**, chat, pipeline extract, report-build, analyst tools, and docs search.
+**Purpose:** Unified **hybrid retrieval** (SQLite `rag_chunks`, FTS5, optional embeddings, RRF, Cohere rerank) feeding **assess-time investigation**, chat, pipeline extract, report-build, developer tools, and docs search.
 
 **Sources:** `cross-cut-modules/retrieval/`, `createRetrievalService.js`, `ragConfig.js`, `componentRagSeeding.js`, `evidenceGraph.js`.
 
@@ -49,7 +49,7 @@ Static index dates: docs namespace uses `2099-01-01`; HFC uses `2099-01-01`.
 | Chat | `business_modules/chat/` — `sourceArchiveQuery.js`, `chatRetrievalCache.js`, tool handlers | Hybrid search over archive + tools; session-scoped dedup via `CHAT_RETRIEVAL_CACHE_TTL_MS` (see [COST-CONTROLS.md](./COST-CONTROLS.md)); span `sqlite.hybrid_retrieve` when `OTEL_ENABLED` |
 | Pipeline extract | `pipelineRetrieval.js` | Prompt span selection when extract RAG enabled |
 | Report build | `fieldRetrieval.js` | Similar reports, taxonomy, HFC snippets |
-| PBO review | `analystRetrieval.js` (`retrievePboHistory`) | Historical PBO context for `pbo_report_review`; the earlier validation-explain and catalog-gap-neighbor retrieval this file supported has been removed |
+| PBO review | `developerRetrieval.js` (`retrievePboHistory`) | Historical PBO context for `pbo_report_review`; the earlier validation-explain and catalog-gap-neighbor retrieval this file supported has been removed |
 | Docs panel | `docsRetrieval.js` | `GET /api/docs/search` |
 | Translation | `translationTermRetrieval.js` | Glossary-aware translation |
 

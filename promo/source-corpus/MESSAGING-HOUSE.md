@@ -58,9 +58,9 @@ Structure the signal across eight components, show the evidence behind it, let h
 ## Differentiators (defensible, all grounded)
 
 - **Every claim traceable.** Narratives carry inline `[source](url)` citations; an evidence pool sits under each component.
-- **Ask the reports (chat).** A core part of operator work: ask in plain language and the chat answers from — and cites — the evidence, for today and across past reports (compare two dates, trace a component's evolution over time, search the sources). Investigate without reading everything.
+- **Ask the reports (chat).** A core part of user work: ask in plain language and the chat answers from — and cites — the evidence, for today and across past reports (compare two dates, trace a component's evolution over time, search the sources). Investigate without reading everything.
 - **Field + digital, fused daily.** Field, PBO, and WhatsApp reports sit alongside news, radio, and search signals in one assessment.
-- **No single number as the hero.** Operators see narrative + evidence, not a headline 1–10 score.
+- **No single number as the hero.** Users see narrative + evidence, not a headline 1–10 score.
 - **Built on a recognized framework.** The eight components are the Home Front Command resilience model — a shared language with HQ and field, not a bespoke metric.
 
 ---
@@ -69,7 +69,7 @@ Structure the signal across eight components, show the evidence behind it, let h
 
 | Tier | Who | What they need | Primary lang |
 |------|-----|----------------|--------------|
-| **Operators / HQ** | Daily brief readers | Trust, evidence, next steps | EN (HE option) |
+| **Users / HQ** | Daily brief readers | Trust, evidence, next steps | EN (HE option) |
 | **Field professionals** | PBOs, regional officers, WhatsApp reporters | "How do I contribute?", mobile flow | **HE** |
 | **Partners / donors / tech** | Architecture credibility, responsible-AI design | Traceability, evidence-first design | EN |
 
@@ -79,7 +79,7 @@ Structure the signal across eight components, show the evidence behind it, let h
 
 - **Component** — one of the eight resilience dimensions.
 - **Evidence pool** — the raw excerpts attached to a component.
-- **Narrative** — the operator-facing prose for a component, with inline citations.
+- **Narrative** — the user-facing prose for a component, with inline citations.
 - **Chat** — ask questions about the assessment and evidence, for today and across past reports (compare dates, trace a component over time, search sources); answers cite the evidence.
 - **PBO** — Population Behavior Officer (field professional who files regional reports).
 - **Scope** — National or North geographic view.
@@ -88,6 +88,6 @@ Structure the signal across eight components, show the evidence behind it, let h
 
 ## CTAs (every asset ends with exactly one)
 
-- Operators: **Read today's assessment → srulik.ai**
+- Users: **Read today's assessment → srulik.ai**
 - Field: **Send a report → WhatsApp bot / submit evidence**
 - Partners: **See how it works → request a briefing**

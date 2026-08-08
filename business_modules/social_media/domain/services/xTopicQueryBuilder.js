@@ -81,7 +81,7 @@ function localityClause(topic, lang, opts) {
  * @param {string} lang
  * @param {{ socialMediaTab?: boolean }} opts
  */
-function langOperator(_topic, _lang, opts) {
+function langUser(_topic, _lang, opts) {
   if (opts.socialMediaTab) {
     return '';
   }
@@ -115,7 +115,7 @@ export function buildXTopicQueries(topic, langs = LANG_CODES, opts = {}) {
     const terms = conceptTermsForLang(topic, lang).map(formatXSearchTerm).filter(Boolean);
     if (!terms.length) continue;
     const topicClause = `(${terms.join(' OR ')})`;
-    const query = `${topicClause}${localityClause(topic, lang, opts)}${langOperator(topic, lang, opts)} -is:retweet`.trim();
+    const query = `${topicClause}${localityClause(topic, lang, opts)}${langUser(topic, lang, opts)} -is:retweet`.trim();
     queries[lang] = query.length > 512 ? query.slice(0, 512) : query;
   }
   return queries;

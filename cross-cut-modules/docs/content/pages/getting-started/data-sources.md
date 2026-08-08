@@ -30,6 +30,6 @@ These are the **inputs** that feed each daily run. The **Daily assessment** view
 - [Send data (your input)](data-sources/send-data.md) — links and observations you submit
 
 ## Troubleshooting
-- **I only see some tabs** — your deployment may not ingest every feed; ask your operator which sources are enabled.
+- **I only see some tabs** — your deployment may not ingest every feed; ask your user which sources are enabled.
 - **Empty tab today** — ingestion may still be running or that source had nothing for the date; check another feed or refresh later.
-- **I want pipeline details** — operator guides live under [Guides](../guides/operator-workflow.md) and on [docs.srulik.ai](https://docs.vibeswitch.ai/).
+- **I want pipeline details** — user guides live under [Guides](../guides/user-workflow.md) and on [docs.srulik.ai](https://docs.vibeswitch.ai/).

@@ -87,7 +87,7 @@ export async function runDeterministicAssessment(params) {
     cross_component_synthesis: synth.cross_component_synthesis,
     retrieval_gaps: synth.retrieval_gaps ?? [],
   };
-  const attention_items = buildAttentionItems(draftAssessment, { view: 'operator' });
+  const attention_items = buildAttentionItems(draftAssessment, { view: 'user' });
 
   const v2Partial = createEmptyAssessmentV2({
     date: reportDate,

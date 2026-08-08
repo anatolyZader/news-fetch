@@ -1,6 +1,6 @@
-# One-Pager — srulik.ai (HQ / Operators)
+# One-Pager — srulik.ai (HQ / Users)
 
-> English · A4/letter · one page. Grounded in `footer.json`, `resilienceComponents.js`, `docs/MODEL-CARD.md`. Scope: operator-facing core only. Run through `do-not-say.md` before publishing.
+> English · A4/letter · one page. Grounded in `footer.json`, `resilienceComponents.js`, `docs/MODEL-CARD.md`. Scope: user-facing core only. Run through `do-not-say.md` before publishing.
 
 ---
 
@@ -26,7 +26,7 @@ srulik.ai produces **one daily assessment** across eight community-resilience co
 1. **Extract** observable behavioral signals from multi-source text (closed vocabulary).
 2. **Verify** the evidence behind each signal.
 3. **Assess** the eight components.
-4. **Narrate** operator-safe prose with inline `[source]` citations.
+4. **Narrate** user-safe prose with inline `[source]` citations.
 
 ### The eight components
 
@@ -37,7 +37,7 @@ Narrative · Information & Communication · Effective Life-Saving Behavior · Fu
 
 - **Evidence you can open** — every component narrative traces to raw excerpts; an evidence pool sits under each one.
 - **Ask the reports** — chat answers questions for today and across past reports (compare dates, trace a component over time) and cites the same evidence, not the open internet.
-- **No single number** — operators read narrative and evidence, not a headline score.
+- **No single number** — users read narrative and evidence, not a headline score.
 - **A recognized framework** — the eight components are the Home Front Command model: a shared language with HQ and field, not a bespoke metric.
 
 ### For the field

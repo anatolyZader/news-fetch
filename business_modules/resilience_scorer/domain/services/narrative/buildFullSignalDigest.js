@@ -1,5 +1,5 @@
 /**
- * Priority-ranked, article-deduped signal pools for the operator narrative pipeline.
+ * Priority-ranked, article-deduped signal pools for the user narrative pipeline.
  *
  * Pipeline position: narrative preflight — feeds signal ref registry and LLM facts/polish
  * prompts; ranking is count/quality-based (no evidence mass).
@@ -7,13 +7,13 @@
  * Owns: per-component digest caps, evidence char limits, ranked signal picks.
  * Does NOT: run LLM calls or perform narrative grounding QA.
  *
- * Key collaborators: `operator/topContributors.js`, `narrative/signalRefRegistry.js`,
+ * Key collaborators: `user/topContributors.js`, `narrative/signalRefRegistry.js`,
  * `narrative/narrativePromptBudget.js`.
  */
 
 import { COMPONENT_IDS } from '../../contracts/componentIds.js';
 import { collectComponentSignals } from '../signals/componentSignalGroups.js';
-import { contributorRankKey } from '../operator/topContributors.js';
+import { contributorRankKey } from '../user/topContributors.js';
 import { signalArticleKey } from './signalRefRegistry.js';
 
 // ── Env caps ──────────────────────────────────────────────────────────────────

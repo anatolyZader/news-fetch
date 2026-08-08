@@ -40,21 +40,21 @@ export {
   createEmptyAssessmentV2,
 } from './assessmentV2.js';
 export {
-  operatorEpistemicOverlayEnabled,
-} from './operatorEpistemicOverlay.js';
+  userEpistemicOverlayEnabled,
+} from './userEpistemicOverlay.js';
 export {
   narrativeEpistemicMode,
   narrativeInvestigationPermissive,
 } from './narrativeEpistemicMode.js';
 export {
-  operatorSurfaceMode,
+  userSurfaceMode,
   richSurfaceSkipSpecialists,
   richSurfaceDeterministicOnly,
   shouldUseRichDeterministicPath,
-  operatorEvidenceChars,
-  operatorMaxClaims,
-  operatorHighlightPerSource,
-} from './operatorSurfaceMode.js';
+  userEvidenceChars,
+  userMaxClaims,
+  userHighlightPerSource,
+} from './userSurfaceMode.js';
 export {
   normalizePoolSourceType,
   poolItemSourceBucket,

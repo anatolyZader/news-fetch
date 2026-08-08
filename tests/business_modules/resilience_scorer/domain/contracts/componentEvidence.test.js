@@ -5,6 +5,7 @@ import {
   buildComponentEvidence,
   deriveSufficiency,
   deriveBalance,
+  derivePboReviewCompleteness,
 } from '../../../../../business_modules/resilience_scorer/domain/contracts/componentEvidence.js';
 
 // compliance_enter_shelter routes: lifesaving_behavior primary '+',
@@ -167,5 +168,56 @@ describe('buildComponentEvidence (primary-only bands)', () => {
     assert.equal(deriveSufficiency({ signal_count: 7, distinct_articles: 4, source_type_count: 3 }), 'adequate');
     assert.equal(deriveBalance(3, 2), 'contested');
     assert.equal(deriveBalance(5, 0), 'one_sided_pos');
+  });
+});
+
+describe('derivePboReviewCompleteness', () => {
+  const item = (pbo_review_state) => ({ signal: pbo_review_state == null ? {} : { pbo_review_state } });
+
+  it('returns null when no primary item carries a review state', () => {
+    assert.equal(derivePboReviewCompleteness([item(null), item(null)]), null);
+  });
+
+  it('shares incomplete against total primary mass, not the PBO subset', () => {
+    // 2 incomplete PBO signals inside 40 primary is a 5% problem, not a 100% one.
+    const items = [
+      ...Array.from({ length: 2 }, () => item('reviewed_incomplete')),
+      ...Array.from({ length: 38 }, () => item(null)),
+    ];
+    const out = derivePboReviewCompleteness(items);
+    assert.equal(out.pbo_primary_count, 2);
+    assert.equal(out.reviewed_incomplete, 2);
+    assert.equal(out.incomplete_share, 0.05);
+  });
+
+  it('counts the three states separately', () => {
+    const out = derivePboReviewCompleteness([
+      item('reviewed_sufficient'),
+      item('reviewed_incomplete'),
+      item('unreviewed'),
+      item('unreviewed'),
+    ]);
+    assert.equal(out.reviewed_sufficient, 1);
+    assert.equal(out.reviewed_incomplete, 1);
+    assert.equal(out.unreviewed, 2);
+    assert.equal(out.incomplete_share, 0.25);
+  });
+
+  it('ignores the legacy pbo_completeness key', () => {
+    // The pre-2026-06-20 extractor wrote 'incomplete' there for municipalities
+    // nobody had reviewed — reading it would resurrect the two-state collapse.
+    const out = derivePboReviewCompleteness([
+      { signal: { pbo_completeness: 'incomplete', pbo_evidence_thin: true } },
+      { signal: { pbo_review_state: 'unreviewed' } },
+    ]);
+    assert.equal(out.pbo_primary_count, 1);
+    assert.equal(out.reviewed_incomplete, 0);
+    assert.equal(out.incomplete_share, 0);
+  });
+
+  it('treats an unrecognised state as unreviewed', () => {
+    const out = derivePboReviewCompleteness([item('something_else')]);
+    assert.equal(out.unreviewed, 1);
+    assert.equal(out.reviewed_incomplete, 0);
   });
 });

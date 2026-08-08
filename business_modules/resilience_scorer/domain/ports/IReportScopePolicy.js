@@ -8,7 +8,7 @@
  * Does NOT: implement adapters (those live in infrastructure/).
  *
  * Key collaborators: signalScopePartition, defaultReportScopePolicyAdapter,
- * regionSignalFilter, reportRoutes, operatorRecommendationService.
+ * regionSignalFilter, reportRoutes, userRecommendationService.
  */
 
 /**

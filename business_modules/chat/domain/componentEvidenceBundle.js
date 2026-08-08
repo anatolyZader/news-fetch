@@ -1,5 +1,5 @@
 /**
- * Format component evidence bundle from rich operator surface for chat tools/context.
+ * Format component evidence bundle from rich user surface for chat tools/context.
  */
 
 const ROLE_ORDER = ['scored', 'investigation_only', 'context_only', 'quarantined'];
@@ -13,7 +13,7 @@ export function summarizeInvestigationPool(comp) {
   const byRole = {};
   const bySource = {};
   for (const item of pool) {
-    const role = item.operator_epistemic_role ?? 'investigation_only';
+    const role = item.user_epistemic_role ?? 'investigation_only';
     byRole[role] = (byRole[role] ?? 0) + 1;
     const src = item.source_type ?? 'other';
     bySource[src] = (bySource[src] ?? 0) + 1;
@@ -37,11 +37,11 @@ export function formatPoolSummaryForChat(comp, opts = {}) {
       lines.push(`  ${role}: ${summary.by_role[role]}`);
     }
   }
-  const bySource = comp?.operator_investigation_pool_by_source ?? [];
+  const bySource = comp?.user_investigation_pool_by_source ?? [];
   for (const { key, items } of bySource) {
     lines.push(`Source ${key} (${items.length}):`);
     for (const item of items.slice(0, linesPerSource)) {
-      lines.push(`  - [${item.operator_epistemic_role ?? 'n/a'}] ${String(item.evidence ?? '').slice(0, 400)}`);
+      lines.push(`  - [${item.user_epistemic_role ?? 'n/a'}] ${String(item.evidence ?? '').slice(0, 400)}`);
     }
     if (items.length > linesPerSource) {
       lines.push(`  ... +${items.length - linesPerSource} more`);
@@ -52,20 +52,20 @@ export function formatPoolSummaryForChat(comp, opts = {}) {
 
 /**
  * Resolve the deepest evidence layer available for a component: the rich
- * investigation pool when present, else the structured operator evidence
+ * investigation pool when present, else the structured user evidence
  * (non-rich reports) mapped to the same item shape.
  * @param {object|null|undefined} comp
  * @returns {{ pool: object[], layer: 'investigation_pool'|'evidence_structured'|'none' }}
  */
 export function resolveEvidencePool(comp) {
-  const pool = comp?.operator_investigation_pool ?? [];
+  const pool = comp?.user_investigation_pool ?? [];
   if (pool.length > 0) return { pool, layer: 'investigation_pool' };
-  const structured = comp?.evidence_operator_structured ?? [];
+  const structured = comp?.evidence_user_structured ?? [];
   if (structured.length === 0) return { pool: [], layer: 'none' };
   return {
     pool: structured.map((item) => ({
       ref: item.ref,
-      operator_epistemic_role: item.operator_epistemic_role ?? 'scored',
+      user_epistemic_role: item.user_epistemic_role ?? 'scored',
       signal_provenance: item.signal_provenance,
       signal_type: item.signal_type,
       source_type: item.source_type,
@@ -83,7 +83,7 @@ export function resolveEvidencePool(comp) {
  * @returns {object[]}
  */
 function roleRank(item) {
-  const idx = ROLE_ORDER.indexOf(item.operator_epistemic_role ?? 'investigation_only');
+  const idx = ROLE_ORDER.indexOf(item.user_epistemic_role ?? 'investigation_only');
   return idx === -1 ? ROLE_ORDER.length : idx;
 }
 
@@ -91,7 +91,7 @@ export function selectPoolItems(comp, opts = {}) {
   let { pool } = resolveEvidencePool(comp);
   const role = opts.role;
   if (role) {
-    pool = pool.filter((item) => item.operator_epistemic_role === role);
+    pool = pool.filter((item) => item.user_epistemic_role === role);
   }
   // Scored items are the report's evidentiary basis — they lead the payload so
   // a limit or partial read never drops them in favor of unscored extras.
@@ -116,20 +116,20 @@ export function formatComponentEvidenceBundle(reportData, componentId, opts = {}
   const claims = (comp.narrative_claims ?? []).map((c) => ({
     text: String(c.text ?? '').slice(0, 600),
     signal_refs: c.signal_refs ?? c.evidence_refs ?? [],
-    operator_epistemic_role: c.operator_epistemic_role ?? null,
+    user_epistemic_role: c.user_epistemic_role ?? null,
   }));
 
   // Narrative stays an excerpt: the full text lives in the report context /
   // get_report_context — this bundle is the evidence layer beneath it.
   const payload = {
     component_id: componentId,
-    narrative_excerpt: String(comp.narrative_operator ?? comp.narrative ?? '').slice(0, 300),
+    narrative_excerpt: String(comp.narrative_user ?? comp.narrative ?? '').slice(0, 300),
     evidence_layer: layer,
     pool_summary: summarizeInvestigationPool(comp),
     claims,
     pool_items: items.map((item) => ({
       ref: item.ref,
-      operator_epistemic_role: item.operator_epistemic_role,
+      user_epistemic_role: item.user_epistemic_role,
       signal_provenance: item.signal_provenance,
       signal_type: item.signal_type,
       source_type: item.source_type,

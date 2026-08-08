@@ -34,7 +34,7 @@ All three `VITE_FIREBASE_*` values come from Firebase Console → Project Settin
 - **Protected API routes** reject calls without `Authorization: Bearer <idToken>` with `401 Unauthorized`.
 - **Signed-in UI**: the React app shows a Google sign-in screen on first load; after sign-in, it attaches the ID token to every API call automatically.
 - **Token refresh**: Firebase's client SDK refreshes tokens before expiry — users don't re-sign-in every hour.
-- **Operator visibility**: `GET /api/auth/config` reports the current posture so the client knows whether to prompt.
+- **User visibility**: `GET /api/auth/config` reports the current posture so the client knows whether to prompt.
 
 ## Constraints
 - **Production should use ADC, not JSON keys.** A service account JSON file in a container image is a credential-exfiltration risk. Attach a service account to the workload (Cloud Run, GKE workload identity, etc.) and let `firebase-admin` pick it up automatically.

@@ -2,7 +2,7 @@
 
 Engineering reference for **Srulik's lab** — a homefront **decision-support** system, not a scoring dashboard.
 
-**Not an oracle.** The product narrows operator attention with **evidence-backed claims**, instrument flags (sufficiency, contested, significant change), and investigation metadata. Humans decide under explicit uncertainty. The **primary assess path** is an **assessment agent + RAG investigation** pipeline; deterministic scores still run as **shadow/calibration** on disk, but the **default operator UI and API hide headline 1–10 scores**.
+**Not an oracle.** The product narrows user attention with **evidence-backed claims**, instrument flags (sufficiency, contested, significant change), and investigation metadata. Humans decide under explicit uncertainty. The **primary assess path** is an **assessment agent + RAG investigation** pipeline; deterministic scores still run as **shadow/calibration** on disk, but the **default user UI and API hide headline 1–10 scores**.
 
 Companion policy summary: [`docs/MODEL-CARD.md`](../MODEL-CARD.md). Product-facing anchor: [`cross-cut-modules/docs/content/pages/concepts/decision-support-model.md`](../../cross-cut-modules/docs/content/pages/concepts/decision-support-model.md).
 
@@ -11,9 +11,9 @@ Companion policy summary: [`docs/MODEL-CARD.md`](../MODEL-CARD.md). Product-faci
 The system is **not** “score the day, then narrate the score.” It is **investigate the evidence, then synthesize a decision-support view**.
 
 - **Primary question:** what happened, with what evidence, and what needs attention — not “what is the 1–10 score?”
-- **Unit of proof:** claims with `evidence_refs` in v2 schema; operators see **`evidence_tree`** in the report UI
+- **Unit of proof:** claims with `evidence_refs` in v2 schema; users see **`evidence_tree`** in the report UI
 - **LLM role:** planner → parallel specialists → critic → synthesizer (investigation before synthesis)
-- **Unchanged:** closed-catalog extraction; humans decide; abstention and data void as features; operator tier hides headline scores
+- **Unchanged:** closed-catalog extraction; humans decide; abstention and data void as features; user tier hides headline scores
 
 Full before/after tables: [RESILIENCE-ENGINE-REFERENCE.md §1](./RESILIENCE-ENGINE-REFERENCE.md#1-conceptual-and-technical-shift).
 
@@ -21,7 +21,7 @@ Full before/after tables: [RESILIENCE-ENGINE-REFERENCE.md §1](./RESILIENCE-ENGI
 
 | # | File | When you need… |
 |---|------|----------------|
-| 1 | [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md) | What operators see, scan → proof → decide, operator vs analyst display tiers, v2 evidence tree |
+| 1 | [SYSTEM-AND-USER-MODEL.md](./SYSTEM-AND-USER-MODEL.md) | What users see, scan → proof → decide, user vs developer display tiers, v2 evidence tree |
 | 2 | [PIPELINE-AND-SOURCES.md](./PIPELINE-AND-SOURCES.md) | Daily ingest, extract, assess (agent + shadow), artifacts on disk, guided report, municipal PBO review |
 | 2b | `business_modules/pbo_report_review/` | Municipal PBO completeness gaps, officer email, inbound replies — see PIPELINE § Municipal PBO review |
 | 3 | [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENCE.md) | Conceptual/technical shift, assessment agent, epistemic instruments, shadow scoring |
@@ -40,7 +40,7 @@ Upload **these 8 files** plus [`docs/MODEL-CARD.md`](../MODEL-CARD.md) and [`cro
 
 ### Recommended for technical review (+4)
 
-Add these for **shadow scoring math**, architecture synthesis, and terminology (calibration supplements — not the primary operator story):
+Add these for **shadow scoring math**, architecture synthesis, and terminology (calibration supplements — not the primary user story):
 
 | File | Role |
 |------|------|
@@ -74,4 +74,4 @@ Run `npm run deps:boundaries` locally (same check as CI; config `.dependency-cru
 
 ## Terminology
 
-See [`docs/architecture/ubiquitous-language.md`](../architecture/ubiquitous-language.md) for **Operator**, **Analyst**, **Maintainer**, **Report scope**, **Principal**, and related terms.
+See [`docs/architecture/ubiquitous-language.md`](../architecture/ubiquitous-language.md) for **User**, **Developer**, **Maintainer**, **Report scope**, **Principal**, and related terms.

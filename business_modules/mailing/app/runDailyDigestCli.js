@@ -2,8 +2,10 @@
 /**
  * Daily digest — one-shot CLI for cron (or systemd timer).
  *
- * Loads mailing preferences from SQLite, sends one Resend email per subscriber
- * who has a non-empty email and at least one product enabled.
+ * Loads mailing preferences from SQLite and sends one Resend email per address:
+ * users who subscribed themselves (with their own preferences) plus the shared
+ * maintainer-managed distribution list (inheriting the adding maintainer's
+ * preferences). Addresses on both lists are sent to once.
  *
  * Ops example (07:00 Asia/Jerusalem; set paths for your host):
  *
@@ -26,6 +28,7 @@ import { createMailingPreferencesStore } from '../infrastructure/mailingPreferen
 import { createMailingResendAdapter } from '../infrastructure/adapters/mailingResendAdapter.js';
 import { createMailingService } from '../app/mailingService.js';
 import { createDigestReportSource } from '../app/digestReportSource.js';
+import { buildDigestSendList } from '../app/digestRecipients.js';
 import { createReportReadPort } from '../../resilience_scorer/index.js';
 import { createEvidenceStore } from '../../../db/persistence/evidenceStore.js';
 import { getTranslatedReport } from '../../translation/index.js';
@@ -58,21 +61,26 @@ async function main() {
     translateReport: getTranslatedReport,
   });
 
-  const subs = prefsStore.listDigestSubscribers();
-  if (subs.length === 0) {
+  const jobs = buildDigestSendList({
+    subscribers: prefsStore.listDigestSubscribers(),
+    recipients: prefsStore.listRecipients(),
+    getPrefsByUid: (uid) => prefsStore.getByUid(uid),
+  });
+  if (jobs.length === 0) {
     console.log('[mail-digest] No subscribers');
     process.exit(0);
   }
+  console.log(`[mail-digest] ${jobs.length} recipient(s)`);
 
   let failures = 0;
-  for (const sub of subs) {
-    const { userUid, email, products, language } = sub;
+  for (const job of jobs) {
+    const { email, products, language, source } = job;
     try {
       await mailingService.sendDigest({ to: email, products, language });
-      console.log(`[mail-digest] Sent ok uid=${userUid} to=${email} lang=${language}`);
+      console.log(`[mail-digest] Sent ok to=${email} lang=${language} via=${source}`);
     } catch (e) {
       failures += 1;
-      console.error(`[mail-digest] Failed uid=${userUid} to=${email}: ${e?.message ?? e}`);
+      console.error(`[mail-digest] Failed to=${email} via=${source}: ${e?.message ?? e}`);
     }
   }
 

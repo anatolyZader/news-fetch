@@ -21,7 +21,7 @@ function resolveCompactHistory(profile, explicit) {
 import './profiles/chat.profile.js';
 import './profiles/validation.profile.js';
 import './profiles/assessment.profile.js';
-import './profiles/analyst.profile.js';
+import './profiles/developer.profile.js';
 
 function generateRunId() {
   return createHash('sha256')

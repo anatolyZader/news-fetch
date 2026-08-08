@@ -2,14 +2,14 @@
  * Deterministic semantic pattern detection on scoped signals (no LLM).
  *
  * Pipeline position: STAGE-2 assess — scans loaded signals for cross-source
- * information/rumor patterns before operator recommendations are built.
+ * information/rumor patterns before user recommendations are built.
  *
  * Owns: rule-based pattern detection (vacuum+rumor, official/local conflict,
  * active rumor clusters) and evidence ref shaping.
  * Does NOT: invoke LLMs, rank actions (see `actionCompass/`), or mutate signals.
  *
- * Key collaborators: `patternDetection/operatorRecommendations.js`,
- * `services/operator/attentionItems.js`, assess finalize.
+ * Key collaborators: `patternDetection/userRecommendations.js`,
+ * `services/user/attentionItems.js`, assess finalize.
  */
 
 // ---------------------------------------------------------------------------

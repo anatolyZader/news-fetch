@@ -2,12 +2,12 @@
  * Evidence pool grouping by ingest source bucket (server + client).
  *
  * Pipeline position: report and client display — groups investigation-pool items
- * for operator-facing evidence panels. Client-safe isomorphic.
+ * for user-facing evidence panels. Client-safe isomorphic.
  *
  * Owns: source-type normalization, bucket assignment, and stable bucket ordering.
  * Does NOT: signal verification, narrative assembly, or numeric scores (min-math).
  *
- * Key collaborators: citationDisplay.js, operatorSurfaceMode.js,
+ * Key collaborators: citationDisplay.js, userSurfaceMode.js,
  * report display components, evidence pool loaders.
  */
 

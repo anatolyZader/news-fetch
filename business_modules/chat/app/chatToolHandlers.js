@@ -38,7 +38,7 @@ import { pboReviewRagEnabled } from '../../../cross-cut-modules/retrieval/ragCon
 import { requireRichTools } from './createChatToolContext.js';
 import {
   PROPOSE_TOOL_NAMES,
-  OPERATOR_PROPOSE_TOOL_NAMES,
+  USER_PROPOSE_TOOL_NAMES,
   SIGNAL_FLAG_REASONS,
   chatCompressToolsEnabled,
 } from '../domain/chatConfig.js';
@@ -55,8 +55,8 @@ function inferredDate(input, reportData) {
 }
 
 async function handleProposeTool(toolName, input, ctx) {
-  const isOperatorPropose = OPERATOR_PROPOSE_TOOL_NAMES.has(toolName);
-  if (!isOperatorPropose) {
+  const isUserPropose = USER_PROPOSE_TOOL_NAMES.has(toolName);
+  if (!isUserPropose) {
     const gate = requireRichTools(ctx, toolName);
     if (gate) return gate;
   }
@@ -70,12 +70,12 @@ async function handleProposeTool(toolName, input, ctx) {
   let summary = '';
   if (toolName === 'propose_geo_unknown_update') {
     summary = `Geo unknown #${input.id} → ${input.status}`;
-  } else if (toolName === 'propose_operator_recommendation') {
+  } else if (toolName === 'propose_user_recommendation') {
     const action = String(input?.action ?? '');
     if (action !== 'acknowledge' && action !== 'dismiss') {
       return 'Invalid action. Use acknowledge or dismiss.';
     }
-    summary = `Operator recommendation ${input.recommendation_id}: ${action}`;
+    summary = `User recommendation ${input.recommendation_id}: ${action}`;
   } else if (toolName === 'propose_signal_flag') {
     const reason = String(input?.reason ?? '');
     if (!SIGNAL_FLAG_REASONS.has(reason)) {
@@ -145,13 +145,13 @@ function appendMunicipalityBriefContext(context, scope, municipality, pboLookup)
 async function generateBrief(input, reportData, pboLookup, costRecorder = null, model = HAIKU_MODEL) {
   const { scope, municipality, audience, language } = input;
   let briefContext = buildAssessmentBriefContext(reportData, {
-    includeScores: reportData?.display_view === DISPLAY_VIEWS.analyst,
+    includeScores: reportData?.display_view === DISPLAY_VIEWS.developer,
   });
   briefContext = appendMunicipalityBriefContext(briefContext, scope, municipality, pboLookup);
 
   const audienceInstructions = {
     commander: 'Write for a military/civil defense commander: concise, action-oriented, focus on operational gaps.',
-    analyst: 'Write for a resilience analyst: evidence-rich, cite specific signals and sources.',
+    developer: 'Write for a resilience developer: evidence-rich, cite specific signals and sources.',
     public: 'Write for public communication: accessible language, no jargon.',
   };
   let langInstructions = 'Write the brief in English.';
@@ -168,7 +168,7 @@ async function generateBrief(input, reportData, pboLookup, costRecorder = null, 
     messages: [{
       role: 'user',
       content:
-        `${audienceInstructions[audience] ?? audienceInstructions.analyst}\n` +
+        `${audienceInstructions[audience] ?? audienceInstructions.developer}\n` +
         `${langInstructions}\n${scopeInstructions}\n\nDATA:\n` +
         `${wrapUntrustedBlock(briefContext, { label: 'brief_context' })}`,
     }],
@@ -309,7 +309,7 @@ function handleLookupSignals(input) {
 }
 
 async function handleTraceComponentTimeline(_toolName, input, ctx) {
-  const includeScores = ctx.reportData?.display_view === DISPLAY_VIEWS.analyst;
+  const includeScores = ctx.reportData?.display_view === DISPLAY_VIEWS.developer;
   const result = await buildComponentTimeline(input, {
     includeScores,
     richTools: ctx.richTools,
@@ -320,7 +320,7 @@ async function handleTraceComponentTimeline(_toolName, input, ctx) {
 }
 
 function handleCompareDates(input, ctx) {
-  const includeScores = ctx.reportData?.display_view === DISPLAY_VIEWS.analyst;
+  const includeScores = ctx.reportData?.display_view === DISPLAY_VIEWS.developer;
   // Default to the loaded report's scope so a north session compares north reports.
   const scope = normalizeReportScope(
     String(input?.scope ?? ctx.reportData?.assessment?.report_scope?.id ?? 'national'),
@@ -409,7 +409,7 @@ function handleListAttentionItems(_toolName, input, ctx) {
   );
   const limit = Math.min(Math.max(input?.limit ?? 15, 1), 25);
   const items = buildAttentionItems(a, {
-    view: DISPLAY_VIEWS.operator,
+    view: DISPLAY_VIEWS.user,
     reportScopeId: scopeId,
   }).slice(0, limit);
   if (!items.length) return 'No attention items — nothing was flagged for this assessment (the attention layer did run).';
@@ -420,18 +420,18 @@ function handleListAttentionItems(_toolName, input, ctx) {
   }).join('\n');
 }
 
-function handleListOperatorRecommendations(_toolName, input, ctx) {
+function handleListUserRecommendations(_toolName, input, ctx) {
   const a = ctx.reportData?.assessment;
   if (!a) return 'No assessment loaded.';
-  if (a.operator_recommendations === undefined) {
-    return 'Operator recommendations were not generated for this report (feature off at assess time).';
+  if (a.user_recommendations === undefined) {
+    return 'User recommendations were not generated for this report (feature off at assess time).';
   }
   const statusFilter = input?.status ?? 'pending';
-  let recs = a.operator_recommendations ?? [];
+  let recs = a.user_recommendations ?? [];
   if (statusFilter !== 'all') {
     recs = recs.filter((r) => r.status === statusFilter);
   }
-  if (!recs.length) return `No operator recommendations with status=${statusFilter} — the layer ran, none matched.`;
+  if (!recs.length) return `No user recommendations with status=${statusFilter} — the layer ran, none matched.`;
   return recs.map((r) => {
     const actionType = r.recommended_action?.type ?? 'n/a';
     const channels = (r.recommended_action?.channels ?? []).join(', ');
@@ -460,7 +460,7 @@ function handleGetReport(_toolName, input, ctx) {
   if (!report?.assessment) {
     return `No report found for ${date} (scope=${scope}). Available dates: ${listReportDates().join(', ')}`;
   }
-  const includeScores = ctx.reportData?.display_view === DISPLAY_VIEWS.analyst;
+  const includeScores = ctx.reportData?.display_view === DISPLAY_VIEWS.developer;
   const a = report.assessment;
   const lines = (a.components ?? [])
     .map((c) => formatComponentInstrumentSummary(c, { includeScores }))
@@ -478,7 +478,7 @@ const REPORT_CONTEXT_SLICES = new Set(['full', 'component', 'hub', 'standard']);
 /**
  * Resolve the report a tool should operate on: the loaded (today's) report by
  * default, or a past report from disk when input.date is set. Past reports come
- * raw off disk, so the live report's operator redaction is re-applied.
+ * raw off disk, so the live report's user redaction is re-applied.
  * @returns {{ reportData?: object|null, error?: string }}
  */
 function resolveReportDataForDate(input, ctx) {
@@ -491,8 +491,8 @@ function resolveReportDataForDate(input, ctx) {
   if (!report?.assessment) {
     return { error: `No report found for ${date} (scope=${scope}). Available dates: ${listReportDates().join(', ')}` };
   }
-  if (ctx.reportData?.display_view !== DISPLAY_VIEWS.analyst && ctx.redactReportPayload) {
-    return { reportData: ctx.redactReportPayload(report, DISPLAY_VIEWS.operator) };
+  if (ctx.reportData?.display_view !== DISPLAY_VIEWS.developer && ctx.redactReportPayload) {
+    return { reportData: ctx.redactReportPayload(report, DISPLAY_VIEWS.user) };
   }
   return { reportData: report };
 }
@@ -504,7 +504,7 @@ function handleGetReportContext(_toolName, input, ctx) {
   if (!reportData) return 'No report loaded.';
   const slice = REPORT_CONTEXT_SLICES.has(input?.slice) ? input.slice : 'standard';
   const componentId = String(input?.component ?? '').trim() || undefined;
-  const includeScores = ctx.reportData?.display_view === DISPLAY_VIEWS.analyst;
+  const includeScores = ctx.reportData?.display_view === DISPLAY_VIEWS.developer;
   const { context } = buildReportContext(reportData, {
     includeScores,
     contextSlice: slice,
@@ -674,8 +674,8 @@ async function handleGetMunicipalityProfile(input, ctx) {
 }
 
 function handleSearchReports(_toolName, input, ctx) {
-  const redact = ctx.reportData?.display_view !== DISPLAY_VIEWS.analyst && ctx.redactReportPayload
-    ? (report) => ctx.redactReportPayload(report, DISPLAY_VIEWS.operator)
+  const redact = ctx.reportData?.display_view !== DISPLAY_VIEWS.developer && ctx.redactReportPayload
+    ? (report) => ctx.redactReportPayload(report, DISPLAY_VIEWS.user)
     : undefined;
   return searchReports(input ?? {}, {
     redact,
@@ -718,7 +718,7 @@ const CHAT_TOOL_HANDLERS = {
   get_pbo_review: handleGetPboReview,
   list_geo_unknown: handleListGeoUnknown,
   list_attention_items: handleListAttentionItems,
-  list_operator_recommendations: handleListOperatorRecommendations,
+  list_user_recommendations: handleListUserRecommendations,
   get_decision_brief: handleGetDecisionBrief,
   get_data_coverage: handleGetDataCoverage,
   describe_signal_type: (_toolName, input) => describeSignalType(input?.signal_type ?? ''),

@@ -63,7 +63,7 @@ Env:
   RESILIENCE_NARRATIVE_DIGEST_EVIDENCE_CHARS=500   Evidence trim in digest
   RESILIENCE_NARRATIVE_FACTS_SHARD_SIZE=4          Haiku facts shard width
   RESILIENCE_NARRATIVE_PIPELINE=hybrid             Set legacy for monolithic Sonnet Step 2
-  RESILIENCE_NARRATIVE_GROUNDING_BLOCK=1   Fail assess when grounding mean < min (analyst replays only)
+  RESILIENCE_NARRATIVE_GROUNDING_BLOCK=1   Fail assess when grounding mean < min (developer replays only)
   RESILIENCE_CLOSED_CORE_ASSESS=0   Enable assessment agent on replay (default 1)
   npm run pipeline:audit -- --date YYYY-MM-DD --scope north   Post-run digest
 `);

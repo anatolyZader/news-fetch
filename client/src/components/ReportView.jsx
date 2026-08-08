@@ -242,8 +242,8 @@ function resolveHighlightedEvidenceItems(isRichMode, curatedEvidence, isFiltered
 }
 
 export function resolveCuratedEvidence(comp) {
-  if (comp.evidence_operator_structured?.length) return comp.evidence_operator_structured;
-  if (comp.evidence_operator?.length) return comp.evidence_operator;
+  if (comp.evidence_user_structured?.length) return comp.evidence_user_structured;
+  if (comp.evidence_user?.length) return comp.evidence_user;
   if (comp.evidence?.length) return comp.evidence;
   return null;
 }
@@ -343,8 +343,8 @@ function EvidenceSourceHeader({ item, sourceSignals, t }) {
       {sourceType === 'pbo' && <SourceBadge kind="pbo">{t('report.badge.pbo')}</SourceBadge>}
       {articleSourceLabel}
       <GeoEpistemicBadge signal={meta} t={t} />
-      {typeof item === 'object' && item?.operator_epistemic_role && (
-        <EpistemicRoleBadge role={item.operator_epistemic_role} t={t} />
+      {typeof item === 'object' && item?.user_epistemic_role && (
+        <EpistemicRoleBadge role={item.user_epistemic_role} t={t} />
       )}
       </Box>
       {externalUrl && (
@@ -381,14 +381,14 @@ function resolveComponentSignals(curatedEvidence, allowRawSignalFallback, source
 }
 
 function componentIsInsufficient(comp) {
-  if (comp.operator_display_state) {
-    return comp.operator_display_state === 'insufficient_data';
+  if (comp.user_display_state) {
+    return comp.user_display_state === 'insufficient_data';
   }
-  return comp.confidence === 'insufficient_data' || comp.instrument?.operator_shows_score === false;
+  return comp.confidence === 'insufficient_data' || comp.instrument?.user_shows_score === false;
 }
 
-function evidenceAccordionTitle({ isFiltered, operatorDisplayState, t }) {
-  if (operatorDisplayState === 'insufficient_data' && isFiltered) {
+function evidenceAccordionTitle({ isFiltered, userDisplayState, t }) {
+  if (userDisplayState === 'insufficient_data' && isFiltered) {
     return t('report.evidencePartition.rawScored');
   }
   return t('report.supportingEvidence');
@@ -512,10 +512,10 @@ export function ComponentCard({
   const label = t(`comp.${comp.component_id}`) ?? comp.component_id.replaceAll('_', ' ');
 
   const curatedEvidence = resolveCuratedEvidence(comp);
-  const narrativeBody = String(comp.narrative_operator ?? comp.narrative ?? '').trim();
+  const narrativeBody = String(comp.narrative_user ?? comp.narrative ?? '').trim();
   const narrativeIsStub = isStubNarrative(narrativeBody);
-  const isRichMode = comp.operator_surface_mode === 'rich';
-  const fullPool = comp.operator_investigation_pool ?? [];
+  const isRichMode = comp.user_surface_mode === 'rich';
+  const fullPool = comp.user_investigation_pool ?? [];
   const allowRawSignalFallback = !narrativeIsStub || Boolean(curatedEvidence?.length);
   const signals = isRichMode ? null : resolveComponentSignals(curatedEvidence, allowRawSignalFallback, sourceSignals);
   const isFiltered = Boolean(signals?.length);
@@ -759,7 +759,7 @@ export function ComponentCard({
                   ? t('report.evidence.highlighted')
                   : evidenceAccordionTitle({
                     isFiltered,
-                    operatorDisplayState: comp.operator_display_state,
+                    userDisplayState: comp.user_display_state,
                     t,
                   })}
               </Typography>
@@ -932,7 +932,7 @@ export function ReportView({
           <MarkdownArticle
             variant="report"
             markdown={formatNarrativeMarkdown(
-              assessment.cross_component_synthesis_operator
+              assessment.cross_component_synthesis_user
                 ?? assessment.cross_component_synthesis
                 ?? '',
               assessment.date,

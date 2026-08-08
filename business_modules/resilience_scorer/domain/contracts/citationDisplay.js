@@ -1,5 +1,5 @@
 /**
- * Operator-facing citation labels and citation registry helpers (server + client).
+ * User-facing citation labels and citation registry helpers (server + client).
  *
  * Pipeline position: report display — resolves signal metadata to APA authors
  * and builds lookup registries for inline citation replacement. Client-safe

@@ -8,8 +8,8 @@ import {
   sortAttentionItems,
   ATTENTION_LEVELS,
   ATTENTION_KINDS,
-} from '../../../../../business_modules/resilience_scorer/domain/services/operator/attentionItems.js';
-import { DISPLAY_VIEWS } from '../../../../../business_modules/resilience_scorer/domain/services/operator/assessmentDisplayTier.js';
+} from '../../../../../business_modules/resilience_scorer/domain/services/user/attentionItems.js';
+import { DISPLAY_VIEWS } from '../../../../../business_modules/resilience_scorer/domain/services/user/assessmentDisplayTier.js';
 
 describe('attentionItems', () => {
   it('returns empty for null assessment', () => {
@@ -21,7 +21,7 @@ describe('attentionItems', () => {
       data_void: { level: 'critical', digital_darkness: true, reason: 'digital_darkness' },
       assessment_mode: 'field_anchor_only',
       components: [],
-    }, { view: DISPLAY_VIEWS.operator });
+    }, { view: DISPLAY_VIEWS.user });
 
     assert.ok(items.some((i) => i.code === 'digital_darkness' && i.level === 'critical'));
     assert.ok(items.some((i) => i.code === 'field_anchor_only' && i.level === 'warning'));
@@ -62,9 +62,9 @@ describe('attentionItems', () => {
     assert.ok(items.some((i) => i.code === 'contested_evidence'));
   });
 
-  it('includes pending operator recommendation items', () => {
+  it('includes pending user recommendation items', () => {
     const items = buildAttentionItems({
-      operator_recommendations: [{
+      user_recommendations: [{
         id: 'rec:information_vacuum_rumor',
         pattern_code: 'information_vacuum_rumor',
         level: 'warning',
@@ -76,7 +76,7 @@ describe('attentionItems', () => {
     assert.ok(items.some((i) => i.recommendation_id === 'rec:information_vacuum_rumor'));
   });
 
-  it('includes oov_burst for operator when alert', () => {
+  it('includes oov_burst for user when alert', () => {
     const items = buildAttentionItems({
       oov_burst: {
         alert: true,
@@ -87,25 +87,25 @@ describe('attentionItems', () => {
         window_hours: 2,
       },
       components: [],
-    }, { view: DISPLAY_VIEWS.operator });
+    }, { view: DISPLAY_VIEWS.user });
     assert.ok(items.some((i) => i.code === 'oov_burst' && i.level === 'critical'));
   });
 
-  it('filters analyst-only items for operator view', () => {
+  it('filters developer-only items for user view', () => {
     const assessment = {
       oov_capture_count: 5,
       methodology: { calibration: { deficit: 0.6, trust: 0.4 } },
       components: [{ component_id: 'narrative' }],
     };
 
-    const operatorItems = buildAttentionItems(assessment, { view: DISPLAY_VIEWS.operator });
-    const analystItems = buildAttentionItems(assessment, { view: DISPLAY_VIEWS.analyst });
+    const userItems = buildAttentionItems(assessment, { view: DISPLAY_VIEWS.user });
+    const developerItems = buildAttentionItems(assessment, { view: DISPLAY_VIEWS.developer });
 
-    assert.ok(!operatorItems.some((i) => i.code === 'oov_capture'));
-    assert.ok(!operatorItems.some((i) => i.code === 'calibration_deficit'));
+    assert.ok(!userItems.some((i) => i.code === 'oov_capture'));
+    assert.ok(!userItems.some((i) => i.code === 'calibration_deficit'));
 
-    assert.ok(analystItems.some((i) => i.code === 'oov_capture'));
-    assert.ok(analystItems.some((i) => i.code === 'calibration_deficit'));
+    assert.ok(developerItems.some((i) => i.code === 'oov_capture'));
+    assert.ok(developerItems.some((i) => i.code === 'calibration_deficit'));
   });
 
   it('includes macro signal count as info', () => {
@@ -139,7 +139,7 @@ describe('attentionItems', () => {
   it('does not double-list a pattern already covered by a pending recommendation', () => {
     const items = buildAttentionItems({
       components: [],
-      operator_recommendations: [{
+      user_recommendations: [{
         id: 'rec:active_rumor_cluster',
         pattern_code: 'active_rumor_cluster',
         level: 'watch',
@@ -257,5 +257,48 @@ describe('applyDecisionBriefPriority', () => {
     const items = [{ id: 'x', level: 'warning', code: 'thin_evidence' }];
     assert.equal(applyDecisionBriefPriority(items, null).length, 1);
     assert.equal(applyDecisionBriefPriority(items, { priority_items: [] }).length, 1);
+  });
+});
+
+function componentsWith(claims) {
+  return Array.from({ length: 8 }, (_, i) => ({
+    component_id: `c${i}`,
+    assessment_state: 'specialist_skipped',
+    narrative_claims: claims,
+  }));
+}
+
+function codes(assessment) {
+  return (buildAttentionItems(assessment, { view: DISPLAY_VIEWS.developer }) ?? []).map((i) => i.code);
+}
+
+describe('attentionItems — empty assessment', () => {
+  it('flags a full signal bundle that produced no claims at all', () => {
+    const items = buildAttentionItems(
+      { scoped_signal_count: 782, components: componentsWith([]) },
+      { view: DISPLAY_VIEWS.developer },
+    );
+    const empty = items.find((i) => i.code === 'assessment_empty');
+    assert.ok(empty, 'expected assessment_empty');
+    assert.equal(empty.level, 'critical');
+    assert.equal(empty.kind, ATTENTION_KINDS.pipeline);
+    assert.equal(empty.detail_params.skipped, 8);
+  });
+
+  it('stays silent on a genuinely thin day', () => {
+    assert.ok(!codes({ scoped_signal_count: 23, components: componentsWith([]) }).includes('assessment_empty'));
+  });
+
+  it('stays silent when claims exist', () => {
+    assert.ok(!codes({
+      scoped_signal_count: 782,
+      components: componentsWith([{ text: 'x', signal_refs: ['a@idx:1'] }]),
+    }).includes('assessment_empty'));
+  });
+
+  it('does not guess volume from per-component counts, which double-count', () => {
+    // 8 components x 20 signals each is at most 20 distinct signals, not 160.
+    const components = componentsWith([]).map((c) => ({ ...c, signal_count: 20 }));
+    assert.ok(!codes({ components }).includes('assessment_empty'));
   });
 });

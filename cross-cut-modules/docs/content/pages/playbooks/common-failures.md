@@ -12,7 +12,7 @@ llm:
 ---
 
 ## Purpose
-The gated operator playbook for recovering from the most frequent production incidents in Srulik's lab. This page assumes you're on call, you can SSH (or the equivalent) to the server, you can reach the provider consoles (Firebase, NewsAPI.ai, Meta, OpenAI, Anthropic), and you're authorized to rotate secrets and restart the service. If you're a user rather than an operator, see the public [Common failures](https://docs.vibeswitch.ai/operations/common-failures) page instead — it covers the same symptoms without the operator-level steps.
+The gated maintainer playbook for recovering from the most frequent production incidents in Srulik's lab. This page assumes you're on call, you can SSH (or the equivalent) to the server, you can reach the provider consoles (Firebase, NewsAPI.ai, Meta, OpenAI, Anthropic), and you're authorized to rotate secrets and restart the service. If you're a user rather than a maintainer, see the public [Common failures](https://docs.vibeswitch.ai/operations/common-failures) page instead — it covers the same symptoms without the maintainer-level steps.
 
 ## Prerequisites
 - **Required**: Access to server logs (stdout / platform log viewer) and the ability to restart the service.

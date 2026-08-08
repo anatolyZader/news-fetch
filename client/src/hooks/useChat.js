@@ -247,7 +247,7 @@ export function useChat() {
       reportGeoScope: opts.reportGeoScope ?? 'national',
       scope: opts.scope ?? null,
       toolProfile: opts.toolProfile ?? 'default',
-      view: opts.view ?? 'operator',
+      view: opts.view ?? 'user',
       lang: opts.lang ?? 'en',
       ...partial,
     };

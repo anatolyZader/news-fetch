@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { getTodayInTimezone, validateDate } from '../../../utils/dateUtils.js';
 import { getTranslatedReport, localizeReportTodayPayload, maybeLocalize, parseLocale } from '../../translation/index.js';
 import { buildMunicipalityDashboardDto } from '../../pbo_report/index.js';
-import { requireOperatorDistrictAccess } from '../../../cross-cut-modules/auth/operatorDistrictAccess.js';
-import { canViewAnalystDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
+import { requireUserDistrictAccess } from '../../../cross-cut-modules/auth/userDistrictAccess.js';
+import { canViewDeveloperDisplay } from '../../../cross-cut-modules/auth/userAccess.js';
 import {
   getCachedReport as getCachedReportDefault,
   getAvailableReportDates,
@@ -24,8 +24,8 @@ import {
   applyDecisionBriefPriority,
   sortAttentionItems,
   buildActionCompass,
-  updateOperatorRecommendationStatus,
-  parseOperatorRecommendationRequest,
+  updateUserRecommendationStatus,
+  parseUserRecommendationRequest,
 } from '../index.js';
 import { isRegionalReportScope } from '../../../cross-cut-modules/geo/reportScopeIds.js';
 import { auditFromRequest } from '../../../cross-cut-modules/security/input/auditLog.js';
@@ -46,9 +46,9 @@ function countPendingGeoUnknown(svc) {
 }
 
 function resolveTranslateDisplayView(displayViewHint) {
-  return displayViewHint === DISPLAY_VIEWS.analyst
-    ? DISPLAY_VIEWS.analyst
-    : DISPLAY_VIEWS.operator;
+  return displayViewHint === DISPLAY_VIEWS.developer
+    ? DISPLAY_VIEWS.developer
+    : DISPLAY_VIEWS.user;
 }
 
 function loadAssessmentForTranslation(store, getCachedReportFn, { date, scope, displayViewHint }) {
@@ -156,8 +156,8 @@ export async function reportRoutes(app, opts) {
   const todayAuthHook = readAuthHook ?? authHook;
 
   app.get('/api/report/agent-trace/:traceId', todayAuthHook, async (request, reply) => {
-    if (!canViewAnalystDisplay(request.user?.email)) {
-      return reply.code(403).send({ error: 'analyst_only' });
+    if (!canViewDeveloperDisplay(request.user?.email)) {
+      return reply.code(403).send({ error: 'developer_only' });
     }
     const { createTraceStore } = await import('../../../cross-cut-modules/agent/index.js');
     const traceStore = createTraceStore(join(process.cwd(), 'business_modules/specialist_agents/data/traces'));
@@ -183,8 +183,8 @@ export async function reportRoutes(app, opts) {
       },
     },
   }, async (request, reply) => {
-    if (!canViewAnalystDisplay(request.user?.email)) {
-      return reply.code(403).send({ error: 'analyst_only' });
+    if (!canViewDeveloperDisplay(request.user?.email)) {
+      return reply.code(403).send({ error: 'developer_only' });
     }
     const { date, component_id, claim_text, action, rationale, scope = 'national' } = request.body ?? {};
     if (action === 'reject' && claim_text) {
@@ -197,12 +197,12 @@ export async function reportRoutes(app, opts) {
           rebuildFts: () => svc.rebuildFts(),
           evalDir: join(process.cwd(), 'business_modules/specialist_agents/data/eval'),
         });
-        await memory.indexAnalystCorrection({
+        await memory.indexDeveloperCorrection({
           date,
           componentId: component_id,
           claimText: claim_text,
           rationale: rationale ?? '',
-          analystEmail: request.user?.email,
+          developerEmail: request.user?.email,
         });
         svc.close();
       } catch (err) {
@@ -218,7 +218,7 @@ export async function reportRoutes(app, opts) {
   app.get('/api/report/dates', todayAuthHook, async (request, reply) => {
     const scope = normalizeReportScope(request.query?.scope ?? 'national');
     if (isRegionalReportScope(scope)) {
-      if (!requireOperatorDistrictAccess(request, reply, scope)) return;
+      if (!requireUserDistrictAccess(request, reply, scope)) return;
     }
     const editions = getAvailableReportEditions({ scope });
     const dates = [...new Set(editions.map((e) => e.date))].sort((a, b) => b.localeCompare(a));
@@ -228,9 +228,9 @@ export async function reportRoutes(app, opts) {
   app.get('/api/report/today', todayAuthHook, async (request, reply) => {
     const scope = normalizeReportScope(request.query?.scope ?? 'national');
     if (isRegionalReportScope(scope)) {
-      if (!requireOperatorDistrictAccess(request, reply, scope)) return;
+      if (!requireUserDistrictAccess(request, reply, scope)) return;
     }
-    const requestedView = String(request.query?.view ?? 'operator').trim().toLowerCase();
+    const requestedView = String(request.query?.view ?? 'user').trim().toLowerCase();
     const dateParam = String(request.query?.date ?? '').trim();
     const runParam = String(request.query?.run ?? '').trim();
     const data = getCachedReport(evidenceStore, {
@@ -243,22 +243,22 @@ export async function reportRoutes(app, opts) {
     }
     const display_view = resolveDisplayView({
       queryView: request.query?.view,
-      canViewAnalyst: canViewAnalystDisplay(request.user?.email),
+      canViewDeveloper: canViewDeveloperDisplay(request.user?.email),
     });
-    const analyst_denied = requestedView === DISPLAY_VIEWS.analyst
-      && display_view !== DISPLAY_VIEWS.analyst;
+    const developer_denied = requestedView === DISPLAY_VIEWS.developer
+      && display_view !== DISPLAY_VIEWS.developer;
     const redacted = redactReportPayload(data, display_view);
-    // Operator report = executive summary + narratives + evidence; guidance
-    // badges (attention items, compass, recommendations) are analyst-only.
-    // The decision brief stays — it is operator decision-support prose.
-    const isAnalystView = display_view === DISPLAY_VIEWS.analyst;
-    if (!isAnalystView && redacted.assessment) {
-      delete redacted.assessment.operator_recommendations;
+    // User report = executive summary + narratives + evidence; guidance
+    // badges (attention items, compass, recommendations) are developer-only.
+    // The decision brief stays — it is user decision-support prose.
+    const isDeveloperView = display_view === DISPLAY_VIEWS.developer;
+    if (!isDeveloperView && redacted.assessment) {
+      delete redacted.assessment.user_recommendations;
     }
-    const attention_items = isAnalystView
+    const attention_items = isDeveloperView
       ? buildAttentionItemsWithContext(redacted, scope, display_view, dateParam)
       : [];
-    const action_compass = isAnalystView
+    const action_compass = isDeveloperView
       ? buildActionCompass(redacted.assessment, attention_items, {
         geoUnknownCount: countPendingGeoUnknown(geoUnknownReviewService),
       })
@@ -274,7 +274,7 @@ export async function reportRoutes(app, opts) {
       action_compass,
       budget_status,
       suggest_crisis_budget,
-      ...(analyst_denied ? { analyst_denied: true, requested_view: DISPLAY_VIEWS.analyst } : {}),
+      ...(developer_denied ? { developer_denied: true, requested_view: DISPLAY_VIEWS.developer } : {}),
       ...redacted,
     };
 
@@ -304,7 +304,7 @@ export async function reportRoutes(app, opts) {
       },
     },
   }, async (request, reply) => {
-    const parsed = parseOperatorRecommendationRequest({
+    const parsed = parseUserRecommendationRequest({
       id: request.params?.id,
       scope: request.body?.scope ?? request.query?.scope,
       date: request.body?.date ?? request.query?.date,
@@ -323,7 +323,7 @@ export async function reportRoutes(app, opts) {
       return reply.code(404).send({ error: 'report_not_found' });
     }
 
-    const result = await updateOperatorRecommendationStatus(
+    const result = await updateUserRecommendationStatus(
       date,
       scope,
       recommendationId,
@@ -390,7 +390,7 @@ export async function reportRoutes(app, opts) {
   app.get('/api/municipalities', authHook, async (request, reply) => {
     try {
       const district = String(request.query?.district ?? 'north').trim();
-      if (!requireOperatorDistrictAccess(request, reply, district)) return;
+      if (!requireUserDistrictAccess(request, reply, district)) return;
       const data = buildMunicipalityDashboardDto(district);
       return reply.send(await maybeLocalize(data, 'municipalities.dashboard', request, { fingerprintExtra: district }));
     } catch (err) {
@@ -408,7 +408,7 @@ export async function reportRoutes(app, opts) {
 
   app.get('/api/pbo/regional-report-days/:districtId/:regionId', authHook, async (request, reply) => {
     const { districtId, regionId } = request.params ?? {};
-    if (!requireOperatorDistrictAccess(request, reply, String(districtId ?? ''))) return;
+    if (!requireUserDistrictAccess(request, reply, String(districtId ?? ''))) return;
     try {
       const data = pboRegionalDailyService.getRegionalPboReportDays(
         String(districtId ?? ''),
@@ -427,7 +427,7 @@ export async function reportRoutes(app, opts) {
 
   app.get('/api/pbo/regional-report-days/:regionId', authHook, async (request, reply) => {
     const { regionId } = request.params ?? {};
-    if (!requireOperatorDistrictAccess(request, reply, 'north')) return;
+    if (!requireUserDistrictAccess(request, reply, 'north')) return;
     try {
       const data = pboRegionalDailyService.getRegionalPboReportDays('north', String(regionId ?? ''));
       return reply.send(await maybeLocalize(data, 'pbo.regionalReport', request, {
@@ -485,8 +485,8 @@ export async function reportRoutes(app, opts) {
       if (cached) {
         const displayView = resolveTranslateDisplayView(bodyDisplayView);
         const redacted = redactReportPayload(cached, displayView);
-        if (displayView !== DISPLAY_VIEWS.analyst && redacted.assessment) {
-          delete redacted.assessment.operator_recommendations;
+        if (displayView !== DISPLAY_VIEWS.developer && redacted.assessment) {
+          delete redacted.assessment.user_recommendations;
         }
         const localized = await localizeReportTodayPayload({
           found: true,

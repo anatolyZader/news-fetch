@@ -1,6 +1,6 @@
 # Pipeline and data sources
 
-**Purpose:** How daily **artifacts** are produced — ingest → signal extraction → **agent assess + shadow scoring** → reports on disk. Operators depend on this pipeline running; they do not run assessment math manually.
+**Purpose:** How daily **artifacts** are produced — ingest → signal extraction → **agent assess + shadow scoring** → reports on disk. Users depend on this pipeline running; they do not run assessment math manually.
 
 **Sources:** `scripts/daily-pipeline.sh`, `pipeline-config.json`, `business_modules/resilience_scorer/input/extract-signals.js`, `input/assess-signals.js` (thin CLI wrappers → `app/extractSignalsCli.js`, `app/assessSignalsCli.js`), `app/assessment/produceAssessmentWithShadow.js`, `app/pipelineOrchestrator.js`, `app/pipelineIngestPlan.js`, `input/run-pipeline.js`, `domain/services/pipelineArtifactPaths.js`, `cross-cut-modules/llm/writeTokenReport.js`. Cross-module imports use `business_modules/<name>/index.js` facades — see [README § Module boundaries](./README.md#module-boundaries-option-b).
 
@@ -18,7 +18,7 @@ Sources (news, radio, WhatsApp, field, PBO, social, …)
        ├─ scoreComponents (shadow / calibration)
        └─ runAssessmentAgent (RAG + planner + specialists + synthesizer)
   → daily_reports/resilience-report-{date}.json (+ markdown, trace, shadow artifacts)
-  → API / operator UI (redacted display tier)
+  → API / user UI (redacted display tier)
 ```
 
 Production entry points:
@@ -186,7 +186,7 @@ Optional ingest RAG when `RESILIENCE_EXTRACT_RAG_ENABLED` (see [RAG.md](./RAG.md
 - `daily_reports/assessment-agent-trace-{traceId}.jsonl` — per-assess agent audit trail
 - Markdown report paths as configured
 
-The per-report `shadow-scores-*.json` / `divergence-*.json` write and the SQLite validation review queue upsert that used to run here have been retired along with the analyst-facing validation/drift tooling that consumed them. The deterministic `analyst/` engine itself still runs every assess (via `scoringFacade.js`) to produce the headline score; `computeDivergence`/`writeShadowArtifacts` now live only in `specialist_agents/` for offline agent-quality eval (`db/input/agentEval.js`), unrelated to this per-report write path.
+The per-report `shadow-scores-*.json` / `divergence-*.json` write and the SQLite validation review queue upsert that used to run here have been retired along with the developer-facing validation/drift tooling that consumed them. The deterministic `developer/` engine itself still runs every assess (via `scoringFacade.js`) to produce the headline score; `computeDivergence`/`writeShadowArtifacts` now live only in `specialist_agents/` for offline agent-quality eval (`db/input/agentEval.js`), unrelated to this per-report write path.
 
 **Cost script id:** `assess-signals` (includes agent LLM rounds under assess budget governor).
 
@@ -225,7 +225,7 @@ Municipal PBO markdown on disk
        ├─ compute gaps vs expected sections (municipalCompleteness.js)
        ├─ email officers with questions (pboReviewMailingAdapter)
        └─ store review state in SQLite (pboReviewSqliteStore)
-  → officer replies via inbound email webhook or analyst web form
+  → officer replies via inbound email webhook or developer web form
   → supplemental answers merged on next extract (loadReviewMetadataMapForDate)
 ```
 
@@ -239,7 +239,7 @@ Municipal PBO markdown on disk
 |-------|---------|
 | `GET /api/pbo/municipal-reviews?date=` | List reviews for a date |
 | `GET /api/pbo/municipal-reviews/:date/:municipality` | Review detail |
-| `POST /api/pbo/municipal-reviews/:date/:municipality/replies` | Analyst web reply |
+| `POST /api/pbo/municipal-reviews/:date/:municipality/replies` | Developer web reply |
 | `POST /api/pbo/review/inbound-email` | Resend inbound webhook (`RESEND_WEBHOOK_SECRET`) |
 | `GET /api/pbo/historical-search` | RAG-backed historical PBO search (when wired) |
 
@@ -271,19 +271,19 @@ Structured situational reports use one **`report_build`** orchestrator for two s
 
 ---
 
-## Artifacts operators rely on
+## Artifacts users rely on
 
 | Path | Role |
 |------|------|
-| `daily_reports/resilience-report-*.json` | Full assessment — agent v2 fields + legacy-mapped narratives; shadow score (headline `/10`) on disk; API redacts for operators |
+| `daily_reports/resilience-report-*.json` | Full assessment — agent v2 fields + legacy-mapped narratives; shadow score (headline `/10`) on disk; API redacts for users |
 | `daily_reports/epistemic-profile-{scopeId}-*.json` | Epistemic profile snapshot per scope/date |
-| `daily_reports/assessment-agent-trace-*.jsonl` | Agent step replay (analyst) |
+| `daily_reports/assessment-agent-trace-*.jsonl` | Agent step replay (developer) |
 | `cross-cut-modules/budget/resilience_analysis/token-report-{date}-{scope}.json` | Per-run LLM token/cost rollup (pipeline orchestrator) |
 | `business_modules/open_observation_extraction/data/signals/signals-{type}-*.json` | Extracted signals per source/day (field: `business_modules/visits/data/signals/signals-field-*.json`) |
 | `business_modules/news-sites/articles_extracted/` | News markdown exports |
 | SQLite `source_archive` | Original source text for chat `get_source` and assess-time RAG |
 
-Deploy must include product pages (`cross-cut-modules/docs/content/pages/`) and these data dirs for a functioning operator experience.
+Deploy must include product pages (`cross-cut-modules/docs/content/pages/`) and these data dirs for a functioning user experience.
 
 ---
 
@@ -291,13 +291,13 @@ Deploy must include product pages (`cross-cut-modules/docs/content/pages/`) and 
 
 During **extract**, optional OOV learning capture writes `daily_reports/oov-capture-{date}.jsonl` when `RESILIENCE_OOV_CAPTURE=1` (unknown types, self-check uncertain, zero-signal articles; optional residual observations when `RESILIENCE_RESIDUAL_CAPTURE=1`). This does **not** change daily scores; OOV/residual may feed **investigation** when Tier 2 flags enabled. Closed catalog is `CATALOG_VERSION` v6 (~165 types) — see [RESILIENCE-ENGINE-REFERENCE.md § Signal catalog v6](./RESILIENCE-ENGINE-REFERENCE.md#signal-catalog-v6).
 
-The analyst-facing tooling that clustered these captures into gap reports and human-reviewed draft catalog proposals (`business_modules/signal_catalog_evolution/`, its review API, and `npm run signal-catalog-evolution:gap-report`) has been retired. Catalog additions from these captures are now a manual, out-of-band edit to `signalCatalog.js`.
+The developer-facing tooling that clustered these captures into gap reports and human-reviewed draft catalog proposals (`business_modules/signal_catalog_evolution/`, its review API, and `npm run signal-catalog-evolution:gap-report`) has been retired. Catalog additions from these captures are now a manual, out-of-band edit to `signalCatalog.js`.
 
 ---
 
 ## Related docs
 
-- Operator UI: [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md)
+- User UI: [SYSTEM-AND-USER-MODEL.md](./SYSTEM-AND-USER-MODEL.md)
 - Assessment agent + shadow scoring: [RESILIENCE-ENGINE-REFERENCE.md](./RESILIENCE-ENGINE-REFERENCE.md)
 - RAG reindex after deploy: [RAG.md](./RAG.md)
 - Agent env flags: [docs/MODEL-CARD.md](../MODEL-CARD.md)

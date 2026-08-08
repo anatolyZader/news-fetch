@@ -45,7 +45,7 @@ function i18n(componentId) {
 }
 
 /**
- * Prefer hybrid operator narrative fields for markdown output.
+ * Prefer hybrid user narrative fields for markdown output.
  * @param {object} assessment
  * @returns {object}
  */
@@ -54,13 +54,13 @@ function assessmentForMarkdown(assessment) {
   return {
     ...assessment,
     cross_component_synthesis:
-      assessment.cross_component_synthesis_operator ?? assessment.cross_component_synthesis,
+      assessment.cross_component_synthesis_user ?? assessment.cross_component_synthesis,
     components: (assessment.components ?? []).map((c) => ({
       ...c,
-      narrative: c.narrative_operator ?? c.narrative,
-      // Section writer prepends its own "- "; operator bullets already carry one.
-      evidence: c.evidence_operator?.length
-        ? c.evidence_operator.map((e) => String(e).replace(/^-\s+/, ''))
+      narrative: c.narrative_user ?? c.narrative,
+      // Section writer prepends its own "- "; user bullets already carry one.
+      evidence: c.evidence_user?.length
+        ? c.evidence_user.map((e) => String(e).replace(/^-\s+/, ''))
         : c.evidence,
     })),
   };
@@ -171,7 +171,7 @@ export function sanitizeNarrativeText(text, fieldLabel = 'narrative') {
 }
 
 /**
- * Sanitize all operator-visible narrative fields in the assessment in-place.
+ * Sanitize all user-visible narrative fields in the assessment in-place.
  * @param {object} assessment
  */
 function sanitizeAssessmentNarratives(assessment) {
@@ -182,20 +182,20 @@ function sanitizeAssessmentNarratives(assessment) {
       'cross_component_synthesis',
     );
   }
-  if (typeof assessment.cross_component_synthesis_operator === 'string') {
-    assessment.cross_component_synthesis_operator = sanitizeNarrativeText(
-      assessment.cross_component_synthesis_operator,
-      'cross_component_synthesis_operator',
+  if (typeof assessment.cross_component_synthesis_user === 'string') {
+    assessment.cross_component_synthesis_user = sanitizeNarrativeText(
+      assessment.cross_component_synthesis_user,
+      'cross_component_synthesis_user',
     );
   }
   for (const comp of assessment.components ?? []) {
     if (typeof comp.narrative === 'string') {
       comp.narrative = sanitizeNarrativeText(comp.narrative, `${comp.component_id}.narrative`);
     }
-    if (typeof comp.narrative_operator === 'string') {
-      comp.narrative_operator = sanitizeNarrativeText(
-        comp.narrative_operator,
-        `${comp.component_id}.narrative_operator`,
+    if (typeof comp.narrative_user === 'string') {
+      comp.narrative_user = sanitizeNarrativeText(
+        comp.narrative_user,
+        `${comp.component_id}.narrative_user`,
       );
     }
     if (typeof comp.evidence_summary === 'string') {

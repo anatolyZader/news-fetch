@@ -2,13 +2,13 @@
  * OSINT channel quarantine — detect high polarization on social + telegram.
  *
  * Pipeline position: pre-score filter — may auto-exclude OSINT from metrics pool;
- * surfaced in operator attention items when active/suggested.
+ * surfaced in user attention items when active/suggested.
  *
  * Owns: polarization detection, auto-exclusion filter, OSINT source type set.
  * Does NOT: digital darkness void logic or scoring partition.
  *
  * Key collaborators: `signals/routing/signalRouter.js` (catalog polarity),
- * `operator/attentionItems.js`, evidence pipeline prep.
+ * `user/attentionItems.js`, evidence pipeline prep.
  */
 
 import { getSignalCatalogEntry } from '../signals/routing/signalRouter.js';
@@ -137,7 +137,7 @@ export function evaluateOsintChannelQuarantine(signals, opts = {}) {
   };
 
   if (!isSocialQuarantineEnabled(opts.env)) {
-    return opts.active ? { ...empty, active: true, reason: 'analyst_confirmed' } : empty;
+    return opts.active ? { ...empty, active: true, reason: 'developer_confirmed' } : empty;
   }
 
   const list = Array.isArray(signals) ? signals : [];
@@ -162,7 +162,7 @@ export function evaluateOsintChannelQuarantine(signals, opts = {}) {
   let reason = null;
   if (autoExcluded) reason = QUARANTINE_REASON_OSINT;
   else if (suggested) reason = 'high_osint_polarization';
-  else if (opts.active) reason = 'analyst_confirmed';
+  else if (opts.active) reason = 'developer_confirmed';
 
   return {
     suggested,

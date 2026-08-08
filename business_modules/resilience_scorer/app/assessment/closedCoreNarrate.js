@@ -1,5 +1,5 @@
 /**
- * Closed-core narrate path: evidence shell + preflight budget + hybrid operator narrative.
+ * Closed-core narrate path: evidence shell + preflight budget + hybrid user narrative.
  *
  * **Owns:** routing between legacy monolithic narrate and hybrid digest/facts pipeline for
  * closed-core assessment mode (no specialist agent).
@@ -12,12 +12,12 @@
  *
  * **Does NOT:** run planner/specialist agents or compute numeric resilience scores.
  *
- * **Collaborators:** `buildClosedCoreAssessmentShell`, `operatorNarrativePipeline`,
+ * **Collaborators:** `buildClosedCoreAssessmentShell`, `userNarrativePipeline`,
  * `narrativePromptBudget`, `claudeNarratives.generateNarrativesLegacy`.
  */
 import { legacyNarrativeOnly } from '../../domain/services/narrativeGrounding/groundingConfig.js';
 import { resolveNarrativeContextPlan } from '../../domain/services/narrative/narrativePromptBudget.js';
-import { applyOperatorNarrativePipeline } from './operatorNarrativePipeline.js';
+import { applyUserNarrativePipeline } from './userNarrativePipeline.js';
 import {
   applyNarrativeOverflowDegrade,
   buildClosedCoreAssessmentShell,
@@ -33,7 +33,7 @@ import { generateNarrativesLegacy } from '../../infrastructure/claudeNarratives.
  * @param {number} totalArticles
  * @param {object} [opts] — narrativeScopeSignals, retrievalService, llmPort, macroSignals, etc.
  * @returns {Promise<object>} assessment with narratives or overflow degrade metadata
- * @sideEffects LLM calls via operator narrative pipeline when not skipped by preflight
+ * @sideEffects LLM calls via user narrative pipeline when not skipped by preflight
  */
 export async function closedCoreNarrate(scoredFull, _allSignals, date, totalArticles, opts = {}) {
   if (legacyNarrativeOnly()) {
@@ -87,7 +87,7 @@ export async function closedCoreNarrate(scoredFull, _allSignals, date, totalArti
     return applyNarrativeOverflowDegrade(shell, plan);
   }
 
-  await applyOperatorNarrativePipeline({
+  await applyUserNarrativePipeline({
     assessment: shell,
     narrativeScopeSignals,
     scoredFull: scoredContext,

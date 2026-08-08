@@ -1,8 +1,8 @@
 # Resilience engine reference
 
-**Purpose:** Implementation reference for the **assessment engine** — extraction, verification, **agent-RAG investigation assess**, shadow deterministic scoring, and display redaction. The product is **decision support**; this document describes machinery that **informs** operators, not replaces them.
+**Purpose:** Implementation reference for the **assessment engine** — extraction, verification, **agent-RAG investigation assess**, shadow deterministic scoring, and display redaction. The product is **decision support**; this document describes machinery that **informs** users, not replaces them.
 
-**Companion:** [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md) (what operators see), [docs/MODEL-CARD.md](../MODEL-CARD.md) (policy tables and agent env flags).
+**Companion:** [SYSTEM-AND-USER-MODEL.md](./SYSTEM-AND-USER-MODEL.md) (what users see), [docs/MODEL-CARD.md](../MODEL-CARD.md) (policy tables and agent env flags).
 
 **Code roots:** `business_modules/resilience_scorer/`, `business_modules/specialist_agents/`, `cross-cut-modules/agent/`, `cross-cut-modules/retrieval/`, `domain/services/assessmentDisplayTier.js`, `domain/services/scoring/scoreComponentsOrchestrator.js`.
 
@@ -10,9 +10,9 @@
 
 ## 1. Conceptual and technical shift
 
-Docs and operators should treat the refactor as a change in **what is primary**, not only in implementation detail.
+Docs and users should treat the refactor as a change in **what is primary**, not only in implementation detail.
 
-### 1.1 Conceptual (operators and analysts)
+### 1.1 Conceptual (users and developers)
 
 | Dimension | Pre-refactor (math-scoring centered) | Post-refactor (agent-RAG decision support) |
 |-----------|--------------------------------------|--------------------------------------------|
@@ -22,11 +22,11 @@ Docs and operators should treat the refactor as a change in **what is primary**,
 | **Archive / RAG** | Secondary (chat, optional extract RAG) | **First-class at assess time** — RAG seed, multi-hop tools, `get_source`, residual/OOV on blackboard |
 | **Thin / abstain days** | Low catalog mass → abstain narrative | **Split mass**: thin for **scoring** vs **investigation-eligible** (archive spike, residual, OOV may still warrant specialist) |
 | **Novel behavior** | OOV logged; optional low-weight synthetic score | OOV/residual enter **evidence graph + planner** as investigation objects |
-| **Operator proof** | Narrative paragraph + instrument flags | **Evidence tree** per claim + cross-component synthesis + instrument flags (from epistemic/shadow) |
-| **Analyst calibration** | Scores + drift on disk | Scores as **shadow** score visible in-app + **trace JSONL** replay (the separate drift/divergence calibration tooling has since been retired) |
+| **User proof** | Narrative paragraph + instrument flags | **Evidence tree** per claim + cross-component synthesis + instrument flags (from epistemic/shadow) |
+| **Developer calibration** | Scores + drift on disk | Scores as **shadow** score visible in-app + **trace JSONL** replay (the separate drift/divergence calibration tooling has since been retired) |
 | **Multi-agent pattern** | N/A (batch narrative) | **Plan-and-execute map–reduce** (not peer agent chat) — see §3.1 |
 
-**Unchanged conceptually:** closed-catalog extraction for comparability; humans decide; abstention and data void as features; operator tier hides headline scores.
+**Unchanged conceptually:** closed-catalog extraction for comparability; humans decide; abstention and data void as features; user tier hides headline scores.
 
 ### 1.2 Technical (code and artifacts)
 
@@ -38,7 +38,7 @@ Docs and operators should treat the refactor as a change in **what is primary**,
 | **Epistemic input** | Scored components only | `computeEpistemicProfile` + **`enrichProfileForInvestigation`** |
 | **Evidence assembly** | Signals in narrative prompt | **`buildEvidenceGraph`** (signals + RAG hits + OOV/residual + gaps) |
 | **Output schema** | Legacy `assessment.components[].narrative` | **Assessment v2** → **`mapAssessmentV2ToLegacy`** (`assessmentV2Mapper.js`) for API compatibility |
-| **Shadow path** | Scores were primary | **`scoreComponents` still runs** every assess (`scoringFacade.js` → `analyst/`) to produce the headline score kept on the report; the per-report `shadow-scores-*.json` / `divergence-*.json` artifact write has been retired |
+| **Shadow path** | Scores were primary | **`scoreComponents` still runs** every assess (`scoringFacade.js` → `developer/`) to produce the headline score kept on the report; the per-report `shadow-scores-*.json` / `divergence-*.json` artifact write has been retired |
 | **Trace / audit** | Cost log only | **`assessment-agent-trace-{id}.jsonl`** |
 | **Degrade ladder** | — | Agent skip/failure → `runDeterministicAssessment` → `loadCachedAssessmentFallback`; `assessment_degraded` on report |
 
@@ -50,11 +50,11 @@ The engine:
 
 1. Extracts **observable behavioral signals** (closed vocabulary) from multi-source text via LLM.
 2. Verifies evidence spans and assigns **grounding tiers**.
-3. Runs **shadow deterministic scoring** in code (calibration / divergence — not the primary operator narrative path).
+3. Runs **shadow deterministic scoring** in code (calibration / divergence — not the primary user narrative path).
 4. Runs **assessment agent v2** (default): RAG-seeded evidence graph → planner → specialists → critic → synthesizer.
-5. **Redacts** numeric headline scores at API/UI for the default operator tier.
+5. **Redacts** numeric headline scores at API/UI for the default user tier.
 
-Shadow scores on disk under `daily_reports/` remain visible to analysts in the report UI for calibration; the separate drift-dashboard and divergence-review tooling that used to consume them has been retired. **Operational action** should follow attention, **evidence-backed claims**, and instrument flags — see [SYSTEM-AND-OPERATOR-MODEL.md](./SYSTEM-AND-OPERATOR-MODEL.md).
+Shadow scores on disk under `daily_reports/` remain visible to developers in the report UI for calibration; the separate drift-dashboard and divergence-review tooling that used to consume them has been retired. **Operational action** should follow attention, **evidence-backed claims**, and instrument flags — see [SYSTEM-AND-USER-MODEL.md](./SYSTEM-AND-USER-MODEL.md).
 
 ---
 
@@ -105,7 +105,7 @@ Production entries: single assess stage `input/assess-signals.js` → `app/asses
 
 **Kernel:** `cross-cut-modules/agent/agentKernel.js` — shared tool loop, budget governor, trace JSONL.
 
-**Outputs on report:** `agent_trace_id`, `investigation_plan`, `planner_context`, `budget_snapshot`, `cross_component_issues`, `evidence_graph_summary`; per-component `evidence_tree` (operators) and `specialist_tier` (v2 / trace).
+**Outputs on report:** `agent_trace_id`, `investigation_plan`, `planner_context`, `budget_snapshot`, `cross_component_issues`, `evidence_graph_summary`; per-component `evidence_tree` (users) and `specialist_tier` (v2 / trace).
 
 
 **Evidence graph** (`cross-cut-modules/retrieval/evidenceGraph.js` → `buildEvidenceGraph`):
@@ -126,7 +126,7 @@ Edges link sources → chunks → signals. `by_component` holds hypothesis claim
 
 **Specialist tools:** `assessmentEvidenceTools.js`, `multiHopRetrieval.js` — `lookup_signals`, `get_source`, multi-hop retrieve within the agent tool loop.
 
-**Eval:** `npm run agent:eval`. **Trace replay:** `GET /api/report/agent-trace/:traceId` (analyst). Feature flags: [MODEL-CARD.md § Assessment agent](../MODEL-CARD.md#assessment-agent-v2-option-b).
+**Eval:** `npm run agent:eval`. **Trace replay:** `GET /api/report/agent-trace/:traceId` (developer). Feature flags: [MODEL-CARD.md § Assessment agent](../MODEL-CARD.md#assessment-agent-v2-option-b).
 
 ### 3.2 Epistemic profile for investigation
 
@@ -148,11 +148,11 @@ When `RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS=1` (default), planner abstentio
 | v2 field | Legacy mapping |
 |----------|----------------|
 | `claims[]` with `evidence_refs` | `narrative_claims` + `evidence_tree` (fallback `evidenceTreeFromGraph`) |
-| `severity`, `confidence`, `operator_status` | Per-component legacy fields |
+| `severity`, `confidence`, `user_status` | Per-component legacy fields |
 | Epistemic `signal_count`, `distinct_article_count` | `deriveInstrumentState` inputs |
 | `overall_resilience_score` | Always `null` on legacy object |
 
-`produceAssessmentWithShadow` returns the **legacy-mapped** assessment for API/write; v2 fields are attached via `attachAssessmentV2Fields`. On-disk JSON includes both shapes. (The earlier in-memory `shadow_divergence` field and the on-disk `divergence-*.json` shadow-vs-agent comparison have been retired along with the analyst drift/divergence UI that consumed them.)
+`produceAssessmentWithShadow` returns the **legacy-mapped** assessment for API/write; v2 fields are attached via `attachAssessmentV2Fields`. On-disk JSON includes both shapes. (The earlier in-memory `shadow_divergence` field and the on-disk `divergence-*.json` shadow-vs-agent comparison have been retired along with the developer drift/divergence UI that consumed them.)
 
 ---
 
@@ -160,7 +160,7 @@ When `RESILIENCE_ASSESS_SPLIT_INVESTIGATION_MASS=1` (default), planner abstentio
 
 **Grounding tiers** (`groundingPolicy.js`):
 
-| Tier | Mass in scoring | Operator meaning |
+| Tier | Mass in scoring | User meaning |
 |------|-----------------|------------------|
 | `grounded` | Full weight | Verified evidence |
 | `weak` | Scaled (`RESILIENCE_GROUNDING_WEAK_WEIGHT`, default 0.35) | Weak verification |
@@ -191,20 +191,20 @@ Module facade `business_modules/resilience_scorer/domain/services/signalCatalog.
 
 **Data void / digital darkness** (`business_modules/resilience_scorer/domain/services/dataVoid/`):
 
-- Elevated void level → **abstention**: null component scores, `assessment_mode: abstained`, operator instrument `sampling_blind`.
+- Elevated void level → **abstention**: null component scores, `assessment_mode: abstained`, user instrument `sampling_blind`.
 - `digital_darkness` → **field-anchor-only** re-score using field-family sources; stale digital-inclusive snapshot preserved separately.
 
-Abstention is a **feature** — prompts operators to ingest field sources or wait.
+Abstention is a **feature** — prompts users to ingest field sources or wait.
 
 ---
 
-## 5. Operator instruments (before score math)
+## 5. User instruments (before score math)
 
 Thin-evidence policy (`thinEvidencePolicy.js`, Option C):
 
 When `evidence_mass < 1.5` (typical floor):
 
-| Condition | Operator instrument | Shows 1–10? |
+| Condition | User instrument | Shows 1–10? |
 |-----------|---------------------|-------------|
 | Zero signals | `insufficient_data` | No |
 | Thin, score in [3,8] | `limited_evidence_neutral` | No |
@@ -216,23 +216,23 @@ When `evidence_mass < 1.5` (typical floor):
 **High-salience bypass** (`highSalienceBypass.js`, `RESILIENCE_HIGH_SALIENCE_BYPASS=0` disables):
 
 - One dominant contributor (≥85% mass), critical signal type or severe event, plus credibility booster → may skip **low** floor clamp only (asymmetric — does not bypass high hype cap).
-- Tier-C unverified critical → operator alert without floor bypass.
+- Tier-C unverified critical → user alert without floor bypass.
 
 **Contested evidence:** `derivePolarizationBand` — `contested` when polarization > 0.5 and mass > 4; UI contested badge.
 
-**Display derivation:** `deriveInstrumentState` in `assessmentDisplayTier.js` builds the `instrument` object operators see.
+**Display derivation:** `deriveInstrumentState` in `assessmentDisplayTier.js` builds the `instrument` object users see.
 
 ---
 
-## 6. Analyst tier and on-disk truth
+## 6. Developer tier and on-disk truth
 
-- **Operator API/UI:** `redactReportPayload` / `redactAssessmentForView` strip headline scores and debug narrative fields.
-- **Analyst view:** same `client/` app, `?view=analyst`; score-revealing components shown inline in `ReportView.jsx`. The separate `analyst-site/` SPA (drift, validation review, catalog proposals, agent trace replay) has been retired.
+- **User API/UI:** `redactReportPayload` / `redactAssessmentForView` strip headline scores and debug narrative fields.
+- **Developer view:** same `client/` app, `?view=developer`; score-revealing components shown inline in `ReportView.jsx`. The separate `developer-site/` SPA (drift, validation review, catalog proposals, agent trace replay) has been retired.
 - **Full JSON:** `daily_reports/resilience-report-*.json` retains shadow scores, v2 agent fields, and legacy-mapped narratives.
 - **Agent trace:** `daily_reports/assessment-agent-trace-{traceId}.jsonl` — planner, specialist, critic, synthesizer steps.
 - **Per-run token rollup:** `cross-cut-modules/budget/resilience_analysis/token-report-{date}-{scope}.json` — written by `run-pipeline.js` (`writeTokenReport.js`); see [PIPELINE-AND-SOURCES.md](./PIPELINE-AND-SOURCES.md).
 
-The per-report `shadow-scores-*.json` / `divergence-*.json` artifact write (`RESILIENCE_SHADOW_SCORING`) and the drift APIs that read them have been retired along with the analyst calibration UI. Shadow scoring (the deterministic headline score) and agent assess still share the same signal prep; **presentation** differs by tier. Primary operator proof is **claims + evidence_refs**, not headline scores.
+The per-report `shadow-scores-*.json` / `divergence-*.json` artifact write (`RESILIENCE_SHADOW_SCORING`) and the drift APIs that read them have been retired along with the developer calibration UI. Shadow scoring (the deterministic headline score) and agent assess still share the same signal prep; **presentation** differs by tier. Primary user proof is **claims + evidence_refs**, not headline scores.
 
 ---
 
@@ -279,7 +279,7 @@ Module facade re-exports from `business_modules/resilience_scorer/domain/service
 - **Shared math:** `scoring/scoringShared.js` (weights, caps, grounding multiplier)
 - **Pipeline wrapper:** `scoringPipelinePrep.js` — digital quarantine partition, EWMA, epistemic gate
 - **Dedup / merge:** `app/assessSignalsHelpers.js` (`crossSourceDedupClustered`, `crossSourceDedup`, …)
-- **Output:** Feeds epistemic profile + investigation enrich; kept on the report JSON as the redacted headline score. (The separate per-report `shadow-scores-*.json` artifact write and analyst divergence comparison have been retired.)
+- **Output:** Feeds epistemic profile + investigation enrich; kept on the report JSON as the redacted headline score. (The separate per-report `shadow-scores-*.json` artifact write and developer divergence comparison have been retired.)
 
 ### 7.4 Deterministic degrade (replaces legacy narratives)
 
@@ -301,7 +301,7 @@ Module facade re-exports from `business_modules/resilience_scorer/domain/service
 - Report write from `assess-signals.js` finalize step
 - Display redaction at serve time: `assessmentDisplayTier.js`
 
-The analyst-facing extraction-quality validation workflow (`business_modules/resilience_scorer/analyst/validation/`, `GET /api/validation/review-queue`, `ValidationReviewPanel`, `npm run validation:status`) has been retired. `business_modules/resilience_scorer/validation/validation-config.json` and its SQLite/JSONL review-queue artifacts remain on disk from before the removal but are no longer read or written by any code path.
+The developer-facing extraction-quality validation workflow (`business_modules/resilience_scorer/developer/validation/`, `GET /api/validation/review-queue`, `ValidationReviewPanel`, `npm run validation:status`) has been retired. `business_modules/resilience_scorer/validation/validation-config.json` and its SQLite/JSONL review-queue artifacts remain on disk from before the removal but are no longer read or written by any code path.
 
 ---
 
@@ -332,7 +332,7 @@ Component ids used in scoring: `narrative`, `information_communication`, `lifesa
 | Shadow scoring pipeline | `business_modules/resilience_scorer/app/scoringPipelinePrep.js`, `prepareScoringSignals.js`, `scoreComponentsOrchestrator.js` |
 | Display redaction | `business_modules/resilience_scorer/domain/services/assessmentDisplayTier.js` |
 | Thin evidence | `business_modules/resilience_scorer/domain/services/thinEvidencePolicy.js` |
-| Operator action compass | `business_modules/resilience_scorer/domain/services/actionCompass.js` |
+| User action compass | `business_modules/resilience_scorer/domain/services/actionCompass.js` |
 | Anomaly strip | `business_modules/resilience_scorer/domain/services/anomalyStrip.js` |
 | Deterministic degrade | `business_modules/specialist_agents/app/runDeterministicAssessment.js`, `loadCachedAssessmentFallback.js` |
 

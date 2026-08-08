@@ -156,7 +156,7 @@ Key fields:
   - `geoReferenceVersion`, `borderReferenceVersion`, `source`
   - `quality`: `high | medium | low`
   - `usableForMetrics`: safe for KPIs and aggregates?
-  - `requiresReview`: should this be reviewed by an operator?
+  - `requiresReview`: should this be reviewed by a user?
   - `scopeConfidence`: `high | medium | low` for *north-scoped analytics* (separate from string match confidence)
   - `geoPolicyVersion`: policy version string for thresholds/safety rules (distinct from reference/border versions)
 

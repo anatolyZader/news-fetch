@@ -36,7 +36,7 @@ import {
 import { formatDate } from '../lib/date.js';
 import PropTypes from 'prop-types';
 import { translationFnPropType } from '../lib/reportPropTypes.js';
-import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
+import { withUserDistrictQuery } from '../lib/clampUserDistrictScope.js';
 import { withLang } from '../lib/localeFetch.js';
 
 const AGE_KEYS = ['toddlers', 'kindergarten', 'elementary', 'highschool'];
@@ -152,7 +152,7 @@ CommentsTable.propTypes = {
   showSettlement: PropTypes.bool,
 };
 
-export function EducationTab({ operatorScope = 'national' }) {
+export function EducationTab({ userScope = 'national' }) {
   const { getIdToken, apiReady } = useAuth();
   const { lang, t } = useLanguage();
   const theme = useTheme();
@@ -193,7 +193,7 @@ export function EducationTab({ operatorScope = 'national' }) {
       const token = await getIdToken();
       if (token) headers.set('Authorization', `Bearer ${token}`);
       const base = forceRefresh ? '/api/education-sessions?refresh=1' : '/api/education-sessions';
-      const r = await fetch(withLang(withOperatorDistrictQuery(base, operatorScope), lang), { headers });
+      const r = await fetch(withLang(withUserDistrictQuery(base, userScope), lang), { headers });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       setData(await r.json());
     } catch (e) {
@@ -201,14 +201,14 @@ export function EducationTab({ operatorScope = 'national' }) {
     } finally {
       setLoading(false);
     }
-  }, [getIdToken, operatorScope, lang]);
+  }, [getIdToken, userScope, lang]);
 
   useEffect(() => {
     if (!apiReady) return;
     void (async () => {
       await load();
     })();
-  }, [apiReady, load, operatorScope]);
+  }, [apiReady, load, userScope]);
 
   const { trends, dist, filteredCount } = useMemo(() => {
     if (!data?.sessions) return { trends: [], dist: {}, filteredCount: 0 };
@@ -543,5 +543,5 @@ export function EducationTab({ operatorScope = 'national' }) {
 }
 
 EducationTab.propTypes = {
-  operatorScope: PropTypes.string,
+  userScope: PropTypes.string,
 };

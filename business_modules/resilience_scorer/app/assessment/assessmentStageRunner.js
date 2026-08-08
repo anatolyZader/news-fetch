@@ -3,7 +3,7 @@
  *
  * **Owns:** signal scoping/partitioning, investigation prep, count-based evidence pipeline,
  * assessment mode routing (agent vs closed-core vs rich deterministic), and post-assessment
- * operator surface attachment.
+ * user surface attachment.
  *
  * **Pipeline position:** after extraction (Stage 1) or bundle load; used by `assessSignalsCli`
  * and `resilienceAnalysisService.runResilienceAssessment`.
@@ -17,8 +17,8 @@
  * **Does NOT:** extract signals, load bundles from disk, or compute numeric resilience scores.
  *
  * **Collaborators:** `evidencePipelinePrep`, `produceAssessment`, `closedCoreNarrate`,
- * `operatorNarrativePipeline`, `specialist_agents` (via produceAssessment),
- * `domain/epistemic`, `domain/services/operator`.
+ * `userNarrativePipeline`, `specialist_agents` (via produceAssessment),
+ * `domain/epistemic`, `domain/services/user`.
  */
 import { scopeAndPartitionSignals } from './signalScopePartition.js';
 import { prepareInvestigationSignals, prepareScoringSignals } from './prepareSignals.js';
@@ -28,23 +28,23 @@ import { resilienceReportsDir } from '../../domain/services/paths/outputDirs.js'
 import { salienceContextFromDataVoid } from '../../domain/epistemic/highSalienceBypass.js';
 import { attachEpistemicToAssessment } from '../../domain/services/dataVoidIndex.js';
 import { detectSemanticPatterns } from '../../domain/services/patternDetection/semanticPatternAlerts.js';
-import { buildOperatorRecommendations } from '../../domain/services/patternDetection/operatorRecommendations.js';
-import { operatorEpistemicOverlayEnabled } from '../../domain/contracts/operatorEpistemicOverlay.js';
-import { attachInvestigationDiagnostics } from '../../domain/services/operator/componentDiagnostics.js';
+import { buildUserRecommendations } from '../../domain/services/patternDetection/userRecommendations.js';
+import { userEpistemicOverlayEnabled } from '../../domain/contracts/userEpistemicOverlay.js';
+import { attachInvestigationDiagnostics } from '../../domain/services/user/componentDiagnostics.js';
 import { countAndLogDefaultNorthSignals, evaluateDefaultNorthGate } from '../../domain/services/signals/scopeAttributionMetrics.js';
 import { buildNorthClusterNarrativesFromSignals } from '../../domain/services/narrative/northClusterNarrative.js';
 import {
   mergeNationalContextSignals,
   summarizeNationalContext,
 } from '../../domain/services/narrative/narrativeScopeSignals.js';
-import { finalizeOperatorNarrativeSurface } from '../../domain/services/operator/operatorNarrativeSurface.js';
-import { attachRichOperatorSurface } from '../../domain/services/operator/operatorInvestigationSurface.js';
-import { shouldUseRichDeterministicPath } from '../../domain/contracts/operatorSurfaceMode.js';
+import { finalizeUserNarrativeSurface } from '../../domain/services/user/userNarrativeSurface.js';
+import { attachRichUserSurface } from '../../domain/services/user/userInvestigationSurface.js';
+import { shouldUseRichDeterministicPath } from '../../domain/contracts/userSurfaceMode.js';
 import { ISRAEL_NATIONAL_DISTRICT_ID } from '../../../../cross-cut-modules/geo/israelDistricts.js';
 import { produceAssessment } from './produceAssessment.js';
 import { sampleSpotChecks } from '../../domain/services/signals/spotCheckSampler.js';
 import { createSpotCheckStore } from '../../infrastructure/spotCheckStore.js';
-import { applyOperatorNarrativePipeline } from './operatorNarrativePipeline.js';
+import { applyUserNarrativePipeline } from './userNarrativePipeline.js';
 import { attachDecisionBrief } from './attachDecisionBrief.js';
 import { ensureArticleCorpusRagIndexed } from './ensureArticleCorpusRagIndexed.js';
 import { isClosedCoreAssessEnabled, isOmissionAuditEnabled } from '../../domain/services/oov/openExtractConfig.js';
@@ -83,7 +83,7 @@ function attachInvestigationContextFlags(assessment, ctx, investigationPrep) {
 }
 
 /**
- * Attach epistemic status, pattern alerts, diagnostics, and operator narrative surface to assessment.
+ * Attach epistemic status, pattern alerts, diagnostics, and user narrative surface to assessment.
  *
  * @param {object} assessment — mutates in place
  * @param {object} ctx — investigation/scoring context from runPostExtractionAssessmentCore
@@ -112,8 +112,8 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
   const patterns = detectSemanticPatterns(scopedSignals ?? []);
   assessment.pattern_alerts = patterns;
   countAndLogDefaultNorthSignals(scopedSignals, { assessment });
-  if (operatorEpistemicOverlayEnabled()) {
-    assessment.operator_recommendations = buildOperatorRecommendations(patterns);
+  if (userEpistemicOverlayEnabled()) {
+    assessment.user_recommendations = buildUserRecommendations(patterns);
   }
 
   attachInvestigationDiagnostics(assessment, {
@@ -163,7 +163,7 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
     for (const signal of investigationSet) {
       if (!metricsSet.has(signal)) scoringQuarantined.push(signal);
     }
-    attachRichOperatorSurface(assessment, {
+    attachRichUserSurface(assessment, {
       narrativeScopeSignals: ctx.narrativeScopeSignals ?? scopedSignals ?? [],
       signalsForScoring: signalsForScoring ?? [],
       quarantinedSignals: partition?.quarantinedSignals ?? [],
@@ -171,7 +171,7 @@ export function applySharedAssessmentPostMetadata(assessment, ctx) {
     });
   }
 
-  finalizeOperatorNarrativeSurface(assessment);
+  finalizeUserNarrativeSurface(assessment);
 }
 
 /** Optional RAG backfill for article corpus before agent/narrative retrieval. */
@@ -214,7 +214,7 @@ function assertDefaultNorthGate(defaultNorthGate, scopedSignals) {
 }
 
 /**
- * Route to closed-core narrate, rich deterministic path, or full assessment agent + operator pipeline.
+ * Route to closed-core narrate, rich deterministic path, or full assessment agent + user pipeline.
  * @returns {Promise<object>} assessment shell with narratives filled when applicable
  */
 async function produceAssessmentForMode(ctx) {
@@ -245,7 +245,7 @@ async function produceAssessmentForMode(ctx) {
 
   if (shouldUseRichDeterministicPath() || isClosedCoreAssessEnabled()) {
     const pathLabel = shouldUseRichDeterministicPath()
-      ? 'Rich operator surface: score shell + hybrid narrative (no specialists)'
+      ? 'Rich user surface: score shell + hybrid narrative (no specialists)'
       : 'Closed-core assess: hybrid narrative pipeline (score shell + digest)';
     console.error(`[assess-signals] ${pathLabel}`);
     const reportScope = reportScopeMetadata(reportScopeId);
@@ -301,7 +301,7 @@ async function produceAssessmentForMode(ctx) {
     componentEvidence,
   });
 
-  await applyOperatorNarrativePipeline({
+  await applyUserNarrativePipeline({
     assessment,
     narrativeScopeSignals,
     scoredFull,
@@ -395,7 +395,7 @@ export async function runPostExtractionAssessmentCore(params) {
   const defaultNorthGate = evaluateDefaultNorthGate(scopedSignals);
   assertDefaultNorthGate(defaultNorthGate, scopedSignals);
 
-  // Stratified spot-check sample of the high-confidence path for operator
+  // Stratified spot-check sample of the high-confidence path for user
   // review (SPOT_CHECK_SAMPLE_SIZE, default 8, 0 disables). Never fatal.
   try {
     const sampleSize = Number(process.env.SPOT_CHECK_SAMPLE_SIZE ?? 8);
@@ -466,7 +466,7 @@ export async function runPostExtractionAssessmentCore(params) {
     ? totalArticles
     : Math.max(scopedArticleKeys.size, 1);
 
-  // Analyst validation review was decommissioned — no maturity data is ever collected,
+  // Developer validation review was decommissioned — no maturity data is ever collected,
   // so calibration trust always falls back to its lowest tier (shrinks scores toward neutral).
   const validationMaturity = null;
   let salienceContext = salienceContextFromDataVoid(prepared.dataVoid);

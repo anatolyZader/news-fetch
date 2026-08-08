@@ -1,5 +1,5 @@
 /**
- * Persist operator recommendation acknowledge/dismiss on report JSON.
+ * Persist user recommendation acknowledge/dismiss on report JSON.
  */
 import { readFileSync } from 'node:fs';
 
@@ -16,7 +16,7 @@ const reportFileMutex = createKeyedMutex();
  * @param {{ action: 'acknowledge'|'dismiss', userEmail?: string|null, rationale?: string }} update
  * @param {{ reportsDir?: string }} [opts]
  */
-export async function updateOperatorRecommendationStatus(
+export async function updateUserRecommendationStatus(
   reportDate,
   scope,
   recommendationId,
@@ -47,7 +47,7 @@ function applyRecommendationUpdate(jsonPath, recommendationId, update) {
   }
 
   const assessment = parsed.assessment ?? parsed;
-  const recs = assessment.operator_recommendations ?? [];
+  const recs = assessment.user_recommendations ?? [];
   const idx = recs.findIndex((r) => r.id === recommendationId);
   if (idx < 0) {
     return { ok: false, error: 'recommendation_not_found' };
@@ -78,7 +78,7 @@ function applyRecommendationUpdate(jsonPath, recommendationId, update) {
   }
 
   recs[idx] = rec;
-  assessment.operator_recommendations = recs;
+  assessment.user_recommendations = recs;
   if (parsed.assessment) parsed.assessment = assessment;
   else Object.assign(parsed, assessment);
 

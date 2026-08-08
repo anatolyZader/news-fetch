@@ -25,7 +25,7 @@ export function compactEpistemicProfileForPlanner(profile) {
       residual_observation_count: ep.residual_observation_count ?? undefined,
       presence_gate_triggered: ep.presence_gate_triggered ?? undefined,
       salience_critical: ep.salience_critical ?? undefined,
-      operator_status: ep.operator_status ?? undefined,
+      user_status: ep.user_status ?? undefined,
     };
   }
   return { by_component: by };
@@ -80,7 +80,7 @@ export function compactComponentAssessmentsForSynth(assessments) {
       component_id: a.component_id,
       severity: a.severity,
       confidence: a.confidence,
-      operator_status: a.operator_status,
+      user_status: a.user_status,
       specialist_depth: a.specialist_depth ?? a.specialist_tier,
       narrative: truncate(a.narrative, 400),
       claims: (a.claims ?? []).slice(0, 8).map((c) => ({

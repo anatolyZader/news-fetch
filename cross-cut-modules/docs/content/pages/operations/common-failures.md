@@ -10,11 +10,11 @@ tags: ["operations", "troubleshooting", "user"]
 ---
 
 ## When something breaks, start here
-This page is for operators (and power users) who need to answer one question fast:
+This page is for users (and power users) who need to answer one question fast:
 
 **“Is the system up, and if not, what’s the smallest next action that restores it?”**
 
-If you’re an end user and you can’t see today’s report, send this page to your operator.
+If you’re an end user and you can’t see today’s report, send this page to your maintainer.
 
 ## 60‑second “is it alive?” check
 If you can run a command from the server (or from a machine that can reach it), these four checks tell you what kind of failure you have:

@@ -15,7 +15,7 @@ describe('maintainerAccess', () => {
   beforeEach(() => {
     prevEmails = process.env.RESILIENCE_MAINTAINER_EMAILS;
     resetUserAccessCache();
-    setUserAccessConfigForTests({ operatorDistrictEnforcementEnabled: false, users: [] });
+    setUserAccessConfigForTests({ userDistrictEnforcementEnabled: false, users: [] });
   });
 
   afterEach(() => {
@@ -31,7 +31,7 @@ describe('maintainerAccess', () => {
 
   it('canRunAnalysisDisplay mirrors config and env allowlist', () => {
     setUserAccessConfigForTests({
-      operatorDistrictEnforcementEnabled: false,
+      userDistrictEnforcementEnabled: false,
       users: [{ email: 'maintainer@example.com', level: 'maintainer' }],
     });
     assert.equal(canRunAnalysisDisplay('maintainer@example.com'), true);
@@ -39,7 +39,7 @@ describe('maintainerAccess', () => {
     assert.equal(canRunAnalysisDisplay(''), false);
 
     resetUserAccessCache();
-    setUserAccessConfigForTests({ operatorDistrictEnforcementEnabled: false, users: [] });
+    setUserAccessConfigForTests({ userDistrictEnforcementEnabled: false, users: [] });
     process.env.RESILIENCE_MAINTAINER_EMAILS = 'env-maintainer@test.io';
     assert.equal(canRunAnalysisDisplay('env-maintainer@test.io'), true);
   });

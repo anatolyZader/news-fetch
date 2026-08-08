@@ -84,7 +84,7 @@ export function formatLinkedReadableCitations(markdown, reportDate) {
 }
 
 /**
- * Operator narrative prose: resolve internal refs + evidence-anchor APA citations.
+ * User narrative prose: resolve internal refs + evidence-anchor APA citations.
  * @param {string} markdown
  * @param {string|undefined|null} [reportDate]
  * @param {(md: string) => string} [expandLinks]

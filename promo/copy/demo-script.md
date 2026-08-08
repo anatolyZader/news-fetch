@@ -2,7 +2,7 @@
 
 > One recorded demo to rule them all. Record once with OBS/Loom at **https://srulik.ai** on a **good-assessment day** (not an empty state), with a **visible assessment date**. Capture EN; re-record HE for field audiences. Keep total runtime 8–9 min. Chapter markers below double as video chapters and as the SRT caption skeleton.
 >
-> **Scope:** operator-facing core only — daily assessment, open evidence, chat, multi-source, field contribution. Do not show internal scoring instruments or the analyst view (see `do-not-say.md`).
+> **Scope:** user-facing core only — daily assessment, open evidence, chat, multi-source, field contribution. Do not show internal scoring instruments or the developer view (see `do-not-say.md`).
 >
 > **Tone:** calm, professional, no hype. Lead with evidence, close with "humans decide." Never say "predicts," never lead with a number.
 
@@ -12,7 +12,7 @@
 
 - [ ] A day loaded with real signal across several components (one clearly "hot").
 - [ ] Assessment date visible in the footer (`footer.assessmentDate`).
-- [ ] Logged-in or default operator view (not analyst).
+- [ ] Logged-in or default user view (not developer).
 - [ ] Have one component picked in advance that has a rich evidence pool.
 - [ ] Browser zoom set so text is legible at 1080p.
 
@@ -72,4 +72,4 @@
 - Burn in HE + EN subtitles for social cuts.
 - Pull 2–3 vertical shorts from Chapters 2, 3, and 4 (open the evidence, ask the report, the field loop) — each is a standalone 30–45s clip.
 - Lower-third on every chapter: `srulik.ai · Community resilience · Daily assessment`.
-- Do **not** show the analyst view or any internal scoring instrument in this cut — keep it operator/field only.
+- Do **not** show the developer view or any internal scoring instrument in this cut — keep it user/field only.

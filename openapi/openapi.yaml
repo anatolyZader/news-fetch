@@ -217,6 +217,27 @@ components:
       required: [enabled]
       properties:
         enabled: { type: boolean, description: "True when RESEND_API_KEY and MAIL_FROM are set and mailing is not disabled" }
+        canManageRecipients: { type: boolean, description: "True when the caller is on the mailingAdmins allowlist (config/userAccess.json or MAIL_DIGEST_ADMIN_EMAILS) and may edit the shared digest distribution list. False for anonymous callers." }
+    MailRecipient:
+      type: object
+      required: [email, addedByUid, active, createdAt]
+      properties:
+        email: { type: string, format: email, description: "Normalized (trimmed, lowercased) address" }
+        addedByUid: { type: string, description: "Mailing admin who added the address; their mailing preferences supply the language and products for this recipient" }
+        active: { type: boolean }
+        createdAt: { type: string }
+    MailRecipientsResponse:
+      type: object
+      required: [recipients]
+      properties:
+        recipients:
+          type: array
+          items: { $ref: "#/components/schemas/MailRecipient" }
+    MailAddRecipientRequest:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
     MailProductFlags:
       type: object
       required: [report, naftali, education, platform]
@@ -277,7 +298,18 @@ components:
       required: [ok]
       properties:
         ok: { type: boolean }
-        id: { type: string, nullable: true, description: "Resend message id when returned" }
+        id: { type: string, nullable: true, description: "Resend message id of the first successful send" }
+        sent: { type: integer, description: "Addresses successfully sent to" }
+        total: { type: integer, description: "Addresses attempted. Greater than 1 when a mailing admin fans out to the shared distribution list; an explicit `to` always sends to exactly one address." }
+        failures:
+          type: array
+          description: "Present only on partial failure"
+          items:
+            type: object
+            required: [email, error]
+            properties:
+              email: { type: string, format: email }
+              error: { type: string }
     SocialMediaFetchTopicRequest:
       type: object
       required: [topic]
@@ -1122,6 +1154,92 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/MailConfigResponse" }
+
+  /api/mail/recipients:
+    get:
+      tags: [Mailing]
+      summary: List the shared digest distribution list (mailing admins only)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MailRecipientsResponse" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Mailing-admin access required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    post:
+      tags: [Mailing]
+      summary: Add an address to the shared digest distribution list (mailing admins only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MailAddRecipientRequest" }
+      responses:
+        "200":
+          description: Added; returns the updated list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MailRecipientsResponse" }
+        "400":
+          description: Invalid email address
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Mailing-admin access required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/mail/recipients/{email}:
+    delete:
+      tags: [Mailing]
+      summary: Remove an address from the shared digest distribution list (mailing admins only)
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema: { type: string, format: email }
+      responses:
+        "200":
+          description: Removed; returns the updated list
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MailRecipientsResponse" }
+        "400":
+          description: Invalid email address
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Mailing-admin access required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404":
+          description: Recipient not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
 
   /api/mail/preferences:
     get:

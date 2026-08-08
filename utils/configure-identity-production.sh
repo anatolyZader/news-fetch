@@ -168,7 +168,7 @@ Local .env flags set (see docs/env.server.example).
 Manual / console still required:
   • Add each user email to config/userAccess.json (or RESILIENCE_*_EMAILS)
   • Firebase Console → App Check → enforce (if not already)
-  • MFA: GCIP upgrade + enroll maintainer/analyst accounts, or Workspace SSO
+  • MFA: GCIP upgrade + enroll maintainer/developer accounts, or Workspace SSO
   • After access changes: POST /api/auth/sync-claims (maintainer) or SYNC_USER_CLAIMS_ON_START on restart
 
 Next:

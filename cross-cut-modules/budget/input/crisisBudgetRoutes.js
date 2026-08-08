@@ -1,12 +1,12 @@
 /**
- * Analyst HITL routes for crisis chat budget pool.
+ * Developer HITL routes for crisis chat budget pool.
  */
-import { canViewAnalystDisplay } from '../../auth/userAccess.js';
+import { canViewDeveloperDisplay } from '../../auth/userAccess.js';
 import { auditFromRequest } from '../../security/input/auditLog.js';
 
-function requireAnalyst(request, reply) {
-  if (canViewAnalystDisplay(request.user?.email)) return true;
-  reply.code(403).send({ error: 'Analyst access required' });
+function requireDeveloper(request, reply) {
+  if (canViewDeveloperDisplay(request.user?.email)) return true;
+  reply.code(403).send({ error: 'Developer access required' });
   return false;
 }
 
@@ -33,7 +33,7 @@ export async function registerCrisisBudgetRoutes(app, opts) {
   });
 
   app.post('/api/budget/crisis/activate', authHook, async (request, reply) => {
-    if (!requireAnalyst(request, reply)) return;
+    if (!requireDeveloper(request, reply)) return;
     const { reason, duration_hours: durationHours } = request.body ?? {};
     if (!reason || !String(reason).trim()) {
       return reply.code(400).send({ error: 'reason required' });
@@ -52,7 +52,7 @@ export async function registerCrisisBudgetRoutes(app, opts) {
   });
 
   app.post('/api/budget/crisis/deactivate', authHook, async (request, reply) => {
-    if (!requireAnalyst(request, reply)) return;
+    if (!requireDeveloper(request, reply)) return;
     auditFromRequest(request, 'budget.crisis_deactivate', '/api/budget/crisis/deactivate');
     crisisBudgetService.deactivate();
     return reply.send({ ok: true, status: crisisBudgetService.getChatBudgetStatus() });

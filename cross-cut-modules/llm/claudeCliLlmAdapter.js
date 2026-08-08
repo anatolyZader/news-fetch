@@ -2,13 +2,13 @@
  * Claude Code CLI adapter implementing the LLM transport port (see ./ILlmPort.js).
  *
  * Routes single-shot calls (`createMessage`, `stream`) through a spawned
- * `claude -p` process so inference bills to the operator's Max subscription
+ * `claude -p` process so inference bills to the user's Max subscription
  * instead of metered API credits. `runToolLoop` (caller-defined JS tools)
  * cannot run inside `claude -p` and delegates to the Anthropic SDK adapter,
  * which still requires ANTHROPIC_API_KEY.
  *
  * Subscription-limit policy (LLM_CLI_LIMIT_STRATEGY):
- *  - 'ask'  (default): on a TTY, prompt the operator — [w]ait for the limit
+ *  - 'ask'  (default): on a TTY, prompt the user — [w]ait for the limit
  *    to reset (default, stays $0) or [a] switch to metered API credits.
  *    Off-TTY it degrades to 'wait'. The choice is remembered for the process.
  *  - 'wait': sleep until the CLI-reported reset time (or poll every
@@ -318,7 +318,7 @@ export function createClaudeCliLlmPort(cfg = {}) {
   const cliPath = cfg.cliPath ?? process.env.CLAUDE_CLI_PATH ?? 'claude';
   let anthropicPort = cfg.anthropicPort ?? null;
   let mode = 'cli';        // 'cli' | 'api' — sticky once switched to API credits
-  let stickyChoice = null; // operator's ask-prompt decision, asked at most once per process
+  let stickyChoice = null; // user's ask-prompt decision, asked at most once per process
   let limitGate = null;    // shared promise while one limit event is being resolved
   let waitedTotalMs = 0;   // cumulative limit waiting, reset on the next successful call
 
@@ -398,7 +398,7 @@ export function createClaudeCliLlmPort(cfg = {}) {
       (apiAvailable() && isInteractive() ? ' (press "a" to continue now on API credits)' : ''),
     );
     const outcome = await waitUntil(until, apiAvailable());
-    if (outcome === 'api') switchToApi('operator keypress during wait');
+    if (outcome === 'api') switchToApi('user keypress during wait');
   }
 
   /**
@@ -414,7 +414,7 @@ export function createClaudeCliLlmPort(cfg = {}) {
     if (strategy === 'ask' && stickyChoice == null && isInteractive()) {
       stickyChoice = await promptLimitChoice(err.limitResetEpochMs ?? null);
     }
-    if (stickyChoice === 'api') { switchToApi('operator choice'); return; }
+    if (stickyChoice === 'api') { switchToApi('user choice'); return; }
     await waitOutLimit(err);
   }
 

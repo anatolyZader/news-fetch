@@ -39,7 +39,7 @@ const MAX_QUERY_LEN = 512;
 /**
  * @param {string} lang
  */
-function xLangOperator(lang) {
+function xLangUser(lang) {
   return ` lang:${lang}`;
 }
 
@@ -67,7 +67,7 @@ export function buildHomefrontClusterQuery({ lang, cluster, north = false }) {
   if (!termsRaw) return '';
 
   const locality = north && NORTH_LOCALITY_BY_LANG[lang] ? ` ${NORTH_LOCALITY_BY_LANG[lang]}` : '';
-  const langOp = xLangOperator(lang);
+  const langOp = xLangUser(lang);
   const suffix = `${locality}${langOp} -is:retweet`;
   const maxTopicLen = MAX_QUERY_LEN - suffix.length - 2;
 

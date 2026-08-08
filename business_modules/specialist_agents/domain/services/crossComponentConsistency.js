@@ -4,8 +4,8 @@
 import { COMPONENT_IDS } from '../../../resilience_scorer/index.js';
 
 const NEGATIVE_SEVERITY = new Set(['high', 'critical']);
-const POSITIVE_OPERATOR = new Set(['stable', 'improving']);
-const NEGATIVE_OPERATOR = new Set(['critical_failure', 'degrading', 'at_risk']);
+const POSITIVE_USER_STATUS = new Set(['stable', 'improving']);
+const NEGATIVE_USER_STATUS = new Set(['critical_failure', 'degrading', 'at_risk']);
 
 /**
  * @param {object[]} componentAssessments
@@ -42,8 +42,8 @@ export function detectCrossComponentContradictions(componentAssessments) {
       issues.push({
         type: 'cross_component_contradiction',
         components: [aId, bId],
-        component_a: { id: aId, severity: a.severity, operator_status: a.operator_status, refs: aRefs.slice(0, 3) },
-        component_b: { id: bId, severity: b.severity, operator_status: b.operator_status, refs: bRefs.slice(0, 3) },
+        component_a: { id: aId, severity: a.severity, user_status: a.user_status, refs: aRefs.slice(0, 3) },
+        component_b: { id: bId, severity: b.severity, user_status: b.user_status, refs: bRefs.slice(0, 3) },
         both_grounded: true,
       });
     }
@@ -67,12 +67,12 @@ function collectRefs(assessment) {
 
 function isNegativeAssessment(a) {
   return NEGATIVE_SEVERITY.has(a.severity)
-    || NEGATIVE_OPERATOR.has(a.operator_status);
+    || NEGATIVE_USER_STATUS.has(a.user_status);
 }
 
 function isPositiveAssessment(a) {
   return (a.severity === 'low' || a.severity === 'moderate')
-    && (POSITIVE_OPERATOR.has(a.operator_status) || a.operator_status == null);
+    && (POSITIVE_USER_STATUS.has(a.user_status) || a.user_status == null);
 }
 
 /**

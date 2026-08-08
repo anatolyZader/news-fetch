@@ -12,7 +12,7 @@ llm:
 ---
 
 ## Purpose
-Explain the core abstraction Srulik's lab is built around: *resilience* as a set of measurable components, each fed by typed signals drawn from concrete evidence, aggregated into bounded scores with calibrated confidence—**within a decision-support frame**. Read [Decision support model](decision-support-model.md) first for operator vs system responsibilities.
+Explain the core abstraction Srulik's lab is built around: *resilience* as a set of measurable components, each fed by typed signals drawn from concrete evidence, aggregated into bounded scores with calibrated confidence—**within a decision-support frame**. Read [Decision support model](decision-support-model.md) first for user vs system responsibilities.
 
 This page defines what resilience means in this system, why we break it into components, and how the scoring turns into the daily assessment users see.
 
@@ -65,7 +65,7 @@ High confidence, low severity: many signals agree that today was quiet. The repo
 
 ### What a "low confidence" day looks like
 
-Thin evidence, contradictory reports. The report surfaces the thinness explicitly: "Limited evidence for services today — two isolated reports, one unverified." That's a prompt to operators to ingest more sources, not a reason to distrust the model.
+Thin evidence, contradictory reports. The report surfaces the thinness explicitly: "Limited evidence for services today — two isolated reports, one unverified." That's a prompt to users to ingest more sources, not a reason to distrust the model.
 
 ## Troubleshooting
 - **Signals look right but scoring feels wrong**

@@ -1,6 +1,6 @@
 # Screenshot manifest — HQ brochure
 
-> Required captures for [`../print/brochure-hq-en.html`](../print/brochure-hq-en.html). Follow [`../copy/demo-script.md`](../copy/demo-script.md). Operator view only — not analyst.
+> Required captures for [`../print/brochure-hq-en.html`](../print/brochure-hq-en.html). Follow [`../copy/demo-script.md`](../copy/demo-script.md). User view only — not developer.
 
 **Naming:** manual captures use underscore filenames below. The Playwright script [`capture-brochure-shots.mjs`](capture-brochure-shots.mjs) still outputs legacy hyphen names — re-capture manually or rename if using automation until a follow-up unifies them.
 
@@ -9,7 +9,7 @@
 - [ ] Good assessment day loaded (not empty state)
 - [ ] Assessment date visible in footer
 - [ ] Browser 1440×900 or 1920×1080, 100% zoom
-- [ ] Operator / narrative view (not analyst scoring view)
+- [ ] User / narrative view (not developer scoring view)
 - [ ] Blur or crop any sensitive content if needed
 
 ## Files (drop into this folder)
@@ -51,7 +51,7 @@
 
 ### Option A — email/password (headless)
 
-Use your **real** invite-authorized operator account (not the doc placeholders `your@email.com` / `your-password`).
+Use your **real** invite-authorized user account (not the doc placeholders `your@email.com` / `your-password`).
 
 ```bash
 PROMO_AUTH_EMAIL='real.account@domain.com' PROMO_AUTH_PASSWORD='…' \

@@ -18,7 +18,7 @@ describe('compactAssessPrompts', () => {
           delta_significance: 'HIGH_UP',
           dominance_warnings: [{ message: 'single source dominates' }, { message: 'other' }],
           investigation_eligible: true,
-          operator_status: 'watch',
+          user_status: 'watch',
         },
       },
     };
@@ -54,7 +54,7 @@ describe('compactAssessPrompts', () => {
       component_id: 'leadership',
       severity: 'high',
       confidence: 'medium',
-      operator_status: 'watch',
+      user_status: 'watch',
       specialist_depth: 'A',
       narrative: 'n'.repeat(1000),
       claims: [{ text: 'claim text', evidence_refs: ['src:1'] }],

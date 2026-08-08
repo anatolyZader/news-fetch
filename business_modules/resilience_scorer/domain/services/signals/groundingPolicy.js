@@ -115,7 +115,7 @@ export function groundingMetaFromEntailmentFail(signal) {
   };
 }
 
-/** Grounding reason string when a critical signal remains unverified (operator alert path). */
+/** Grounding reason string when a critical signal remains unverified (user alert path). */
 export const UNVERIFIED_CRITICAL_GROUNDING_REASON = 'unverified_critical_grounding';
 
 export {GROUNDING_TIER} from '../../contracts/groundingTier.js';

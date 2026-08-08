@@ -1,11 +1,11 @@
 # Product Facts — srulik.ai
 
-> **Bullet facts only — no marketing voice.** Auto-derived from `client/src/i18n/locales/{en,he}/footer.json`, `cross-cut-modules/resilience-contracts/resilienceComponents.js`, and `docs/MODEL-CARD.md`. Scope: the **operator-facing core only** — internal scoring instruments and analyst surfaces are deliberately omitted (see `do-not-say.md`). This is the factual substrate for copy; tone lives in `MESSAGING-HOUSE.md`. When the product changes, re-derive this file from those sources.
+> **Bullet facts only — no marketing voice.** Auto-derived from `client/src/i18n/locales/{en,he}/footer.json`, `cross-cut-modules/resilience-contracts/resilienceComponents.js`, and `docs/MODEL-CARD.md`. Scope: the **user-facing core only** — internal scoring instruments and developer surfaces are deliberately omitted (see `do-not-say.md`). This is the factual substrate for copy; tone lives in `MESSAGING-HOUSE.md`. When the product changes, re-derive this file from those sources.
 
 ## What it is
 
 - A daily homefront **decision-support** instrument for Home Front Command (Pikud HaOref) context.
-- Extracts **observable behavioral signals** from multi-source text → assesses eight resilience components → generates operator-safe narratives with citations.
+- Extracts **observable behavioral signals** from multi-source text → assesses eight resilience components → generates user-safe narratives with citations.
 - Explicitly **not an oracle**: it structures the picture; humans decide.
 
 ## The eight components
@@ -41,9 +41,9 @@ LLM extract (closed vocabulary) → verify evidence → assess eight components 
 ```
 
 - Extraction uses a closed vocabulary of behavioral signals.
-- Each component is assessed and given an operator-facing narrative; narratives carry inline `[source](url)` citations, translated to operator locale (HE/RU) on demand.
+- Each component is assessed and given a user-facing narrative; narratives carry inline `[source](url)` citations, translated to user locale (HE/RU) on demand.
 
-## Operator surface
+## User surface
 
 - Each component shows a **narrative** plus an **evidence pool** of the raw excerpts behind it, for drill-down.
 - **Chat:** ask questions about the assessment and its evidence — for today and across past reports. Tools include comparing two dates, tracing a component's evolution over time, and searching the source archive; answers cite that evidence.
@@ -56,7 +56,7 @@ LLM extract (closed vocabulary) → verify evidence → assess eight components 
 
 ## Access
 
-- **General / operator:** daily assessment, evidence, chat, submissions, digest. No login required by default; sign-in adds preferences and digest sync.
+- **General / user:** daily assessment, evidence, chat, submissions, digest. No login required by default; sign-in adds preferences and digest sync.
 
 ## Non-goals (from model card)
 

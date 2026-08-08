@@ -1,8 +1,8 @@
 [
   {
-    "query": "data void operator abstention",
+    "query": "data void user abstention",
     "fixture_slug": "scoring-and-abstention",
-    "body": "When evidence is thin, operators may abstain from scoring. Data voids are documented explicitly in the scoring model."
+    "body": "When evidence is thin, users may abstain from scoring. Data voids are documented explicitly in the scoring model."
   },
   {
     "query": "scoring model resilience components",

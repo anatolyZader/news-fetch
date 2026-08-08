@@ -7,7 +7,7 @@ import { tmpdir } from 'os';
 import { reportRoutes } from '../../../../business_modules/resilience_scorer/input/reportRoutes.js';
 
 async function testAuthPreHandler(request) {
-  request.user = { uid: 'u1', email: 'operator@test.com' };
+  request.user = { uid: 'u1', email: 'user@test.com' };
 }
 
 function miniCachedPayload(date, synthesis = 'English synthesis.') {

@@ -161,7 +161,7 @@ export function buildBatchDocument({ date, reviews, lookupOfficer, lookupRawRepo
 }
 
 /**
- * Rows eligible for outbound feedback mail from an operator-revised batch.
+ * Rows eligible for outbound feedback mail from a user-revised batch.
  * @param {{ municipalities?: Array<object> }} batch
  * @returns {Array<object>}
  */

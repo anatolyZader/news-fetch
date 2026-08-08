@@ -40,3 +40,48 @@ test('mailingPreferencesStore upsert and listDigestSubscribers', () => {
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('mailingPreferencesStore shared recipient list', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'mail-recipients-'));
+  try {
+    const store = createMailingPreferencesStore(join(dir, 'test.sqlite'));
+    assert.deepEqual(store.listRecipients(), []);
+
+    store.addRecipient({ email: '  Colleague@Example.COM ', addedByUid: 'uid-m' });
+    const [first] = store.listRecipients();
+    assert.equal(first.email, 'colleague@example.com', 'address is normalized on write');
+    assert.equal(first.addedByUid, 'uid-m');
+    assert.equal(first.active, true);
+
+    // Re-adding the same address must not duplicate it, and re-stamps the owner.
+    store.addRecipient({ email: 'colleague@example.com', addedByUid: 'uid-other' });
+    assert.equal(store.listRecipients().length, 1);
+    assert.equal(store.listRecipients()[0].addedByUid, 'uid-other');
+
+    store.addRecipient({ email: 'second@example.com', addedByUid: 'uid-m' });
+    assert.equal(store.listRecipients().length, 2);
+
+    assert.equal(store.removeRecipient('COLLEAGUE@example.com'), true, 'removal is case-insensitive');
+    assert.deepEqual(store.listRecipients().map((r) => r.email), ['second@example.com']);
+
+    assert.equal(store.removeRecipient('nobody@example.com'), false);
+    assert.equal(store.removeRecipient('not-an-email'), false);
+    assert.throws(() => store.addRecipient({ email: 'not-an-email', addedByUid: 'uid-m' }), /valid email/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('recipient list is independent of per-user preferences', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'mail-recipients-mix-'));
+  try {
+    const store = createMailingPreferencesStore(join(dir, 'test.sqlite'));
+    store.upsert({ userUid: 'u1', email: 'self@example.com', language: 'ru' });
+    store.addRecipient({ email: 'shared@example.com', addedByUid: 'u1' });
+
+    assert.deepEqual(store.listDigestSubscribers().map((s) => s.email), ['self@example.com']);
+    assert.deepEqual(store.listRecipients().map((r) => r.email), ['shared@example.com']);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

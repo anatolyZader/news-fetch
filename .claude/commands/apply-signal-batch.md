@@ -1,6 +1,6 @@
 ---
 allowed-tools: Bash(node *), Bash(cd /home/eventstorm1/news && *), Bash(grep *), Bash(ls *), Read, Edit, Write, Grep, Glob
-description: Land an operator-approved harvest batch into signalCatalog.js + signalRouting.js (one batch = one CATALOG_VERSION bump = one epoch)
+description: Land a user-approved harvest batch into signalCatalog.js + signalRouting.js (one batch = one CATALOG_VERSION bump = one epoch)
 argument-hint: "<YYYY-MM-DD or batch path>"
 ---
 
@@ -12,8 +12,8 @@ Land the **approved** items of a catalog-harvest batch into the live catalog. Th
 
 Resolve `$ARGUMENTS` to `business_modules/resilience_scorer/data/catalog_harvest/<date>/harvest-batch-<date>.json` (a full path is used as-is; bare date fills the template). Then:
 - Collect items with `status: "approved"` (candidates AND merge_improvements). If none → report "nothing approved, nothing landed" and STOP.
-- If any approved item has `status: "landed"` already, or the batch has `landed_at`, warn and ask the operator before re-applying.
-- Compare `catalog_version_at_harvest` to the current `CATALOG_VERSION` in `business_modules/resilience_scorer/domain/contracts/signalCatalog.js`. If they differ, the catalog moved since harvest: re-verify each approved candidate's `dedup.nearest` types still exist and no newer type already covers it; flag collisions to the operator instead of landing them.
+- If any approved item has `status: "landed"` already, or the batch has `landed_at`, warn and ask the user before re-applying.
+- Compare `catalog_version_at_harvest` to the current `CATALOG_VERSION` in `business_modules/resilience_scorer/domain/contracts/signalCatalog.js`. If they differ, the catalog moved since harvest: re-verify each approved candidate's `dedup.nearest` types still exist and no newer type already covers it; flag collisions to the user instead of landing them.
 - Check batch-internal mirror integrity: if a candidate's `proposal.mirror` names another batch candidate that is NOT approved, either drop the mirror field (and say so) or hold both — never land a dangling mirror.
 
 **Step 2 — edit signalCatalog.js** (`business_modules/resilience_scorer/domain/contracts/signalCatalog.js`)
@@ -42,13 +42,13 @@ cd /home/eventstorm1/news && node -e "import('./business_modules/resilience_scor
 cd /home/eventstorm1/news && node --test tests/business_modules/resilience_scorer/domain/services/signalCatalog.v5.test.js tests/business_modules/resilience_scorer/domain/services/signalCatalogPrompt.test.js tests/business_modules/resilience_scorer/domain/services/catalogMappingService.test.js tests/business_modules/resilience_scorer/domain/services/signalTypeHygiene.test.js
 ```
 
-Expectation-only failures (the hardcoded `CATALOG_VERSION` string, type-count floors) are updated deliberately; semantic validator failures mean the batch item is wrong — pull that item back to `status: "proposed"`, revert its edits, and tell the operator. Never weaken a validator to make a batch land.
+Expectation-only failures (the hardcoded `CATALOG_VERSION` string, type-count floors) are updated deliberately; semantic validator failures mean the batch item is wrong — pull that item back to `status: "proposed"`, revert its edits, and tell the user. Never weaken a validator to make a batch land.
 
 **Step 5 — bookkeeping**
 
 - In the batch JSON: set landed items to `status: "landed"`, add top-level `landed_at` (ISO) and `catalog_version_landed`.
 - If a docs file tracks the catalog version (grep `docs/` for the previous version string), add/update the entry for the new version with a one-line list of added types.
-- Do NOT `git commit` — repo convention is work-in-tree; the operator commits.
+- Do NOT `git commit` — repo convention is work-in-tree; the user commits.
 
 **Final report**
 

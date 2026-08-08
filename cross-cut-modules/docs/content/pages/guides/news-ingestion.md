@@ -12,7 +12,7 @@ tags: ["guides", "ingestion", "news", "user"]
 ## What you’re doing (in plain terms)
 This step pulls today’s news, keeps only the items that look **homefront-relevant**, and writes a dated markdown file that the assessment can use as evidence.
 
-If your report is empty or stale, this is usually the first thing an operator reruns.
+If your report is empty or stale, this is usually the first thing a user reruns.
 
 ## What you will see in the app
 - The **Report** tab will cite news articles as evidence.
@@ -20,7 +20,7 @@ If your report is empty or stale, this is usually the first thing an operator re
 - If ingestion did not run, the report may look stale or empty for today.
 
 ## What it produces
-Operators maintain an internal, auditable export for each day (so they can validate what was kept and why). End users don’t need to run anything manually.
+Users maintain an internal, auditable export for each day (so they can validate what was kept and why). End users don’t need to run anything manually.
 
 ## Troubleshooting
 - **The export is empty**

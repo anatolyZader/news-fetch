@@ -1,5 +1,5 @@
 /**
- * Append-only JSONL store for extraction spot-check samples (operator review
+ * Append-only JSONL store for extraction spot-check samples (user review
  * of the high-confidence path). One file per report date, records stamped with
  * ids/timestamps here; sampling itself is domain logic (spotCheckSampler.js).
  * Idempotent per (report_date, scope): a re-run of the same report does not

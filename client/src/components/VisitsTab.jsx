@@ -32,7 +32,7 @@ import { panelSectionRadius } from '../ui/panelChrome.js';
 import { formatDate } from '../lib/date.js';
 import PropTypes from 'prop-types';
 import { translationFnPropType } from '../lib/reportPropTypes.js';
-import { withOperatorDistrictQuery } from '../lib/clampOperatorDistrictScope.js';
+import { withUserDistrictQuery } from '../lib/clampUserDistrictScope.js';
 import { withLang } from '../lib/localeFetch.js';
 import { authFetch } from '../lib/authFetch.js';
 import { DistrictScopeSwitcher } from './DistrictScopeSwitcher.jsx';
@@ -487,8 +487,8 @@ function compareVisitByRegionThenMunicipality(a, b) {
 }
 
 export function VisitsTab({
-  operatorScope = 'national',
-  onOperatorScopeChange,
+  userScope = 'national',
+  onUserScopeChange,
   districtAccess = null,
 }) {
   const { getIdToken, getAppCheckToken, apiReady } = useAuth();
@@ -504,7 +504,7 @@ export function VisitsTab({
     setLoading(true);
     setError(null);
     try {
-      const json = await authFetch(withLang(withOperatorDistrictQuery('/api/visits', operatorScope), lang), {
+      const json = await authFetch(withLang(withUserDistrictQuery('/api/visits', userScope), lang), {
         getIdToken,
         getAppCheckToken,
       });
@@ -518,7 +518,7 @@ export function VisitsTab({
     } finally {
       setLoading(false);
     }
-  }, [getIdToken, getAppCheckToken, operatorScope, lang]);
+  }, [getIdToken, getAppCheckToken, userScope, lang]);
 
   useEffect(() => {
     if (!apiReady) return;
@@ -558,10 +558,10 @@ export function VisitsTab({
     { label: t('visit.kpi.signals'), value: summary.totalSignals ?? 0 },
   ];
 
-  const districtScope = onOperatorScopeChange ? (
+  const districtScope = onUserScopeChange ? (
     <DistrictScopeSwitcher
-      value={operatorScope}
-      onChange={onOperatorScopeChange}
+      value={userScope}
+      onChange={onUserScopeChange}
       districtAccess={districtAccess}
     />
   ) : null;
@@ -690,7 +690,7 @@ export function VisitsTab({
 }
 
 VisitsTab.propTypes = {
-  operatorScope: PropTypes.string,
-  onOperatorScopeChange: PropTypes.func,
+  userScope: PropTypes.string,
+  onUserScopeChange: PropTypes.func,
   districtAccess: PropTypes.object,
 };

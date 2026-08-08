@@ -12,16 +12,16 @@ import { createSignalFlagStore } from '../../../../business_modules/chat/infrast
 
 const REPO_ROOT = resolve(import.meta.dirname, '../../../..');
 const TEST_REPORTS_DIR = join(REPO_ROOT, 'business_modules/resilience_scorer/data/daily_reports');
-const OPERATOR_REPORT_DATE = '2099-06-13';
-const OPERATOR_REPORT_PATH = join(
+const USER_REPORT_DATE = '2099-06-13';
+const USER_REPORT_PATH = join(
   TEST_REPORTS_DIR,
-  `resilience-report-data-${OPERATOR_REPORT_DATE}-run-1000.json`,
+  `resilience-report-data-${USER_REPORT_DATE}-run-1000.json`,
 );
 
 async function testAuthPreHandler(request) {
   request.user = {
     uid: 'u1',
-    email: request.headers['x-test-email'] ?? 'analyst@test.com',
+    email: request.headers['x-test-email'] ?? 'developer@test.com',
   };
 }
 
@@ -32,14 +32,14 @@ describe('chatRoutes confirm-action', () => {
   let chatStore;
   let pendingActionStore;
   let sessionId;
-  let prevAnalystEmails;
+  let prevDeveloperEmails;
   let geoUpdated;
   let geoUpdateCalls;
   let signalFlagStore;
 
   beforeEach(async () => {
-    prevAnalystEmails = process.env.RESILIENCE_ANALYST_EMAILS;
-    process.env.RESILIENCE_ANALYST_EMAILS = 'analyst@test.com';
+    prevDeveloperEmails = process.env.RESILIENCE_ANALYST_EMAILS;
+    process.env.RESILIENCE_ANALYST_EMAILS = 'developer@test.com';
     geoUpdated = null;
     geoUpdateCalls = 0;
     dir = mkdtempSync(join(tmpdir(), 'chat-confirm-routes-'));
@@ -53,7 +53,7 @@ describe('chatRoutes confirm-action', () => {
     });
 
     app = Fastify();
-    // executePendingAction only needs geo/operator-recommendation services — not pboReportReviewService.
+    // executePendingAction only needs geo/user-recommendation services — not pboReportReviewService.
     await chatRoutes(app, {
       authHook: { preHandler: testAuthPreHandler },
       chatStore,
@@ -79,9 +79,9 @@ describe('chatRoutes confirm-action', () => {
   afterEach(async () => {
     await app.close();
     rmSync(dir, { recursive: true, force: true });
-    if (existsSync(OPERATOR_REPORT_PATH)) rmSync(OPERATOR_REPORT_PATH);
-    if (prevAnalystEmails === undefined) delete process.env.RESILIENCE_ANALYST_EMAILS;
-    else process.env.RESILIENCE_ANALYST_EMAILS = prevAnalystEmails;
+    if (existsSync(USER_REPORT_PATH)) rmSync(USER_REPORT_PATH);
+    if (prevDeveloperEmails === undefined) delete process.env.RESILIENCE_ANALYST_EMAILS;
+    else process.env.RESILIENCE_ANALYST_EMAILS = prevDeveloperEmails;
   });
 
   function createPendingAction(overrides = {}) {
@@ -95,12 +95,12 @@ describe('chatRoutes confirm-action', () => {
     });
   }
 
-  it('confirms pending action for analyst', async () => {
+  it('confirms pending action for developer', async () => {
     const { id } = createPendingAction();
     const res = await app.inject({
       method: 'POST',
       url: '/api/chat/confirm-action',
-      headers: { 'x-test-email': 'analyst@test.com' },
+      headers: { 'x-test-email': 'developer@test.com' },
       payload: { sessionId, actionId: id, confirmed: true },
     });
     assert.equal(res.statusCode, 200);
@@ -115,13 +115,13 @@ describe('chatRoutes confirm-action', () => {
       app.inject({
         method: 'POST',
         url: '/api/chat/confirm-action',
-        headers: { 'x-test-email': 'analyst@test.com' },
+        headers: { 'x-test-email': 'developer@test.com' },
         payload: { sessionId, actionId: id, confirmed: true },
       }),
       app.inject({
         method: 'POST',
         url: '/api/chat/confirm-action',
-        headers: { 'x-test-email': 'analyst@test.com' },
+        headers: { 'x-test-email': 'developer@test.com' },
         payload: { sessionId, actionId: id, confirmed: true },
       }),
     ]);
@@ -143,12 +143,12 @@ describe('chatRoutes confirm-action', () => {
     assert.equal(res.json().rejected, true);
   });
 
-  it('returns 403 for non-analyst', async () => {
+  it('returns 403 for non-developer', async () => {
     const { id } = createPendingAction();
     const res = await app.inject({
       method: 'POST',
       url: '/api/chat/confirm-action',
-      headers: { 'x-test-email': 'operator@test.com' },
+      headers: { 'x-test-email': 'user@test.com' },
       payload: { sessionId, actionId: id, confirmed: true },
     });
     assert.equal(res.statusCode, 403);
@@ -179,7 +179,7 @@ describe('chatRoutes confirm-action', () => {
     assert.equal(res.statusCode, 410);
   });
 
-  it('confirms geo unknown update for analyst', async () => {
+  it('confirms geo unknown update for developer', async () => {
     const { id } = createPendingAction({
       toolName: 'propose_geo_unknown_update',
       params: { id: 42, status: 'resolved', note: 'mapped' },
@@ -188,7 +188,7 @@ describe('chatRoutes confirm-action', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/chat/confirm-action',
-      headers: { 'x-test-email': 'analyst@test.com' },
+      headers: { 'x-test-email': 'developer@test.com' },
       payload: { sessionId, actionId: id, confirmed: true },
     });
     assert.equal(res.statusCode, 200);
@@ -196,12 +196,12 @@ describe('chatRoutes confirm-action', () => {
     assert.equal(geoUpdated?.update.status, 'resolved');
   });
 
-  it('confirms operator recommendation for non-analyst operator', async () => {
+  it('confirms user recommendation for non-developer user', async () => {
     mkdirSync(TEST_REPORTS_DIR, { recursive: true });
-    writeFileSync(OPERATOR_REPORT_PATH, JSON.stringify({
+    writeFileSync(USER_REPORT_PATH, JSON.stringify({
       assessment: {
-        date: OPERATOR_REPORT_DATE,
-        operator_recommendations: [{
+        date: USER_REPORT_DATE,
+        user_recommendations: [{
           id: 'rec-test-1',
           status: 'pending',
           pattern_code: 'test_pattern',
@@ -211,9 +211,9 @@ describe('chatRoutes confirm-action', () => {
     }), 'utf8');
 
     const { id } = createPendingAction({
-      toolName: 'propose_operator_recommendation',
+      toolName: 'propose_user_recommendation',
       params: {
-        date: OPERATOR_REPORT_DATE,
+        date: USER_REPORT_DATE,
         scope: 'national',
         recommendation_id: 'rec-test-1',
         action: 'acknowledge',
@@ -223,14 +223,14 @@ describe('chatRoutes confirm-action', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/chat/confirm-action',
-      headers: { 'x-test-email': 'operator@test.com' },
+      headers: { 'x-test-email': 'user@test.com' },
       payload: { sessionId, actionId: id, confirmed: true },
     });
     assert.equal(res.statusCode, 200);
     assert.match(res.json().result.message, /acknowledge/i);
   });
 
-  it('confirms signal flag for non-analyst operator and writes the JSONL entry', async () => {
+  it('confirms signal flag for non-developer user and writes the JSONL entry', async () => {
     const { id } = createPendingAction({
       toolName: 'propose_signal_flag',
       params: { source_ref: 'https://example.com/article', reason: 'not_a_signal', note: 'ad, not behavior' },
@@ -239,7 +239,7 @@ describe('chatRoutes confirm-action', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/chat/confirm-action',
-      headers: { 'x-test-email': 'operator@test.com' },
+      headers: { 'x-test-email': 'user@test.com' },
       payload: { sessionId, actionId: id, confirmed: true },
     });
     assert.equal(res.statusCode, 200);
@@ -248,7 +248,7 @@ describe('chatRoutes confirm-action', () => {
     const flags = signalFlagStore.listForDate(day);
     assert.equal(flags.length, 1);
     assert.equal(flags[0].reason, 'not_a_signal');
-    assert.equal(flags[0].user, 'operator@test.com');
+    assert.equal(flags[0].user, 'user@test.com');
     assert.equal(flags[0].session_id, sessionId);
   });
 });

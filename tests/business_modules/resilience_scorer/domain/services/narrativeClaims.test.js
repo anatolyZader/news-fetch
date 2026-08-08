@@ -94,3 +94,31 @@ describe('mergeAgentClaimsWithFacts', () => {
     assert.ok(supplemented.narrative.length <= 3);
   });
 });
+
+function claim(text) {
+  return { text, signal_refs: ['pbo_note@idx:1'] };
+}
+
+describe('narrativeClaims — PBO score-line hygiene', () => {
+  it('drops a claim that is nothing but an officer score line', () => {
+    const out = agentClaimsForComponent({
+      narrative_claims: [claim('[אעבלין] הון ומשאבי קהילה: avg=75% (75%, 75%, 75%) — אין')],
+    });
+    assert.deepEqual(out, []);
+  });
+
+  it('keeps the substance and the municipality when a score line carries content', () => {
+    const [kept] = agentClaimsForComponent({
+      narrative_claims: [claim('[בועינה] דאגה לרווחה: avg=92% (100%, 75%) — מחלקת הרווחה פועלת ברציפות')],
+    });
+    assert.ok(kept.text.startsWith('[בועינה]'));
+    assert.ok(kept.text.includes('מחלקת הרווחה פועלת ברציפות'));
+    assert.ok(!kept.text.includes('avg='));
+  });
+
+  it('leaves ordinary claim text byte-for-byte unchanged', () => {
+    const text = 'Shelter compliance improved in Nahariya  after the alert.';
+    const [kept] = agentClaimsForComponent({ narrative_claims: [claim(text)] });
+    assert.equal(kept.text, text);
+  });
+});

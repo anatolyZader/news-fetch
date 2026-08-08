@@ -2,11 +2,11 @@
  * Map assessment.v2 to legacy-compatible assessment shape for API/redaction.
  */
 import { COMPONENT_IDS } from '../../../resilience_scorer/index.js';
-import { deriveInstrumentState } from '../../../resilience_scorer/index.js';
+import { deriveInstrumentState, classifyClaimRef } from '../../../resilience_scorer/index.js';
 import { evidenceTreeFromGraph } from '../../../../cross-cut-modules/retrieval/evidenceGraph.js';
 
-function resolveLegacyOperatorStatus(v2Comp, ep) {
-  if (v2Comp?.operator_status) return v2Comp.operator_status;
+function resolveLegacyUserStatus(v2Comp, ep) {
+  if (v2Comp?.user_status) return v2Comp.user_status;
   if (!v2Comp) return 'insufficient_data';
   return ep.thin_evidence ? 'insufficient_data' : 'stable';
 }
@@ -18,13 +18,24 @@ function mapAssessmentV2Component(id, v2, epistemicProfile, opts) {
     component_id: id,
     severity: v2Comp?.severity ?? 'abstain',
     confidence: v2Comp?.confidence ?? 'low',
-    operator_status: resolveLegacyOperatorStatus(v2Comp, ep),
+    user_status: resolveLegacyUserStatus(v2Comp, ep),
     narrative: v2Comp?.narrative ?? '',
-    narrative_claims: (v2Comp?.claims ?? []).map((c) => ({
-      text: c.text,
-      signal_refs: c.evidence_refs ?? [],
-      relation: 'parallel',
-    })),
+    narrative_claims: (v2Comp?.claims ?? []).map((c) => {
+      const refs = c.evidence_refs ?? [];
+      return {
+        text: c.text,
+        signal_refs: refs,
+        // Which stores these citations live in. Agent claims mix signal-registry
+        // refs with retrieval-chunk, OOV and open-observation refs; without this
+        // consumers cannot tell an unresolvable citation from one that simply
+        // lives elsewhere.
+        ref_namespaces: [...new Set(refs.map((r) => classifyClaimRef(r).namespace))],
+        // The specialist's own relation, or null. Hardcoding 'parallel' here
+        // asserted a relation nothing had determined and made the field
+        // meaningless on the agent path.
+        relation: c.relation ?? null,
+      };
+    }),
     evidence: (v2Comp?.claims ?? []).map((c) => c.text).filter(Boolean),
     evidence_tree: v2Comp?.evidence_tree ?? evidenceTreeFromGraph({ claims: v2Comp?.claims }),
     reasoning_trace_id: v2Comp?.reasoning_trace_id ?? v2.agent_trace_id,

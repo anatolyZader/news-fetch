@@ -1,5 +1,5 @@
 /**
- * Action compass — kind taxonomy for operator-facing action classification.
+ * Action compass — kind taxonomy for user-facing action classification.
  *
  * Pipeline position: STAGE-2 assess finalize — classifies raw candidates (attention,
  * recommendations, brief items, gaps, void/geo actions) into action KINDS before
@@ -8,14 +8,14 @@
  * Owns: `ACTION_KINDS`, code→kind mapping, brief keyword classifier, info-noise filter.
  * Does NOT: rank or phrase actions (see sibling modules) or build the compass panel.
  *
- * Key collaborators: `actionCompass/actionCompass.js`, `services/operator/attentionItems.js`.
+ * Key collaborators: `actionCompass/actionCompass.js`, `services/user/attentionItems.js`.
  */
 
 // ---------------------------------------------------------------------------
 // Kind taxonomy
 // ---------------------------------------------------------------------------
 
-/** Operator-facing action kind constants (corroborate, investigate, etc.). */
+/** User-facing action kind constants (corroborate, investigate, etc.). */
 export const ACTION_KINDS = Object.freeze({
   corroborate: 'corroborate',
   repair_sampling: 'repair_sampling',
@@ -37,7 +37,7 @@ export const KIND_I18N = Object.freeze({
   escalate: 'escalate',
 });
 
-/** Codes that are pure analyst/context noise — never become compass actions. */
+/** Codes that are pure developer/context noise — never become compass actions. */
 export const INFO_NOISE_CODES = Object.freeze(new Set([
   'macro_signals',
   'oov_scoring_applied',

@@ -8,7 +8,7 @@
  * Does NOT: partition signals or compute void index.
  *
  * Key collaborators: `dataVoid/epistemicGate.js`, `dataVoid/computeDataVoidIndex.js`,
- * operator attention items (sampling_blind, field_anchor_only codes).
+ * user attention items (sampling_blind, field_anchor_only codes).
  */
 
 const LEVEL_ORDER = { none: 0, warning: 1, elevated: 2, critical: 3 };

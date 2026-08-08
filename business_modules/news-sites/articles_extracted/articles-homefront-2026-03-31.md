@@ -3596,7 +3596,7 @@ Legal experts warn the risks extend beyond legality.
 
 She added that deploying minors can heighten instability, as "untrained minors operating under pressure, often with limited command structure and insufficient understanding of force, can unintentionally escalate violence and endanger civilians."
 
-Analysts say the move reflects a deeper strain within the system. Holly Dagres, an Iran specialist at The Washington Institute, said the use of children at checkpoints "underscores the desperation of the Islamic Republic."
+Developers say the move reflects a deeper strain within the system. Holly Dagres, an Iran specialist at The Washington Institute, said the use of children at checkpoints "underscores the desperation of the Islamic Republic."
 
 She said it shows "how deeply unpopular they are with their own population that it is struggling to recruit adults to staff security checkpoints and is resorting to using children in support roles during wartime."
 

@@ -7,7 +7,7 @@
  *   2. Regional executive summary
  *   3. Regional analysis by component
  *   4. Per-municipality findings
- *   5. Analyst caveats
+ *   5. Developer caveats
  */
 
 import { writeFileSync, mkdirSync } from 'node:fs';
@@ -161,7 +161,7 @@ function buildMarkdown(assessment, sourceFile) {
   appendRegionalComponentTable(lines, regional, municipalities);
   appendRegionalComponentDetails(lines, regional);
   appendMunicipalityFindings(lines, municipalities);
-  lines.push(`## Analyst Caveats`, ``, regional.analyst_caveats, ``);
+  lines.push(`## Developer Caveats`, ``, regional.developer_caveats, ``);
   return lines.join('\n');
 }
 

@@ -1,5 +1,5 @@
 /**
- * Operator-visible OOV burst detection — dynamic semantic clustering in a rolling window.
+ * User-visible OOV burst detection — dynamic semantic clustering in a rolling window.
  *
  * Pipeline position: STAGE-2 assess — loads capture JSONL + run buffer, clusters
  * unknown-type records, and emits burst alert metadata on the assessment.
@@ -103,7 +103,7 @@ function prepareOovEvaluation(date, opts) {
 // ---------------------------------------------------------------------------
 
 /**
- * Evaluate OOV burst for operator/scoring path (unknown_type captures only).
+ * Evaluate OOV burst for user/scoring path (unknown_type captures only).
  * @param {string} date YYYY-MM-DD
  * @param {object} [opts]
  * @param {string} [opts.capturesDir]

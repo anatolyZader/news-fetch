@@ -125,12 +125,12 @@ describe('thinEvidencePolicy sampling_blind', () => {
       { level: 'elevated' },
       { sampling_status: 'blind', assessment_mode: 'abstained' },
     );
-    assert.equal(policy.globalOperatorShowsScore, false);
+    assert.equal(policy.globalUserShowsScore, false);
     const comp = deriveThinEvidencePolicy(
       { confidence: 'high', signal_count: 5 },
       { assessmentEpistemic: policy },
     );
     assert.equal(comp.instrument, THIN_EVIDENCE_INSTRUMENT.sampling_blind);
-    assert.equal(comp.operatorShowsScore, false);
+    assert.equal(comp.userShowsScore, false);
   });
 });

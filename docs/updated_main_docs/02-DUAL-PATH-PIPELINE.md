@@ -14,7 +14,7 @@ The resilience pipeline runs **two extraction tracks in parallel** over the same
 | Path | What it produces | Role | Primary consumer |
 |------|------------------|------|------------------|
 | **Open analysis** (primary) | Free-form behavioral **observations**, no fixed vocabulary | The main investigative lens; captures whatever the data actually shows | The **assessment agent** |
-| **Closed vocabulary** (supporting) | **Signals** typed against a fixed catalog (8-component model) | Structured, comparable, deterministically scorable | The **scoring path** (de-emphasized; analyst/shadow) and baseline investigation signals |
+| **Closed vocabulary** (supporting) | **Signals** typed against a fixed catalog (8-component model) | Structured, comparable, deterministically scorable | The **scoring path** (de-emphasized; developer/shadow) and baseline investigation signals |
 
 The intuition: the **closed catalog** is good at counting and comparing things we already know how to name, but it is blind to anything outside its vocabulary. The **open path** has no such blind spot - it records behavioral facts even when no catalog type fits - which is why it is the **primary input to the agent's reasoning**. The closed path then provides structure and a measurable backbone in a supporting role.
 
@@ -111,7 +111,7 @@ Because the open path can see things the catalog cannot name, the system **captu
 - During closed extract, out-of-vocabulary captures are buffered (`business_modules/resilience_scorer/infrastructure/learningCapture.js`, `business_modules/resilience_scorer/domain/services/oovCapture.js`) to `business_modules/resilience_scorer/data/oov-capture-{date}.jsonl`.
 - After assessment, verified open observations are also enqueued as OOV capture records (`business_modules/resilience_scorer/app/catalog/enqueueVerifiedOpenForCatalog.js`).
 
-The analyst-facing tooling that turned these captures into gap reports and draft catalog proposals for review (the `signal_catalog_evolution` module) has been retired. Any resulting catalog additions to `signalCatalog.js` are now a manual, out-of-band edit informed by the raw capture files, not an automated proposal workflow.
+The developer-facing tooling that turned these captures into gap reports and draft catalog proposals for review (the `signal_catalog_evolution` module) has been retired. Any resulting catalog additions to `signalCatalog.js` are now a manual, out-of-band edit informed by the raw capture files, not an automated proposal workflow.
 
 ## 4. Where the two paths merge
 
@@ -129,10 +129,10 @@ They do **not** merge at extract time - they stay in separate files. They merge 
 
 So the agent's **primary inputs** are: closed `investigationSignals` **plus routed open observations** plus RAG/evidence-graph context. The open path is what lets the agent investigate beyond the catalog.
 
-### Layer C - Optional post-agent synthetic scoring (analyst/shadow only)
+### Layer C - Optional post-agent synthetic scoring (developer/shadow only)
 
 - `applyOpenEvidenceScoringIfVerified` (in `app/assessment/assessSignalsCli.js`): agent claims that reference an open observation (`open:{observation_id}`) and are corroborated can be turned into synthetic closed-shaped signals (`open_evidence_synthetic: true`) and re-scored.
-- This affects the analyst/shadow score only; the operator brief stays claim-first.
+- This affects the developer/shadow score only; the user brief stays claim-first.
 - Verified open observations are also enqueued as OOV capture records (section 3.4).
 
 ## 5. Orchestration
@@ -183,7 +183,7 @@ flowchart TD
     LO[load open observations]
     RT[routeOpenObservations]
     AG[runAssessmentAgent]
-    SC[scoring path - shadow/analyst]
+    SC[scoring path - shadow/developer]
     VE[verify open claims to synthetic signals]
   end
 
@@ -226,7 +226,7 @@ flowchart TD
 | `RESILIENCE_NARRATIVE_FACTS_SHARD_SIZE` | 4 | Haiku facts-pass shard width |
 | `RESILIENCE_NARRATIVE_PIPELINE` | hybrid | Set `legacy` to restore monolithic Sonnet Step 2 (`generateNarrativesLegacy`) |
 | `RESILIENCE_ASSESSMENT_AGENT_LEGACY` | OFF | Re-enable multi-agent `runAssessmentAgent` path |
-| `RESILIENCE_OPEN_EVIDENCE_SCORING` | **OFF** | Post-agent synthetic scoring from verified open claims (analyst/shadow). **Production default: OFF** — enable only after auditing the open-path verification gate. Set to `1` or `on` to enable. |
+| `RESILIENCE_OPEN_EVIDENCE_SCORING` | **OFF** | Post-agent synthetic scoring from verified open claims (developer/shadow). **Production default: OFF** — enable only after auditing the open-path verification gate. Set to `1` or `on` to enable. |
 | `ASSESS_BUNDLE_SOURCE` | `closed` | Alternate assess mode that maps observation bundles to pseudo-signals |
 | `RESILIENCE_REPLAY_REUSE_NEWS` | OFF (unset) | In **replay** mode (`--date` ≠ today), reuse cached news signals instead of full re-extract |
 | `RESILIENCE_REPLAY_REUSE_RADIO` | OFF | Same for radio transcripts |
@@ -246,7 +246,7 @@ When the LLM specialist call fails or returns unusable output, `app/assessment/a
 - **`assessment_mode: 'keyword'`** — the open path falls back to keyword-based routing. Signal counts are preserved but open-path narrative quality is reduced.
 - **`assessment_mode: 'abstained'`** — no signal-based report can be produced. The report still contains `data_void` metadata and attention items.
 - The UI (`epistemicBannerMessages.js`) shows a **pulsing red error banner** (error severity) when `assessment_degraded` is detected, visually distinguishing it from standard warning banners.
-- Analysts can inspect the `shadow_scoring.assessment_mode` field in the report to understand which path was active.
+- Developers can inspect the `shadow_scoring.assessment_mode` field in the report to understand which path was active.
 
 **Cron note:** see `scripts/README.md` for the recommended two-window schedule (06:00 + 14:00 Israel time). The afternoon run supersedes the morning run via the `generated_at`-based report cache. If the data is older than 4 hours, the UI shows a freshness banner automatically.
 

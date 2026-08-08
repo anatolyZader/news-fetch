@@ -4,10 +4,10 @@
 
 import { tryAuthPreHandler } from './tryAuthPreHandler.js';
 import { ERROR_STATUS } from './requireAuthPreHandler.js';
-import { requireAnalystView } from './requireAnalystAccess.js';
+import { requireDeveloperView } from './requireDeveloperAccess.js';
 import { requireMaintainerAccess } from './maintainerAccess.js';
 import { listConfiguredUsers, userAccessForApi, canUseRichChatTools } from './userAccess.js';
-import { operatorDistrictAccessForApi } from './operatorDistrictAccess.js';
+import { userDistrictAccessForApi } from './userDistrictAccess.js';
 import { auditFromRequest } from '../security/input/auditLog.js';
 import {
   isAuthRequireListedUser,
@@ -56,14 +56,14 @@ export async function authRoutes(app, opts = {}) {
       return reply.send({
         email: null,
         level: null,
-        canViewAnalyst: false,
+        canViewDeveloper: false,
         canRunAnalysis: false,
         isListed: false,
-        districtAccess: operatorDistrictAccessForApi(null),
+        districtAccess: userDistrictAccessForApi(null),
       });
     }
     const access = userAccessForApi(request.user?.email ?? null);
-    const districtAccess = operatorDistrictAccessForApi(request.user?.email ?? null);
+    const districtAccess = userDistrictAccessForApi(request.user?.email ?? null);
     return reply.send({
       ...access,
       districtAccess,
@@ -71,7 +71,7 @@ export async function authRoutes(app, opts = {}) {
   });
 
   app.get('/api/auth/users', buildAuthHook(true), async (request, reply) => {
-    if (!requireAnalystView(request, reply)) return;
+    if (!requireDeveloperView(request, reply)) return;
     auditFromRequest(request, 'auth.users.list', '/api/auth/users');
     return reply.send({
       users: listConfiguredUsers().map((u) => ({
@@ -94,12 +94,12 @@ export async function authRoutes(app, opts = {}) {
     await tryAuthPreHandler(request, reply);
     const access = userAccessForApi(request.user?.email ?? null);
     return reply.send({
-      canViewAnalyst: access.canViewAnalyst,
+      canViewDeveloper: access.canViewDeveloper,
       accessLevel: access.level,
       canRunAnalysis: access.canRunAnalysis,
-      // Budget panel is visible to every listed user; activating crisis spend stays analyst+.
+      // Budget panel is visible to every listed user; activating crisis spend stays developer+.
       showBudgetPanel: canUseRichChatTools(request.user?.email ?? null),
-      canControlBudget: access.canViewAnalyst,
+      canControlBudget: access.canViewDeveloper,
       ...getLocaleStatus(),
     });
   });

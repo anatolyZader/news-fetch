@@ -18,8 +18,8 @@ Open **Data sources** → **News**. Browse today's articles and filters. Distric
 ## When to use it
 - Sanity-check a score against mainstream coverage
 - See what headlines may have influenced a component narrative
-- Operators maintaining the pipeline should see [News ingestion](../../guides/news-ingestion.md)
+- Users maintaining the pipeline should see [News ingestion](../../guides/news-ingestion.md)
 
 ## Troubleshooting
-- **No articles today** — ingestion may not have finished; ask your operator or try another feed.
+- **No articles today** — ingestion may not have finished; ask your user or try another feed.
 - **Article missing** — not every outlet is in every deployment; Send data can flag a link for review.
