@@ -23,6 +23,23 @@ import { preferReuse } from './replayReuseConfig.js';
 /** Allowed ingest policy values for CLI and orchestrator validation. */
 export const INGEST_POLICIES = Object.freeze(['refresh', 'reuse-first', 'always-reextract']);
 
+/** Env flag holding visits back from `always-reextract` (on unless explicitly set to 0). */
+export const VISITS_REEXTRACT_HOLD_ENV_KEY = 'RESILIENCE_VISITS_REEXTRACT_HOLD';
+
+/**
+ * Whether visits are held back from `always-reextract` (`--reextract`, 8comp *-north presets).
+ * Held by default: visit report .md files are static between field rounds, so a full
+ * re-extract only re-spends LLM budget on unchanged input. Set the env key to `0`
+ * once new visits bundles land.
+ * @param {NodeJS.ProcessEnv} [env]
+ * @returns {boolean}
+ */
+export function isVisitsReextractHeld(env = process.env) {
+  const v = env[VISITS_REEXTRACT_HOLD_ENV_KEY];
+  if (v == null || v === '') return true;
+  return !(v === '0' || v === 'false' || v === 'off');
+}
+
 // ---------------------------------------------------------------------------
 // Policy resolution
 // ---------------------------------------------------------------------------
@@ -69,7 +86,9 @@ export function shouldReuseBundle(ctx) {
   } = ctx;
 
   if (!bundleExists || force) return false;
-  if (ingestPolicy === 'always-reextract') return false;
+  if (ingestPolicy === 'always-reextract') {
+    return sourceType === 'visits' && isVisitsReextractHeld(env);
+  }
   if (ingestPolicy === 'refresh' && !replayMode) return false;
   return preferReuse({ replayMode, sourceType, force, bundleExists, env });
 }

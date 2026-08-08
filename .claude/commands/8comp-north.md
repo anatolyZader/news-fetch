@@ -20,6 +20,8 @@ Run the 1-day **north-focused** pipeline for a specific past date (national comp
 2. **Optional** `--force` → also re-fetch `.md` sources and re-gather social OSINT.
 3. **Optional** `--reextract` → full re-extract (preset `8comp-north`, always-reextract). Default is reuse-first (`8comp-north-replay`).
 
+**Visits are held out of `--reextract`** — they reuse their existing signal bundles even under always-reextract, because visit report `.md` files do not change between field rounds. Re-enable with `RESILIENCE_VISITS_REEXTRACT_HOLD=0` once new visits bundles land, or force a single run with `--force`.
+
 Validate date; reject future dates. Convert to `YYYY-MM-DD`.
 
 ### Environment (required — avoids `npm: command not found`)

@@ -41,6 +41,7 @@ Options:
   --days <N>            Assessment window (default 3, max 14)
   --scope <id>          national | north | south | … (default national)
   --always-reextract    Never reuse cached signal bundles when source .md exists
+                        (visits excluded — see RESILIENCE_VISITS_REEXTRACT_HOLD)
   --force               Re-fetch source .md and re-gather social where applicable
   --no-transcribe       Skip radio transcription (today mode only)
   --no-social           Skip social OSINT gather
@@ -50,6 +51,8 @@ Options:
 
 Env:
   RESILIENCE_ALWAYS_REEXTRACT=1   Same as --always-reextract
+  RESILIENCE_VISITS_REEXTRACT_HOLD=0   Let --always-reextract re-extract visits again
+                                       (default: held — visits reuse existing bundles)
   RESILIENCE_OPEN_EXTRACT_PARALLEL=1   Set automatically when unset
   RESILIENCE_REPLAY_REUSE_NEWS=1  Reuse cached bundles on dated replay (preset 8comp-north-replay sets defaults)
   RESILIENCE_REPLAY_REUSE_WHATSAPP=1 / RESILIENCE_REPLAY_REUSE_PBO=1 / RESILIENCE_REPLAY_REUSE_VISITS=1

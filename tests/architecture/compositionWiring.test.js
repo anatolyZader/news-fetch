@@ -13,7 +13,7 @@ const ALLOWED_PREFIXES = [
   join(ROOT, 'tests'),
 ];
 
-const SKIP_DIRS = new Set(['node_modules', 'client', 'tests', 'tools', 'coverage', 'output']);
+const SKIP_DIRS = new Set(['node_modules', 'client', 'tests', 'tools', 'coverage', 'output-symlink']);
 
 function walkJsFiles(dir, out = []) {
   for (const name of readdirSync(dir)) {

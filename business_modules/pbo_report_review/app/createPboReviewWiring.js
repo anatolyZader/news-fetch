@@ -2,6 +2,7 @@
  * Shared DI wiring for PBO report review (app, CLI, assess-signals).
  */
 import { resolve } from 'node:path';
+import { isMailingConfigured } from '../../../cross-cut-modules/config/mailingEnv.js';
 import { getMunicipalityDashboard } from '../../pbo_report/index.js';
 import { EVIDENCE_REQUIREMENTS } from '../../report_build/index.js';
 import { createPboReportReviewService } from '../app/pboReportReviewService.js';
@@ -14,8 +15,7 @@ import {
 } from '../domain/services/reviewSupplementalTexts.js';
 
 export function isPboReviewMailingConfigured() {
-  if (process.env.MAILING_ENABLED === 'false') return false;
-  return Boolean(process.env.RESEND_API_KEY?.trim() && process.env.MAIL_FROM?.trim());
+  return isMailingConfigured();
 }
 
 /**

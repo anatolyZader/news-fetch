@@ -194,6 +194,12 @@ describe('resolveReportJsonPathForDate', () => {
   });
 
   it('parseReportRunIdFromFilename extracts suffix or null', () => {
+    // Current labeled format
+    assert.strictEqual(
+      parseReportRunIdFromFilename('national-1-data-2026-07-23-produced-2026-07-23T1530Z.json'),
+      '2026-07-23T1530Z',
+    );
+    // Legacy compact format (read compat)
     assert.strictEqual(
       parseReportRunIdFromFilename('national-1-230726-1530.json'),
       '1530',

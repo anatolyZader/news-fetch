@@ -75,12 +75,15 @@ export {
 export { resolveRepoRoot as resolveResilienceRepoRoot } from './domain/services/paths/repoRoot.js';
 export {
   buildReportBasename,
+  runAtFromLabeledBasename,
   parseReportFilename,
   reportScopeSlug,
   isResilienceReportFilename,
   isNationalReportFilename,
   listReportJsonFilenamesForDate,
   reportFilenameMatchesDate,
+  LABELED_REPORT_BASENAME_RE,
+  COMPACT_REPORT_BASENAME_RE,
 } from './domain/services/paths/reportNames.js';
 export { stripTraceFields } from './infrastructure/claudeExtraction.js';
 
@@ -114,6 +117,8 @@ export { topContributorsFromScored } from './domain/services/operator/topContrib
 // --- Application services ---
 export {
   getCachedReport,
+  getLatestGeneratedReport,
+  pickLatestGeneratedEdition,
   getAvailableReportDates,
   getAvailableReportEditions,
   resolveReportJsonPathForDate,

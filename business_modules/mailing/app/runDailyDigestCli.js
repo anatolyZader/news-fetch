@@ -11,8 +11,12 @@
  *   0 7 * * * cd /path/to/news && /usr/bin/env node business_modules/mailing/input/runDailyDigest.js >> /var/log/vibes-witch-mail.log 2>&1
  *
  * Ensure the same environment as the API process: RESEND_API_KEY, MAIL_FROM,
- * optional SQLITE_PATH (defaults to ./db/app.sqlite under repo root when unset).
+ * optional SQLITE_PATH (defaults to ./db/app.sqlite under repo root when unset),
+ * optional MAIL_DIGEST_REPORT_SCOPE / MAIL_DIGEST_REPORT_SELECTION (see mailingConfig.js).
  * Set MAILING_ENABLED=false to skip sends (script exits 0 without sending).
+ *
+ * Exits 1 on an unrecognized MAIL_DIGEST_REPORT_SCOPE rather than silently
+ * mailing subscribers the national report the typo degrades to.
  */
 import 'dotenv/config';
 import { bootstrapDefaultStateStore } from '../../../cross-cut-modules/persistence/bootstrapStateStore.js';
@@ -21,19 +25,14 @@ bootstrapDefaultStateStore();
 import { createMailingPreferencesStore } from '../infrastructure/mailingPreferencesStore.js';
 import { createMailingResendAdapter } from '../infrastructure/adapters/mailingResendAdapter.js';
 import { createMailingService } from '../app/mailingService.js';
+import { createDigestReportSource } from '../app/digestReportSource.js';
 import { createReportReadPort } from '../../resilience_scorer/index.js';
 import { createEvidenceStore } from '../../../db/persistence/evidenceStore.js';
 import { getTranslatedReport } from '../../translation/index.js';
 import { resolveSqlitePath } from '../../../cross-cut-modules/config/sqlitePath.js';
+import { isMailingConfigured } from '../../../cross-cut-modules/config/mailingEnv.js';
 
 const sqlitePath = resolveSqlitePath();
-
-function isMailingConfigured() {
-  if (process.env.MAILING_ENABLED === 'false') return false;
-  const key = process.env.RESEND_API_KEY?.trim();
-  const from = process.env.MAIL_FROM?.trim();
-  return Boolean(key && from);
-}
 
 async function main() {
   if (!isMailingConfigured()) {
@@ -44,10 +43,18 @@ async function main() {
   const evidenceStore = createEvidenceStore(sqlitePath);
   const prefsStore = createMailingPreferencesStore(sqlitePath);
   const reportReadPort = createReportReadPort();
+  const reportSource = createDigestReportSource({ reportReadPort, evidenceStore });
+  if (reportSource.config.scopeCoerced) {
+    console.error(
+      `[mail-digest] Aborting: MAIL_DIGEST_REPORT_SCOPE="${reportSource.config.scopeRaw}" is not a known scope`,
+    );
+    process.exit(1);
+  }
+
   const mailingService = createMailingService({
     deliveryPort: createMailingResendAdapter({ apiKey: process.env.RESEND_API_KEY.trim() }),
     mailFrom: process.env.MAIL_FROM.trim(),
-    getCachedReport: () => reportReadPort.getCachedReport(evidenceStore),
+    getCachedReport: reportSource,
     translateReport: getTranslatedReport,
   });
 

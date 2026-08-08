@@ -10,7 +10,7 @@ import { EVENT_TYPES, publishDomainEvent } from '../../../../cross-cut-modules/m
 import { buildComparisonContext } from '../../domain/services/sourceMixIndex.js';
 import { isRegionalReportScope } from '../../../../cross-cut-modules/geo/reportScopeIds.js';
 import { resilienceReportsDir } from '../../domain/services/paths/outputDirs.js';
-import { buildReportBasename } from '../../domain/services/paths/reportNames.js';
+import { buildReportBasename, runAtFromLabeledBasename } from '../../domain/services/paths/reportNames.js';
 import { writeReport } from '../../infrastructure/reportWriter.js';
 import { appendCostLog } from '../../../../cross-cut-modules/budget/index.js';
 import { buildAssessmentWindowMetadata } from './assessSignalsHelpers.js';
@@ -31,13 +31,14 @@ import { resolveSqlitePath } from '../../../../cross-cut-modules/config/sqlitePa
 import { REPO_ROOT, loadPriorReports } from './assessSignalsDeps.js';
 import { applyOpenEvidenceScoringIfVerified } from './buildScopedScoring.js';
 
-function resolveOutputBase(reportScopeId, targetDate, days, getArg) {
+function resolveOutputBase(reportScopeId, targetDate, days, getArg, runAt) {
   const cliOutputBase = getArg('--output')?.replace(/\.(md|json)$/, '');
   if (cliOutputBase) return cliOutputBase;
   const basename = buildReportBasename({
     scopeId: reportScopeId,
     days,
     reportDate: targetDate,
+    runAt,
   });
   return resolve(resilienceReportsDir(), basename);
 }
@@ -191,7 +192,9 @@ export async function finalizeAndWriteReport({
     investigationPlan: assessment.investigation_plan,
   });
 
-  const outputBase = resolveOutputBase(reportScopeId, targetDate, days, getArg);
+  // Pin a single runAt so the labeled basename and generated_at are always identical.
+  const runAt = new Date();
+  const outputBase = resolveOutputBase(reportScopeId, targetDate, days, getArg, runAt);
   attachRegionalNationalComparison(assessment, {
     reportScopeId,
     comparisonContext,
@@ -212,12 +215,13 @@ export async function finalizeAndWriteReport({
   await attachPboCompletenessSummary(assessment, targetDate);
   const pipelinePreset = getArg?.('--preset')?.trim() || null;
   const assessmentWindow = buildAssessmentWindowMetadata(targetDate, days, { pipelinePreset });
+  // Pass runAt so reportWriter can stamp generated_at identically to the filename token.
   writeReport(
     assessment,
     scopedSignals,
     [...new Set(sourceFiles)],
     outputBase,
-    { scoreBySource, assessmentWindow },
+    { scoreBySource, assessmentWindow, runAt },
   );
   try {
     await publishDomainEvent({

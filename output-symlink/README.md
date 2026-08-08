@@ -1,4 +1,4 @@
-# output/ — centralized artifact view
+# output-symlink/ — centralized artifact view
 
 Symlinks only. **Canonical storage stays module-owned** under `business_modules/*/data/`, `business_modules/resilience_scorer/analyst/data/`, and `logs/`. This tree is for browsing and operator access without moving pipeline paths.
 
@@ -35,7 +35,7 @@ npm run output:setup
 
 ## Path helpers (code)
 
-Do not hardcode `output/` in application code. Use existing resolvers:
+Do not hardcode `output-symlink/` in application code. Use existing resolvers:
 
 - `business_modules/resilience_scorer/domain/services/paths/outputDirs.js`
 - `business_modules/resilience_scorer/domain/services/paths/ingestPaths.js`

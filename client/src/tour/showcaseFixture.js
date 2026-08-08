@@ -2,7 +2,7 @@
  * Frozen showcase component for the tour's narrative/evidence steps.
  *
  * Content is a curated excerpt from the real northern report of 2026-05-20
- * (business_modules/resilience_scorer/data/daily_reports/north-1-200526-1127.json),
+ * (business_modules/resilience_scorer/data/daily_reports/north-1-data-2026-05-20-produced-2026-05-20T1127Z.json),
  * pre-translated per locale so every user sees the same high-quality example
  * regardless of what today's live report contains.
  */

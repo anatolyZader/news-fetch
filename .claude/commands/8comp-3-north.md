@@ -25,7 +25,8 @@ mkdir -p logs && echo "=== Pipeline run: north <target date> | preset: 8comp-3-n
 
 ### Run
 
-Unified orchestrator (`--always-reextract` is set by preset):
+Unified orchestrator (`--always-reextract` is set by preset; visits are held out of it and reuse
+existing bundles unless `RESILIENCE_VISITS_REEXTRACT_HOLD=0` or `--force`):
 
 ```
 npm run pipeline:run:cli -- --preset 8comp-3-north [--force] [--date YYYY-MM-DD] 2>> logs/pipeline-run-north-<target date>.log

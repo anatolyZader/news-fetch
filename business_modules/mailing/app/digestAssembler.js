@@ -2,9 +2,11 @@
  * Assembles digest text/html parts from report and pool dashboards.
  */
 
+import { getTodayInTimezone } from '../../../utils/dateUtils.js';
 import { LABELS } from '../domain/copy/mailingLabels.js';
 import {
   escapeHtml,
+  buildStalenessNotice,
   buildReportText,
   buildReportHtml,
   buildNaftaliText,
@@ -41,7 +43,7 @@ export async function appendDashboardParts({ enabled, loadDashboard, buildText, 
   }
 }
 
-export async function appendReportDigestParts({ products, lang, labels, dir, parts, getCachedReport, translateReport }) {
+export async function appendReportDigestParts({ products, lang, labels, dir, parts, today, getCachedReport, translateReport }) {
   if (!products.report) return;
   const { text: partsText, html: partsHtml } = parts;
   const cached = getCachedReport();
@@ -54,8 +56,12 @@ export async function appendReportDigestParts({ products, lang, labels, dir, par
     }
   }
   if (assessment) {
-    partsText.push(buildReportText({ cached, assessment, labels, lang }));
-    partsHtml.push(buildReportHtml({ cached, assessment, labels, lang, dir }));
+    // Same expression the renderer uses for its Metadata row, so the notice can
+    // never name a different date than the table two lines below it.
+    const reportDate = cached?.reportDate ?? assessment?.date ?? null;
+    const notice = buildStalenessNotice({ reportDate, today, labels, dir });
+    partsText.push(buildReportText({ cached, assessment, labels, lang, noticeText: notice?.text }));
+    partsHtml.push(buildReportHtml({ cached, assessment, labels, lang, dir, noticeHtml: notice?.html }));
     return;
   }
   partsText.push(`=== ${labels.reportTitle} ===\n(${labels.noReport})`);
@@ -72,6 +78,7 @@ export function normalizeLanguage(lang) {
  * @param {() => any} opts.getCachedReport
  * @param {(report: object, lang: string) => Promise<object>} [opts.translateReport]
  * @param {{ getNaftaliDashboard: Function, getEducationDashboard: Function }} opts.poolService
+ * @param {string} [opts.today] YYYY-MM-DD; defaults to today in TZ_ARTICLES
  */
 export async function buildDigestParts(opts, products, language = 'en') {
   const { getCachedReport, translateReport, poolService } = opts;
@@ -82,9 +89,11 @@ export async function buildDigestParts(opts, products, language = 'en') {
   const partsHtml = [];
 
   const parts = { text: partsText, html: partsHtml };
+  // opts.today lets tests pin the comparison without mocking the clock.
+  const today = opts.today ?? getTodayInTimezone(process.env.TZ_ARTICLES || 'Asia/Jerusalem');
 
   await appendReportDigestParts({
-    products, lang, labels, dir, parts, getCachedReport, translateReport,
+    products, lang, labels, dir, parts, today, getCachedReport, translateReport,
   });
 
   await appendDashboardParts({

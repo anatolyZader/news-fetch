@@ -48,8 +48,16 @@ export function createMailingService({
     async sendDigest({ to, products, language = 'en' }) {
       const lang = normalizeLanguage(language);
       const labels = LABELS[lang] ?? LABELS.en;
-      const digest = await buildDigestPartsForService(products, lang);
-      const date = getCachedReport()?.reportDate ?? new Date().toISOString().slice(0, 10);
+      // Resolve once and pin it for the body, so the subject line and the report
+      // section can never name different editions (and so selection, which scans
+      // the reports dir, runs once per send rather than twice).
+      const cached = getCachedReport?.() ?? null;
+      const digest = await buildDigestParts(
+        { ...assemblerOpts, getCachedReport: () => cached },
+        products,
+        lang,
+      );
+      const date = cached?.reportDate ?? new Date().toISOString().slice(0, 10);
       const sentAt = new Date();
       const sendTime = sentAt.toISOString().slice(11, 16);
       const subject = `${labels.subject} — ${date} — ${sendTime} UTC`;

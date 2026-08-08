@@ -8,7 +8,7 @@ description: Review signal relevance and propose extraction improvements for a c
 Audit the signal extraction quality of a completed resilience report JSON. No pipeline re-runs, no API calls. Do NOT ask for confirmation — just go.
 
 **Step 1 — Resolve report path**
-- If the user provided a file name or path, use it. Resolve relative names under `business_modules/resilience_scorer/data/reports/` (e.g. `north-3-230526-1545.json` → `business_modules/resilience_scorer/data/reports/north-3-230526-1545.json`; legacy `resilience-report-north-data-2026-05-23-run-*.json` still works).
+- If the user provided a file name or path, use it. Resolve relative names under `business_modules/resilience_scorer/data/reports/` (e.g. `north-1-data-2026-05-23-produced-2026-05-23T1545Z.json` → `business_modules/resilience_scorer/data/reports/north-1-data-2026-05-23-produced-2026-05-23T1545Z.json`; legacy compact `north-3-230526-1545.json` and `resilience-report-north-data-…-run-*.json` still parse).
 - If no file specified, find the most recent report (must end in `.json`, not `.md` or `-brief.md`):
 ```
 find /home/eventstorm1/news/business_modules/resilience_scorer/data/reports -name "*.json" ! -name "*-brief*" -type f | sort | tail -1

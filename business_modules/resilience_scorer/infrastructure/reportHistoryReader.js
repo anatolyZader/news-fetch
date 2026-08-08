@@ -8,7 +8,7 @@ import { parseReportFilename, reportScopeSlug, reportFilenameMatchesDate, listRe
 import { resilienceReportsDir } from '../domain/services/paths/outputDirs.js';
 
 /**
- * Walks resilience data/reports (compact `{scope}-{days}-{DDMMYY}-{HHmm}` or legacy run-scoped names).
+ * Walks resilience data/reports (labeled `{scope}-{days}-data-{YYYY-MM-DD}-produced-{…}` or legacy compact/run-scoped names).
  */
 
 function readReportFileNames(reportsDir) {

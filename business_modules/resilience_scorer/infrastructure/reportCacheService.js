@@ -167,7 +167,7 @@ function resolveEditionWindow(date, meta) {
 }
 
 /**
- * Prefer compact `{scope}-{days}-{DDMMYY}-{HHmm}.json`; legacy `resilience-report-*-data-*-run-*` still resolves.
+ * Prefer labeled `{scope}-{days}-data-{YYYY-MM-DD}-produced-{YYYY-MM-DD}T{HHmm}Z.json`; legacy compact and `resilience-report-*` formats still parse for backward compat.
  * Selection priority for same-day timestamped files:
  *   1. `assessment.critical_signal === true` always wins (emergency re-runs).
  *   2. Newest `generated_at` ISO timestamp (written top-level by reportWriter.js).
@@ -254,14 +254,25 @@ export function resolveReportMdPathForDate(date, opts = {}) {
 }
 
 /**
- * Compact run ids are UTC HHmm from reportWriter basenames.
- * @param {string} date YYYY-MM-DD
+ * Derive a full ISO generated_at from a runId token.
+ *
+ * Supports two forms:
+ *  - Labeled (current):  `YYYY-MM-DDTHHmmZ`  → `YYYY-MM-DDTHH:mm:00.000Z`
+ *  - Legacy compact:     `HHmm` (4 digits)   → `{date}THH:mm:00.000Z`
+ *
+ * @param {string} date YYYY-MM-DD (used only for legacy compact runId)
  * @param {string | null | undefined} runId
  * @returns {string | null}
  */
 function synthesizeGeneratedAtFromRunId(date, runId) {
+  if (typeof runId !== 'string') return null;
+  // Current labeled format: "2026-08-07T0940Z"
+  if (/^\d{4}-\d{2}-\d{2}T\d{4}Z$/.test(runId)) {
+    return `${runId.slice(0, 10)}T${runId.slice(11, 13)}:${runId.slice(13, 15)}:00.000Z`;
+  }
+  // Legacy compact format: "0940" (HHmm)
   if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
-  if (typeof runId !== 'string' || !/^\d{4}$/.test(runId) || runId === '0000') return null;
+  if (!/^\d{4}$/.test(runId) || runId === '0000') return null;
   return `${date}T${runId.slice(0, 2)}:${runId.slice(2, 4)}:00.000Z`;
 }
 
@@ -328,7 +339,7 @@ export function reportQualityRank(meta) {
 /**
  * Return today's cached report payload `{ assessment, signals?, markdown?, ... }`, or null if none exists.
  *
- * **Filesystem first:** the best `resilience-report-{date}-*.json` under resilience data/reports (highest
+ * **Filesystem first:** the best labeled report file under resilience data/reports (highest
  * `total_articles_analyzed`, then newest mtime; sibling `.md` loaded when present) is the canonical rich export.
  * SQLite is used only when no JSON exists for that date.
  *
@@ -423,12 +434,16 @@ export function getAvailableReportEditions(opts = {}) {
 
   return candidates.map(({ date, run_id, meta }) => {
     const windowFields = resolveEditionWindow(date, meta);
-    const generatedAt = meta.generatedAt
-      ?? synthesizeGeneratedAtFromRunId(date, run_id);
+    const synthesized = meta.generatedAt ? null : synthesizeGeneratedAtFromRunId(date, run_id);
+    const generatedAt = meta.generatedAt ?? synthesized;
+    let generatedAtSource = null;
+    if (meta.generatedAt) generatedAtSource = 'meta';
+    else if (synthesized) generatedAtSource = 'synthesized';
     return {
       date,
       run_id,
       generated_at: generatedAt,
+      generated_at_source: generatedAtSource,
       assessment_days: windowFields.assessment_days,
       window_start: windowFields.window_start,
       window_end: windowFields.window_end,
@@ -436,6 +451,52 @@ export function getAvailableReportEditions(opts = {}) {
       is_today: date === today,
     };
   });
+}
+
+/**
+ * Pick the edition generated most recently, irrespective of the period it covers.
+ *
+ * `editions` MUST arrive in getAvailableReportEditions order (date-desc, then
+ * serve-best), because compareGeneratedAt reports an exact tie as null and this
+ * keeps the incumbent on a tie. That gives every tie-break for free: equal
+ * timestamps and all-null lists keep the newest date, and a dated edition beats
+ * one with no timestamp at all.
+ *
+ * @param {Array<{ date: string, run_id: string|null, generated_at: string|null }>} editions
+ * @returns {object | null}
+ */
+export function pickLatestGeneratedEdition(editions) {
+  if (!Array.isArray(editions) || editions.length === 0) return null;
+  let best = editions[0];
+  for (const candidate of editions.slice(1)) {
+    if (compareGeneratedAt(candidate?.generated_at, best?.generated_at) === true) best = candidate;
+  }
+  return best ?? null;
+}
+
+/**
+ * Return the most recently *generated* report for a scope, irrespective of its
+ * report date — unlike getCachedReport, which prefers today and then falls back
+ * to the newest report DATE. A replay of an old period regenerated today wins here.
+ *
+ * @param {object} [store] evidence store, used only when no JSON edition resolves
+ * @param {{ scope?: string, reportsDir?: string }} [opts]
+ * @returns {object | null} same payload shape as getCachedReport, including reportDate
+ */
+export function getLatestGeneratedReport(store, opts = {}) {
+  const scope = normalizeReportScopeId(opts.scope);
+  const editions = getAvailableReportEditions({ scope, reportsDir: opts.reportsDir });
+  const winner = pickLatestGeneratedEdition(editions);
+  if (!winner) return getCachedReport(store, opts);
+
+  const pinned = getCachedReport(store, {
+    scope,
+    reportsDir: opts.reportsDir,
+    date: winner.date,
+    // run_id is null for legacy filenames; undefined means "serve-best for that date".
+    runId: winner.run_id || undefined,
+  });
+  return pinned ?? getCachedReport(store, opts);
 }
 
 /** Load markdown sidecar files adjacent to a report JSON path. */

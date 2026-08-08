@@ -7,6 +7,34 @@ import { panelHeaderButtonSx, panelSectionRadius } from './panelChrome.js';
 import { safeAreaFixedSx } from './responsive/responsiveSx.js';
 import PropTypes from 'prop-types';
 
+/** Periodic attention flash (5s cycle) while the chat is closed. */
+function attentionFlashSx(theme, open) {
+  if (open) return {};
+  const glow = alpha(theme.palette.primary.main, 0.55);
+  return {
+    '@keyframes chatLauncherFlash': {
+      '0%, 100%': { transform: 'scale(1)', boxShadow: `0 0 0 0 ${glow}` },
+      '4%': { transform: 'scale(1.08)', boxShadow: `0 0 0 6px ${alpha(glow, 0.4)}` },
+      '8%': { transform: 'scale(1)', boxShadow: `0 0 0 12px ${alpha(glow, 0)}` },
+    },
+    animation: 'chatLauncherFlash 5s ease-out infinite',
+    '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+  };
+}
+
+/** Airy gradient surface shared by both launcher variants. */
+function launcherSurfaceSx(theme) {
+  return {
+    border: `1.5px solid ${alpha(theme.palette.primary.main, 0.45)}`,
+    background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(theme.palette.primary.light, 0.55)} 100%)`,
+    color: theme.palette.primary.dark,
+    '&:hover': {
+      background: `linear-gradient(135deg, ${alpha(theme.palette.primary.light, 0.7)} 0%, ${alpha(theme.palette.secondary.light, 0.5)} 100%)`,
+      borderColor: theme.palette.primary.main,
+    },
+  };
+}
+
 export function ChatLauncher({
   open = false,
   onClick,
@@ -26,7 +54,8 @@ export function ChatLauncher({
 
   const fixedSx = {
     position: 'fixed',
-    zIndex: theme.zIndex.tooltip + 10,
+    // Below the modal layer so dialogs and their backdrops always cover the launcher.
+    zIndex: theme.zIndex.modal - 1,
     ...horizontalInset,
     bottom: theme.spacing(2),
     ...safeAreaFixedSx(theme, { bottomInset, position }),
@@ -36,18 +65,19 @@ export function ChatLauncher({
     return (
       <Fab
         {...rest}
-        color="primary"
         aria-label={label}
         aria-expanded={open}
         onClick={onClick}
         sx={{
           ...fixedSx,
-          width: 56,
-          height: 56,
-          boxShadow: `0 8px 24px ${alpha(theme.palette.primary.main, 0.35)}`,
+          width: 68,
+          height: 68,
+          ...launcherSurfaceSx(theme),
+          boxShadow: `0 10px 28px ${alpha(theme.palette.primary.main, 0.35)}`,
+          ...attentionFlashSx(theme, open),
         }}
       >
-        <ChatOutlinedIcon />
+        <ChatOutlinedIcon sx={{ fontSize: 32 }} />
       </Fab>
     );
   }
@@ -57,26 +87,28 @@ export function ChatLauncher({
       {...rest}
       type="button"
       variant="outlined"
-      size="small"
+      size="large"
       onClick={onClick}
       aria-label={label}
       aria-expanded={open}
+      startIcon={<ChatOutlinedIcon />}
       sx={(th) => ({
         ...panelHeaderButtonSx(th),
         ...fixedSx,
         borderRadius: panelSectionRadius(th),
-        border: `1px solid ${alpha(th.palette.primary.main, 0.35)}`,
-        background: `linear-gradient(135deg, ${th.palette.background.paper} 0%, ${alpha(th.palette.primary.light, 0.55)} 100%)`,
-        color: th.palette.primary.dark,
-        fontWeight: th.typography.button.fontWeight,
-        boxShadow: th.custom.elevation.hover,
+        minHeight: th.spacing(6),
+        px: 3,
+        fontSize: th.typography.pxToRem(16),
+        fontWeight: th.typography.fontWeightBold,
+        boxShadow: th.custom.elevation.cta,
         transition: th.transitions.create(['transform', 'box-shadow', 'border-color'], {
           duration: th.transitions.duration.short,
         }),
+        ...launcherSurfaceSx(th),
+        ...attentionFlashSx(th, open),
         '&:hover': {
-          background: `linear-gradient(135deg, ${alpha(th.palette.primary.light, 0.7)} 0%, ${alpha(th.palette.secondary.light, 0.5)} 100%)`,
+          ...launcherSurfaceSx(th)['&:hover'],
           boxShadow: th.custom.elevation.cta,
-          borderColor: th.palette.primary.main,
           transform: 'translateY(-1px)',
         },
       })}

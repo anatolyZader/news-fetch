@@ -1,10 +1,10 @@
 /**
- * Compact resilience report basenames: `{scope}-{days}-{DDMMYY}-{HHmm}`.
+ * Resilience report basenames: `{scope}-{days}-data-{YYYY-MM-DD}-produced-{YYYY-MM-DD}T{HHmm}Z`.
  *
  * Pipeline position: STAGE-2 assess finalize and report HTTP API — filename format
  * and parsing only (callers pass an already-resolved `reportsDir`).
  *
- * Owns: compact + legacy basename regexes, build/parse helpers, report path lookup.
+ * Owns: labeled + compact-legacy + legacy basename regexes, build/parse helpers, report path lookup.
  * Does NOT: resolve absolute report directories (see `outputDirs.js`) or write JSON.
  *
  * Key collaborators: `paths/outputDirs.js`, `input/reportRoutes.js`,
@@ -27,7 +27,18 @@ function getStore(deps = {}) {
 // Basename regexes
 // ---------------------------------------------------------------------------
 
-/** Compact report basename: `{scope}-{days}-{DDMMYY}-{HHmm}`. */
+/**
+ * Labeled report basename (current format):
+ * `{scope}-{days}-data-{YYYY-MM-DD}-produced-{YYYY-MM-DD}T{HHmm}Z`
+ * e.g. `north-1-data-2026-04-03-produced-2026-08-07T0940Z`
+ */
+export const LABELED_REPORT_BASENAME_RE =
+  /^([a-z]+)-(\d{1,2})-data-(\d{4}-\d{2}-\d{2})-produced-(\d{4}-\d{2}-\d{2}T\d{4}Z)$/;
+
+/**
+ * @deprecated legacy compact basename — read-only, no new files written.
+ * `{scope}-{days}-{DDMMYY}-{HHmm}`
+ */
 export const COMPACT_REPORT_BASENAME_RE = /^([a-z]+)-(\d{1,2})-(\d{6})-(\d{4})$/;
 
 /** Legacy report basename with optional regional scope and run id. */
@@ -109,20 +120,44 @@ export function reportScopeSlug(scopeId) {
 }
 
 /**
- * Build compact report basename without extension.
+ * Build labeled report basename without extension.
+ * Format: `{scope}-{days}-data-{YYYY-MM-DD}-produced-{YYYY-MM-DD}T{HHmm}Z`
+ * Example: `north-1-data-2026-04-03-produced-2026-08-07T0940Z`
  * @param {object} params
  * @param {string} params.scopeId
  * @param {number} params.days assessment window length (counts back from reportDate)
- * @param {string} params.reportDate YYYY-MM-DD window end
- * @param {Date} [params.runAt] defaults to now (UTC HHmm in basename)
+ * @param {string} params.reportDate YYYY-MM-DD window end (data date)
+ * @param {Date} [params.runAt] defaults to now — sets both the produced-date token and JSON generated_at
  * @returns {string} basename without extension
  */
 export function buildReportBasename({ scopeId, days, reportDate, runAt = new Date() }) {
   const scope = reportScopeSlug(scopeId);
   const safeDays = Math.min(14, Math.max(1, Number(days) || 1));
-  const ddmmyy = ddMmYyFromIsoDate(reportDate);
-  const hhmm = runAt.toISOString().slice(11, 16).replace(':', '');
-  return `${scope}-${safeDays}-${ddmmyy}-${hhmm}`;
+  const iso = runAt.toISOString(); // e.g. 2026-08-07T09:40:41.965Z
+  const producedDate = iso.slice(0, 10); // YYYY-MM-DD
+  const hhmm = iso.slice(11, 16).replace(':', ''); // HHmm
+  return `${scope}-${safeDays}-data-${reportDate}-produced-${producedDate}T${hhmm}Z`;
+}
+
+/**
+ * Extract the `runAt` ISO string from a labeled basename `produced-…` token,
+ * so `finalizeReport` can pin the same timestamp to `generated_at`.
+ * @param {string} basename without extension
+ * @returns {Date | null}
+ */
+export function runAtFromLabeledBasename(basename) {
+  const m = LABELED_REPORT_BASENAME_RE.exec(
+    basename
+      .replace(/\.json$/i, '')
+      .replace(/\.md$/i, '')
+      .replace(/-brief$/i, ''),
+  );
+  if (!m) return null;
+  // m[4] = "2026-08-07T0940Z" → "2026-08-07T09:40:00.000Z"
+  const token = m[4]; // YYYY-MM-DDTHHmmZ
+  const iso = `${token.slice(0, 10)}T${token.slice(11, 13)}:${token.slice(13, 15)}:00.000Z`;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 // ---------------------------------------------------------------------------
@@ -130,10 +165,16 @@ export function buildReportBasename({ scopeId, days, reportDate, runAt = new Dat
 // ---------------------------------------------------------------------------
 
 /**
- * Parse compact or legacy report filename into structured fields.
+ * Parse labeled, compact-legacy, or legacy report filename into structured fields.
+ *
+ * Priority: labeled (current) → compact-legacy (DDMMYY) → resilience-report* legacy.
+ *
+ * `runId` for labeled format is the produced token, e.g. `2026-08-07T0940Z`.
+ * `runId` for compact-legacy is 4-digit `HHmm`.
+ *
  * @param {string} filename or basename
  * @returns {{
- *   format: 'compact' | 'legacy',
+ *   format: 'labeled' | 'compact' | 'legacy',
  *   scopeId: string,
  *   days: number,
  *   reportDate: string,
@@ -146,6 +187,19 @@ export function parseReportFilename(filename) {
     .replace(/\.md$/i, '')
     .replace(/-brief$/i, '');
 
+  // Current format: {scope}-{days}-data-{YYYY-MM-DD}-produced-{YYYY-MM-DD}T{HHmm}Z
+  const labeled = LABELED_REPORT_BASENAME_RE.exec(base);
+  if (labeled) {
+    return {
+      format: 'labeled',
+      scopeId: labeled[1],
+      days: Number.parseInt(labeled[2], 10),
+      reportDate: labeled[3],
+      runId: labeled[4], // e.g. "2026-08-07T0940Z"
+    };
+  }
+
+  // Legacy compact: {scope}-{days}-{DDMMYY}-{HHmm}
   const compact = COMPACT_REPORT_BASENAME_RE.exec(base);
   if (compact) {
     return {
@@ -267,12 +321,9 @@ export function reportFilenameMatchesDate(filename, date, scopeId) {
  */
 export function resolveSpecificReportArtifactPath(reportsDir, date, scopeId, runId, ext = 'json') {
   const safeExt = ext === 'md' ? 'md' : 'json';
-  const ddmmyy = ddMmYyFromIsoDate(date);
   const scope = reportScopeSlug(scopeId);
 
   const store = getStore();
-  const compactExact = join(reportsDir, `${scope}-1-${ddmmyy}-${runId}.${safeExt}`);
-  if (store.existsSync(compactExact)) return compactExact;
 
   let names;
   try {
@@ -282,12 +333,26 @@ export function resolveSpecificReportArtifactPath(reportsDir, date, scopeId, run
   }
 
   const escapedRunId = runId.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // 1. Current labeled format: {scope}-{days}-data-{date}-produced-{runId}.{ext}
+  const labeledRe = new RegExp(
+    String.raw`^${scope}-\d{1,2}-data-${date}-produced-${escapedRunId}\.${safeExt}$`,
+  );
+  const labeledHit = names.find((f) => labeledRe.test(f));
+  if (labeledHit) return join(reportsDir, labeledHit);
+
+  // 2. Legacy compact format: {scope}-{days}-{DDMMYY}-{runId}.{ext}
+  const ddmmyy = ddMmYyFromIsoDate(date);
+  const compactExact = join(reportsDir, `${scope}-1-${ddmmyy}-${runId}.${safeExt}`);
+  if (store.existsSync(compactExact)) return compactExact;
+
   const compactRe = new RegExp(
     String.raw`^${scope}-\d{1,2}-${ddmmyy}-${escapedRunId}\.${safeExt}$`,
   );
   const compactHit = names.find((f) => compactRe.test(f));
   if (compactHit) return join(reportsDir, compactHit);
 
+  // 3. Old resilience-report* legacy formats
   const legacyPrefix = reportFilePrefix(scope);
   const legacy = join(reportsDir, `${legacyPrefix}-data-${date}-run-${runId}.${safeExt}`);
   if (store.existsSync(legacy)) return legacy;

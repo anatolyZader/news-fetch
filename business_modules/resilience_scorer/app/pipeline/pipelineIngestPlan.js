@@ -27,6 +27,7 @@ import {
 } from '../../domain/services/oov/openExtractConfig.js';
 import { shouldReuseInReplay } from '../../domain/services/pipeline/replayReuseConfig.js';
 import {
+  isVisitsReextractHeld,
   resolveIngestPolicy,
   shouldReuseBundle,
   wantsAlwaysReextractPbo,
@@ -342,7 +343,8 @@ function pushVisitsStepsIfEnabled(steps, enabledSources, ctx) {
   const { replayMode, rootDir, force, env, ingestPolicy } = ctx;
   if (!isEnabled(enabledSources, 'visits')) return;
 
-  const limit = ingestPolicy === 'always-reextract' ? null : 3;
+  const fullSweep = ingestPolicy === 'always-reextract' && !isVisitsReextractHeld(env);
+  const limit = fullSweep ? null : 3;
   for (const file of listVisitReportMds(rootDir, { limit })) {
     const date = visitDateFromFilename(file);
     if (!date) continue;

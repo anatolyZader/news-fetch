@@ -94,8 +94,10 @@ export function formatEditionSignalsSummary(t, edition) {
 }
 
 /**
- * Prefer report JSON `generated_at`; otherwise synthesize from compact run id (UTC HHmm).
- * Many older editions are markdown-only and have no JSON metadata.
+ * Prefer report JSON `generated_at`; otherwise synthesize from run_id token.
+ * Supports two run_id forms:
+ *   - Labeled (current): `2026-08-07T0940Z` → `2026-08-07T09:40:00.000Z`
+ *   - Legacy compact:    `0940` (HHmm)      → `{edition.date}T09:40:00.000Z`
  * @param {ReportEdition | null | undefined} edition
  * @returns {string | null} ISO-8601 timestamp
  */
@@ -104,10 +106,16 @@ export function resolveEditionProducedAt(edition) {
   if (typeof edition.generated_at === 'string' && edition.generated_at.trim()) {
     return edition.generated_at.trim();
   }
-  const date = edition.date;
   const runId = edition.run_id;
+  if (typeof runId !== 'string') return null;
+  // Current labeled format: "2026-08-07T0940Z"
+  if (/^\d{4}-\d{2}-\d{2}T\d{4}Z$/.test(runId)) {
+    return `${runId.slice(0, 10)}T${runId.slice(11, 13)}:${runId.slice(13, 15)}:00.000Z`;
+  }
+  // Legacy compact format: "0940"
+  const date = edition.date;
   if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
-  if (typeof runId !== 'string' || !/^\d{4}$/.test(runId) || runId === '0000') return null;
+  if (!/^\d{4}$/.test(runId) || runId === '0000') return null;
   return `${date}T${runId.slice(0, 2)}:${runId.slice(2, 4)}:00.000Z`;
 }
 

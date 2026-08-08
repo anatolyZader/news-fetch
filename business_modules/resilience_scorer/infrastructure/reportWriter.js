@@ -214,9 +214,10 @@ function sanitizeAssessmentNarratives(assessment) {
  * @param {Object} [extras]
  * @param {Object} [extras.scoreBySource]  Per-source component scores: { news: {...}, radio: {...}, field: {...} }
  * @param {Object} [extras.assessmentWindow]  Persisted window metadata from buildAssessmentWindowMetadata
+ * @param {Date}   [extras.runAt]  When provided, used as generated_at so it matches the labeled basename token.
  * @returns {{ mdPath, jsonPath }}
  */
-export function writeReport(assessment, signals, sourceFiles, outputBase, { scoreBySource, assessmentWindow } = {}) {
+export function writeReport(assessment, signals, sourceFiles, outputBase, { scoreBySource, assessmentWindow, runAt } = {}) {
   sanitizeAssessmentNarratives(assessment);
   mkdirSync(dirname(outputBase), { recursive: true });
 
@@ -234,7 +235,7 @@ export function writeReport(assessment, signals, sourceFiles, outputBase, { scor
     assessment,
     signals,
     source_files: sourceFiles,
-    generated_at: new Date().toISOString(),
+    generated_at: (runAt instanceof Date ? runAt : new Date()).toISOString(),
     ...collectGeoVersionsFromSignals(signals),
   };
   if (assessmentWindow && typeof assessmentWindow === 'object') {

@@ -3,7 +3,7 @@
   "content_kind": "field_report",
   "district_id": "north",
   "date": "2026-03-24",
-  "extracted_at": "2026-08-05T15:02:23.336Z",
+  "extracted_at": "2026-08-01T14:47:22.178Z",
   "source_files": [
     "articles-visits-reports-2026-03-24.md"
   ],
@@ -44,7 +44,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.167Z"
+          "resolvedAt": "2026-08-01T14:47:21.926Z"
         }
       },
       "district_id": "north",
@@ -86,7 +86,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.168Z"
+          "resolvedAt": "2026-08-01T14:47:21.929Z"
         }
       },
       "district_id": "north",
@@ -128,7 +128,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.169Z"
+          "resolvedAt": "2026-08-01T14:47:21.930Z"
         }
       },
       "district_id": "north",
@@ -170,7 +170,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.170Z"
+          "resolvedAt": "2026-08-01T14:47:21.932Z"
         }
       },
       "district_id": "north",
@@ -212,7 +212,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.171Z"
+          "resolvedAt": "2026-08-01T14:47:21.933Z"
         }
       },
       "district_id": "north",
@@ -254,7 +254,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.174Z"
+          "resolvedAt": "2026-08-01T14:47:21.934Z"
         }
       },
       "district_id": "north",
@@ -296,7 +296,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.175Z"
+          "resolvedAt": "2026-08-01T14:47:21.936Z"
         }
       },
       "district_id": "north",
@@ -338,7 +338,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.177Z"
+          "resolvedAt": "2026-08-01T14:47:21.938Z"
         }
       },
       "district_id": "north",
@@ -380,7 +380,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.178Z"
+          "resolvedAt": "2026-08-01T14:47:21.938Z"
         }
       },
       "district_id": "north",
@@ -422,7 +422,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.179Z"
+          "resolvedAt": "2026-08-01T14:47:21.940Z"
         }
       },
       "district_id": "north",
@@ -464,7 +464,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.180Z"
+          "resolvedAt": "2026-08-01T14:47:21.942Z"
         }
       },
       "district_id": "north",
@@ -506,7 +506,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.181Z"
+          "resolvedAt": "2026-08-01T14:47:21.943Z"
         }
       },
       "district_id": "north",
@@ -548,7 +548,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.182Z"
+          "resolvedAt": "2026-08-01T14:47:21.944Z"
         }
       },
       "district_id": "north",
@@ -590,7 +590,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.183Z"
+          "resolvedAt": "2026-08-01T14:47:21.946Z"
         }
       },
       "district_id": "north",
@@ -632,7 +632,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.183Z"
+          "resolvedAt": "2026-08-01T14:47:21.946Z"
         }
       },
       "district_id": "north",
@@ -674,7 +674,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.184Z"
+          "resolvedAt": "2026-08-01T14:47:21.947Z"
         }
       },
       "district_id": "north",
@@ -716,7 +716,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.184Z"
+          "resolvedAt": "2026-08-01T14:47:21.948Z"
         }
       },
       "district_id": "north",
@@ -758,7 +758,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.185Z"
+          "resolvedAt": "2026-08-01T14:47:21.949Z"
         }
       },
       "district_id": "north",
@@ -800,7 +800,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.186Z"
+          "resolvedAt": "2026-08-01T14:47:21.949Z"
         }
       },
       "district_id": "north",
@@ -842,7 +842,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.186Z"
+          "resolvedAt": "2026-08-01T14:47:21.950Z"
         }
       },
       "district_id": "north",
@@ -884,7 +884,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.187Z"
+          "resolvedAt": "2026-08-01T14:47:21.951Z"
         }
       },
       "district_id": "north",
@@ -926,7 +926,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.188Z"
+          "resolvedAt": "2026-08-01T14:47:21.952Z"
         }
       },
       "district_id": "north",
@@ -968,7 +968,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.188Z"
+          "resolvedAt": "2026-08-01T14:47:21.953Z"
         }
       },
       "district_id": "north",
@@ -1010,7 +1010,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.189Z"
+          "resolvedAt": "2026-08-01T14:47:21.953Z"
         }
       },
       "district_id": "north",
@@ -1052,7 +1052,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.190Z"
+          "resolvedAt": "2026-08-01T14:47:21.954Z"
         }
       },
       "district_id": "north",
@@ -1094,7 +1094,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.190Z"
+          "resolvedAt": "2026-08-01T14:47:21.955Z"
         }
       },
       "district_id": "north",
@@ -1136,7 +1136,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.191Z"
+          "resolvedAt": "2026-08-01T14:47:21.956Z"
         }
       },
       "district_id": "north",
@@ -1178,7 +1178,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.191Z"
+          "resolvedAt": "2026-08-01T14:47:21.957Z"
         }
       },
       "district_id": "north",
@@ -1220,7 +1220,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.192Z"
+          "resolvedAt": "2026-08-01T14:47:21.958Z"
         }
       },
       "district_id": "north",
@@ -1262,7 +1262,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.193Z"
+          "resolvedAt": "2026-08-01T14:47:21.959Z"
         }
       },
       "district_id": "north",
@@ -1304,7 +1304,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.193Z"
+          "resolvedAt": "2026-08-01T14:47:21.960Z"
         }
       },
       "district_id": "north",
@@ -1346,7 +1346,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.194Z"
+          "resolvedAt": "2026-08-01T14:47:21.961Z"
         }
       },
       "district_id": "north",
@@ -1388,7 +1388,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.194Z"
+          "resolvedAt": "2026-08-01T14:47:21.961Z"
         }
       },
       "district_id": "north",
@@ -1430,7 +1430,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.195Z"
+          "resolvedAt": "2026-08-01T14:47:21.962Z"
         }
       },
       "district_id": "north",
@@ -1472,7 +1472,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.195Z"
+          "resolvedAt": "2026-08-01T14:47:21.963Z"
         }
       },
       "district_id": "north",
@@ -1540,7 +1540,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.196Z"
+          "resolvedAt": "2026-08-01T14:47:21.964Z"
         },
         "matchEvidence": {
           "rawInput": "Rosh HaNikra",
@@ -1601,7 +1601,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.197Z"
+          "resolvedAt": "2026-08-01T14:47:21.965Z"
         }
       },
       "district_id": "north",
@@ -1643,7 +1643,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.197Z"
+          "resolvedAt": "2026-08-01T14:47:21.966Z"
         }
       },
       "district_id": "north",
@@ -1685,7 +1685,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.198Z"
+          "resolvedAt": "2026-08-01T14:47:21.967Z"
         }
       },
       "district_id": "north",
@@ -1727,7 +1727,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.198Z"
+          "resolvedAt": "2026-08-01T14:47:21.967Z"
         }
       },
       "district_id": "north",
@@ -1795,7 +1795,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.199Z"
+          "resolvedAt": "2026-08-01T14:47:21.968Z"
         },
         "matchEvidence": {
           "rawInput": "Rosh HaNikra",
@@ -1856,7 +1856,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.199Z"
+          "resolvedAt": "2026-08-01T14:47:21.969Z"
         }
       },
       "district_id": "north",
@@ -1898,7 +1898,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.200Z"
+          "resolvedAt": "2026-08-01T14:47:21.969Z"
         }
       },
       "district_id": "north",
@@ -1940,7 +1940,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.200Z"
+          "resolvedAt": "2026-08-01T14:47:21.970Z"
         }
       },
       "district_id": "north",
@@ -1982,7 +1982,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.201Z"
+          "resolvedAt": "2026-08-01T14:47:21.971Z"
         }
       },
       "district_id": "north",
@@ -2024,7 +2024,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.201Z"
+          "resolvedAt": "2026-08-01T14:47:21.972Z"
         }
       },
       "district_id": "north",
@@ -2066,7 +2066,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.202Z"
+          "resolvedAt": "2026-08-01T14:47:21.973Z"
         }
       },
       "district_id": "north",
@@ -2108,7 +2108,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.202Z"
+          "resolvedAt": "2026-08-01T14:47:21.974Z"
         }
       },
       "district_id": "north",
@@ -2150,7 +2150,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.203Z"
+          "resolvedAt": "2026-08-01T14:47:21.975Z"
         }
       },
       "district_id": "north",
@@ -2192,7 +2192,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.203Z"
+          "resolvedAt": "2026-08-01T14:47:21.975Z"
         }
       },
       "district_id": "north",
@@ -2234,7 +2234,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.204Z"
+          "resolvedAt": "2026-08-01T14:47:21.976Z"
         }
       },
       "district_id": "north",
@@ -2276,7 +2276,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.204Z"
+          "resolvedAt": "2026-08-01T14:47:21.977Z"
         }
       },
       "district_id": "north",
@@ -2318,7 +2318,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.205Z"
+          "resolvedAt": "2026-08-01T14:47:21.978Z"
         }
       },
       "district_id": "north",
@@ -2360,7 +2360,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.206Z"
+          "resolvedAt": "2026-08-01T14:47:21.979Z"
         }
       },
       "district_id": "north",
@@ -2402,7 +2402,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.207Z"
+          "resolvedAt": "2026-08-01T14:47:21.980Z"
         }
       },
       "district_id": "north",
@@ -2444,7 +2444,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.207Z"
+          "resolvedAt": "2026-08-01T14:47:21.980Z"
         }
       },
       "district_id": "north",
@@ -2486,7 +2486,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.208Z"
+          "resolvedAt": "2026-08-01T14:47:21.981Z"
         }
       },
       "district_id": "north",
@@ -2528,7 +2528,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.209Z"
+          "resolvedAt": "2026-08-01T14:47:21.982Z"
         }
       },
       "district_id": "north",
@@ -2570,7 +2570,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.210Z"
+          "resolvedAt": "2026-08-01T14:47:21.983Z"
         }
       },
       "district_id": "north",
@@ -2612,7 +2612,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.211Z"
+          "resolvedAt": "2026-08-01T14:47:21.984Z"
         }
       },
       "district_id": "north",
@@ -2654,7 +2654,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.212Z"
+          "resolvedAt": "2026-08-01T14:47:21.984Z"
         }
       },
       "district_id": "north",
@@ -2696,7 +2696,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.213Z"
+          "resolvedAt": "2026-08-01T14:47:21.985Z"
         }
       },
       "district_id": "north",
@@ -2738,7 +2738,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.213Z"
+          "resolvedAt": "2026-08-01T14:47:21.986Z"
         }
       },
       "district_id": "north",
@@ -2780,7 +2780,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.214Z"
+          "resolvedAt": "2026-08-01T14:47:21.987Z"
         }
       },
       "district_id": "north",
@@ -2822,7 +2822,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.214Z"
+          "resolvedAt": "2026-08-01T14:47:21.987Z"
         }
       },
       "district_id": "north",
@@ -2864,7 +2864,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.214Z"
+          "resolvedAt": "2026-08-01T14:47:21.988Z"
         }
       },
       "district_id": "north",
@@ -2906,7 +2906,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.215Z"
+          "resolvedAt": "2026-08-01T14:47:21.988Z"
         }
       },
       "district_id": "north",
@@ -2948,7 +2948,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.215Z"
+          "resolvedAt": "2026-08-01T14:47:21.989Z"
         }
       },
       "district_id": "north",
@@ -2990,7 +2990,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.216Z"
+          "resolvedAt": "2026-08-01T14:47:21.990Z"
         }
       },
       "district_id": "north",
@@ -3032,7 +3032,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.216Z"
+          "resolvedAt": "2026-08-01T14:47:21.991Z"
         }
       },
       "district_id": "north",
@@ -3074,7 +3074,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.217Z"
+          "resolvedAt": "2026-08-01T14:47:21.992Z"
         }
       },
       "district_id": "north",
@@ -3116,7 +3116,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.217Z"
+          "resolvedAt": "2026-08-01T14:47:21.993Z"
         }
       },
       "district_id": "north",
@@ -3158,7 +3158,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.217Z"
+          "resolvedAt": "2026-08-01T14:47:21.994Z"
         }
       },
       "district_id": "north",
@@ -3200,7 +3200,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.218Z"
+          "resolvedAt": "2026-08-01T14:47:21.995Z"
         }
       },
       "district_id": "north",
@@ -3242,7 +3242,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.218Z"
+          "resolvedAt": "2026-08-01T14:47:21.996Z"
         }
       },
       "district_id": "north",
@@ -3285,7 +3285,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.219Z"
+          "resolvedAt": "2026-08-01T14:47:21.997Z"
         }
       },
       "district_id": "north",
@@ -3327,7 +3327,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.219Z"
+          "resolvedAt": "2026-08-01T14:47:21.998Z"
         }
       },
       "district_id": "north",
@@ -3369,7 +3369,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.220Z"
+          "resolvedAt": "2026-08-01T14:47:22.000Z"
         }
       },
       "district_id": "north",
@@ -3411,7 +3411,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.220Z"
+          "resolvedAt": "2026-08-01T14:47:22.001Z"
         }
       },
       "district_id": "north",
@@ -3453,7 +3453,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.221Z"
+          "resolvedAt": "2026-08-01T14:47:22.002Z"
         }
       },
       "district_id": "north",
@@ -3495,7 +3495,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.221Z"
+          "resolvedAt": "2026-08-01T14:47:22.003Z"
         }
       },
       "district_id": "north",
@@ -3537,7 +3537,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.222Z"
+          "resolvedAt": "2026-08-01T14:47:22.004Z"
         }
       },
       "district_id": "north",
@@ -3579,7 +3579,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.223Z"
+          "resolvedAt": "2026-08-01T14:47:22.005Z"
         }
       },
       "district_id": "north",
@@ -3621,7 +3621,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.223Z"
+          "resolvedAt": "2026-08-01T14:47:22.005Z"
         }
       },
       "district_id": "north",
@@ -3663,7 +3663,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.224Z"
+          "resolvedAt": "2026-08-01T14:47:22.006Z"
         }
       },
       "district_id": "north",
@@ -3705,7 +3705,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.224Z"
+          "resolvedAt": "2026-08-01T14:47:22.007Z"
         }
       },
       "district_id": "north",
@@ -3747,7 +3747,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.225Z"
+          "resolvedAt": "2026-08-01T14:47:22.008Z"
         }
       },
       "district_id": "north",
@@ -3789,7 +3789,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.226Z"
+          "resolvedAt": "2026-08-01T14:47:22.009Z"
         }
       },
       "district_id": "north",
@@ -3831,7 +3831,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.226Z"
+          "resolvedAt": "2026-08-01T14:47:22.010Z"
         }
       },
       "district_id": "north",
@@ -3873,7 +3873,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.227Z"
+          "resolvedAt": "2026-08-01T14:47:22.011Z"
         }
       },
       "district_id": "north",
@@ -3915,7 +3915,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.227Z"
+          "resolvedAt": "2026-08-01T14:47:22.012Z"
         }
       },
       "district_id": "north",
@@ -3957,7 +3957,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.228Z"
+          "resolvedAt": "2026-08-01T14:47:22.012Z"
         }
       },
       "district_id": "north",
@@ -3999,7 +3999,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.228Z"
+          "resolvedAt": "2026-08-01T14:47:22.013Z"
         }
       },
       "district_id": "north",
@@ -4041,7 +4041,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.228Z"
+          "resolvedAt": "2026-08-01T14:47:22.014Z"
         }
       },
       "district_id": "north",
@@ -4083,7 +4083,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.228Z"
+          "resolvedAt": "2026-08-01T14:47:22.014Z"
         }
       },
       "district_id": "north",
@@ -4125,7 +4125,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.229Z"
+          "resolvedAt": "2026-08-01T14:47:22.014Z"
         }
       },
       "district_id": "north",
@@ -4167,7 +4167,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.229Z"
+          "resolvedAt": "2026-08-01T14:47:22.015Z"
         }
       },
       "district_id": "north",
@@ -4209,7 +4209,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.230Z"
+          "resolvedAt": "2026-08-01T14:47:22.016Z"
         }
       },
       "district_id": "north",
@@ -4251,7 +4251,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.230Z"
+          "resolvedAt": "2026-08-01T14:47:22.017Z"
         }
       },
       "district_id": "north",
@@ -4293,7 +4293,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.231Z"
+          "resolvedAt": "2026-08-01T14:47:22.018Z"
         }
       },
       "district_id": "north",
@@ -4335,7 +4335,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.231Z"
+          "resolvedAt": "2026-08-01T14:47:22.019Z"
         }
       },
       "district_id": "north",
@@ -4377,7 +4377,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.232Z"
+          "resolvedAt": "2026-08-01T14:47:22.019Z"
         }
       },
       "district_id": "north",
@@ -4419,7 +4419,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.232Z"
+          "resolvedAt": "2026-08-01T14:47:22.020Z"
         }
       },
       "district_id": "north",
@@ -4461,7 +4461,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.233Z"
+          "resolvedAt": "2026-08-01T14:47:22.021Z"
         }
       },
       "district_id": "north",
@@ -4503,7 +4503,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.233Z"
+          "resolvedAt": "2026-08-01T14:47:22.022Z"
         }
       },
       "district_id": "north",
@@ -4545,7 +4545,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.234Z"
+          "resolvedAt": "2026-08-01T14:47:22.023Z"
         }
       },
       "district_id": "north",
@@ -4587,7 +4587,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.234Z"
+          "resolvedAt": "2026-08-01T14:47:22.023Z"
         }
       },
       "district_id": "north",
@@ -4629,7 +4629,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.234Z"
+          "resolvedAt": "2026-08-01T14:47:22.024Z"
         }
       },
       "district_id": "north",
@@ -4671,7 +4671,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.235Z"
+          "resolvedAt": "2026-08-01T14:47:22.025Z"
         }
       },
       "district_id": "north",
@@ -4713,7 +4713,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.235Z"
+          "resolvedAt": "2026-08-01T14:47:22.026Z"
         }
       },
       "district_id": "north",
@@ -4755,7 +4755,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.236Z"
+          "resolvedAt": "2026-08-01T14:47:22.026Z"
         }
       },
       "district_id": "north",
@@ -4797,7 +4797,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.236Z"
+          "resolvedAt": "2026-08-01T14:47:22.027Z"
         }
       },
       "district_id": "north",
@@ -4839,7 +4839,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.236Z"
+          "resolvedAt": "2026-08-01T14:47:22.028Z"
         }
       },
       "district_id": "north",
@@ -4881,7 +4881,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.237Z"
+          "resolvedAt": "2026-08-01T14:47:22.029Z"
         }
       },
       "district_id": "north",
@@ -4923,7 +4923,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.237Z"
+          "resolvedAt": "2026-08-01T14:47:22.029Z"
         }
       },
       "district_id": "north",
@@ -4965,7 +4965,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.238Z"
+          "resolvedAt": "2026-08-01T14:47:22.030Z"
         }
       },
       "district_id": "north",
@@ -5007,7 +5007,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.239Z"
+          "resolvedAt": "2026-08-01T14:47:22.031Z"
         }
       },
       "district_id": "north",
@@ -5049,7 +5049,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.239Z"
+          "resolvedAt": "2026-08-01T14:47:22.032Z"
         }
       },
       "district_id": "north",
@@ -5091,7 +5091,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.240Z"
+          "resolvedAt": "2026-08-01T14:47:22.033Z"
         }
       },
       "district_id": "north",
@@ -5133,7 +5133,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.241Z"
+          "resolvedAt": "2026-08-01T14:47:22.034Z"
         }
       },
       "district_id": "north",
@@ -5175,7 +5175,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.241Z"
+          "resolvedAt": "2026-08-01T14:47:22.035Z"
         }
       },
       "district_id": "north",
@@ -5217,7 +5217,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.241Z"
+          "resolvedAt": "2026-08-01T14:47:22.035Z"
         }
       },
       "district_id": "north",
@@ -5259,7 +5259,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.241Z"
+          "resolvedAt": "2026-08-01T14:47:22.036Z"
         }
       },
       "district_id": "north",
@@ -5301,7 +5301,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.242Z"
+          "resolvedAt": "2026-08-01T14:47:22.038Z"
         }
       },
       "district_id": "north",
@@ -5343,7 +5343,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.243Z"
+          "resolvedAt": "2026-08-01T14:47:22.038Z"
         }
       },
       "district_id": "north",
@@ -5385,7 +5385,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.244Z"
+          "resolvedAt": "2026-08-01T14:47:22.039Z"
         }
       },
       "district_id": "north",
@@ -5427,7 +5427,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.244Z"
+          "resolvedAt": "2026-08-01T14:47:22.040Z"
         }
       },
       "district_id": "north",
@@ -5469,7 +5469,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.245Z"
+          "resolvedAt": "2026-08-01T14:47:22.041Z"
         }
       },
       "district_id": "north",
@@ -5511,7 +5511,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.245Z"
+          "resolvedAt": "2026-08-01T14:47:22.042Z"
         }
       },
       "district_id": "north",
@@ -5553,7 +5553,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.246Z"
+          "resolvedAt": "2026-08-01T14:47:22.042Z"
         }
       },
       "district_id": "north",
@@ -5595,7 +5595,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.247Z"
+          "resolvedAt": "2026-08-01T14:47:22.043Z"
         }
       },
       "district_id": "north",
@@ -5637,7 +5637,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.247Z"
+          "resolvedAt": "2026-08-01T14:47:22.044Z"
         }
       },
       "district_id": "north",
@@ -5679,7 +5679,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.248Z"
+          "resolvedAt": "2026-08-01T14:47:22.045Z"
         }
       },
       "district_id": "north",
@@ -5721,7 +5721,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.248Z"
+          "resolvedAt": "2026-08-01T14:47:22.045Z"
         }
       },
       "district_id": "north",
@@ -5763,7 +5763,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.249Z"
+          "resolvedAt": "2026-08-01T14:47:22.046Z"
         }
       },
       "district_id": "north",
@@ -5805,7 +5805,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.249Z"
+          "resolvedAt": "2026-08-01T14:47:22.047Z"
         }
       },
       "district_id": "north",
@@ -5847,7 +5847,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.250Z"
+          "resolvedAt": "2026-08-01T14:47:22.048Z"
         }
       },
       "district_id": "north",
@@ -5889,7 +5889,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.250Z"
+          "resolvedAt": "2026-08-01T14:47:22.049Z"
         }
       },
       "district_id": "north",
@@ -5931,7 +5931,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.251Z"
+          "resolvedAt": "2026-08-01T14:47:22.050Z"
         }
       },
       "district_id": "north",
@@ -5973,7 +5973,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.251Z"
+          "resolvedAt": "2026-08-01T14:47:22.051Z"
         }
       },
       "district_id": "north",
@@ -6015,7 +6015,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.251Z"
+          "resolvedAt": "2026-08-01T14:47:22.051Z"
         }
       },
       "district_id": "north",
@@ -6057,7 +6057,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.252Z"
+          "resolvedAt": "2026-08-01T14:47:22.052Z"
         }
       },
       "district_id": "north",
@@ -6099,7 +6099,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.252Z"
+          "resolvedAt": "2026-08-01T14:47:22.053Z"
         }
       },
       "district_id": "north",
@@ -6141,7 +6141,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.253Z"
+          "resolvedAt": "2026-08-01T14:47:22.053Z"
         }
       },
       "district_id": "north",
@@ -6183,7 +6183,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.253Z"
+          "resolvedAt": "2026-08-01T14:47:22.054Z"
         }
       },
       "district_id": "north",
@@ -6225,7 +6225,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.254Z"
+          "resolvedAt": "2026-08-01T14:47:22.055Z"
         }
       },
       "district_id": "north",
@@ -6267,7 +6267,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.254Z"
+          "resolvedAt": "2026-08-01T14:47:22.056Z"
         }
       },
       "district_id": "north",
@@ -6309,7 +6309,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.255Z"
+          "resolvedAt": "2026-08-01T14:47:22.057Z"
         }
       },
       "district_id": "north",
@@ -6351,7 +6351,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.255Z"
+          "resolvedAt": "2026-08-01T14:47:22.058Z"
         }
       },
       "district_id": "north",
@@ -6393,12 +6393,54 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.256Z"
+          "resolvedAt": "2026-08-01T14:47:22.060Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-24.md#43",
       "article_date": "2026-03-24"
+    },
+    {
+      "article_index": 2,
+      "signal_type": "information_actionable_effective",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Goren/Maaleh Yosef, need for presence of soldier-teachers (מורות חיילות) for public information and guidance.",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.65,
+      "locality": "Goren/Maaleh Yosef",
+      "article_url": "",
+      "article_source": "איתמר שפר ולדי ליצ'אק",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "גורן/מעלה יוסף — ברעם (ביקור שטח)",
+      "municipality": "גורן",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "type": "information_actionable_effective",
+      "source_type": "visits",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Goren/Maaleh Yosef",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Goren/Maaleh Yosef",
+          "normalizedInput": "goren/maaleh yosef",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-08-01T14:47:22.061Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-24.md#2",
+      "article_date": "2026-03-15"
     },
     {
       "article_index": 3,
@@ -6435,7 +6477,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.257Z"
+          "resolvedAt": "2026-08-01T14:47:22.062Z"
         }
       },
       "district_id": "north",
@@ -6477,7 +6519,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.258Z"
+          "resolvedAt": "2026-08-01T14:47:22.063Z"
         }
       },
       "district_id": "north",
@@ -6519,7 +6561,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.259Z"
+          "resolvedAt": "2026-08-01T14:47:22.063Z"
         }
       },
       "district_id": "north",
@@ -6561,7 +6603,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.260Z"
+          "resolvedAt": "2026-08-01T14:47:22.064Z"
         }
       },
       "district_id": "north",
@@ -6603,7 +6645,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.261Z"
+          "resolvedAt": "2026-08-01T14:47:22.065Z"
         }
       },
       "district_id": "north",
@@ -6645,7 +6687,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.261Z"
+          "resolvedAt": "2026-08-01T14:47:22.066Z"
         }
       },
       "district_id": "north",
@@ -6687,7 +6729,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.261Z"
+          "resolvedAt": "2026-08-01T14:47:22.066Z"
         }
       },
       "district_id": "north",
@@ -6729,7 +6771,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.262Z"
+          "resolvedAt": "2026-08-01T14:47:22.067Z"
         }
       },
       "district_id": "north",
@@ -6771,7 +6813,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.262Z"
+          "resolvedAt": "2026-08-01T14:47:22.068Z"
         }
       },
       "district_id": "north",
@@ -6813,7 +6855,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.263Z"
+          "resolvedAt": "2026-08-01T14:47:22.069Z"
         }
       },
       "district_id": "north",
@@ -6855,7 +6897,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.264Z"
+          "resolvedAt": "2026-08-01T14:47:22.070Z"
         }
       },
       "district_id": "north",
@@ -6897,7 +6939,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.264Z"
+          "resolvedAt": "2026-08-01T14:47:22.071Z"
         }
       },
       "district_id": "north",
@@ -6939,7 +6981,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.265Z"
+          "resolvedAt": "2026-08-01T14:47:22.071Z"
         }
       },
       "district_id": "north",
@@ -6981,7 +7023,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.265Z"
+          "resolvedAt": "2026-08-01T14:47:22.072Z"
         }
       },
       "district_id": "north",
@@ -7023,7 +7065,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.265Z"
+          "resolvedAt": "2026-08-01T14:47:22.073Z"
         }
       },
       "district_id": "north",
@@ -7065,7 +7107,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.266Z"
+          "resolvedAt": "2026-08-01T14:47:22.073Z"
         }
       },
       "district_id": "north",
@@ -7107,7 +7149,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.266Z"
+          "resolvedAt": "2026-08-01T14:47:22.074Z"
         }
       },
       "district_id": "north",
@@ -7149,7 +7191,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.266Z"
+          "resolvedAt": "2026-08-01T14:47:22.075Z"
         }
       },
       "district_id": "north",
@@ -7191,7 +7233,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.267Z"
+          "resolvedAt": "2026-08-01T14:47:22.075Z"
         }
       },
       "district_id": "north",
@@ -7233,7 +7275,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.267Z"
+          "resolvedAt": "2026-08-01T14:47:22.076Z"
         }
       },
       "district_id": "north",
@@ -7275,7 +7317,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.268Z"
+          "resolvedAt": "2026-08-01T14:47:22.077Z"
         }
       },
       "district_id": "north",
@@ -7317,7 +7359,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.268Z"
+          "resolvedAt": "2026-08-01T14:47:22.077Z"
         }
       },
       "district_id": "north",
@@ -7359,7 +7401,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.269Z"
+          "resolvedAt": "2026-08-01T14:47:22.078Z"
         }
       },
       "district_id": "north",
@@ -7401,12 +7443,54 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.269Z"
+          "resolvedAt": "2026-08-01T14:47:22.079Z"
         }
       },
       "district_id": "north",
       "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-24.md#15",
       "article_date": "2026-03-11"
+    },
+    {
+      "article_index": 20,
+      "signal_type": "leadership_visible_presence",
+      "evidence_type": "observational_reported_fact",
+      "evidence": "In Beit Hillel/Mevuot Hermon, HFC has no chair; volunteer network operates in sub-teams with decompression activities for elderly and youth",
+      "scope_level": "repeated_pattern",
+      "confidence": 0.65,
+      "locality": "Beit Hillel",
+      "article_url": "",
+      "article_source": "גיל נחמני וגלעד לביא",
+      "evidence_basis": "present_in_text",
+      "extraction_confidence": 0.85,
+      "temporal_weight": 1,
+      "article_title": "בית הלל/ מבואות חרמון — חירם (ביקור שטח)",
+      "municipality": "בית הלל",
+      "grounding_tier": "weak",
+      "grounding_reason": "low_similarity",
+      "grounding_method": "containment",
+      "type": "leadership_visible_presence",
+      "source_type": "visits",
+      "geo": {
+        "kind": "unknown",
+        "reason": "NO_MATCH",
+        "rawName": "Beit Hillel",
+        "geoReferenceVersion": "north-geo-2026-05-10",
+        "source": "north-localities-v1",
+        "envelopeSchemaVersion": "geo-envelope-2026-05-v3",
+        "resolution": {
+          "rawInput": "Beit Hillel",
+          "normalizedInput": "beit hillel",
+          "geoEntityType": "unknown"
+        },
+        "audit": {
+          "geoReferenceVersion": "north-geo-2026-05-10",
+          "source": "north-localities-v1",
+          "resolvedAt": "2026-08-01T14:47:22.080Z"
+        }
+      },
+      "district_id": "north",
+      "source_id": "md:business_modules/visits/data/articles-visits-reports-2026-03-24.md#20",
+      "article_date": "2026-03-15"
     },
     {
       "article_index": 27,
@@ -7443,7 +7527,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.270Z"
+          "resolvedAt": "2026-08-01T14:47:22.080Z"
         }
       },
       "district_id": "north",
@@ -7485,7 +7569,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.270Z"
+          "resolvedAt": "2026-08-01T14:47:22.081Z"
         }
       },
       "district_id": "north",
@@ -7527,7 +7611,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.271Z"
+          "resolvedAt": "2026-08-01T14:47:22.082Z"
         }
       },
       "district_id": "north",
@@ -7569,7 +7653,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.271Z"
+          "resolvedAt": "2026-08-01T14:47:22.082Z"
         }
       },
       "district_id": "north",
@@ -7611,7 +7695,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.271Z"
+          "resolvedAt": "2026-08-01T14:47:22.083Z"
         }
       },
       "district_id": "north",
@@ -7653,7 +7737,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.272Z"
+          "resolvedAt": "2026-08-01T14:47:22.083Z"
         }
       },
       "district_id": "north",
@@ -7721,7 +7805,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.272Z"
+          "resolvedAt": "2026-08-01T14:47:22.084Z"
         },
         "matchEvidence": {
           "rawInput": "Rosh HaNikra",
@@ -7782,7 +7866,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.273Z"
+          "resolvedAt": "2026-08-01T14:47:22.085Z"
         }
       },
       "district_id": "north",
@@ -7824,7 +7908,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.273Z"
+          "resolvedAt": "2026-08-01T14:47:22.085Z"
         }
       },
       "district_id": "north",
@@ -7866,7 +7950,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.274Z"
+          "resolvedAt": "2026-08-01T14:47:22.086Z"
         }
       },
       "district_id": "north",
@@ -7908,7 +7992,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.274Z"
+          "resolvedAt": "2026-08-01T14:47:22.087Z"
         }
       },
       "district_id": "north",
@@ -7950,7 +8034,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.274Z"
+          "resolvedAt": "2026-08-01T14:47:22.087Z"
         }
       },
       "district_id": "north",
@@ -7992,7 +8076,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.275Z"
+          "resolvedAt": "2026-08-01T14:47:22.088Z"
         }
       },
       "district_id": "north",
@@ -8034,7 +8118,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.275Z"
+          "resolvedAt": "2026-08-01T14:47:22.089Z"
         }
       },
       "district_id": "north",
@@ -8076,7 +8160,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.276Z"
+          "resolvedAt": "2026-08-01T14:47:22.089Z"
         }
       },
       "district_id": "north",
@@ -8118,7 +8202,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.276Z"
+          "resolvedAt": "2026-08-01T14:47:22.090Z"
         }
       },
       "district_id": "north",
@@ -8160,7 +8244,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.277Z"
+          "resolvedAt": "2026-08-01T14:47:22.091Z"
         }
       },
       "district_id": "north",
@@ -8202,7 +8286,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.278Z"
+          "resolvedAt": "2026-08-01T14:47:22.092Z"
         }
       },
       "district_id": "north",
@@ -8244,7 +8328,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.278Z"
+          "resolvedAt": "2026-08-01T14:47:22.093Z"
         }
       },
       "district_id": "north",
@@ -8286,7 +8370,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.279Z"
+          "resolvedAt": "2026-08-01T14:47:22.094Z"
         }
       },
       "district_id": "north",
@@ -8328,7 +8412,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.279Z"
+          "resolvedAt": "2026-08-01T14:47:22.095Z"
         }
       },
       "district_id": "north",
@@ -8370,7 +8454,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.280Z"
+          "resolvedAt": "2026-08-01T14:47:22.096Z"
         }
       },
       "district_id": "north",
@@ -8412,7 +8496,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.280Z"
+          "resolvedAt": "2026-08-01T14:47:22.096Z"
         }
       },
       "district_id": "north",
@@ -8454,7 +8538,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.280Z"
+          "resolvedAt": "2026-08-01T14:47:22.097Z"
         }
       },
       "district_id": "north",
@@ -8496,7 +8580,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.280Z"
+          "resolvedAt": "2026-08-01T14:47:22.097Z"
         }
       },
       "district_id": "north",
@@ -8538,7 +8622,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.281Z"
+          "resolvedAt": "2026-08-01T14:47:22.098Z"
         }
       },
       "district_id": "north",
@@ -8580,7 +8664,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.281Z"
+          "resolvedAt": "2026-08-01T14:47:22.099Z"
         }
       },
       "district_id": "north",
@@ -8622,7 +8706,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.282Z"
+          "resolvedAt": "2026-08-01T14:47:22.099Z"
         }
       },
       "district_id": "north",
@@ -8664,7 +8748,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.282Z"
+          "resolvedAt": "2026-08-01T14:47:22.100Z"
         }
       },
       "district_id": "north",
@@ -8706,7 +8790,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.282Z"
+          "resolvedAt": "2026-08-01T14:47:22.101Z"
         }
       },
       "district_id": "north",
@@ -8748,7 +8832,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.283Z"
+          "resolvedAt": "2026-08-01T14:47:22.101Z"
         }
       },
       "district_id": "north",
@@ -8790,7 +8874,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.283Z"
+          "resolvedAt": "2026-08-01T14:47:22.101Z"
         }
       },
       "district_id": "north",
@@ -8832,7 +8916,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.283Z"
+          "resolvedAt": "2026-08-01T14:47:22.102Z"
         }
       },
       "district_id": "north",
@@ -8874,7 +8958,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.284Z"
+          "resolvedAt": "2026-08-01T14:47:22.103Z"
         }
       },
       "district_id": "north",
@@ -8916,7 +9000,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.284Z"
+          "resolvedAt": "2026-08-01T14:47:22.103Z"
         }
       },
       "district_id": "north",
@@ -8958,7 +9042,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.284Z"
+          "resolvedAt": "2026-08-01T14:47:22.104Z"
         }
       },
       "district_id": "north",
@@ -9000,7 +9084,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.285Z"
+          "resolvedAt": "2026-08-01T14:47:22.104Z"
         }
       },
       "district_id": "north",
@@ -9042,7 +9126,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.285Z"
+          "resolvedAt": "2026-08-01T14:47:22.105Z"
         }
       },
       "district_id": "north",
@@ -9084,7 +9168,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.286Z"
+          "resolvedAt": "2026-08-01T14:47:22.105Z"
         }
       },
       "district_id": "north",
@@ -9126,7 +9210,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.286Z"
+          "resolvedAt": "2026-08-01T14:47:22.106Z"
         }
       },
       "district_id": "north",
@@ -9168,7 +9252,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.287Z"
+          "resolvedAt": "2026-08-01T14:47:22.107Z"
         }
       },
       "district_id": "north",
@@ -9210,7 +9294,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.287Z"
+          "resolvedAt": "2026-08-01T14:47:22.108Z"
         }
       },
       "district_id": "north",
@@ -9252,7 +9336,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.287Z"
+          "resolvedAt": "2026-08-01T14:47:22.108Z"
         }
       },
       "district_id": "north",
@@ -9294,7 +9378,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.288Z"
+          "resolvedAt": "2026-08-01T14:47:22.109Z"
         }
       },
       "district_id": "north",
@@ -9336,7 +9420,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.288Z"
+          "resolvedAt": "2026-08-01T14:47:22.110Z"
         }
       },
       "district_id": "north",
@@ -9378,7 +9462,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.289Z"
+          "resolvedAt": "2026-08-01T14:47:22.111Z"
         }
       },
       "district_id": "north",
@@ -9420,7 +9504,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.289Z"
+          "resolvedAt": "2026-08-01T14:47:22.112Z"
         }
       },
       "district_id": "north",
@@ -9462,7 +9546,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.290Z"
+          "resolvedAt": "2026-08-01T14:47:22.112Z"
         }
       },
       "district_id": "north",
@@ -9504,7 +9588,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.290Z"
+          "resolvedAt": "2026-08-01T14:47:22.113Z"
         }
       },
       "district_id": "north",
@@ -9546,7 +9630,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.291Z"
+          "resolvedAt": "2026-08-01T14:47:22.114Z"
         }
       },
       "district_id": "north",
@@ -9588,7 +9672,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.291Z"
+          "resolvedAt": "2026-08-01T14:47:22.114Z"
         }
       },
       "district_id": "north",
@@ -9630,7 +9714,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.292Z"
+          "resolvedAt": "2026-08-01T14:47:22.115Z"
         }
       },
       "district_id": "north",
@@ -9672,7 +9756,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.292Z"
+          "resolvedAt": "2026-08-01T14:47:22.116Z"
         }
       },
       "district_id": "north",
@@ -9714,7 +9798,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.292Z"
+          "resolvedAt": "2026-08-01T14:47:22.116Z"
         }
       },
       "district_id": "north",
@@ -9756,7 +9840,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.293Z"
+          "resolvedAt": "2026-08-01T14:47:22.117Z"
         }
       },
       "district_id": "north",
@@ -9798,7 +9882,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.293Z"
+          "resolvedAt": "2026-08-01T14:47:22.117Z"
         }
       },
       "district_id": "north",
@@ -9840,7 +9924,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.294Z"
+          "resolvedAt": "2026-08-01T14:47:22.118Z"
         }
       },
       "district_id": "north",
@@ -9882,7 +9966,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.294Z"
+          "resolvedAt": "2026-08-01T14:47:22.119Z"
         }
       },
       "district_id": "north",
@@ -9924,7 +10008,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.294Z"
+          "resolvedAt": "2026-08-01T14:47:22.119Z"
         }
       },
       "district_id": "north",
@@ -9966,7 +10050,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.295Z"
+          "resolvedAt": "2026-08-01T14:47:22.120Z"
         }
       },
       "district_id": "north",
@@ -10008,7 +10092,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.295Z"
+          "resolvedAt": "2026-08-01T14:47:22.121Z"
         }
       },
       "district_id": "north",
@@ -10050,7 +10134,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.296Z"
+          "resolvedAt": "2026-08-01T14:47:22.121Z"
         }
       },
       "district_id": "north",
@@ -10092,7 +10176,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.296Z"
+          "resolvedAt": "2026-08-01T14:47:22.122Z"
         }
       },
       "district_id": "north",
@@ -10134,7 +10218,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.298Z"
+          "resolvedAt": "2026-08-01T14:47:22.123Z"
         }
       },
       "district_id": "north",
@@ -10176,7 +10260,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.299Z"
+          "resolvedAt": "2026-08-01T14:47:22.124Z"
         }
       },
       "district_id": "north",
@@ -10218,7 +10302,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.300Z"
+          "resolvedAt": "2026-08-01T14:47:22.124Z"
         }
       },
       "district_id": "north",
@@ -10260,7 +10344,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.300Z"
+          "resolvedAt": "2026-08-01T14:47:22.126Z"
         }
       },
       "district_id": "north",
@@ -10302,7 +10386,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.301Z"
+          "resolvedAt": "2026-08-01T14:47:22.127Z"
         }
       },
       "district_id": "north",
@@ -10344,7 +10428,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.301Z"
+          "resolvedAt": "2026-08-01T14:47:22.128Z"
         }
       },
       "district_id": "north",
@@ -10386,7 +10470,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.302Z"
+          "resolvedAt": "2026-08-01T14:47:22.128Z"
         }
       },
       "district_id": "north",
@@ -10428,7 +10512,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.302Z"
+          "resolvedAt": "2026-08-01T14:47:22.129Z"
         }
       },
       "district_id": "north",
@@ -10470,7 +10554,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.303Z"
+          "resolvedAt": "2026-08-01T14:47:22.130Z"
         }
       },
       "district_id": "north",
@@ -10512,7 +10596,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.303Z"
+          "resolvedAt": "2026-08-01T14:47:22.130Z"
         }
       },
       "district_id": "north",
@@ -10554,7 +10638,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.304Z"
+          "resolvedAt": "2026-08-01T14:47:22.131Z"
         }
       },
       "district_id": "north",
@@ -10596,7 +10680,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.304Z"
+          "resolvedAt": "2026-08-01T14:47:22.132Z"
         }
       },
       "district_id": "north",
@@ -10638,7 +10722,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.305Z"
+          "resolvedAt": "2026-08-01T14:47:22.133Z"
         }
       },
       "district_id": "north",
@@ -10680,7 +10764,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.305Z"
+          "resolvedAt": "2026-08-01T14:47:22.133Z"
         }
       },
       "district_id": "north",
@@ -10722,7 +10806,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.306Z"
+          "resolvedAt": "2026-08-01T14:47:22.134Z"
         }
       },
       "district_id": "north",
@@ -10764,7 +10848,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.306Z"
+          "resolvedAt": "2026-08-01T14:47:22.135Z"
         }
       },
       "district_id": "north",
@@ -10806,7 +10890,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.307Z"
+          "resolvedAt": "2026-08-01T14:47:22.136Z"
         }
       },
       "district_id": "north",
@@ -10848,7 +10932,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.307Z"
+          "resolvedAt": "2026-08-01T14:47:22.137Z"
         }
       },
       "district_id": "north",
@@ -10890,7 +10974,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.308Z"
+          "resolvedAt": "2026-08-01T14:47:22.137Z"
         }
       },
       "district_id": "north",
@@ -10932,7 +11016,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.308Z"
+          "resolvedAt": "2026-08-01T14:47:22.138Z"
         }
       },
       "district_id": "north",
@@ -10974,7 +11058,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.308Z"
+          "resolvedAt": "2026-08-01T14:47:22.138Z"
         }
       },
       "district_id": "north",
@@ -11016,7 +11100,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.309Z"
+          "resolvedAt": "2026-08-01T14:47:22.140Z"
         }
       },
       "district_id": "north",
@@ -11058,7 +11142,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.310Z"
+          "resolvedAt": "2026-08-01T14:47:22.140Z"
         }
       },
       "district_id": "north",
@@ -11100,7 +11184,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.312Z"
+          "resolvedAt": "2026-08-01T14:47:22.142Z"
         }
       },
       "district_id": "north",
@@ -11142,7 +11226,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.312Z"
+          "resolvedAt": "2026-08-01T14:47:22.142Z"
         }
       },
       "district_id": "north",
@@ -11184,7 +11268,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.313Z"
+          "resolvedAt": "2026-08-01T14:47:22.143Z"
         }
       },
       "district_id": "north",
@@ -11226,7 +11310,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.313Z"
+          "resolvedAt": "2026-08-01T14:47:22.143Z"
         }
       },
       "district_id": "north",
@@ -11268,7 +11352,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.313Z"
+          "resolvedAt": "2026-08-01T14:47:22.144Z"
         }
       },
       "district_id": "north",
@@ -11310,7 +11394,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.314Z"
+          "resolvedAt": "2026-08-01T14:47:22.144Z"
         }
       },
       "district_id": "north",
@@ -11352,7 +11436,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.314Z"
+          "resolvedAt": "2026-08-01T14:47:22.145Z"
         }
       },
       "district_id": "north",
@@ -11394,7 +11478,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.315Z"
+          "resolvedAt": "2026-08-01T14:47:22.146Z"
         }
       },
       "district_id": "north",
@@ -11436,7 +11520,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.315Z"
+          "resolvedAt": "2026-08-01T14:47:22.146Z"
         }
       },
       "district_id": "north",
@@ -11478,7 +11562,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.316Z"
+          "resolvedAt": "2026-08-01T14:47:22.147Z"
         }
       },
       "district_id": "north",
@@ -11520,7 +11604,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.316Z"
+          "resolvedAt": "2026-08-01T14:47:22.148Z"
         }
       },
       "district_id": "north",
@@ -11562,7 +11646,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.317Z"
+          "resolvedAt": "2026-08-01T14:47:22.148Z"
         }
       },
       "district_id": "north",
@@ -11604,7 +11688,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.317Z"
+          "resolvedAt": "2026-08-01T14:47:22.149Z"
         }
       },
       "district_id": "north",
@@ -11646,7 +11730,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.317Z"
+          "resolvedAt": "2026-08-01T14:47:22.150Z"
         }
       },
       "district_id": "north",
@@ -11688,7 +11772,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.318Z"
+          "resolvedAt": "2026-08-01T14:47:22.151Z"
         }
       },
       "district_id": "north",
@@ -11730,7 +11814,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.318Z"
+          "resolvedAt": "2026-08-01T14:47:22.152Z"
         }
       },
       "district_id": "north",
@@ -11772,7 +11856,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.319Z"
+          "resolvedAt": "2026-08-01T14:47:22.152Z"
         }
       },
       "district_id": "north",
@@ -11814,7 +11898,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.319Z"
+          "resolvedAt": "2026-08-01T14:47:22.153Z"
         }
       },
       "district_id": "north",
@@ -11856,7 +11940,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.320Z"
+          "resolvedAt": "2026-08-01T14:47:22.154Z"
         }
       },
       "district_id": "north",
@@ -11898,7 +11982,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.320Z"
+          "resolvedAt": "2026-08-01T14:47:22.154Z"
         }
       },
       "district_id": "north",
@@ -11940,7 +12024,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.320Z"
+          "resolvedAt": "2026-08-01T14:47:22.155Z"
         }
       },
       "district_id": "north",
@@ -11982,7 +12066,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.321Z"
+          "resolvedAt": "2026-08-01T14:47:22.155Z"
         }
       },
       "district_id": "north",
@@ -12024,7 +12108,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.321Z"
+          "resolvedAt": "2026-08-01T14:47:22.156Z"
         }
       },
       "district_id": "north",
@@ -12066,7 +12150,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.322Z"
+          "resolvedAt": "2026-08-01T14:47:22.157Z"
         }
       },
       "district_id": "north",
@@ -12108,7 +12192,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.322Z"
+          "resolvedAt": "2026-08-01T14:47:22.157Z"
         }
       },
       "district_id": "north",
@@ -12150,7 +12234,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.322Z"
+          "resolvedAt": "2026-08-01T14:47:22.158Z"
         }
       },
       "district_id": "north",
@@ -12192,7 +12276,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.323Z"
+          "resolvedAt": "2026-08-01T14:47:22.159Z"
         }
       },
       "district_id": "north",
@@ -12234,7 +12318,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.323Z"
+          "resolvedAt": "2026-08-01T14:47:22.159Z"
         }
       },
       "district_id": "north",
@@ -12276,7 +12360,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.323Z"
+          "resolvedAt": "2026-08-01T14:47:22.160Z"
         }
       },
       "district_id": "north",
@@ -12318,7 +12402,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.324Z"
+          "resolvedAt": "2026-08-01T14:47:22.160Z"
         }
       },
       "district_id": "north",
@@ -12360,7 +12444,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.324Z"
+          "resolvedAt": "2026-08-01T14:47:22.161Z"
         }
       },
       "district_id": "north",
@@ -12403,7 +12487,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.325Z"
+          "resolvedAt": "2026-08-01T14:47:22.162Z"
         }
       },
       "district_id": "north",
@@ -12445,7 +12529,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.325Z"
+          "resolvedAt": "2026-08-01T14:47:22.162Z"
         }
       },
       "district_id": "north",
@@ -12487,7 +12571,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.325Z"
+          "resolvedAt": "2026-08-01T14:47:22.163Z"
         }
       },
       "district_id": "north",
@@ -12509,8 +12593,8 @@
       "temporal_weight": 1,
       "article_title": "קיבוץ דן/גליל עליון — חירם (ביקור שטח)",
       "municipality": "קיבוץ דן",
-      "grounding_tier": "grounded",
-      "grounding_reason": "entailment_rescue",
+      "grounding_tier": "weak",
+      "grounding_reason": "entailment_failed",
       "grounding_method": "entailment",
       "type": "community_volunteering",
       "source_type": "visits",
@@ -12529,7 +12613,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.326Z"
+          "resolvedAt": "2026-08-01T14:47:22.164Z"
         }
       },
       "district_id": "north",
@@ -12571,7 +12655,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.326Z"
+          "resolvedAt": "2026-08-01T14:47:22.164Z"
         }
       },
       "district_id": "north",
@@ -12613,7 +12697,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.327Z"
+          "resolvedAt": "2026-08-01T14:47:22.165Z"
         }
       },
       "district_id": "north",
@@ -12655,7 +12739,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.327Z"
+          "resolvedAt": "2026-08-01T14:47:22.165Z"
         }
       },
       "district_id": "north",
@@ -12723,7 +12807,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.328Z"
+          "resolvedAt": "2026-08-01T14:47:22.166Z"
         },
         "matchEvidence": {
           "rawInput": "Rosh HaNikra",
@@ -12784,7 +12868,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.328Z"
+          "resolvedAt": "2026-08-01T14:47:22.167Z"
         }
       },
       "district_id": "north",
@@ -12826,7 +12910,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.328Z"
+          "resolvedAt": "2026-08-01T14:47:22.167Z"
         }
       },
       "district_id": "north",
@@ -12868,7 +12952,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.329Z"
+          "resolvedAt": "2026-08-01T14:47:22.169Z"
         }
       },
       "district_id": "north",
@@ -12910,7 +12994,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.330Z"
+          "resolvedAt": "2026-08-01T14:47:22.169Z"
         }
       },
       "district_id": "north",
@@ -12952,7 +13036,7 @@
         "audit": {
           "geoReferenceVersion": "north-geo-2026-05-10",
           "source": "north-localities-v1",
-          "resolvedAt": "2026-08-05T15:02:23.330Z"
+          "resolvedAt": "2026-08-01T14:47:22.170Z"
         }
       },
       "district_id": "north",

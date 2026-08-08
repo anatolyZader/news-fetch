@@ -53,6 +53,28 @@ function withReplayReuseEnv(overrides, fn) {
   }
 }
 
+function seedVisits(root, dates, { withBundles = true } = {}) {
+  const visitsDir = join(root, 'business_modules/visits/data');
+  mkdirSync(join(visitsDir, 'signals'), { recursive: true });
+  for (const d of dates) {
+    writeFileSync(join(visitsDir, `articles-visits-reports-${d}.md`), '# visit');
+    if (withBundles) writeFileSync(fieldSignalsPath(d, root), '{"signals":[]}');
+  }
+}
+
+function withVisitsReextractHold(value, fn) {
+  const key = 'RESILIENCE_VISITS_REEXTRACT_HOLD';
+  const prev = process.env[key];
+  if (value == null) delete process.env[key];
+  else process.env[key] = value;
+  try {
+    return fn();
+  } finally {
+    if (prev == null) delete process.env[key];
+    else process.env[key] = prev;
+  }
+}
+
 describe('parsePipelineDateArg', () => {
   it('parses dd:mm:yyyy', () => {
     assert.equal(parsePipelineDateArg('15:04:2026'), '2026-04-15');
@@ -628,29 +650,128 @@ describe('buildPipelineIngestPlan', () => {
     }
   });
 
-  it('always-reextract plans all visit MDs not only last three', () => {
-    const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-visits-all-'));
-    try {
-      const visitsDir = join(root, 'business_modules/visits/data');
-      mkdirSync(visitsDir, { recursive: true });
-      for (const d of ['2026-04-01', '2026-04-02', '2026-04-03', '2026-04-04']) {
-        writeFileSync(join(visitsDir, `articles-visits-reports-${d}.md`), '# visit');
+  it('always-reextract plans all visit MDs not only last three when hold is lifted', () => {
+    withVisitsReextractHold('0', () => {
+      const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-visits-all-'));
+      try {
+        const visitsDir = join(root, 'business_modules/visits/data');
+        mkdirSync(visitsDir, { recursive: true });
+        for (const d of ['2026-04-01', '2026-04-02', '2026-04-03', '2026-04-04']) {
+          writeFileSync(join(visitsDir, `articles-visits-reports-${d}.md`), '# visit');
+        }
+
+        const plan = buildPipelineIngestPlan({
+          targetDate: '2026-04-15',
+          days: 1,
+          enabledSources: new Set(['visits']),
+          replayMode: false,
+          alwaysReextract: true,
+          scope: 'north',
+          rootDir: root,
+        });
+
+        const extracts = plan.steps.filter((s) => s.action === 'extract_visits');
+        assert.equal(extracts.length, 4);
+      } finally {
+        rmSync(root, { recursive: true, force: true });
       }
+    });
+  });
 
-      const plan = buildPipelineIngestPlan({
-        targetDate: '2026-04-15',
-        days: 1,
-        enabledSources: new Set(['visits']),
-        replayMode: false,
-        alwaysReextract: true,
-        scope: 'north',
-        rootDir: root,
-      });
+  describe('visits re-extract hold (default)', () => {
+    it('reuses existing visits bundles under always-reextract', () => {
+      const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-visits-hold-'));
+      try {
+        seedVisits(root, ['2026-03-17', '2026-03-24']);
 
-      const extracts = plan.steps.filter((s) => s.action === 'extract_visits');
-      assert.equal(extracts.length, 4);
-    } finally {
-      rmSync(root, { recursive: true, force: true });
-    }
+        const plan = buildPipelineIngestPlan({
+          targetDate: '2026-04-15',
+          days: 1,
+          enabledSources: new Set(['visits']),
+          replayMode: true,
+          alwaysReextract: true,
+          scope: 'north',
+          rootDir: root,
+        });
+
+        assert.ok(!plan.steps.some((s) => s.action === 'extract_visits'));
+        assert.equal(plan.steps.filter((s) => s.stage === 'visits' && s.action === 'reuse').length, 2);
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    });
+
+    it('still extracts visit MDs that have no bundle yet', () => {
+      const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-visits-new-'));
+      try {
+        seedVisits(root, ['2026-03-17'], { withBundles: true });
+        seedVisits(root, ['2026-04-07'], { withBundles: false });
+
+        const plan = buildPipelineIngestPlan({
+          targetDate: '2026-04-15',
+          days: 1,
+          enabledSources: new Set(['visits']),
+          replayMode: true,
+          alwaysReextract: true,
+          scope: 'north',
+          rootDir: root,
+        });
+
+        const extracts = plan.steps.filter((s) => s.action === 'extract_visits');
+        assert.equal(extracts.length, 1);
+        assert.ok(extracts[0].detail.includes('2026-04-07'));
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    });
+
+    it('--force still re-extracts visits despite the hold', () => {
+      const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-visits-force-'));
+      try {
+        seedVisits(root, ['2026-03-17', '2026-03-24']);
+
+        const plan = buildPipelineIngestPlan({
+          targetDate: '2026-04-15',
+          days: 1,
+          enabledSources: new Set(['visits']),
+          replayMode: true,
+          alwaysReextract: true,
+          force: true,
+          scope: 'north',
+          rootDir: root,
+        });
+
+        assert.equal(plan.steps.filter((s) => s.action === 'extract_visits').length, 2);
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    });
+
+    it('leaves non-visits sources on always-reextract', () => {
+      const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-news-reextract-'));
+      try {
+        const date = '2026-04-15';
+        mkdirSync(resolve(newsArticlesPath(date, root), '..'), { recursive: true });
+        mkdirSync(resolve(newsSignalsPath(date, root), '..'), { recursive: true });
+        writeFileSync(newsArticlesPath(date, root), '# news');
+        writeFileSync(newsSignalsPath(date, root), '{"signals":[]}');
+
+        const plan = buildPipelineIngestPlan({
+          targetDate: date,
+          days: 1,
+          enabledSources: new Set(['news']),
+          replayMode: true,
+          alwaysReextract: true,
+          scope: 'north',
+          rootDir: root,
+        });
+
+        const news = plan.steps.filter((s) => s.stage === 'news' && s.date === date);
+        assert.ok(news.some((s) => s.action === 'extract_news'));
+        assert.ok(!news.some((s) => s.action === 'reuse'));
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    });
   });
 });

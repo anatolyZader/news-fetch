@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Create output/ symlink tree (Option A: centralized view, module-owned storage).
+ * Create output-symlink/ tree (Option A: centralized view, module-owned storage).
  *
  * Usage:
  *   node scripts/setup-output-symlinks.js
@@ -17,7 +17,7 @@ import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const OUTPUT_ROOT = resolve(REPO_ROOT, 'output');
+const OUTPUT_ROOT = resolve(REPO_ROOT, 'output-symlink');
 
 /** @type {Array<{ link: string, target: string, description?: string }>} */
 export const OUTPUT_SYMLINKS = [
@@ -93,7 +93,7 @@ function main() {
     }
   }
 
-  console.log(`output/ symlinks: ${created} created, ${ok} already correct`);
+  console.log(`output-symlink/ links: ${created} created, ${ok} already correct`);
 }
 
 main();

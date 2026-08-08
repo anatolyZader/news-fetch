@@ -3,14 +3,9 @@ import { createDefaultPboReportReviewService } from '../business_modules/pbo_rep
 import { createPboHistoricalSearchService } from '../business_modules/pbo_report_review/app/pboHistoricalSearchService.js';
 import { createMailingResendAdapter } from '../business_modules/mailing/infrastructure/adapters/mailingResendAdapter.js';
 import { createMailingService } from '../business_modules/mailing/app/mailingService.js';
+import { createDigestReportSource } from '../business_modules/mailing/app/digestReportSource.js';
 import { getTranslatedReport } from '../business_modules/translation/app/translationService.js';
-
-function isMailingConfigured() {
-  if (process.env.MAILING_ENABLED === 'false') return false;
-  const key = process.env.RESEND_API_KEY?.trim();
-  const from = process.env.MAIL_FROM?.trim();
-  return Boolean(key && from);
-}
+import { isMailingConfigured } from '../cross-cut-modules/config/mailingEnv.js';
 
 /**
  * @param {object} opts
@@ -27,7 +22,7 @@ export function registerAnalysis(opts) {
     ? createMailingService({
       deliveryPort: createMailingResendAdapter({ apiKey: process.env.RESEND_API_KEY.trim() }),
       mailFrom: process.env.MAIL_FROM.trim(),
-      getCachedReport: () => reportReadPort.getCachedReport(opts.evidenceStore),
+      getCachedReport: createDigestReportSource({ reportReadPort, evidenceStore: opts.evidenceStore }),
       translateReport: getTranslatedReport,
       poolService: opts.poolService,
     })

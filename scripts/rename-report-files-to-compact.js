@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 /**
- * Rename legacy resilience report artifacts to compact basenames:
- *   {scope}-{days}-{DDMMYY}-{HHmm}[.json|.md|-brief.md]
+ * @deprecated SUPERSEDED — compact DDMMYY format is now itself legacy.
+ * Use scripts/rename-reports-to-labeled.js instead (emits labeled ISO format).
  *
- * Usage:
- *   node scripts/rename-report-files-to-compact.js              # dry-run (default)
- *   node scripts/rename-report-files-to-compact.js --apply
+ * Original purpose: rename legacy resilience-report-* artifacts to compact basenames.
+ * Kept for historical reference only.
  */
 import { existsSync, readFileSync, readdirSync, renameSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
