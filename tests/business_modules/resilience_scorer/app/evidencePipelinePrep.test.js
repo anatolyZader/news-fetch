@@ -55,20 +55,20 @@ describe('evidenceComponentAdapter confidence', () => {
   });
 });
 
-describe('evidenceComponentAdapter review completeness', () => {
-  function reviewBasis(incomplete_share, extra = {}) {
-    return {
-      review_completeness: {
-        pbo_primary_count: 10,
-        reviewed_sufficient: 0,
-        reviewed_incomplete: 10,
-        unreviewed: 0,
-        incomplete_share,
-      },
-      ...extra,
-    };
-  }
+function reviewBasis(incomplete_share, extra = {}) {
+  return {
+    review_completeness: {
+      pbo_primary_count: 10,
+      reviewed_sufficient: 0,
+      reviewed_incomplete: 10,
+      unreviewed: 0,
+      incomplete_share,
+    },
+    ...extra,
+  };
+}
 
+describe('evidenceComponentAdapter review completeness', () => {
   it('downgrades one step when a majority of evidence was reviewed as incomplete', () => {
     const comp = evidenceComponentAdapter(evEntry(reviewBasis(0.5)));
     assert.equal(comp.confidence, 'medium');

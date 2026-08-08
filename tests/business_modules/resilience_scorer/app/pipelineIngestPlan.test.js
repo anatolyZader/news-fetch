@@ -776,38 +776,38 @@ describe('buildPipelineIngestPlan', () => {
   });
 });
 
-describe('PBO extractor-contract gate (ingest planning)', () => {
-  function planWithBundle(bundle, { env = {} } = {}) {
-    const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-contract-'));
-    const date = '2026-04-15';
-    const prev = {};
-    for (const [k, v] of Object.entries(env)) {
-      prev[k] = process.env[k];
-      process.env[k] = v;
-    }
-    try {
-      mkdirSync(join(root, 'business_modules/resilience_scorer/data/signals'), { recursive: true });
-      writeFileSync(pboSignalsPath(date, root), bundle);
-      let plan;
-      withReplayReuseEnv({ RESILIENCE_REPLAY_REUSE_PBO: '1', ...env }, () => {
-        plan = buildPipelineIngestPlan({
-          targetDate: date,
-          days: 1,
-          enabledSources: new Set(['pbo']),
-          replayMode: true,
-          rootDir: root,
-        });
-      });
-      return plan.steps.filter((s) => s.stage === 'pbo' && s.date === date);
-    } finally {
-      for (const [k, v] of Object.entries(prev)) {
-        if (v == null) delete process.env[k];
-        else process.env[k] = v;
-      }
-      rmSync(root, { recursive: true, force: true });
-    }
+function planWithPboBundle(bundle, { env = {} } = {}) {
+  const root = mkdtempSync(join(tmpdir(), 'pipeline-plan-contract-'));
+  const date = '2026-04-15';
+  const prev = {};
+  for (const [k, v] of Object.entries(env)) {
+    prev[k] = process.env[k];
+    process.env[k] = v;
   }
+  try {
+    mkdirSync(join(root, 'business_modules/resilience_scorer/data/signals'), { recursive: true });
+    writeFileSync(pboSignalsPath(date, root), bundle);
+    let plan;
+    withReplayReuseEnv({ RESILIENCE_REPLAY_REUSE_PBO: '1', ...env }, () => {
+      plan = buildPipelineIngestPlan({
+        targetDate: date,
+        days: 1,
+        enabledSources: new Set(['pbo']),
+        replayMode: true,
+        rootDir: root,
+      });
+    });
+    return plan.steps.filter((s) => s.stage === 'pbo' && s.date === date);
+  } finally {
+    for (const [k, v] of Object.entries(prev)) {
+      if (v == null) delete process.env[k];
+      else process.env[k] = v;
+    }
+    rmSync(root, { recursive: true, force: true });
+  }
+}
 
+describe('PBO extractor-contract gate (ingest planning)', () => {
   const marked = JSON.stringify({
     extractor_contract: 'pbo_llm_field_report',
     extractor_contract_version: 1,
@@ -816,23 +816,23 @@ describe('PBO extractor-contract gate (ingest planning)', () => {
 
   it('re-extracts a marker-less bundle even under reuse-first replay', () => {
     // The exact scenario that kept serving the deleted deterministic extractor's output.
-    const steps = planWithBundle(JSON.stringify({ signals: [{ id: 's1' }] }));
+    const steps = planWithPboBundle(JSON.stringify({ signals: [{ id: 's1' }] }));
     assert.ok(steps.some((s) => s.action === 'extract_pbo_date'));
     assert.ok(!steps.some((s) => s.action === 'reuse'));
   });
 
   it('explains itself in the plan', () => {
-    const steps = planWithBundle(JSON.stringify({ signals: [{ id: 's1' }] }));
+    const steps = planWithPboBundle(JSON.stringify({ signals: [{ id: 's1' }] }));
     assert.equal(steps.find((s) => s.action === 'extract_pbo_date').detail, 'stale extractor contract');
   });
 
   it('reuses a bundle that carries the current contract', () => {
-    const steps = planWithBundle(marked);
+    const steps = planWithPboBundle(marked);
     assert.ok(steps.some((s) => s.action === 'reuse'));
   });
 
   it('re-extracts when the contract version is below the minimum', () => {
-    const steps = planWithBundle(JSON.stringify({
+    const steps = planWithPboBundle(JSON.stringify({
       extractor_contract: 'pbo_llm_field_report',
       extractor_contract_version: 0,
       signals: [{ id: 's1' }],
@@ -841,12 +841,12 @@ describe('PBO extractor-contract gate (ingest planning)', () => {
   });
 
   it('treats an unparseable bundle as stale', () => {
-    const steps = planWithBundle('{not json');
+    const steps = planWithPboBundle('{not json');
     assert.ok(steps.some((s) => s.action === 'extract_pbo_date'));
   });
 
   it('restores reuse when the gate is disabled', () => {
-    const steps = planWithBundle(JSON.stringify({ signals: [{ id: 's1' }] }), {
+    const steps = planWithPboBundle(JSON.stringify({ signals: [{ id: 's1' }] }), {
       env: { RESILIENCE_PBO_CONTRACT_GATE_BLOCK: '0' },
     });
     assert.ok(steps.some((s) => s.action === 'reuse'));

@@ -171,18 +171,20 @@ describe('buildComponentEvidence (primary-only bands)', () => {
   });
 });
 
-describe('derivePboReviewCompleteness', () => {
-  const item = (pbo_review_state) => ({ signal: pbo_review_state == null ? {} : { pbo_review_state } });
+const pboReviewItem = (pbo_review_state) => ({
+  signal: pbo_review_state == null ? {} : { pbo_review_state },
+});
 
+describe('derivePboReviewCompleteness', () => {
   it('returns null when no primary item carries a review state', () => {
-    assert.equal(derivePboReviewCompleteness([item(null), item(null)]), null);
+    assert.equal(derivePboReviewCompleteness([pboReviewItem(null), pboReviewItem(null)]), null);
   });
 
   it('shares incomplete against total primary mass, not the PBO subset', () => {
     // 2 incomplete PBO signals inside 40 primary is a 5% problem, not a 100% one.
     const items = [
-      ...Array.from({ length: 2 }, () => item('reviewed_incomplete')),
-      ...Array.from({ length: 38 }, () => item(null)),
+      ...Array.from({ length: 2 }, () => pboReviewItem('reviewed_incomplete')),
+      ...Array.from({ length: 38 }, () => pboReviewItem(null)),
     ];
     const out = derivePboReviewCompleteness(items);
     assert.equal(out.pbo_primary_count, 2);
@@ -192,10 +194,10 @@ describe('derivePboReviewCompleteness', () => {
 
   it('counts the three states separately', () => {
     const out = derivePboReviewCompleteness([
-      item('reviewed_sufficient'),
-      item('reviewed_incomplete'),
-      item('unreviewed'),
-      item('unreviewed'),
+      pboReviewItem('reviewed_sufficient'),
+      pboReviewItem('reviewed_incomplete'),
+      pboReviewItem('unreviewed'),
+      pboReviewItem('unreviewed'),
     ]);
     assert.equal(out.reviewed_sufficient, 1);
     assert.equal(out.reviewed_incomplete, 1);
@@ -216,7 +218,7 @@ describe('derivePboReviewCompleteness', () => {
   });
 
   it('treats an unrecognised state as unreviewed', () => {
-    const out = derivePboReviewCompleteness([item('something_else')]);
+    const out = derivePboReviewCompleteness([pboReviewItem('something_else')]);
     assert.equal(out.unreviewed, 1);
     assert.equal(out.reviewed_incomplete, 0);
   });

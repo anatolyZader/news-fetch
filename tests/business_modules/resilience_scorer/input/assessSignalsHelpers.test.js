@@ -427,8 +427,11 @@ describe('discoverSignalBundles field history', () => {
   });
 });
 
+function pboContractBundle(sourceType, data) {
+  return [{ weight: 1, sourceType, fileDate: '2026-04-03', fileDistrictId: 'north', data }];
+}
+
 describe('PBO extractor-contract gate (assess load)', () => {
-  const bundle = (sourceType, data) => [{ weight: 1, sourceType, fileDate: '2026-04-03', fileDistrictId: 'north', data }];
   const stale = { signals: [{ evidence: 'Volunteers distributed supplies' }] };
   const marked = {
     extractor_contract: 'pbo_llm_field_report',
@@ -438,7 +441,7 @@ describe('PBO extractor-contract gate (assess load)', () => {
 
   it('refuses a marker-less PBO municipal bundle and names the offending file', () => {
     assert.throws(
-      () => mergeLoadedSignalFiles(bundle('pbo', stale)),
+      () => mergeLoadedSignalFiles(pboContractBundle('pbo', stale)),
       (err) => {
         assert.equal(err.code, 'stale_pbo_bundle_contract');
         assert.deepEqual(err.files, ['signals-pbo-2026-04-03.json']);
@@ -449,26 +452,26 @@ describe('PBO extractor-contract gate (assess load)', () => {
 
   it('refuses a bundle whose contract version is below the minimum', () => {
     assert.throws(
-      () => mergeLoadedSignalFiles(bundle('pbo', { ...marked, extractor_contract_version: 0 })),
+      () => mergeLoadedSignalFiles(pboContractBundle('pbo', { ...marked, extractor_contract_version: 0 })),
       (err) => err.code === 'stale_pbo_bundle_contract',
     );
   });
 
   it('accepts a bundle carrying the current contract', () => {
-    const { allSignals } = mergeLoadedSignalFiles(bundle('pbo', marked));
+    const { allSignals } = mergeLoadedSignalFiles(pboContractBundle('pbo', marked));
     assert.equal(allSignals.length, 1);
   });
 
   it('does not gate pbo_regional or visits — a different extractor never wrote the marker', () => {
-    assert.equal(mergeLoadedSignalFiles(bundle('pbo_regional', stale)).allSignals.length, 1);
-    assert.equal(mergeLoadedSignalFiles(bundle('visits', stale)).allSignals.length, 1);
+    assert.equal(mergeLoadedSignalFiles(pboContractBundle('pbo_regional', stale)).allSignals.length, 1);
+    assert.equal(mergeLoadedSignalFiles(pboContractBundle('visits', stale)).allSignals.length, 1);
   });
 
   it('loads stale bundles when the gate is disabled', () => {
     const prev = process.env.RESILIENCE_PBO_CONTRACT_GATE_BLOCK;
     process.env.RESILIENCE_PBO_CONTRACT_GATE_BLOCK = '0';
     try {
-      assert.equal(mergeLoadedSignalFiles(bundle('pbo', stale)).allSignals.length, 1);
+      assert.equal(mergeLoadedSignalFiles(pboContractBundle('pbo', stale)).allSignals.length, 1);
     } finally {
       if (prev == null) delete process.env.RESILIENCE_PBO_CONTRACT_GATE_BLOCK;
       else process.env.RESILIENCE_PBO_CONTRACT_GATE_BLOCK = prev;
