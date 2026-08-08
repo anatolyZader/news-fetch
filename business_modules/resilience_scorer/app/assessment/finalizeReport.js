@@ -10,7 +10,7 @@ import { EVENT_TYPES, publishDomainEvent } from '../../../../cross-cut-modules/m
 import { buildComparisonContext } from '../../domain/services/sourceMixIndex.js';
 import { isRegionalReportScope } from '../../../../cross-cut-modules/geo/reportScopeIds.js';
 import { resilienceReportsDir } from '../../domain/services/paths/outputDirs.js';
-import { buildReportBasename, runAtFromLabeledBasename } from '../../domain/services/paths/reportNames.js';
+import { buildReportBasename } from '../../domain/services/paths/reportNames.js';
 import { writeReport } from '../../infrastructure/reportWriter.js';
 import { appendCostLog } from '../../../../cross-cut-modules/budget/index.js';
 import { buildAssessmentWindowMetadata } from './assessSignalsHelpers.js';

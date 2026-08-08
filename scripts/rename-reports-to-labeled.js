@@ -134,25 +134,7 @@ for (const stem of allStems) {
   if (!jsonExists && !mdExists) continue;
 
   const generatedAt = jsonExists ? readGeneratedAt(jsonPath) : null;
-
-  let producedToken;
-  if (generatedAt) {
-    const d = new Date(generatedAt);
-    if (!Number.isNaN(d.getTime())) {
-      const pd = d.toISOString();
-      producedToken = `${pd.slice(0, 10)}T${pd.slice(11, 13)}${pd.slice(14, 16)}Z`;
-    }
-  }
-
-  // Fallback when no JSON or no generated_at: use mtime of the json/md + hhmm from filename
-  if (!producedToken && hhmm && hhmm !== '0000') {
-    const statPath = jsonExists ? jsonPath : mdPath;
-    try {
-      const mtime = new Date(statSync(statPath).mtimeMs);
-      const pd = mtime.toISOString();
-      producedToken = `${pd.slice(0, 10)}T${hhmm.slice(0, 2)}${hhmm.slice(2, 4)}Z`;
-    } catch { /* ignore */ }
-  }
+  const producedToken = makeProducedToken(generatedAt, hhmm, jsonExists ? jsonPath : mdPath);
 
   if (!producedToken) {
     console.error(`SKIP (no timestamp) ${stem}`);
