@@ -1,101 +1,94 @@
 {
-  "runId": "84ff1e56-d3e5-46a9-aff7-1a40d3d1d454",
+  "runId": "a6ac8d1e-3996-4eed-9386-33f0755ec966",
   "date": "2026-04-02",
   "scope": "north",
   "days": 1,
-  "runStartedAt": "2026-08-14T08:26:23.789Z",
-  "runCompletedAt": "2026-08-14T10:12:32.222Z",
-  "durationMs": 6368433,
+  "runStartedAt": "2026-08-11T16:59:34.973Z",
+  "runCompletedAt": "2026-08-11T18:46:43.504Z",
+  "durationMs": 6428531,
   "pipeline": {
     "totalCostUsd": 0,
     "llmCostUsd": 0,
     "byScript": {
       "assess-signals": 0,
       "locale-news.daily-he-chunk0": 0,
+      "locale-news.daily-he-chunk1": 0,
       "locale-news.daily-he-chunk3": 0,
       "translation-ru": 0
     },
-    "costLogEntries": 4
+    "costLogEntries": 5
   },
   "summary": {
-    "invocations": 98,
-    "inputTokens": 124,
-    "outputTokens": 86796,
-    "cachedInputTokens": 42949,
-    "cacheCreationTokens": 95444,
-    "effectiveInputTokens": -42825,
-    "cacheHitRatePct": 34636.3,
+    "invocations": 102,
+    "inputTokens": 179,
+    "outputTokens": 64557,
+    "cachedInputTokens": 31368,
+    "cacheCreationTokens": 115160,
+    "effectiveInputTokens": -31189,
+    "cacheHitRatePct": 17524,
     "costUsd": 0
   },
   "byFeature": {
     "narrative_facts": {
-      "invocations": 2,
-      "inputTokens": 20,
-      "outputTokens": 9818,
+      "invocations": 4,
+      "inputTokens": 30,
+      "outputTokens": 16392,
       "cachedInputTokens": 0,
-      "cacheCreationTokens": 24064,
+      "cacheCreationTokens": 36555,
       "costUsd": 0
     },
     "narrative_judge": {
-      "invocations": 8,
-      "inputTokens": 80,
-      "outputTokens": 15303,
-      "cachedInputTokens": 0,
-      "cacheCreationTokens": 49775,
-      "costUsd": 0
-    },
-    "narrative_polish": {
-      "invocations": 3,
-      "inputTokens": 9,
-      "outputTokens": 38734,
-      "cachedInputTokens": 23306,
-      "cacheCreationTokens": 8645,
+      "invocations": 16,
+      "inputTokens": 140,
+      "outputTokens": 37294,
+      "cachedInputTokens": 31368,
+      "cacheCreationTokens": 58342,
       "costUsd": 0
     },
     "translation": {
-      "invocations": 85,
-      "inputTokens": 15,
-      "outputTokens": 22941,
-      "cachedInputTokens": 19643,
-      "cacheCreationTokens": 12960,
+      "invocations": 82,
+      "inputTokens": 9,
+      "outputTokens": 10871,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 20263,
       "costUsd": 0
     }
   },
   "byModel": {
     "claude-haiku-4-5-20251001": {
-      "invocations": 10,
-      "inputTokens": 100,
-      "outputTokens": 25121,
-      "cachedInputTokens": 0,
-      "cacheCreationTokens": 73839,
+      "invocations": 20,
+      "inputTokens": 170,
+      "outputTokens": 53686,
+      "cachedInputTokens": 31368,
+      "cacheCreationTokens": 94897,
       "costUsd": 0
     },
     "claude-sonnet-4-6": {
-      "invocations": 88,
-      "inputTokens": 24,
-      "outputTokens": 61675,
-      "cachedInputTokens": 42949,
-      "cacheCreationTokens": 21605,
+      "invocations": 82,
+      "inputTokens": 9,
+      "outputTokens": 10871,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 20263,
       "costUsd": 0
     }
   },
   "narrativePromptBudget": {
     "max_level_used": 0,
     "last_section_estimates": null,
-    "invocations_with_budget": 2
+    "invocations_with_budget": 4
   },
   "calls": [
     {
-      "timestamp": "2026-08-14T08:27:31.820Z",
+      "timestamp": "2026-08-11T17:00:27.569Z",
       "feature": "narrative_facts",
       "purpose": "[Step 2 — Facts 1/2]",
       "model": "claude-haiku-4-5-20251001",
       "inputTokens": 10,
-      "outputTokens": 5843,
+      "outputTokens": 3912,
       "cachedInputTokens": 0,
-      "cacheCreationTokens": 12056,
+      "cacheCreationTokens": 12085,
       "costUsd": 0,
-      "latencyMs": 59174,
+      "latencyMs": 39911,
       "stopReason": "end_turn",
       "promptBudget": {
         "section": "narrative_facts",
@@ -104,16 +97,16 @@
       }
     },
     {
-      "timestamp": "2026-08-14T08:28:19.741Z",
+      "timestamp": "2026-08-11T17:01:41.386Z",
       "feature": "narrative_facts",
       "purpose": "[Step 2 — Facts 2/2]",
       "model": "claude-haiku-4-5-20251001",
       "inputTokens": 10,
-      "outputTokens": 3975,
+      "outputTokens": 6973,
       "cachedInputTokens": 0,
       "cacheCreationTokens": 12008,
       "costUsd": 0,
-      "latencyMs": 47919,
+      "latencyMs": 73815,
       "stopReason": "end_turn",
       "promptBudget": {
         "section": "narrative_facts",
@@ -122,176 +115,290 @@
       }
     },
     {
-      "timestamp": "2026-08-14T08:28:39.000Z",
+      "timestamp": "2026-08-11T17:01:56.780Z",
       "feature": "narrative_judge",
       "purpose": "[Step 2 — Judge batch narrative]",
       "model": "claude-haiku-4-5-20251001",
       "inputTokens": 10,
-      "outputTokens": 2125,
+      "outputTokens": 1597,
       "cachedInputTokens": 0,
       "cacheCreationTokens": 6366,
       "costUsd": 0,
-      "latencyMs": 19257,
+      "latencyMs": 15392,
       "stopReason": "end_turn"
     },
     {
-      "timestamp": "2026-08-14T08:28:57.675Z",
+      "timestamp": "2026-08-11T17:02:12.528Z",
       "feature": "narrative_judge",
       "purpose": "[Step 2 — Judge batch information_communication]",
       "model": "claude-haiku-4-5-20251001",
       "inputTokens": 10,
-      "outputTokens": 2025,
+      "outputTokens": 1621,
       "cachedInputTokens": 0,
       "cacheCreationTokens": 6247,
       "costUsd": 0,
-      "latencyMs": 18675,
+      "latencyMs": 15748,
       "stopReason": "end_turn"
     },
     {
-      "timestamp": "2026-08-14T08:29:13.142Z",
+      "timestamp": "2026-08-11T17:05:29.911Z",
       "feature": "narrative_judge",
       "purpose": "[Step 2 — Judge batch lifesaving_behavior]",
       "model": "claude-haiku-4-5-20251001",
-      "inputTokens": 10,
-      "outputTokens": 1597,
+      "inputTokens": 0,
+      "outputTokens": 0,
       "cachedInputTokens": 0,
-      "cacheCreationTokens": 5952,
+      "cacheCreationTokens": 0,
       "costUsd": 0,
-      "latencyMs": 15466,
+      "latencyMs": 197382,
       "stopReason": "end_turn"
     },
     {
-      "timestamp": "2026-08-14T08:29:32.099Z",
+      "timestamp": "2026-08-11T17:05:45.998Z",
       "feature": "narrative_judge",
       "purpose": "[Step 2 — Judge batch functional_continuity]",
       "model": "claude-haiku-4-5-20251001",
       "inputTokens": 10,
-      "outputTokens": 2057,
+      "outputTokens": 1565,
       "cachedInputTokens": 0,
       "cacheCreationTokens": 6377,
       "costUsd": 0,
-      "latencyMs": 18957,
+      "latencyMs": 16086,
       "stopReason": "end_turn"
     },
     {
-      "timestamp": "2026-08-14T08:29:52.043Z",
+      "timestamp": "2026-08-11T17:06:16.622Z",
       "feature": "narrative_judge",
       "purpose": "[Step 2 — Judge batch community_capital]",
       "model": "claude-haiku-4-5-20251001",
       "inputTokens": 10,
-      "outputTokens": 2235,
+      "outputTokens": 3100,
       "cachedInputTokens": 0,
-      "cacheCreationTokens": 6371,
+      "cacheCreationTokens": 6701,
       "costUsd": 0,
-      "latencyMs": 19944,
+      "latencyMs": 30624,
       "stopReason": "end_turn"
     },
     {
-      "timestamp": "2026-08-14T08:30:11.628Z",
+      "timestamp": "2026-08-11T17:08:29.978Z",
       "feature": "narrative_judge",
       "purpose": "[Step 2 — Judge batch leadership]",
       "model": "claude-haiku-4-5-20251001",
       "inputTokens": 10,
-      "outputTokens": 2125,
-      "cachedInputTokens": 0,
-      "cacheCreationTokens": 6163,
+      "outputTokens": 3003,
+      "cachedInputTokens": 6426,
+      "cacheCreationTokens": 0,
       "costUsd": 0,
-      "latencyMs": 19584,
+      "latencyMs": 29658,
       "stopReason": "end_turn"
     },
     {
-      "timestamp": "2026-08-14T08:30:27.839Z",
+      "timestamp": "2026-08-11T17:09:30.899Z",
       "feature": "narrative_judge",
       "purpose": "[Step 2 — Judge batch belonging_solidarity]",
       "model": "claude-haiku-4-5-20251001",
       "inputTokens": 10,
-      "outputTokens": 1707,
+      "outputTokens": 5378,
       "cachedInputTokens": 0,
-      "cacheCreationTokens": 6147,
+      "cacheCreationTokens": 6671,
       "costUsd": 0,
-      "latencyMs": 16211,
+      "latencyMs": 60920,
       "stopReason": "end_turn"
     },
     {
-      "timestamp": "2026-08-14T08:30:41.660Z",
+      "timestamp": "2026-08-11T17:10:14.931Z",
       "feature": "narrative_judge",
       "purpose": "[Step 2 — Judge batch wellbeing_at_risk]",
       "model": "claude-haiku-4-5-20251001",
       "inputTokens": 10,
-      "outputTokens": 1432,
+      "outputTokens": 4141,
       "cachedInputTokens": 0,
-      "cacheCreationTokens": 6152,
+      "cacheCreationTokens": 6719,
       "costUsd": 0,
-      "latencyMs": 13820,
+      "latencyMs": 44031,
       "stopReason": "end_turn"
     },
     {
-      "timestamp": "2026-08-14T08:44:11.321Z",
-      "feature": "narrative_polish",
-      "purpose": "[Step 3 — Polish 1/2]",
-      "model": "claude-sonnet-4-6",
-      "inputTokens": 3,
-      "outputTokens": 18543,
-      "cachedInputTokens": 11409,
+      "timestamp": "2026-08-11T17:11:11.753Z",
+      "feature": "narrative_facts",
+      "purpose": "[Step 2 — Facts 1/2]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 10,
+      "outputTokens": 5507,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 12462,
+      "costUsd": 0,
+      "latencyMs": 56821,
+      "stopReason": "end_turn",
+      "promptBudget": {
+        "section": "narrative_facts",
+        "degrade_level": 0,
+        "estimated_input_tokens": 9295
+      }
+    },
+    {
+      "timestamp": "2026-08-11T17:17:26.495Z",
+      "feature": "narrative_facts",
+      "purpose": "[Step 2 — Facts 2/2]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "cachedInputTokens": 0,
       "cacheCreationTokens": 0,
       "costUsd": 0,
-      "latencyMs": 361458,
-      "stopReason": "end_turn"
+      "latencyMs": 374741,
+      "stopReason": "end_turn",
+      "promptBudget": {
+        "section": "narrative_facts",
+        "degrade_level": 0,
+        "estimated_input_tokens": 9295
+      }
     },
     {
-      "timestamp": "2026-08-14T09:13:14.713Z",
-      "feature": "narrative_polish",
-      "purpose": "[Step 3 — Polish 2/2]",
-      "model": "claude-sonnet-4-6",
-      "inputTokens": 3,
-      "outputTokens": 19091,
-      "cachedInputTokens": 11897,
+      "timestamp": "2026-08-11T17:17:47.292Z",
+      "feature": "narrative_judge",
+      "purpose": "[Step 2 — Judge batch narrative]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 10,
+      "outputTokens": 2160,
+      "cachedInputTokens": 6366,
       "cacheCreationTokens": 0,
       "costUsd": 0,
-      "latencyMs": 359392,
+      "latencyMs": 20795,
       "stopReason": "end_turn"
     },
     {
-      "timestamp": "2026-08-14T09:13:40.661Z",
-      "feature": "narrative_polish",
-      "purpose": "[Step 3 — Polish synthesis]",
-      "model": "claude-sonnet-4-6",
-      "inputTokens": 3,
-      "outputTokens": 1100,
-      "cachedInputTokens": 0,
-      "cacheCreationTokens": 8645,
+      "timestamp": "2026-08-11T17:18:04.653Z",
+      "feature": "narrative_judge",
+      "purpose": "[Step 2 — Judge batch information_communication]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 10,
+      "outputTokens": 1878,
+      "cachedInputTokens": 6247,
+      "cacheCreationTokens": 0,
       "costUsd": 0,
-      "latencyMs": 25947,
+      "latencyMs": 17360,
       "stopReason": "end_turn"
     },
     {
-      "timestamp": "2026-08-14T09:16:01.465Z",
+      "timestamp": "2026-08-11T17:18:14.993Z",
+      "feature": "narrative_judge",
+      "purpose": "[Step 2 — Judge batch lifesaving_behavior]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 10,
+      "outputTokens": 921,
+      "cachedInputTokens": 5952,
+      "cacheCreationTokens": 0,
+      "costUsd": 0,
+      "latencyMs": 10340,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-08-11T17:18:34.968Z",
+      "feature": "narrative_judge",
+      "purpose": "[Step 2 — Judge batch functional_continuity]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 10,
+      "outputTokens": 2199,
+      "cachedInputTokens": 6377,
+      "cacheCreationTokens": 0,
+      "costUsd": 0,
+      "latencyMs": 19974,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-08-11T17:22:08.512Z",
+      "feature": "narrative_judge",
+      "purpose": "[Step 2 — Judge batch community_capital]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 0,
+      "costUsd": 0,
+      "latencyMs": 213544,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-08-11T17:22:30.532Z",
+      "feature": "narrative_judge",
+      "purpose": "[Step 2 — Judge batch leadership]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 10,
+      "outputTokens": 2399,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 6330,
+      "costUsd": 0,
+      "latencyMs": 22018,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-08-11T17:23:01.501Z",
+      "feature": "narrative_judge",
+      "purpose": "[Step 2 — Judge batch belonging_solidarity]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 10,
+      "outputTokens": 3168,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 6458,
+      "costUsd": 0,
+      "latencyMs": 30969,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-08-11T17:23:44.167Z",
+      "feature": "narrative_judge",
+      "purpose": "[Step 2 — Judge batch wellbeing_at_risk]",
+      "model": "claude-haiku-4-5-20251001",
+      "inputTokens": 10,
+      "outputTokens": 4164,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 6473,
+      "costUsd": 0,
+      "latencyMs": 42666,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-08-11T17:54:16.458Z",
       "feature": "translation",
       "purpose": "locale-news.daily-he-chunk0",
       "model": "claude-sonnet-4-6",
-      "inputTokens": 6,
-      "outputTokens": 2434,
-      "cachedInputTokens": 6277,
+      "inputTokens": 3,
+      "outputTokens": 2398,
+      "cachedInputTokens": 0,
       "cacheCreationTokens": 6277,
       "costUsd": 0,
-      "latencyMs": 139004,
+      "latencyMs": 62228,
       "stopReason": "end_turn"
     },
     {
-      "timestamp": "2026-08-14T09:27:25.554Z",
+      "timestamp": "2026-08-11T17:55:36.533Z",
+      "feature": "translation",
+      "purpose": "locale-news.daily-he-chunk1",
+      "model": "claude-sonnet-4-6",
+      "inputTokens": 3,
+      "outputTokens": 4778,
+      "cachedInputTokens": 0,
+      "cacheCreationTokens": 7303,
+      "costUsd": 0,
+      "latencyMs": 142294,
+      "stopReason": "end_turn"
+    },
+    {
+      "timestamp": "2026-08-11T17:57:22.879Z",
       "feature": "translation",
       "purpose": "locale-news.daily-he-chunk3",
       "model": "claude-sonnet-4-6",
-      "inputTokens": 9,
-      "outputTokens": 20507,
-      "cachedInputTokens": 13366,
+      "inputTokens": 3,
+      "outputTokens": 3695,
+      "cachedInputTokens": 0,
       "cacheCreationTokens": 6683,
       "costUsd": 0,
-      "latencyMs": 684087,
+      "latencyMs": 106345,
       "stopReason": "end_turn"
     },
     {
-      "timestamp": "2026-08-14T10:05:35.295Z",
+      "timestamp": "2026-08-11T18:42:25.489Z",
       "feature": "translation",
       "purpose": "locale-news.daily-he-chunk6",
       "model": "claude-sonnet-4-6",
@@ -304,7 +411,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:05:35.295Z",
+      "timestamp": "2026-08-11T18:42:25.491Z",
       "feature": "translation",
       "purpose": "locale-news.daily-he-chunk7",
       "model": "claude-sonnet-4-6",
@@ -317,7 +424,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:05:35.296Z",
+      "timestamp": "2026-08-11T18:42:25.492Z",
       "feature": "translation",
       "purpose": "locale-news.daily-he-chunk8",
       "model": "claude-sonnet-4-6",
@@ -330,7 +437,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:05:35.296Z",
+      "timestamp": "2026-08-11T18:42:25.492Z",
       "feature": "translation",
       "purpose": "locale-news.daily-he-chunk9",
       "model": "claude-sonnet-4-6",
@@ -343,7 +450,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:05:35.296Z",
+      "timestamp": "2026-08-11T18:42:25.493Z",
       "feature": "translation",
       "purpose": "locale-news.daily-he-chunk10",
       "model": "claude-sonnet-4-6",
@@ -356,7 +463,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.051Z",
+      "timestamp": "2026-08-11T18:46:43.291Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -369,7 +476,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.052Z",
+      "timestamp": "2026-08-11T18:46:43.291Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -382,7 +489,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.054Z",
+      "timestamp": "2026-08-11T18:46:43.292Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -395,7 +502,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.054Z",
+      "timestamp": "2026-08-11T18:46:43.292Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -408,7 +515,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.054Z",
+      "timestamp": "2026-08-11T18:46:43.293Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -421,7 +528,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.056Z",
+      "timestamp": "2026-08-11T18:46:43.293Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -434,7 +541,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.056Z",
+      "timestamp": "2026-08-11T18:46:43.295Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -447,7 +554,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.056Z",
+      "timestamp": "2026-08-11T18:46:43.295Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -460,7 +567,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.058Z",
+      "timestamp": "2026-08-11T18:46:43.295Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -473,7 +580,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.058Z",
+      "timestamp": "2026-08-11T18:46:43.296Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -486,7 +593,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.058Z",
+      "timestamp": "2026-08-11T18:46:43.296Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -499,7 +606,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.060Z",
+      "timestamp": "2026-08-11T18:46:43.297Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -512,7 +619,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.060Z",
+      "timestamp": "2026-08-11T18:46:43.298Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -525,7 +632,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.060Z",
+      "timestamp": "2026-08-11T18:46:43.299Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -538,7 +645,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.061Z",
+      "timestamp": "2026-08-11T18:46:43.300Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -551,7 +658,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.061Z",
+      "timestamp": "2026-08-11T18:46:43.301Z",
       "feature": "translation",
       "purpose": "translation-prose-ru",
       "model": "claude-sonnet-4-6",
@@ -564,33 +671,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.062Z",
-      "feature": "translation",
-      "purpose": "translation-prose-ru",
-      "model": "claude-sonnet-4-6",
-      "inputTokens": 0,
-      "outputTokens": 0,
-      "cachedInputTokens": 0,
-      "cacheCreationTokens": 0,
-      "costUsd": 0,
-      "latencyMs": 0,
-      "stopReason": "llm_circuit_open"
-    },
-    {
-      "timestamp": "2026-08-14T10:12:32.062Z",
-      "feature": "translation",
-      "purpose": "translation-prose-ru",
-      "model": "claude-sonnet-4-6",
-      "inputTokens": 0,
-      "outputTokens": 0,
-      "cachedInputTokens": 0,
-      "cacheCreationTokens": 0,
-      "costUsd": 0,
-      "latencyMs": 0,
-      "stopReason": "llm_circuit_open"
-    },
-    {
-      "timestamp": "2026-08-14T10:12:32.068Z",
+      "timestamp": "2026-08-11T18:46:43.311Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -603,7 +684,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.068Z",
+      "timestamp": "2026-08-11T18:46:43.311Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -616,7 +697,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.068Z",
+      "timestamp": "2026-08-11T18:46:43.311Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -629,7 +710,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.069Z",
+      "timestamp": "2026-08-11T18:46:43.313Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -642,7 +723,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.069Z",
+      "timestamp": "2026-08-11T18:46:43.313Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -655,7 +736,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.069Z",
+      "timestamp": "2026-08-11T18:46:43.313Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -668,7 +749,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.071Z",
+      "timestamp": "2026-08-11T18:46:43.314Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -681,7 +762,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.071Z",
+      "timestamp": "2026-08-11T18:46:43.314Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -694,7 +775,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.071Z",
+      "timestamp": "2026-08-11T18:46:43.314Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -707,7 +788,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.072Z",
+      "timestamp": "2026-08-11T18:46:43.316Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -720,7 +801,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.072Z",
+      "timestamp": "2026-08-11T18:46:43.316Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -733,7 +814,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.073Z",
+      "timestamp": "2026-08-11T18:46:43.316Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -746,7 +827,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.074Z",
+      "timestamp": "2026-08-11T18:46:43.317Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -759,7 +840,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.074Z",
+      "timestamp": "2026-08-11T18:46:43.317Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -772,7 +853,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.074Z",
+      "timestamp": "2026-08-11T18:46:43.317Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -785,7 +866,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.075Z",
+      "timestamp": "2026-08-11T18:46:43.319Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -798,7 +879,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.075Z",
+      "timestamp": "2026-08-11T18:46:43.319Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -811,7 +892,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.075Z",
+      "timestamp": "2026-08-11T18:46:43.319Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -824,7 +905,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.075Z",
+      "timestamp": "2026-08-11T18:46:43.320Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -837,7 +918,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.075Z",
+      "timestamp": "2026-08-11T18:46:43.321Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -850,7 +931,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.077Z",
+      "timestamp": "2026-08-11T18:46:43.321Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -863,7 +944,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.077Z",
+      "timestamp": "2026-08-11T18:46:43.321Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -876,7 +957,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.077Z",
+      "timestamp": "2026-08-11T18:46:43.322Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -889,7 +970,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.078Z",
+      "timestamp": "2026-08-11T18:46:43.322Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -902,7 +983,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.078Z",
+      "timestamp": "2026-08-11T18:46:43.322Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -915,7 +996,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.078Z",
+      "timestamp": "2026-08-11T18:46:43.323Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -928,7 +1009,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.079Z",
+      "timestamp": "2026-08-11T18:46:43.323Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -941,7 +1022,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.079Z",
+      "timestamp": "2026-08-11T18:46:43.323Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -954,7 +1035,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.079Z",
+      "timestamp": "2026-08-11T18:46:43.324Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -967,7 +1048,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.080Z",
+      "timestamp": "2026-08-11T18:46:43.324Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -980,7 +1061,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.080Z",
+      "timestamp": "2026-08-11T18:46:43.324Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -993,7 +1074,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.080Z",
+      "timestamp": "2026-08-11T18:46:43.325Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -1006,7 +1087,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.081Z",
+      "timestamp": "2026-08-11T18:46:43.325Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -1019,7 +1100,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.081Z",
+      "timestamp": "2026-08-11T18:46:43.325Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -1032,7 +1113,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.081Z",
+      "timestamp": "2026-08-11T18:46:43.326Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -1045,7 +1126,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.082Z",
+      "timestamp": "2026-08-11T18:46:43.326Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -1058,7 +1139,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.082Z",
+      "timestamp": "2026-08-11T18:46:43.326Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -1071,7 +1152,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.082Z",
+      "timestamp": "2026-08-11T18:46:43.327Z",
       "feature": "translation",
       "purpose": "translation-strings-ru",
       "model": "claude-sonnet-4-6",
@@ -1084,33 +1165,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.083Z",
-      "feature": "translation",
-      "purpose": "translation-strings-ru",
-      "model": "claude-sonnet-4-6",
-      "inputTokens": 0,
-      "outputTokens": 0,
-      "cachedInputTokens": 0,
-      "cacheCreationTokens": 0,
-      "costUsd": 0,
-      "latencyMs": 0,
-      "stopReason": "llm_circuit_open"
-    },
-    {
-      "timestamp": "2026-08-14T10:12:32.083Z",
-      "feature": "translation",
-      "purpose": "translation-strings-ru",
-      "model": "claude-sonnet-4-6",
-      "inputTokens": 0,
-      "outputTokens": 0,
-      "cachedInputTokens": 0,
-      "cacheCreationTokens": 0,
-      "costUsd": 0,
-      "latencyMs": 0,
-      "stopReason": "llm_circuit_open"
-    },
-    {
-      "timestamp": "2026-08-14T10:12:32.136Z",
+      "timestamp": "2026-08-11T18:46:43.384Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk0",
       "model": "claude-sonnet-4-6",
@@ -1123,7 +1178,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.136Z",
+      "timestamp": "2026-08-11T18:46:43.384Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk1",
       "model": "claude-sonnet-4-6",
@@ -1136,7 +1191,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.139Z",
+      "timestamp": "2026-08-11T18:46:43.384Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk2",
       "model": "claude-sonnet-4-6",
@@ -1149,7 +1204,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.139Z",
+      "timestamp": "2026-08-11T18:46:43.385Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk3",
       "model": "claude-sonnet-4-6",
@@ -1162,7 +1217,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.139Z",
+      "timestamp": "2026-08-11T18:46:43.385Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk4",
       "model": "claude-sonnet-4-6",
@@ -1175,7 +1230,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.140Z",
+      "timestamp": "2026-08-11T18:46:43.386Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk5",
       "model": "claude-sonnet-4-6",
@@ -1188,7 +1243,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.142Z",
+      "timestamp": "2026-08-11T18:46:43.386Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk6",
       "model": "claude-sonnet-4-6",
@@ -1201,7 +1256,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.142Z",
+      "timestamp": "2026-08-11T18:46:43.386Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk7",
       "model": "claude-sonnet-4-6",
@@ -1214,7 +1269,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.142Z",
+      "timestamp": "2026-08-11T18:46:43.387Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk8",
       "model": "claude-sonnet-4-6",
@@ -1227,7 +1282,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.143Z",
+      "timestamp": "2026-08-11T18:46:43.387Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk9",
       "model": "claude-sonnet-4-6",
@@ -1240,7 +1295,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.143Z",
+      "timestamp": "2026-08-11T18:46:43.387Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk10",
       "model": "claude-sonnet-4-6",
@@ -1253,7 +1308,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.143Z",
+      "timestamp": "2026-08-11T18:46:43.387Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk11",
       "model": "claude-sonnet-4-6",
@@ -1266,7 +1321,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.143Z",
+      "timestamp": "2026-08-11T18:46:43.387Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk12",
       "model": "claude-sonnet-4-6",
@@ -1279,7 +1334,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.144Z",
+      "timestamp": "2026-08-11T18:46:43.387Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk13",
       "model": "claude-sonnet-4-6",
@@ -1292,7 +1347,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.144Z",
+      "timestamp": "2026-08-11T18:46:43.387Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk14",
       "model": "claude-sonnet-4-6",
@@ -1305,7 +1360,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.144Z",
+      "timestamp": "2026-08-11T18:46:43.388Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk15",
       "model": "claude-sonnet-4-6",
@@ -1318,7 +1373,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.144Z",
+      "timestamp": "2026-08-11T18:46:43.388Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk16",
       "model": "claude-sonnet-4-6",
@@ -1331,7 +1386,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.144Z",
+      "timestamp": "2026-08-11T18:46:43.388Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk17",
       "model": "claude-sonnet-4-6",
@@ -1344,7 +1399,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.145Z",
+      "timestamp": "2026-08-11T18:46:43.388Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk18",
       "model": "claude-sonnet-4-6",
@@ -1357,7 +1412,7 @@
       "stopReason": "llm_circuit_open"
     },
     {
-      "timestamp": "2026-08-14T10:12:32.145Z",
+      "timestamp": "2026-08-11T18:46:43.388Z",
       "feature": "translation",
       "purpose": "locale-news.daily-ru-chunk19",
       "model": "claude-sonnet-4-6",

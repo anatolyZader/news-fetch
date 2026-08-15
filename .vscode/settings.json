@@ -1,4 +1,9 @@
 {
+  "terminal.integrated.enableBell": true,
+  "claudeNotifications.autoSetupHooks": true,
+  "claudeNotifications.completed.action": "Sound + Notification",
+  "claudeNotifications.waiting.action": "Sound + Notification",
+
   "typescript.tsserver.maxTsServerMemory": 8192,
   "javascript.tsserver.maxTsServerMemory": 8192,
   "typescript.tsserver.useSyntaxServer": "auto",
