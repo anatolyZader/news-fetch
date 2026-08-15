@@ -601,6 +601,32 @@ export function critiqueClaim({
  * @param {string} [filename]
  * @returns {object}
  */
+/**
+ * Code epoch that produced a report: scoring model version plus a hash of the
+ * routing table, both already stamped into every report's methodology block.
+ *
+ * This is the honest key for cross-report comparison. Recurrence is meant to
+ * separate a one-off from a systematic defect, and that only holds when the
+ * CODE is constant so the thing varying between reports is the FIELD. Pooled
+ * across epochs it measures something else entirely — how many renders were
+ * built from the same pre-fix bundle. The first full run of this pass reported
+ * six recurring findings and every one turned out to be a fixed defect frozen
+ * into old renders, because the corpus straddled two routing tables and was six
+ * versions behind the code it was supposedly critiquing.
+ *
+ * Render date only approximates this; the stamp is exact.
+ *
+ * @param {object} report
+ * @returns {string|null} null when the report predates the stamp
+ */
+export function reportCodeEpoch(report) {
+  const sm = report?.assessment?.methodology?.scoring_model;
+  const version = sm?.scoring_model_version;
+  if (!version) return null;
+  const sha = String(sm.signal_to_components_sha256 ?? '').slice(0, 8);
+  return sha ? `${version}/${sha}` : String(version);
+}
+
 function reportIdentity(report, filename) {
   const a = report?.assessment ?? {};
   return {
@@ -609,6 +635,7 @@ function reportIdentity(report, filename) {
     scope: a.report_scope?.id ?? null,
     days: report?.assessment_window?.days ?? null,
     generated_at: report?.generated_at ?? null,
+    code_epoch: reportCodeEpoch(report),
     total_articles_analyzed: a.total_articles_analyzed ?? null,
     /** Each signal counted once — the only trustworthy volume measure. Absent on pre-epoch reports. */
     scoped_signal_count: Number.isFinite(Number(a.scoped_signal_count))
@@ -731,6 +758,115 @@ function renderEpochCaveats(reports) {
 }
 
 /**
+ * Distinct report DATES in the sample — the real denominator for recurrence.
+ *
+ * Selection normally takes the newest run per data date, but a caller can pass
+ * several renders of one date. Those are the same field material rebuilt, so a
+ * claim "recurring" across them recurs trivially and says nothing about the
+ * pipeline. Recurrence must be counted over dates, never over files.
+ */
+function distinctReportDates(reports) {
+  return new Set(reports.map((r) => r.date).filter(Boolean)).size;
+}
+
+/**
+ * Split reports by code epoch and keep only the newest one.
+ *
+ * This is the correction to the date heuristic above. Recurrence compares
+ * reports to find defects that repeat; that inference is only valid when the
+ * code is held constant, so what varies between reports is the field. The first
+ * full run pooled two routing tables from a version six epochs behind current
+ * and reported six recurring findings, every one of which was a defect already
+ * fixed in-tree and merely frozen into old renders.
+ *
+ * Reports with no epoch stamp predate it entirely; they are dropped rather than
+ * pooled, and reported, because silently mixing them recreates the same fault.
+ *
+ * @param {object[]} reportCritiques per-report critiques with `.report.code_epoch`
+ * @returns {{ kept: object[], caveats: object[] }}
+ */
+function newestRenderOf(reportCritiqueList) {
+  return Math.max(...reportCritiqueList.map((rc) => Date.parse(rc.report.generated_at) || 0));
+}
+
+export function partitionByCodeEpoch(reportCritiques) {
+  const byEpoch = new Map();
+  const unstamped = [];
+  for (const rc of reportCritiques) {
+    const epoch = rc?.report?.code_epoch;
+    if (!epoch) {
+      unstamped.push(rc);
+      continue;
+    }
+    if (!byEpoch.has(epoch)) byEpoch.set(epoch, []);
+    byEpoch.get(epoch).push(rc);
+  }
+
+  if (byEpoch.size === 0) {
+    return {
+      kept: reportCritiques,
+      caveats: unstamped.length > 0 ? [{
+        kind: 'code_epoch_unstamped',
+        detail: 'no report in this window carries a scoring_model stamp, so the pass cannot tell '
+          + 'whether they came off the same build. Every finding below may be a fixed defect '
+          + 'frozen into an old render — treat recurrence as uninterpretable',
+        dates: reportCritiques.map((rc) => rc.report.date).filter(Boolean),
+      }] : [],
+    };
+  }
+
+  // Newest epoch = the one whose most recent render is latest.
+  const [epoch, kept] = [...byEpoch.entries()].sort((a, b) => newestRenderOf(b[1]) - newestRenderOf(a[1]))[0];
+
+  const caveats = [];
+  const dropped = reportCritiques.length - kept.length;
+  if (dropped > 0) {
+    caveats.push({
+      kind: 'code_epoch_scoped',
+      detail: `the window spanned ${byEpoch.size} code epoch(s)${unstamped.length ? ' plus unstamped reports' : ''}; `
+        + `only the newest (${epoch}) is critiqued, dropping ${dropped} report(s). Recurrence across `
+        + 'epochs measures the code change rather than the analysis, so pooling them would report '
+        + 'already-fixed defects as live ones. Re-run per epoch to compare epochs deliberately',
+      dates: [...byEpoch.keys()].map((e) => `${e}: ${byEpoch.get(e).length} report(s)`)
+        .concat(unstamped.length ? [`unstamped: ${unstamped.length} report(s)`] : []),
+    });
+  }
+  return { kept, caveats };
+}
+
+/**
+ * Minimum distinct report dates in one epoch before recurrence means anything.
+ *
+ * At `minRecurrence: 2` a two-date sample makes any repeated claim "recurring",
+ * which is a coin flip dressed as a finding. Three is the smallest sample where
+ * a claim can appear twice and be absent once.
+ */
+const MIN_EPOCH_REPORT_DATES = 3;
+
+/**
+ * Refuse to report recurrence on a sample too small to support it.
+ *
+ * Saying "not enough current-epoch material yet" is a more useful answer than a
+ * page of findings drawn from two reports, and it is the honest one: after an
+ * epoch bump the corpus genuinely cannot answer this question for a while.
+ *
+ * @param {object[]} reports report identities in the scoped epoch
+ * @returns {object[]} zero or one caveat
+ */
+function epochSampleCaveats(reports) {
+  const dates = distinctReportDates(reports);
+  if (dates >= MIN_EPOCH_REPORT_DATES) return [];
+  return [{
+    kind: 'epoch_sample_too_small',
+    detail: `this code epoch has only ${dates} distinct report date(s), below the `
+      + `${MIN_EPOCH_REPORT_DATES} needed for recurrence to distinguish a pattern from a `
+      + 'coincidence. Recurring findings are withheld — not because none exist, but because this '
+      + 'sample cannot tell. Component and source aggregates below remain valid',
+    dates: [...new Set(reports.map((r) => r.date).filter(Boolean))].sort(),
+  }];
+}
+
+/**
  * Cluster claims across reports by normalized-token similarity, partitioned by
  * component. The same sentence asserted under two different components is two
  * different findings — merging them hides which component to fix.
@@ -794,7 +930,14 @@ function countBy(items, keyFn) {
  * @param {object} [options.thresholds]
  * @returns {object} aggregate critique artifact body
  */
-export function aggregateCritiques(reportCritiques, { thresholds = CRITIQUE_DEFAULTS } = {}) {
+export function aggregateCritiques(allReportCritiques, { thresholds = CRITIQUE_DEFAULTS } = {}) {
+  // Scope to one code epoch before anything else: every count below compares
+  // reports to each other, and that only means something when the code that
+  // produced them was the same.
+  const { kept: reportCritiques, caveats: epochCaveats } = partitionByCodeEpoch(allReportCritiques);
+  const sampleCaveats = epochSampleCaveats(reportCritiques.map((r) => r.report));
+  const sampleTooSmall = sampleCaveats.length > 0;
+
   const allClaims = reportCritiques.flatMap((r) => r.claims);
   const weakClaims = allClaims.filter((c) => c.weakness_kinds.length > 0);
 
@@ -802,8 +945,11 @@ export function aggregateCritiques(reportCritiques, { thresholds = CRITIQUE_DEFA
 
   const recurring = clusters
     .map((cluster) => {
-      const reportKeys = distinct(cluster.members.map((m) => `${m.report.scope}:${m.report.date}:${m.report.file}`));
+      // Recurrence counts distinct report DATES, not files. Two renders of one
+      // date are the same field material rebuilt, so counting them as two would
+      // make any claim in a re-rendered report "recurring" for free.
       const dates = distinct(cluster.members.map((m) => m.report.date)).sort();
+      const reportKeys = distinct(cluster.members.map((m) => `${m.report.scope}:${m.report.date}`));
       const components = distinct(cluster.members.map((m) => m.component_id));
       const kinds = countBy(cluster.members, (m) => m.weakness_kinds);
       const persistentKinds = kinds
@@ -844,6 +990,11 @@ export function aggregateCritiques(reportCritiques, { thresholds = CRITIQUE_DEFA
       b.unsupported_in - a.unsupported_in
       || b.recurrence - a.recurrence
       || b.occurrences - a.occurrences);
+
+  // Withheld, not absent: on a sample this small the recurrence test cannot
+  // separate a pattern from a coincidence, and publishing findings anyway is
+  // how a coin flip gets read as a defect. The caveat says so in the artifact.
+  const reportedRecurring = sampleTooSmall ? [] : recurring;
 
   // Component-level chronic weakness: which components are weak in most reports.
   const componentRows = reportCritiques.flatMap((r) =>
@@ -939,6 +1090,8 @@ export function aggregateCritiques(reportCritiques, { thresholds = CRITIQUE_DEFA
           dates: emptyFailed.map((r) => r.report.date),
         }]
         : []),
+      ...epochCaveats,
+      ...sampleCaveats,
       ...renderEpochCaveats(reportCritiques.map((r) => r.report)),
     ],
     totals: {
@@ -959,14 +1112,18 @@ export function aggregateCritiques(reportCritiques, { thresholds = CRITIQUE_DEFA
         c.weakness_kinds.length === 0 && c.structural_kinds.length > 0).length,
       clean_claims: allClaims.filter((c) =>
         c.weakness_kinds.length === 0 && c.structural_kinds.length === 0).length,
-      recurring_findings: recurring.length,
+      recurring_findings: reportedRecurring.length,
+      /** Found before the sample-size gate; non-zero here with 0 reported means withheld. */
+      recurring_findings_withheld: recurring.length - reportedRecurring.length,
+      code_epoch: reportCritiques[0]?.report?.code_epoch ?? null,
+      report_dates_in_epoch: distinctReportDates(reportCritiques.map((r) => r.report)),
     },
     weakness_frequency: countBy(allClaims, (c) => c.weakness_kinds),
     context_frequency: countBy(allClaims, (c) => c.context_kinds),
     structural_frequency: countBy(allClaims, (c) => c.structural_kinds),
     signal_type_weakness: countBy(weakClaims, (c) => c.signal_types),
     source_weakness: countBy(weakClaims, (c) => c.sources),
-    recurring_weak_claims: recurring,
+    recurring_weak_claims: reportedRecurring,
     component_findings: componentFindings,
   };
 }

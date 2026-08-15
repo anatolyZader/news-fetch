@@ -12,6 +12,8 @@ import {
   critiqueReport,
   clusterClaims,
   aggregateCritiques,
+  partitionByCodeEpoch,
+  reportCodeEpoch,
 } from '../../../../../business_modules/resilience_scorer/domain/services/critique/crossReportCritique.js';
 
 function signal(overrides = {}) {
@@ -240,6 +242,13 @@ describe('crossReportCritique — clustering and aggregation', () => {
         claims: [withReport(claim('mutual aid networks organized rapidly', 'community_capital'), '2026-04-02', 'b.json')],
         component_summary: [],
       },
+      {
+        // Third date: below this the sample cannot separate a pattern from a
+        // coincidence, and recurring findings are withheld by design.
+        report: { date: '2026-04-03', scope: 'north', file: 'c.json', grounding_computed: true },
+        claims: [withReport(claim('shelters reopened on schedule', 'functional_continuity'), '2026-04-03', 'c.json')],
+        component_summary: [],
+      },
     ];
     const out = aggregateCritiques(critiques);
     assert.equal(out.recurring_weak_claims.length, 1);
@@ -278,5 +287,104 @@ describe('crossReportCritique — clustering and aggregation', () => {
     const out = aggregateCritiques(critiques);
     assert.equal(out.caveats[0].kind, 'grounding_not_computed');
     assert.equal(out.totals.reports_without_claims, 1);
+  });
+});
+
+function stamped(date, file, epochSha, version = 'v11') {
+  return {
+    assessment: {
+      date,
+      report_scope: { id: 'north' },
+      methodology: { scoring_model: { scoring_model_version: version, signal_to_components_sha256: epochSha } },
+    },
+  };
+}
+
+function critiqueRow(date, file, epoch, generatedAt) {
+  return {
+    report: { date, scope: 'north', file, grounding_computed: true, code_epoch: epoch, generated_at: generatedAt },
+    claims: [withReport(claim('mutual aid networks organized rapidly', 'community_capital'), date, file)],
+    component_summary: [],
+  };
+}
+
+describe('crossReportCritique — code epoch scoping', () => {
+  it('reads the epoch from the scoring_model stamp', () => {
+    assert.equal(reportCodeEpoch(stamped('2026-04-02', 'a.json', 'd0686656aaaa')), 'v11/d0686656');
+  });
+
+  it('returns null for a report that predates the stamp', () => {
+    assert.equal(reportCodeEpoch({ assessment: { date: '2026-04-02' } }), null);
+  });
+
+  it('keeps only the newest epoch and says what it dropped', () => {
+    const rows = [
+      critiqueRow('2026-04-01', 'a.json', 'v5/old', '2026-06-10T00:00:00Z'),
+      critiqueRow('2026-04-02', 'b.json', 'v5/old', '2026-06-11T00:00:00Z'),
+      critiqueRow('2026-04-03', 'c.json', 'v11/new', '2026-08-10T00:00:00Z'),
+      critiqueRow('2026-04-04', 'd.json', 'v11/new', '2026-08-11T00:00:00Z'),
+      critiqueRow('2026-04-05', 'e.json', 'v11/new', '2026-08-12T00:00:00Z'),
+    ];
+    const { kept, caveats } = partitionByCodeEpoch(rows);
+    assert.equal(kept.length, 3);
+    assert.ok(kept.every((r) => r.report.code_epoch === 'v11/new'));
+    assert.equal(caveats[0].kind, 'code_epoch_scoped');
+    assert.match(caveats[0].detail, /2 code epoch/);
+  });
+
+  it('does not scope when every report shares one epoch', () => {
+    const rows = [
+      critiqueRow('2026-04-01', 'a.json', 'v11/new', '2026-08-10T00:00:00Z'),
+      critiqueRow('2026-04-02', 'b.json', 'v11/new', '2026-08-11T00:00:00Z'),
+    ];
+    const { kept, caveats } = partitionByCodeEpoch(rows);
+    assert.equal(kept.length, 2);
+    assert.deepEqual(caveats, []);
+  });
+
+  it('flags an entirely unstamped corpus as uninterpretable rather than pooling it silently', () => {
+    const rows = [
+      { report: { date: '2026-04-01', scope: 'north', file: 'a.json', code_epoch: null }, claims: [], component_summary: [] },
+    ];
+    const { kept, caveats } = partitionByCodeEpoch(rows);
+    assert.equal(kept.length, 1);
+    assert.equal(caveats[0].kind, 'code_epoch_unstamped');
+  });
+
+  it('withholds recurring findings when the epoch has too few report dates', () => {
+    const rows = [
+      critiqueRow('2026-04-01', 'a.json', 'v11/new', '2026-08-10T00:00:00Z'),
+      critiqueRow('2026-04-02', 'b.json', 'v11/new', '2026-08-11T00:00:00Z'),
+    ];
+    const out = aggregateCritiques(rows);
+    assert.deepEqual(out.recurring_weak_claims, [], 'two dates cannot separate pattern from coincidence');
+    assert.equal(out.totals.recurring_findings, 0);
+    assert.equal(out.totals.recurring_findings_withheld, 1, 'withheld, not absent');
+    assert.ok(out.caveats.some((c) => c.kind === 'epoch_sample_too_small'));
+    assert.equal(out.totals.report_dates_in_epoch, 2);
+  });
+
+  it('counts recurrence over dates, not over re-renders of one date', () => {
+    const rows = [
+      critiqueRow('2026-04-02', 'first.json', 'v11/new', '2026-08-10T00:00:00Z'),
+      critiqueRow('2026-04-02', 'rerender.json', 'v11/new', '2026-08-11T00:00:00Z'),
+      critiqueRow('2026-04-03', 'other.json', 'v11/new', '2026-08-12T00:00:00Z'),
+      // A third date so the sample gate lets findings through; its claim differs
+      // so it does not itself add to this cluster's recurrence.
+      {
+        report: {
+          date: '2026-04-04', scope: 'north', file: 'd.json',
+          grounding_computed: true, code_epoch: 'v11/new', generated_at: '2026-08-13T00:00:00Z',
+        },
+        claims: [withReport(claim('shelters reopened on schedule', 'functional_continuity'), '2026-04-04', 'd.json')],
+        component_summary: [],
+      },
+    ];
+    const out = aggregateCritiques(rows);
+    const finding = out.recurring_weak_claims.find((f) => f.component_id === 'community_capital');
+    // Four files, three claim-bearing dates — the two renders of 04-02 count once,
+    // so this cluster spans 04-02 and 04-03 only.
+    assert.equal(finding.recurrence, 2);
+    assert.deepEqual(finding.dates, ['2026-04-02', '2026-04-03']);
   });
 });
