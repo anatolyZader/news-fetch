@@ -10,6 +10,12 @@ import {
 import { polishNarrativeFromClaims } from '../../infrastructure/narrativePolish.js';
 import { buildFullSignalDigest } from '../../domain/services/narrative/buildFullSignalDigest.js';
 import {
+  SCOPE_MARKER_PREFIX,
+  checkComponentScopeSegregation,
+  isContextDerivedClaim,
+  isScopeGateEnabled,
+} from '../../domain/services/narrativeGrounding/scopeSegregation.js';
+import {
   buildDigestStubClaims,
   mergeAgentClaimsWithFacts,
   supplementFactsWithDigestStubs,
@@ -346,7 +352,16 @@ function applyPolishLegToComponent(comp, leg, groundingScores, registry, reportD
   if (!narrative) return;
 
   comp.narrative_user = narrative;
-  comp.narrative_grounding_score = groundingScores?.byComponent?.[comp.component_id]?.score ?? null;
+
+  // The checker already returns issues and an interpretive verdict; keeping only
+  // the number is how a report full of ungrounded prose looked identical to a
+  // clean one. Write all three.
+  const grounding = groundingScores?.byComponent?.[comp.component_id] ?? null;
+  comp.narrative_grounding_score = grounding?.score ?? null;
+  if (Array.isArray(grounding?.issues)) comp.grounding_issues = grounding.issues;
+  if (grounding?.interpretive_summary != null) {
+    comp.interpretive_summary = grounding.interpretive_summary;
+  }
 
   if (Array.isArray(leg.evidence) && leg.evidence.length > 0) {
     comp.evidence_user = leg.evidence;
@@ -520,6 +535,42 @@ function backfillUserNarrativeFromClaims(comp, mergedClaims, registry, assessmen
  * @param {object} registry
  * @param {object} assessment
  */
+/**
+ * Enforce scope segregation on generated prose.
+ *
+ * The polish prompt asks for out-of-scope evidence to be segregated behind a
+ * marker sentence; asking was not enough — north 2026-04-02 complied in 0 of 8
+ * components and wrote an Ashdod/Ashkelon early-warning failure as a northern
+ * finding. On violation the LLM prose is discarded and the component falls back
+ * to deterministic claim prose, with context claims pushed last behind the
+ * marker so the fallback is compliant by construction.
+ *
+ * Per-component: one bad component does not cost the others their narrative.
+ */
+function enforceScopeSegregation(comp, registry, assessment) {
+  if (!isScopeGateEnabled()) return;
+  const claims = comp.narrative_claims ?? [];
+  const check = checkComponentScopeSegregation({
+    prose: comp.narrative_user,
+    claims,
+    registry,
+  });
+  if (check.ok) return;
+
+  const local = claims.filter((c) => !isContextDerivedClaim(c, registry));
+  const context = claims
+    .filter((c) => isContextDerivedClaim(c, registry))
+    .map((c) => ({ ...c, text: `${SCOPE_MARKER_PREFIX} ${String(c.text ?? '').trim()}` }));
+  comp.narrative_claims = [...local, ...context];
+  comp.narrative_user = '';
+
+  assessment.narrative_pipeline_degraded = true;
+  assessment.narrative_pipeline_degrade_reasons = [
+    ...(assessment.narrative_pipeline_degrade_reasons ?? []),
+    ...check.violations,
+  ];
+}
+
 function applyNarrativeToAssessmentComponent(
   comp,
   polishById,
@@ -539,6 +590,9 @@ function applyNarrativeToAssessmentComponent(
   if (!comp.narrative_claims?.length && mergedClaims.length > 0) {
     comp.narrative_claims = mergedClaims;
   }
+
+  // Before the backfill, so a rejected narrative is rebuilt from claims below.
+  enforceScopeSegregation(comp, registry, assessment);
 
   backfillUserNarrativeFromClaims(comp, mergedClaims, registry, assessment);
 }

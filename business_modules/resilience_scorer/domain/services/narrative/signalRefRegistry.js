@@ -11,6 +11,11 @@
  * `user/evidenceFormatting.js`.
  */
 
+import {
+  deriveSignalProvenance,
+  isContextOnlySignal,
+} from '../signals/evidenceEligibility.js';
+
 // ── Ref keys ──────────────────────────────────────────────────────────────────
 
 /**
@@ -113,9 +118,10 @@ export function formatSignalWithRef(signal, entry) {
   const fd = formatSignalDateLine(signal);
   const urlLine = signal.article_url ? `\n  URL: ${signal.article_url}` : '';
   const geoTags = geoAuditTagsForSignal(signal);
+  const scopeTag = scopeAuditTagForSignal(signal);
   return (
     `[${entry.label}] ref=${entry.ref} type=${type} ev:${evType} attribution:${attribution}\n` +
-    `${fd}  Evidence: "${signal.evidence ?? ''}"${urlLine}${geoTags}`
+    `${fd}  Evidence: "${signal.evidence ?? ''}"${urlLine}${geoTags}${scopeTag}`
   );
 }
 
@@ -139,6 +145,27 @@ function geoAuditTagsForSignal(s) {
   if (prov) parts.push(`geo:provenance=${prov}`);
   if (s.metricsEligible === false) parts.push('metricsEligible=false');
   return parts.length ? `\n  Geo audit: ${parts.join(' ')}` : '';
+}
+
+/**
+ * Scope tag for evidence that is NOT scope-local.
+ *
+ * The polish prompt already requires national/regional context to be segregated
+ * into its own trailing sentences, but the model was never shown which refs
+ * carry that provenance — the rule was unfollowable by construction, and
+ * compliance was 0 of 8 components on north 2026-04-02, where a claim about
+ * sirens in Ashdod and Ashkelon was written as a northern finding.
+ *
+ * Emitted only for context provenances, so scope-local signals — the common
+ * case — cost nothing in prompt tokens.
+ *
+ * @param {object} s
+ * @returns {string}
+ */
+function scopeAuditTagForSignal(s) {
+  if (!isContextOnlySignal(s)) return '';
+  const provenance = s?.signalProvenance ?? deriveSignalProvenance(s);
+  return `\n  Scope: NOT-LOCAL (${provenance}) — context only, not scope-local evidence`;
 }
 
 /**

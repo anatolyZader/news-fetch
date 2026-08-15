@@ -17,6 +17,7 @@ import {
 } from './apaCitationFormat.js';
 import {
   apaSourceFromSignalEntry,
+  citationDateLabelForSignal,
   INTERNAL_REF_BRACKET,
 } from './citationDisplay.js';
 import { evidenceAnchorHref } from './evidenceAnchor.js';
@@ -103,7 +104,14 @@ function apaForSources(sources, reportDate, opts = {}) {
     .map((s) => ({
       author: s.author,
       url: s.url ?? null,
-      dateLabel: s.sourceDate ? formatApaCitationDate(s.sourceDate) : null,
+      // Per-source-type shape: PBO returns cite dd-mm, press dd:mm:yyyy, the
+      // rest keep the APA label. Falls back to the report date when the source
+      // carries no date of its own.
+      dateLabel: citationDateLabelForSignal(
+        { source_type: s.sourceType },
+        s.sourceDate ?? reportDate,
+        formatApaCitationDate,
+      ) || null,
       evidenceHref: linkMode === 'evidence'
         ? evidenceHrefForSource(s, componentId)
         : null,

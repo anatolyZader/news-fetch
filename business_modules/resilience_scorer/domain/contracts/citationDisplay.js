@@ -35,6 +35,50 @@ export function sourceTypeCitationLabel(sourceType) {
   return 'Source';
 }
 
+const PBO_SOURCE_TYPES = new Set(['pbo', 'pbo_regional']);
+const PRESS_SOURCE_TYPES = new Set(['press', 'news']);
+
+/** ISO YYYY-MM-DD → {y, m, d} strings, or null when unparseable. */
+function isoDateParts(isoDate) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(isoDate ?? '').trim());
+  return m ? { y: m[1], m: m[2], d: m[3] } : null;
+}
+
+/**
+ * Municipality of a PBO signal, from the deterministic `pbo-<name>` unit id set
+ * by the extract-unit builder. The same convention is read in
+ * domain/services/signals/pboReviewStateResolution.js — keep them in step.
+ *
+ * @param {object|null|undefined} signal
+ * @returns {string|null}
+ */
+export function pboMunicipalityForCitation(signal) {
+  if (signal?.municipality) return String(signal.municipality).trim() || null;
+  const source = String(signal?.article_source ?? '').trim();
+  return source.startsWith('pbo-') ? source.slice('pbo-'.length) || null : null;
+}
+
+/**
+ * Per-source-type inline citation date.
+ *
+ * PBO returns are a municipal report for a day, so the year adds nothing a
+ * reader needs mid-sentence: `dd-mm`. Press is archival and dated precisely:
+ * `dd:mm:yyyy`. Everything else keeps the APA `DD Mon YYYY` label.
+ *
+ * @param {object|null|undefined} signal
+ * @param {string|null|undefined} isoDate ISO YYYY-MM-DD
+ * @param {(iso: string) => string} apaFallback formatApaCitationDate
+ * @returns {string}
+ */
+export function citationDateLabelForSignal(signal, isoDate, apaFallback) {
+  const parts = isoDateParts(isoDate);
+  if (!parts) return '';
+  const st = String(signal?.source_type ?? '').trim().toLowerCase();
+  if (PBO_SOURCE_TYPES.has(st)) return `${parts.d}-${parts.m}`;
+  if (PRESS_SOURCE_TYPES.has(st)) return `${parts.d}:${parts.m}:${parts.y}`;
+  return typeof apaFallback === 'function' ? apaFallback(isoDate) : '';
+}
+
 /**
  * @param {string|null|undefined} url
  * @returns {string|null}
@@ -51,9 +95,16 @@ function cleanArticleUrl(url) {
  * @returns {string}
  */
 export function citationAuthorForSignal(signal) {
+  const st = String(signal?.source_type ?? '').trim().toLowerCase();
+  // PBO first: a municipal return is only interpretable with the municipality
+  // named, and it carries no URL to fall back on.
+  if (PBO_SOURCE_TYPES.has(st)) {
+    const municipality = pboMunicipalityForCitation(signal);
+    const label = sourceTypeCitationLabel(st);
+    return municipality ? `${label}, ${municipality}` : label;
+  }
   const url = cleanArticleUrl(signal?.article_url);
   if (url) return apaAuthorFromUrl(url);
-  const st = String(signal?.source_type ?? '').trim().toLowerCase();
   if (FIELD_SOURCE_TYPES.has(st)) return 'Field visit';
   if (st) return sourceTypeCitationLabel(signal?.source_type);
   const articleSource = String(signal?.article_source ?? '').trim();
@@ -73,7 +124,14 @@ export function apaSourceFromSignalEntry(entry) {
   const author = citationAuthorForSignal(signal);
   if (!author) return null;
   const url = cleanArticleUrl(signal?.article_url);
-  return { author, url, sourceDate: signal?.visit_date ?? null };
+  return {
+    author,
+    url,
+    sourceDate: signal?.visit_date ?? null,
+    // Carried so the resolver can pick the per-source-type date shape without
+    // re-deriving source_type from a stripped-down source object.
+    sourceType: signal?.source_type ?? null,
+  };
 }
 
 /**

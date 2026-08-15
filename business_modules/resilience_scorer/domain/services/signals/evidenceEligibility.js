@@ -78,6 +78,33 @@ export function deriveSignalProvenance(signal) {
 }
 
 /**
+ * Provenances describing somewhere other than the report's own scope. Evidence
+ * carrying one of these is background — usable to frame a report, never as a
+ * finding about it.
+ */
+const CONTEXT_ONLY_PROVENANCES = new Set([
+  SIGNAL_PROVENANCE.macro_national,
+  SIGNAL_PROVENANCE.narrative_national_context,
+  SIGNAL_PROVENANCE.regional_press_context,
+]);
+
+/**
+ * Whether a signal describes somewhere other than the report scope.
+ *
+ * Single definition shared by the metrics path (which already excluded these)
+ * and the narrative path (which did not, and so wrote national findings as
+ * local ones — north 2026-04-02 asserted an early-warning failure in Ashdod and
+ * Ashkelon off a `narrative_national_context` signal).
+ *
+ * @param {object} signal
+ * @returns {boolean}
+ */
+export function isContextOnlySignal(signal) {
+  const provenance = signal?.signalProvenance ?? deriveSignalProvenance(signal);
+  return CONTEXT_ONLY_PROVENANCES.has(provenance);
+}
+
+/**
  * Whether signal may contribute to count-based component metrics (evidence_basis inputs).
  *
  * @param {object} signal
@@ -89,12 +116,7 @@ export function metricsEligible(signal, opts = {}) {
     && process.env.RESILIENCE_EPISTEMIC_GEO_V2 !== '0';
   if (!epistemicV2) return true;
 
-  const provenance = signal?.signalProvenance ?? deriveSignalProvenance(signal);
-  if (provenance === SIGNAL_PROVENANCE.macro_national
-    || provenance === SIGNAL_PROVENANCE.narrative_national_context
-    || provenance === SIGNAL_PROVENANCE.regional_press_context) {
-    return false;
-  }
+  if (isContextOnlySignal(signal)) return false;
 
   const g = signal?.geo;
   if (g?.kind === 'resolved') {
