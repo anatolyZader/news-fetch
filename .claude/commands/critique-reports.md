@@ -75,7 +75,7 @@ Once the fan-out returns, look across the verdicts for the patterns that matter.
 
 **Step 4 — Write the critique file**
 
-Write to `business_modules/resilience_scorer/data/critiques/critique-<scope>-<from>-to-<to>.md` (same base name as the JSON artifact). Structure:
+Write to `business_modules/resilience_scorer/developer/data/critiques/critique-<scope>-<from>-to-<to>.md` — same base name as the JSON artifact, but under `developer/data/`, not beside it. The JSON is machine output and lives in the gitignored `data/` tree with every other pipeline artifact; this file is a written analysis and belongs with the `/review-signals` output in `developer/data/`, which is tracked. Structure:
 
 ```markdown
 # Cross-Report Critique: <scope> <from> → <to>
