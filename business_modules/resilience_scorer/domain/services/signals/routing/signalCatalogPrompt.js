@@ -54,9 +54,18 @@ export const DISAMBIGUATION_PRIORITY_TYPES = [
   // the stable prefix, which is hard-budgeted (coreExtractionStablePrefixCharBudget)
   // and was already within ~50 chars of its ceiling. Their boundaries are instead
   // carried by their catalog labels — which the extractor also reads, via
-  // formatSignalCatalog, and which cost nothing against this budget. Their
-  // `disambiguation` entries remain for the per-domain subset prompts and for
-  // review tooling. Promote one here only by demoting another.
+  // formatSignalCatalog, and which cost nothing against this budget.
+  // Promote one here only by demoting another.
+  //
+  // v10 correction: an earlier version of this note claimed their
+  // `disambiguation` entries were still "carried by the per-domain subset
+  // prompts". They are not. buildPassScopeSuffix renders formatSignalCatalogSubset,
+  // which emits labels only, and formatDisambiguationBlock is called in exactly
+  // one place with no `types` argument — so it only ever walks the list above.
+  // `disambiguation` on a type that is NOT listed here reaches no prompt at all
+  // and survives only for review tooling. That is why the v10 provider/recipient
+  // and state/act boundaries went into labels rather than reject_patterns:
+  // reject_patterns on those types would have been read by nobody.
 ];
 
 // --- Catalog list formatting -------------------------------------------------

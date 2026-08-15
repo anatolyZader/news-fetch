@@ -243,3 +243,59 @@ describe('containsHebrew', () => {
     assert.equal(containsHebrew(123), false);
   });
 });
+
+describe('verifyEvidenceAgainstArticle — gloss-stripped retry', () => {
+  const hebrewBody =
+    'בביקור השטח עלה כי ממ״דים תקועים בבנייה לאורך שנים והתושבים ממתינים להשלמת העבודות. ' +
+    'כמו כן דווח על הצורך בהוספת מיגוניות בכבישים ביישוב.';
+
+  it('rescues Hebrew evidence carrying an English translation gloss', () => {
+    const signal = {
+      signal_type: 'protective_infrastructure_absent',
+      evidence_type: 'observational_reported_fact',
+      evidence: 'ממ״דים תקועים בבנייה לאורך שנים ( mamads stuck in construction for years)',
+    };
+    const r = verifyEvidenceAgainstArticle(signal, hebrewBody);
+    assert.equal(r.ok, true);
+    assert.equal(r.gloss_stripped, true);
+  });
+
+  it('does not mark a clean Hebrew match as gloss-stripped', () => {
+    const signal = {
+      signal_type: 'protective_infrastructure_absent',
+      evidence_type: 'observational_reported_fact',
+      evidence: 'ממ״דים תקועים בבנייה לאורך שנים',
+    };
+    const r = verifyEvidenceAgainstArticle(signal, hebrewBody);
+    assert.equal(r.ok, true);
+    assert.equal(r.gloss_stripped, undefined);
+  });
+
+  it('still fails evidence the article does not support, gloss or not', () => {
+    const signal = {
+      signal_type: 'harm_to_population',
+      evidence_type: 'observational_reported_fact',
+      evidence: 'שלושה בתי ספר נהרסו כליל בעיר (three schools completely destroyed)',
+    };
+    const r = verifyEvidenceAgainstArticle(signal, hebrewBody);
+    assert.equal(r.ok, false);
+  });
+
+  it('honours the RESILIENCE_GLOSS_STRIP_VERIFY kill switch', () => {
+    const signal = {
+      signal_type: 'protective_infrastructure_absent',
+      evidence_type: 'observational_reported_fact',
+      evidence: 'ממ״דים תקועים בבנייה לאורך שנים ( mamads stuck in construction for years)',
+    };
+    const prev = process.env.RESILIENCE_GLOSS_STRIP_VERIFY;
+    process.env.RESILIENCE_GLOSS_STRIP_VERIFY = '0';
+    try {
+      const r = verifyEvidenceAgainstArticle(signal, hebrewBody);
+      assert.equal(r.ok, false);
+      assert.equal(r.reason, 'low_similarity');
+    } finally {
+      if (prev === undefined) delete process.env.RESILIENCE_GLOSS_STRIP_VERIFY;
+      else process.env.RESILIENCE_GLOSS_STRIP_VERIFY = prev;
+    }
+  });
+});

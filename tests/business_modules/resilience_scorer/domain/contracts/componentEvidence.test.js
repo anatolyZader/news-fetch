@@ -214,12 +214,155 @@ describe('derivePboReviewCompleteness', () => {
     ]);
     assert.equal(out.pbo_primary_count, 1);
     assert.equal(out.reviewed_incomplete, 0);
-    assert.equal(out.incomplete_share, 0);
+    // null, not 0 — nothing here was reviewed, so there is no share to report.
+    assert.equal(out.incomplete_share, null);
   });
 
   it('treats an unrecognised state as unreviewed', () => {
     const out = derivePboReviewCompleteness([pboReviewItem('something_else')]);
     assert.equal(out.unreviewed, 1);
     assert.equal(out.reviewed_incomplete, 0);
+  });
+});
+
+// non_compliance_ignore_guidelines routes: lifesaving_behavior primary '-',
+// leadership inferred '-'.
+function nonComplianceSignal() {
+  return {
+    signal_type: 'non_compliance_ignore_guidelines',
+    source_type: 'pbo',
+    article_source: 'pbo-צפת',
+    article_url: 'https://example.com/safed',
+    grounding_tier: 'grounded',
+    evidence: 'רכבים המשיכו בנסיעתם במהלך האזעקה',
+  };
+}
+
+describe('presence gate — routing role and visibility', () => {
+  it('does not trip the gate on a component reached only by an inferred edge', () => {
+    const { by_component } = buildComponentEvidence([nonComplianceSignal()]);
+    assert.equal(by_component.leadership.critical_flags.presence_gate, null);
+    assert.equal(by_component.leadership.critical_flags.salient_single_signal, null);
+  });
+
+  it('still trips the gate on the primary-edge component', () => {
+    const { by_component } = buildComponentEvidence([nonComplianceSignal()]);
+    const gate = by_component.lifesaving_behavior.critical_flags.presence_gate;
+    assert.ok(gate, 'lifesaving_behavior should still gate');
+    assert.equal(gate.signal_type, 'non_compliance_ignore_guidelines');
+  });
+
+  it('stamps presence_gate_trigger on the slim row that tripped it', () => {
+    const { by_component } = buildComponentEvidence([nonComplianceSignal()]);
+    const rows = by_component.lifesaving_behavior.signals;
+    const trigger = rows.filter((r) => r.presence_gate_trigger);
+    assert.equal(trigger.length, 1);
+    assert.equal(trigger[0].signal_type, 'non_compliance_ignore_guidelines');
+    assert.equal(by_component.leadership.signals.some((r) => r.presence_gate_trigger), false);
+  });
+});
+
+function pboLeadershipSignal(i, muni) {
+  return {
+    signal_type: 'leadership_visible_presence',
+    source_type: 'pbo',
+    article_source: `pbo-${muni}`,
+    article_url: `https://example.com/pbo-${muni}-${i}`,
+    evidence: `Local leadership is visible (${i}).`,
+  };
+}
+
+describe('deriveConcentrationWarning — single-key regression', () => {
+  it('warns when a single outlet holds 100% of the evidence', () => {
+    const signals = [0, 1, 2, 3].map((i) => pboLeadershipSignal(i, 'safed'));
+    const { by_component } = buildComponentEvidence(signals);
+    const cw = by_component.leadership.evidence_basis.concentration_warning;
+    assert.ok(cw, 'a 100%-single-outlet component must warn, not go silent');
+    assert.equal(cw.share, 1);
+  });
+
+  it('does not warn on an all-unattributed pool', () => {
+    const signals = [0, 1, 2, 3].map((i) => ({
+      signal_type: 'leadership_visible_presence',
+      evidence: `Unattributed note ${i}.`,
+    }));
+    const { by_component } = buildComponentEvidence(signals);
+    assert.equal(by_component.leadership.evidence_basis.concentration_warning, null);
+  });
+});
+
+function leadershipSignalFrom(sourceType, i) {
+  return {
+    signal_type: 'leadership_visible_presence',
+    source_type: sourceType,
+    article_source: `${sourceType}-${i}`,
+    article_url: `https://example.com/${sourceType}-${i}`,
+    evidence: `Leadership is visible (${sourceType} ${i}).`,
+  };
+}
+
+describe('source_class_exposure', () => {
+  it('marks leadership as self-assessed when PBO reports dominate', () => {
+    const signals = [...Array.from({ length: 9 }, (_, i) => leadershipSignalFrom('pbo', i)), leadershipSignalFrom('news', 0)];
+    const sce = buildComponentEvidence(signals).by_component.leadership.evidence_basis.source_class_exposure;
+    assert.equal(sce.self_assessed, true);
+    assert.equal(sce.self_reported_share, 0.9);
+    assert.equal(sce.independent_share, 0.1);
+  });
+
+  it('catches a component with no independent corroboration that no outlet threshold sees', () => {
+    // 40 distinct municipalities plus field visits: no single outlet is close
+    // to the 0.6 outlet threshold, yet independent corroboration is ~nil.
+    const signals = [
+      ...Array.from({ length: 40 }, (_, i) => leadershipSignalFrom('pbo', i)),
+      ...Array.from({ length: 20 }, (_, i) => leadershipSignalFrom('visits', i)),
+      leadershipSignalFrom('news', 0),
+    ];
+    const basis = buildComponentEvidence(signals).by_component.leadership.evidence_basis;
+    assert.equal(basis.concentration_warning, null, 'per-outlet threshold stays silent here');
+    assert.ok(basis.source_class_exposure.independent_share <= 0.02);
+  });
+
+  it('does not mark a component self-assessed when the PBO describes a third party', () => {
+    const signals = Array.from({ length: 5 }, (_, i) => ({
+      signal_type: 'vulnerable_population_mapping',
+      source_type: 'pbo',
+      article_source: `pbo-${i}`,
+      article_url: `https://example.com/pbo-${i}`,
+      evidence: `At-risk residents are mapped (${i}).`,
+    }));
+    const sce = buildComponentEvidence(signals).by_component.wellbeing_at_risk.evidence_basis.source_class_exposure;
+    assert.equal(sce.self_assessed, false);
+    assert.equal(sce.self_reported_share, 0);
+  });
+});
+
+function reviewStateItem(state) {
+  return { signal: { pbo_review_state: state, source_type: 'pbo' } };
+}
+
+describe('derivePboReviewCompleteness — nothing reviewed is not clean', () => {
+  it('reports a null incomplete_share when no municipality was reviewed', () => {
+    const rc = derivePboReviewCompleteness([reviewStateItem('unreviewed'), reviewStateItem('unreviewed')]);
+    assert.equal(rc.unreviewed, 2);
+    assert.equal(rc.reviewed_count, 0);
+    assert.equal(rc.review_coverage_share, 0);
+    assert.equal(rc.incomplete_share, null, 'zero would read as "reviewed and clean"');
+  });
+
+  it('reports a numeric share once anything has been reviewed', () => {
+    const rc = derivePboReviewCompleteness([
+      reviewStateItem('reviewed_incomplete'),
+      reviewStateItem('reviewed_sufficient'),
+      reviewStateItem('unreviewed'),
+      reviewStateItem('unreviewed'),
+    ]);
+    assert.equal(rc.reviewed_count, 2);
+    assert.equal(rc.review_coverage_share, 0.5);
+    assert.equal(rc.incomplete_share, 0.25);
+  });
+
+  it('still returns null when no signal carries a review state at all', () => {
+    assert.equal(derivePboReviewCompleteness([{ signal: { source_type: 'news' } }]), null);
   });
 });

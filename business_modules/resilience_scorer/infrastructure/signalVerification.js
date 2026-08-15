@@ -23,8 +23,14 @@ import {
   shingles,
   tokenize,
 } from '../domain/services/signals/textSimilarity.js';
+import { stripLatinGloss } from '../domain/services/signals/hygiene/fieldReportHygiene.js';
 
 const HEBREW_LETTER_RE = /[\u0590-\u05FF]/;
+
+/** Kill-switch: set RESILIENCE_GLOSS_STRIP_VERIFY=0 to disable the gloss-stripped retry. */
+export function isGlossStripVerifyEnabled(env = process.env) {
+  return env.RESILIENCE_GLOSS_STRIP_VERIFY !== '0';
+}
 
 /**
  * Verify character-offset evidence_span against article body (exact, substring, or subsequence).
@@ -209,7 +215,18 @@ export function verifyEvidenceAgainstArticle(signal, articleBody) {
     if (spanResult.ok) return spanResult;
   }
 
-  return verifyShingleContainment(signal, articleBody, quoteText);
+  const primary = verifyShingleContainment(signal, articleBody, quoteText);
+  if (primary.ok || !isGlossStripVerifyEnabled()) return primary;
+
+  // Second candidate: the same quote with the extractor's translation gloss
+  // removed. Non-destructive — `evidence` is never rewritten, and a failure
+  // here returns the original verdict, so no currently-grounded signal can
+  // regress. See fieldReportHygiene.stripLatinGloss for why glosses exist.
+  const stripped = stripLatinGloss(quoteText);
+  if (stripped === quoteText || !stripped.trim()) return primary;
+
+  const rescued = verifyShingleContainment(signal, articleBody, stripped);
+  return rescued.ok ? { ...rescued, gloss_stripped: true } : primary;
 }
 
 /**

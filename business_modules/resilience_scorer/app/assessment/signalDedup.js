@@ -81,6 +81,151 @@ function semanticWeight(s) {
   return (s.temporal_weight ?? 1) + reliabilityRank(s) * 0.01;
 }
 
+/** Best-first grounding tiers: the surviving row of an event inherits the strongest verdict. */
+const GROUNDING_TIER_RANK = { grounded: 3, weak: 2, unverified_critical: 1, rejected: 0 };
+
+/**
+ * How narrow a claim is. When several outlets report one event, the row making
+ * the most specific claim is the honest representative — collapsing onto a
+ * broad "150 rockets were launched at the north" would silently widen a
+ * single-building casualty report.
+ */
+const SCOPE_SPECIFICITY = {
+  single_incident: 4,
+  single_case: 4,
+  locality_specific: 3,
+  local: 3,
+  repeated_pattern: 2,
+  quantified_or_broad: 1,
+};
+
+/** Non-representative variants kept for traceability; bounded so reports stay readable. */
+const EVENT_VARIANT_CAP = 5;
+
+function eventDedupEnabled(env = process.env) {
+  return env.RESILIENCE_EVENT_DEDUP !== '0';
+}
+
+function eventDate(s) {
+  return s.article_date ?? s.signal_date ?? s.signal_file_date ?? '';
+}
+
+/**
+ * Place term of the event key. Prefers the resolved geo canonical key, because
+ * five outlets will not agree on a spelling — "Kiryat Shmona" / "קרית שמונה" /
+ * "Qiryat Shemona" all resolve to one canonical key, and keying on the raw
+ * string would silently under-merge. Falls back to the raw locality when geo
+ * resolution did not run or did not match.
+ */
+function eventPlace(s) {
+  const canonical = s?.geo?.resolution?.canonicalKey;
+  if (canonical) return String(canonical);
+  return String(s?.locality ?? '').trim().toLowerCase();
+}
+
+function scopeSpecificity(s) {
+  return SCOPE_SPECIFICITY[s.scope_level] ?? 0;
+}
+
+function groundingRank(s) {
+  return GROUNDING_TIER_RANK[s.grounding_tier] ?? -1;
+}
+
+/** More specific claim wins; ties fall back to the (temporal_weight, reliability) tuple. */
+function isBetterRepresentative(candidate, current) {
+  const ds = scopeSpecificity(candidate) - scopeSpecificity(current);
+  if (ds !== 0) return ds > 0;
+  return semanticWeight(candidate) > semanticWeight(current);
+}
+
+/**
+ * Collapse one real-world event reported by several news outlets into a single
+ * signal.
+ *
+ * `crossSourceDedup` keys on the evidence text, so four differently-worded
+ * reports of the same rocket impact survive as four signals and inflate both
+ * signal mass and `distinct_article_count`. The semantic story-cluster pass
+ * (storyClusterIndex) only catches near-paraphrases — its threshold is 0.93 —
+ * so it leaves them apart too. This deterministic pass keys on what actually
+ * identifies an event: type, locality and date.
+ *
+ * News only. PBO and field reports describe standing conditions rather than
+ * incidents, and two municipalities reporting the same pattern on the same day
+ * are genuinely two observations.
+ *
+ * The survivor inherits the BEST grounding tier in the group: the same Kiryat
+ * Shmona casualty fact was graded `grounded` by two outlets and
+ * `unverified_critical` by two others, and one event should carry one verdict.
+ *
+ * @param {Array<object>} signals
+ * @returns {Array<object>}
+ */
+export function collapseNewsEvents(signals) {
+  if (!eventDedupEnabled()) return signals ?? [];
+  const { passthrough, byEvent } = groupNewsEvents(signals ?? []);
+  const collapsed = [...byEvent.values()].map(mergeEventGroup);
+
+  const before = (signals ?? []).length;
+  const out = [...passthrough, ...collapsed];
+  if (out.length < before) {
+    console.error(`  News event dedup: ${before} → ${out.length} (${before - out.length} same-event duplicates merged)`);
+  }
+  return out;
+}
+
+/**
+ * Bucket news signals by event identity. Anything without a usable key is
+ * passed through untouched — fail-open, because guessing an event identity is
+ * worse than under-merging.
+ */
+function groupNewsEvents(signals) {
+  const passthrough = [];
+  const byEvent = new Map();
+  for (const s of signals) {
+    const place = eventPlace(s);
+    const date = eventDate(s);
+    if (s?.source_type !== 'news' || !place || !date || !s.signal_type) {
+      passthrough.push(s);
+      continue;
+    }
+    const key = `${s.signal_type}|${place}|${date}`;
+    const group = byEvent.get(key);
+    if (group) {
+      group.members.push(s);
+      if (isBetterRepresentative(s, group.rep)) group.rep = s;
+    } else {
+      byEvent.set(key, { rep: s, members: [s] });
+    }
+  }
+  return { passthrough, byEvent };
+}
+
+/** Collapse one event group onto its representative, preserving what it absorbed. */
+function mergeEventGroup({ rep, members }) {
+  if (members.length === 1) return rep;
+  const best = members.reduce((a, b) => (groundingRank(b) > groundingRank(a) ? b : a));
+  const outlets = [...new Set(members.map((m) => m.article_source).filter(Boolean))];
+  for (const m of members) {
+    if (m !== rep && m.article_source) recordOutletTelemetry(m.article_source, { dedupHits: 1 });
+  }
+  return {
+    ...rep,
+    grounding_tier: best.grounding_tier,
+    grounding_reason: best.grounding_reason,
+    grounding_method: best.grounding_method,
+    _event_outlet_count: outlets.length,
+    _event_sources: outlets,
+    _event_variants: members
+      .filter((m) => m !== rep)
+      .slice(0, EVENT_VARIANT_CAP)
+      .map((m) => ({
+        article_source: m.article_source ?? null,
+        scope_level: m.scope_level ?? null,
+        evidence: String(m.evidence ?? '').slice(0, 200),
+      })),
+  };
+}
+
 async function mergeSemanticDuplicate(kept, keptVecs, s, threshold, v) {
   for (let i = 0; i < kept.length; i++) {
     if (!keptVecs[i]) continue;

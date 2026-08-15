@@ -25,6 +25,66 @@ const AVG_SCORE_BLOB_RE = /\[([^\]]+)\]\s*[^:]+:\s*avg=\d+%(?:\s*\([^)]*\))?\s*(
 /** Keep the municipality prefix — it is locality information; only the officer score blob is noise. */
 const AVG_SCORE_BLOB_REPLACEMENT = '[$1] ';
 
+const HEBREW_CHAR_RE = /[\u0590-\u05FF]/;
+
+/**
+ * A parenthetical holding at least one Latin letter and no Hebrew at all — the
+ * extractor's translation gloss, not source text. The field-report prompt
+ * forbids these (claudeExtraction.js FIELD_REPORT_SIGNAL_EXTRACTION_PREFIX) and
+ * the model emits them anyway; because grounding matches evidence against the
+ * Hebrew source, a gloss drags containment down and demotes the signal.
+ *
+ * Deliberately conservative: a parenthetical containing any Hebrew is source
+ * text (`(צח״י, ועד מקומי ומנהלת קהילה)`) and is left alone.
+ */
+const LATIN_GLOSS_RE = /\s*\(\s*[^)\u0590-\u05FF]*[A-Za-z][^)\u0590-\u05FF]*\)/g;
+
+/** Verbatim-contract violations an extractor can commit against `evidence`. */
+export const VERBATIM_VIOLATION = Object.freeze({
+  latin_gloss: 'latin_gloss',
+  no_source_language: 'no_source_language',
+  span_concatenation: 'span_concatenation',
+  span_elision: 'span_elision',
+});
+
+/**
+ * Drop translation glosses from evidence so it can be matched against the
+ * Hebrew source. Returns the input unchanged when there is no Hebrew to protect
+ * (a genuinely English-language source article), so this is always safe to try.
+ *
+ * @param {string|null|undefined} evidence
+ * @returns {string} evidence with Latin-only parentheticals removed
+ */
+export function stripLatinGloss(evidence) {
+  const text = String(evidence ?? '');
+  if (!HEBREW_CHAR_RE.test(text)) return text;
+  const out = text.replaceAll(LATIN_GLOSS_RE, '');
+  return out.replaceAll(/\s+/g, ' ').trim();
+}
+
+/**
+ * Name the ways a Hebrew-source evidence string breaks the verbatim contract.
+ * Counting only — nothing here drops or rewrites a signal. `latin_gloss` is
+ * repaired by stripLatinGloss; concatenation and elision are not, and are worth
+ * seeing in run telemetry rather than being absorbed by cross-lingual entailment.
+ *
+ * @param {string|null|undefined} evidence
+ * @param {{ sourceLanguageHebrew?: boolean }} [opts] set when the source document is Hebrew
+ * @returns {string[]} VERBATIM_VIOLATION values, empty when the evidence is clean
+ */
+export function detectVerbatimViolations(evidence, opts = {}) {
+  const text = String(evidence ?? '');
+  if (!text.trim()) return [];
+  const found = [];
+  const hasHebrew = HEBREW_CHAR_RE.test(text);
+  if (hasHebrew && stripLatinGloss(text) !== text) found.push(VERBATIM_VIOLATION.latin_gloss);
+  if (!hasHebrew && opts.sourceLanguageHebrew) found.push(VERBATIM_VIOLATION.no_source_language);
+  const body = hasHebrew ? stripLatinGloss(text) : text;
+  if (/\s\+\s/.test(body)) found.push(VERBATIM_VIOLATION.span_concatenation);
+  if (/\.\.\.|…/.test(body)) found.push(VERBATIM_VIOLATION.span_elision);
+  return found;
+}
+
 /**
  * Whether field-report evidence text is too short or boilerplate to retain as a signal.
  *

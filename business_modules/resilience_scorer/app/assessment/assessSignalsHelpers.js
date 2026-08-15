@@ -37,6 +37,7 @@ export {
   crossSourceDedup,
   crossSourceDedupClustered,
   crossSourceDedupSemantic,
+  collapseNewsEvents,
 } from './signalDedup.js';
 
 /**

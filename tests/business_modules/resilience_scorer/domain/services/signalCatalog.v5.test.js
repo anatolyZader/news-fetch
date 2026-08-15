@@ -101,7 +101,7 @@ const V5_NEW_TYPES = [
 
 describe('signalCatalog v6', () => {
   it('has catalog version v9 and ~168 types', () => {
-    assert.equal(CATALOG_VERSION, 'v9');
+    assert.equal(CATALOG_VERSION, 'v10');
     assert.ok(SIGNAL_TYPES.length >= 168, `expected >=168 types, got ${SIGNAL_TYPES.length}`);
   });
 

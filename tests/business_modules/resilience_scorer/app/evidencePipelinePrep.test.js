@@ -103,3 +103,79 @@ describe('evidenceComponentAdapter review completeness', () => {
     assert.equal(comp.confidence, 'low');
   });
 });
+
+function exposure(over = {}) {
+  return {
+    source_class_exposure: {
+      by_class: {},
+      self_assessed: true,
+      self_reported_share: 0.9,
+      independent_share: 0.1,
+      unclassified_count: 0,
+      ...over,
+    },
+  };
+}
+
+describe('evidenceComponentAdapter source-class exposure', () => {
+  it('downgrades a self-assessed component above the share threshold', () => {
+    const comp = evidenceComponentAdapter(evEntry(exposure()));
+    assert.equal(comp.confidence, 'medium');
+    assert.match(comp.confidence_caveat, /reporting on itself/);
+  });
+
+  it('leaves a self-assessed component below the threshold alone', () => {
+    const comp = evidenceComponentAdapter(evEntry(exposure({ self_reported_share: 0.79 })));
+    assert.equal(comp.confidence, 'high');
+    assert.equal(comp.confidence_caveat, null);
+  });
+
+  it('does not downgrade a component that is not self-assessing', () => {
+    const comp = evidenceComponentAdapter(evEntry(exposure({
+      self_assessed: false,
+      self_reported_share: 0,
+      independent_share: 0.01,
+    })));
+    assert.equal(comp.confidence, 'high');
+  });
+
+  it('keeps the independence arm off unless explicitly enabled', () => {
+    const basis = exposure({ self_assessed: false, self_reported_share: 0, independent_share: 0.01 });
+    assert.equal(evidenceComponentAdapter(evEntry(basis)).confidence, 'high');
+
+    const prev = process.env.RESILIENCE_INDEPENDENCE_DOWNGRADE;
+    process.env.RESILIENCE_INDEPENDENCE_DOWNGRADE = '1';
+    try {
+      const comp = evidenceComponentAdapter(evEntry(basis));
+      assert.equal(comp.confidence, 'medium');
+      assert.match(comp.confidence_caveat, /independent source class/);
+    } finally {
+      if (prev === undefined) delete process.env.RESILIENCE_INDEPENDENCE_DOWNGRADE;
+      else process.env.RESILIENCE_INDEPENDENCE_DOWNGRADE = prev;
+    }
+  });
+
+  it('does not stack with the concentration downgrade', () => {
+    const comp = evidenceComponentAdapter(evEntry({
+      ...exposure(),
+      concentration_warning: { layer: 'source_type', key: 'pbo', share: 0.95 },
+    }));
+    assert.equal(comp.confidence, 'medium', 'one step only, never high → low');
+    assert.match(comp.confidence_caveat, /holds 95%/);
+    assert.match(comp.confidence_caveat, /reporting on itself/);
+  });
+
+  it('treats a null incomplete_share as no signal, not as clean', () => {
+    const comp = evidenceComponentAdapter(evEntry({
+      review_completeness: {
+        pbo_primary_count: 10,
+        reviewed_sufficient: 0,
+        reviewed_incomplete: 0,
+        unreviewed: 10,
+        incomplete_share: null,
+      },
+    }));
+    assert.equal(comp.confidence, 'high');
+    assert.equal(comp.confidence_caveat, null);
+  });
+});

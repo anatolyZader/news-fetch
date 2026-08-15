@@ -12,8 +12,14 @@ import {
   loadPipelineConfig,
   mergeLoadedSignalFiles,
   dedupWithinSource,
+  collapseNewsEvents,
 } from './assessSignalsHelpers.js';
 import { PBO_CONTRACT_GATE_BLOCK_ENV_KEY } from '../../domain/services/paths/pboBundleContract.js';
+import { createPboReviewStatePort } from './createPboReviewStatePort.js';
+import {
+  pboDatesInSignals,
+  resolvePboReviewStates,
+} from '../../domain/services/signals/pboReviewStateResolution.js';
 import { enrichSignalsGeoIfNeeded } from '../../../../cross-cut-modules/geo/enrichSignalsGeoIfNeeded.js';
 import { resolveSqlitePath } from '../../../../cross-cut-modules/config/sqlitePath.js';
 import { loadConnectivityProbeSignals, loadProbeRecordsForDate } from '../../infrastructure/adapters/connectivityProbeFileAdapter.js';
@@ -89,6 +95,34 @@ function archiveProbeRecordsForDate(targetDate) {
     if (n > 0) console.error(`  → ${n} probe original(s) archived`);
   } catch (err) {
     console.error(`  ⚠ Probe archive skipped: ${err.message}`);
+  }
+}
+
+/**
+ * Overlay live municipal review verdicts onto already-extracted PBO signals.
+ *
+ * The extract-time stamp is written before the review workflow runs, so on a
+ * same-day run every municipality is frozen as `unreviewed`. Fail-open: any
+ * problem here leaves the stamped values in place.
+ *
+ * @param {Array<object>} allSignals
+ * @returns {Promise<Array<object>>}
+ */
+async function refreshPboReviewStates(allSignals) {
+  const dates = pboDatesInSignals(allSignals);
+  if (dates.length === 0) return allSignals;
+  try {
+    const port = await createPboReviewStatePort();
+    if (!port) return allSignals;
+    const stateByKey = await port.loadReviewStates(dates);
+    const { signals, changed, resolved } = resolvePboReviewStates(allSignals, stateByKey);
+    if (changed > 0) {
+      console.error(`  → PBO review state refreshed at assess time: ${changed} of ${resolved} matched signal(s) changed`);
+    }
+    return signals;
+  } catch (err) {
+    console.error(`  ⚠ PBO review refresh skipped: ${err.message}`);
+    return allSignals;
   }
 }
 
@@ -168,6 +202,7 @@ export async function loadPreparedSignals(targetDate, days, bundleOpts = {}) {
     throw err;
   }
   let { allSignals, totalArticles, sourceFiles, sourceTypesSeen, hygieneDrops } = merged;
+  allSignals = await refreshPboReviewStates(allSignals);
   allSignals = mergeConnectivityProbeSignals(allSignals, sourceTypesSeen, targetDate);
   archiveProbeRecordsForDate(targetDate);
   allSignals = enrichProbeSignalsInList(allSignals);
@@ -176,6 +211,9 @@ export async function loadPreparedSignals(targetDate, days, bundleOpts = {}) {
   const retrievalService = createRetrievalServiceSafe();
   allSignals = await dedupSignalsCrossSource(allSignals, retrievalService);
   allSignals = enrichSignalsGeoForAssess(allSignals);
+  // After geo: the event key prefers the resolved canonical locality key, which
+  // is the only thing five outlets spelling one town differently will agree on.
+  allSignals = collapseNewsEvents(allSignals);
 
   const { openObservations, summary: openObservationsSummary } = isOmissionAuditEnabled()
     ? { openObservations: [], summary: null }

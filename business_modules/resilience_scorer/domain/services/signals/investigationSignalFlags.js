@@ -34,9 +34,12 @@ export function applyInvestigationSignalFlags(profile, signals = []) {
   for (const compId of COMPONENT_IDS) {
     const base = { ...byComponent[compId] };
     const { items } = collectComponentSignals(compId, signals ?? []);
-    const presence = evaluatePresenceGates(compId, items);
+    // Primary-only, matching componentEvidence.buildOneComponent: an inferred
+    // edge is spillover from another component and must not trip this one's gate.
+    const primary = items.filter((it) => it.role !== 'inferred');
+    const presence = evaluatePresenceGates(compId, primary);
     base.presence_gate_triggered = presence.triggered === true;
-    base.salience_critical = hasSalientCriticalSignal(items);
+    base.salience_critical = hasSalientCriticalSignal(primary);
     byComponent[compId] = base;
   }
 

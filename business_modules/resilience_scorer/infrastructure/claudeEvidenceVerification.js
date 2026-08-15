@@ -18,8 +18,12 @@ import {
   entailmentThresholdFor,
 } from '../domain/services/signals/groundingPolicy.js';
 import { recordOutletTelemetry } from '../domain/services/outlets/outletReputationDecay.js';
+import { detectVerbatimViolations } from '../domain/services/signals/hygiene/fieldReportHygiene.js';
 
 const DEFAULT_SELF_CHECK_MODEL = process.env.RESILIENCE_SELF_CHECK_MODEL ?? HAIKU_MODEL;
+
+/** Source types whose documents are Hebrew, so English-only evidence is a translation leak. */
+const HEBREW_SOURCE_TYPES = new Set(['pbo', 'visits']);
 
 const SHORT_BODY_CHARS = 80;
 const SHORT_EVIDENCE_TOKENS = 8;
@@ -238,16 +242,30 @@ function applyEntailmentOutcome(out, sourceLabel, ctx) {
   if (outlet) recordOutletTelemetry(outlet, { dropped: 1 });
 }
 
+/**
+ * Count verbatim-contract breaches so a prompt regression shows up in run
+ * telemetry instead of being silently absorbed by cross-lingual entailment.
+ * Counting only — no signal is dropped or rewritten here.
+ */
+function countVerbatimViolations(signal, counts) {
+  const hebrewSource = HEBREW_SOURCE_TYPES.has(signal.source_type);
+  for (const v of detectVerbatimViolations(signal.evidence, { sourceLanguageHebrew: hebrewSource })) {
+    counts[v] = (counts[v] || 0) + 1;
+  }
+}
+
 export async function applyEvidenceVerifier(signals, articles, sourceLabel, usageCallback = null) {
   const ctx = {
     kept: [],
     borderline: [],
     dropped: 0,
     reasonCounts: {},
+    verbatimViolations: {},
     tierCounts: { tier_a: 0, tier_b: 0, tier_c: 0 },
   };
 
   for (const s of signals) {
+    countVerbatimViolations(s, ctx.verbatimViolations);
     const outcome = await verifyOneSignal(s, articles, sourceLabel);
     applyVerifyOutcome(outcome, s.article_source, sourceLabel, s, ctx);
   }
@@ -259,10 +277,15 @@ export async function applyEvidenceVerifier(signals, articles, sourceLabel, usag
     }
   }
 
-  const { kept, dropped, reasonCounts, tierCounts } = ctx;
+  const { kept, dropped, reasonCounts, tierCounts, verbatimViolations } = ctx;
 
   if (dropped > 0) {
     console.error(`  → [${sourceLabel}] verifier dropped ${dropped}/${signals.length} signal(s)`);
+  }
+  const violationTotal = Object.values(verbatimViolations).reduce((a, b) => a + b, 0);
+  if (violationTotal > 0) {
+    const detail = Object.entries(verbatimViolations).map(([k, n]) => `${k}=${n}`).join(', ');
+    console.error(`  → [${sourceLabel}] verbatim-contract breaches in extracted evidence: ${detail}`);
   }
   if (usageCallback) {
     usageCallback({
@@ -276,6 +299,7 @@ export async function applyEvidenceVerifier(signals, articles, sourceLabel, usag
         tier_b: tierCounts.tier_b,
         tier_c: tierCounts.tier_c,
         reason_counts: reasonCounts,
+        verbatim_violations: verbatimViolations,
       },
     });
   }

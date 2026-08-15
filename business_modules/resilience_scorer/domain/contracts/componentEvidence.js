@@ -26,7 +26,13 @@
  */
 import { COMPONENT_IDS } from './componentIds.js';
 import { collectComponentSignals, articleKeyForSignal } from '../services/signals/componentSignalGroups.js';
-import { evaluatePresenceGates } from '../epistemic/presenceGates.js';
+import { findPresenceGateMatch } from '../epistemic/presenceGates.js';
+import {
+  UNCLASSIFIED_SOURCE_CLASS,
+  isIndependentClass,
+  isSelfAssessing,
+  sourceClassOf,
+} from './sourceIndependence.js';
 import { CRITICAL_BYPASS_SIGNAL_TYPES } from '../epistemic/highSalienceBypass.js';
 import { GROUNDING_TIER } from '../services/signals/groundingPolicy.js';
 import {
@@ -97,11 +103,14 @@ export function deriveBalance(pos, neg) {
   return BALANCE.mixed;
 }
 
+/** Bucket for items whose key is missing — unattributed, not a concentrating key. */
+export const UNKNOWN_KEY = '_unknown';
+
 /** Histogram helper: key → count. */
 function countBy(items, keyFn) {
   const out = {};
   for (const it of items) {
-    const k = keyFn(it) ?? '_unknown';
+    const k = keyFn(it) ?? UNKNOWN_KEY;
     out[k] = (out[k] ?? 0) + 1;
   }
   return out;
@@ -122,9 +131,13 @@ export function deriveConcentrationWarning(items) {
     ['source_type', (it) => it.signal.source_type, SOURCE_TYPE_CONCENTRATION_SHARE],
   ]) {
     const byKey = countBy(items, keyFn);
-    const keys = Object.keys(byKey);
-    if (keys.length <= 1) continue;
-    for (const [key, n] of Object.entries(byKey)) {
+    // Was `if (Object.keys(byKey).length <= 1) continue`, which silenced the
+    // worst case: a component whose evidence is 100% one outlet produced no
+    // warning at all. The real exclusion is the unattributed bucket — missing
+    // provenance is not a concentrating outlet.
+    const known = Object.entries(byKey).filter(([key]) => key !== UNKNOWN_KEY);
+    if (known.length === 0) continue;
+    for (const [key, n] of known) {
       const share = n / total;
       if (share > threshold) {
         return { layer, key, share: Math.round(share * 100) / 100 };
@@ -132,6 +145,42 @@ export function deriveConcentrationWarning(items) {
     }
   }
   return null;
+}
+
+/**
+ * Who a component's evidence comes from, relative to what it assesses.
+ *
+ * `concentration_warning` asks whether ONE outlet dominates and therefore goes
+ * quiet on a component built from forty municipalities' own reports — no single
+ * outlet crosses its threshold while independent corroboration is nil. This
+ * asks the other question: how much of the evidence comes from outside the
+ * assessed body at all, and how much of it is that body describing itself.
+ *
+ * Counting only. Nothing is rescaled, reweighted or dropped.
+ *
+ * @param {string} componentId
+ * @param {Array<{signal: object}>} items primary items
+ * @returns {null | {by_class: object, self_assessed: boolean, self_reported_share: number,
+ *   independent_share: number, unclassified_count: number}}
+ */
+export function deriveSourceClassExposure(componentId, items) {
+  const total = items.length;
+  if (total === 0) return null;
+  const byClass = countBy(items, (it) => sourceClassOf(it.signal.source_type));
+  let selfAssessed = 0;
+  let independent = 0;
+  for (const [cls, n] of Object.entries(byClass)) {
+    if (isSelfAssessing(componentId, cls)) selfAssessed += n;
+    if (isIndependentClass(cls)) independent += n;
+  }
+  const round = (n) => Math.round((n / total) * 100) / 100;
+  return {
+    by_class: byClass,
+    self_assessed: selfAssessed > 0,
+    self_reported_share: round(selfAssessed),
+    independent_share: round(independent),
+    unclassified_count: byClass[UNCLASSIFIED_SOURCE_CLASS] ?? 0,
+  };
 }
 
 /**
@@ -157,11 +206,17 @@ export function derivePboReviewCompleteness(items) {
     if (state in counts) counts[state] += 1;
     else counts.unreviewed += 1;
   }
+  const reviewedTotal = counts.reviewed_sufficient + counts.reviewed_incomplete;
   return {
     pbo_primary_count: pboItems.length,
     ...counts,
-    incomplete_share: items.length === 0
-      ? 0
+    reviewed_count: reviewedTotal,
+    review_coverage_share: Math.round((reviewedTotal / pboItems.length) * 100) / 100,
+    // null, not 0. "Nobody reviewed anything" and "reviewers looked and found
+    // nothing incomplete" are opposite states, and reporting the first as 0
+    // made an absence of data read as a clean bill of health.
+    incomplete_share: reviewedTotal === 0 || items.length === 0
+      ? null
       : Math.round((counts.reviewed_incomplete / items.length) * 100) / 100,
   };
 }
@@ -263,6 +318,10 @@ function slimSignal(it, index) {
     temporal_weight: s.temporal_weight ?? null,
     confidence: typeof s.confidence === 'number' ? s.confidence : null,
     evidence_snippet: String(s.evidence ?? '').slice(0, 300) || null,
+    // Corroboration survives event collapse: without this a row that merged
+    // four outlets is indistinguishable from a single-outlet report. Spread in
+    // only when set — it is absent on almost every row.
+    ...(s._event_outlet_count ? { _event_outlet_count: s._event_outlet_count } : {}),
   };
 }
 
@@ -304,6 +363,7 @@ function buildOneComponent(items, componentId, samplingStatus, poolTypeCounts = 
     }),
     balance: deriveBalance(pos, neg),
     concentration_warning: deriveConcentrationWarning(primary),
+    source_class_exposure: deriveSourceClassExposure(componentId, primary),
     review_completeness: derivePboReviewCompleteness(primary),
     mirror_context: deriveMirrorContext(componentId, primary, poolTypeCounts),
     inferred_context: {
@@ -312,14 +372,22 @@ function buildOneComponent(items, componentId, samplingStatus, poolTypeCounts = 
       negative_count: inferred.length - inferredPos,
     },
   };
-  const presence = evaluatePresenceGates(componentId, items);
+  // Gates and salience read primary-only, like every band above. An inferred
+  // edge is another component's evidence spilling over; firing the loudest flag
+  // in the report on it makes a component read as failing on borrowed grounds.
+  const { match: presence, item: gateItem } = findPresenceGateMatch(componentId, primary);
+  const signals = items.map(slimSignal);
+  if (gateItem) {
+    const idx = items.indexOf(gateItem);
+    if (idx >= 0) signals[idx].presence_gate_trigger = presence.rule_id;
+  }
   return {
     component_id: componentId,
-    signals: items.map(slimSignal),
+    signals,
     evidence_basis: basis,
     critical_flags: {
       presence_gate: presence.triggered ? presence : null,
-      salient_single_signal: deriveSalientSingleSignal(items),
+      salient_single_signal: deriveSalientSingleSignal(primary),
     },
     sampling_status: samplingStatus,
   };

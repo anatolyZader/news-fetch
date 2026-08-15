@@ -14,7 +14,7 @@ import { CRITICAL_BYPASS_SIGNAL_TYPES } from './highSalienceBypass.js';
 import { SIGNAL_TO_COMPONENTS } from '../services/signals/routing/signalRouter.js';
 
 /** Version stamp for the hand-authored presence-gate rule set (audits / manifests). */
-export const PRESENCE_GATE_VERSION = '2026-05-v1';
+export const PRESENCE_GATE_VERSION = '2026-08-v2';
 
 // --- Rule tables ---
 
@@ -46,14 +46,21 @@ export const PRESENCE_GATE_RULES = [
     componentIds: ['lifesaving_behavior', 'information_communication'],
   },
   {
+    // `functional_continuity` removed: plan_failed_during_event has no routing
+    // edge to it, so items for that component could never contain this type and
+    // the entry could never fire. Rule ids are written into persisted reports as
+    // presence_gate.rule_id, so the id stays stable despite the now-loose name.
+    // Only dead entries are dropped here — no component is newly added, which
+    // would be a behaviour expansion rather than a correction.
     id: 'plan_failed_functional',
     signalTypes: ['plan_failed_during_event'],
-    componentIds: ['functional_continuity', 'leadership'],
+    componentIds: ['leadership'],
   },
   {
+    // `functional_continuity` removed for the same reason.
     id: 'protective_infra_absent',
     signalTypes: ['protective_infrastructure_absent'],
-    componentIds: ['lifesaving_behavior', 'functional_continuity'],
+    componentIds: ['lifesaving_behavior'],
   },
 ];
 
@@ -71,7 +78,11 @@ function buildCriticalMappingRules() {
     const mapping = SIGNAL_TO_COMPONENTS[signalType];
     if (!mapping) continue;
     const componentIds = Object.entries(mapping)
-      .filter(([, edge]) => edge.polarity === '-')
+      // An `inferred` edge is spillover from another component's evidence, not
+      // a finding about this one. Every other evidence band reads primary-only
+      // (componentEvidence.js buildOneComponent); the gate — which turns a
+      // component red — must not be the single surface that fires on spillover.
+      .filter(([, edge]) => edge.polarity === '-' && edge.role !== 'inferred')
       .map(([cid]) => cid);
     if (componentIds.length === 0) continue;
     const id = `critical_${signalType}`;
@@ -84,6 +95,15 @@ function buildCriticalMappingRules() {
 
 /** Hand-authored rules plus auto-generated critical-type rules (evaluated together). */
 const ALL_RULES = [...PRESENCE_GATE_RULES, ...buildCriticalMappingRules()];
+
+/**
+ * Merged rule table, exported for the routing-coherence guard test. Hand rules
+ * do not consult SIGNAL_TO_COMPONENTS, so they drift from routing silently —
+ * two entries had already gone dead this way. The guard asserts every listed
+ * component is reachable from at least one of the rule's signal types over a
+ * negative primary edge.
+ */
+export const PRESENCE_GATE_ALL_RULES = ALL_RULES;
 
 // --- Evaluation ---
 
@@ -172,17 +192,30 @@ function matchPresenceGateRule(signal, rulesForComponent) {
  * }}
  */
 export function evaluatePresenceGates(componentId, cappedItems) {
-  if (!isPresenceGatesEnabled()) return EMPTY_PRESENCE_GATE;
+  return findPresenceGateMatch(componentId, cappedItems).match;
+}
+
+/**
+ * As evaluatePresenceGates, but also returns the item that tripped the gate so
+ * the caller can make it visible. A gate turns a component red; the row that
+ * caused it must not be rankable out of top_contributors.
+ *
+ * @param {string} componentId
+ * @param {Array<{ signal: object }>} cappedItems
+ * @returns {{ match: object, item: object | null }}
+ */
+export function findPresenceGateMatch(componentId, cappedItems) {
+  if (!isPresenceGatesEnabled()) return { match: EMPTY_PRESENCE_GATE, item: null };
 
   const rulesForComponent = ALL_RULES.filter((r) => r.componentIds.includes(componentId));
-  if (rulesForComponent.length === 0) return EMPTY_PRESENCE_GATE;
+  if (rulesForComponent.length === 0) return { match: EMPTY_PRESENCE_GATE, item: null };
 
   for (const it of cappedItems ?? []) {
     const signal = it?.signal;
     if (!signal || signal.grounding_tier !== GROUNDING_TIER.grounded) continue;
     const match = matchPresenceGateRule(signal, rulesForComponent);
-    if (match) return match;
+    if (match) return { match, item: it };
   }
 
-  return EMPTY_PRESENCE_GATE;
+  return { match: EMPTY_PRESENCE_GATE, item: null };
 }

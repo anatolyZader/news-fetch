@@ -314,3 +314,44 @@ describe('demotedEvidenceFromScored', () => {
     assert.equal(demotedEvidenceFromScored({ signals: clean }, 'leadership'), null);
   });
 });
+
+function shelterFiller(i) {
+  return {
+    signal_type: 'compliance_enter_shelter',
+    evidence: `Shelter compliance ${i}`,
+    grounding_tier: 'grounded',
+    confidence: 0.9,
+  };
+}
+
+describe('topContributorsFromScored — presence gate pinning', () => {
+  it('pins the gate-triggering row even when it ranks below the cap', () => {
+    const gateRow = {
+      signal_type: 'non_compliance_ignore_guidelines',
+      evidence: 'Vehicles kept driving during the siren',
+      grounding_tier: 'grounded',
+      confidence: 0.1,
+      presence_gate_trigger: 'critical_non_compliance_ignore_guidelines',
+    };
+    const scored = { signals: [...Array.from({ length: 20 }, (_, i) => shelterFiller(i)), gateRow] };
+    const rows = topContributorsFromScored(scored, 'lifesaving_behavior');
+    assert.equal(rows.length, TOP_CONTRIBUTOR_CAP);
+    assert.equal(rows[0].signal_type, 'non_compliance_ignore_guidelines');
+    assert.equal(rows[0].presence_gate_trigger, 'critical_non_compliance_ignore_guidelines');
+  });
+
+  it('does not duplicate a pinned row that would have ranked anyway', () => {
+    const gateRow = {
+      signal_type: 'non_compliance_ignore_guidelines',
+      evidence: 'Vehicles kept driving during the siren',
+      grounding_tier: 'grounded',
+      confidence: 0.99,
+      presence_gate_trigger: 'critical_non_compliance_ignore_guidelines',
+    };
+    const scored = { signals: [gateRow, shelterFiller(1), shelterFiller(2)] };
+    const rows = topContributorsFromScored(scored, 'lifesaving_behavior');
+    const gateRows = rows.filter((r) => r.presence_gate_trigger);
+    assert.equal(gateRows.length, 1);
+    assert.equal(rows.length, 3);
+  });
+});

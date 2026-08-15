@@ -84,7 +84,7 @@
  * extraction prompts, report comparability, or routing coherence checks.
  * Keep in sync with methodology / changelog when types are added or redefined.
  */
-export const CATALOG_VERSION = 'v9';
+export const CATALOG_VERSION = 'v10';
 
 // --- Aliases ---
 /**
@@ -342,7 +342,7 @@ export const SIGNAL_CATALOG = [
     construct_role: 'response',
     domain: 'social',
     signal_class: 'behavior',
-    label: 'Residents help neighbors, strangers, or community members',
+    label: 'A concrete helping ACT by residents toward neighbors, strangers or community members — someone did something for someone. A description of cohesion, good relations or the absence of segregation, with no act in it, is inter_group_trust',
     defaultPolarity: 'positive',
     mirror: 'social_isolation',
     disambiguation: {
@@ -363,7 +363,7 @@ export const SIGNAL_CATALOG = [
     construct_role: 'response',
     domain: 'social',
     signal_class: 'behavior',
-    label: 'Organized or spontaneous volunteering',
+    label: 'Residents themselves volunteer — organized or spontaneous, in an existing framework or one they started. The VOLUNTEERS are the subject of the sentence. An authority or organization recruiting volunteers, mobilizing them, or standing up a volunteer corps is resource_mobilization, not this',
     defaultPolarity: 'positive',
   },
   {
@@ -692,7 +692,7 @@ export const SIGNAL_CATALOG = [
     construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
-    label: 'Residents report receiving clear, useful information',
+    label: 'The information residents receive is clear, consistent and understood, or no information gap exists — a statement about message quality or channel availability, with NO claim that anyone acted on it. Evidence that recipients then took the correct protective action is information_actionable_effective',
     defaultPolarity: 'positive',
     mirror: 'information_confusion',
   },
@@ -802,7 +802,7 @@ export const SIGNAL_CATALOG = [
     construct_role: 'institutional_state',
     domain: 'information',
     signal_class: 'structural_state',
-    label: 'Guidance is specific, situation-matched, and demonstrably leads to correct protective behavior',
+    label: 'Guidance was specific and situation-matched AND the evidence states that recipients then took the correct protective action — an observed behavioral OUTCOME is required. Clarity, consistency, volume of output, or the mere existence of a channel is information_clarity',
     defaultPolarity: 'positive',
     mirror: 'information_effectiveness_gap',
     disambiguation: {
@@ -1391,7 +1391,7 @@ export const SIGNAL_CATALOG = [
     construct_role: 'response',
     domain: 'resources',
     signal_class: 'structural_state',
-    label: 'Community or authority mobilizes material/human resources',
+    label: 'A community body or authority mobilizes material or human resources for the emergency — recruits volunteers, stands up a team, allocates equipment, budget, vehicles or manpower. The MOBILIZING ACTOR is the subject of the sentence, and a plan to recruit counts. Residents already volunteering is community_volunteering; an unmet need for resources is resource_shortage',
     defaultPolarity: 'positive',
     mirror: 'resource_shortage',
   },
@@ -1539,7 +1539,7 @@ export const SIGNAL_CATALOG = [
     construct_role: 'response',
     domain: 'wellbeing',
     signal_class: 'structural_state',
-    label: 'A person or group ACTUALLY RECEIVED psychological, trauma, welfare, or community-wellbeing support — attended a session or group, was visited, took up a service. Uptake by residents, never the service merely existing',
+    label: 'PROVIDER vs RECIPIENT — RECIPIENT SIDE. A resident, family or named group actually took up psychological, trauma, welfare or community-wellbeing support: attended a session or group, joined a programme, accepted a home visit. The RECIPIENT must be the subject of the sentence. If the subject is a service, department, team or authority — including its outreach, its rounds of home visits, or its hotline staffing — use wellbeing_support_provided instead',
     defaultPolarity: 'positive',
     mirror: 'wellbeing_support_gap',
     related: ['wellbeing_support_provided', 'vulnerable_population_mapping'],
@@ -1565,7 +1565,7 @@ export const SIGNAL_CATALOG = [
     construct_role: 'institutional_state',
     domain: 'wellbeing',
     signal_class: 'structural_state',
-    label: 'A welfare, psychosocial, or care service is described as operating, staffed, or providing responses — service-side provision, with no named recipient and no uptake claim',
+    label: 'PROVIDER vs RECIPIENT — PROVIDER SIDE. A welfare, psychosocial or care service, department, team or hotline is described as operating, staffed, reaching out, conducting home visits, or providing responses, with no named recipient and no uptake claim. The PROVIDER is the subject of the sentence. If the subject is a resident or group who took the support up, use wellbeing_support_accessed',
     defaultPolarity: 'positive',
     related: ['wellbeing_support_accessed', 'wellbeing_support_gap', 'vulnerable_population_mapping'],
     disambiguation: {
@@ -2001,7 +2001,7 @@ export const SIGNAL_CATALOG = [
     construct_role: 'population_state',
     domain: 'trust',
     signal_class: 'attitude',
-    label: 'Trust across community groups in the emergency (use polarity_override when evidence shows erosion)',
+    label: 'Relations BETWEEN identifiable groups in the community — cohesion, mixing, mutual trust across them, or the absence of segregation and of an in-group/out-group split. A state of intergroup relations, not a helping act; someone doing something for someone is solidarity_help_others (use polarity_override when evidence shows erosion)',
     defaultPolarity: 'positive',
   },
   // Memory & Commemoration

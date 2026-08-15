@@ -30,6 +30,12 @@ function deriveAssessmentStateWithClaims(comp, diagnostics, developerFlags) {
     return { state: 'invalid_artifact', developerFlags };
   }
 
+  // A component can reach this branch with claims allocated but no specialist
+  // ever having run, in which case the narrative is empty and grounding is 0.
+  // The state that follows is correct, but "assessed_low_confidence" reads as
+  // "assessed and uncertain" — the flag says which one it actually was.
+  if (diagnostics.specialist_ran === false) developerFlags.push('specialist_not_run');
+
   const lowConfidence = confidence === 'low'
     || (grounding != null && grounding < LOW_GROUNDING_THRESHOLD)
     || contestedThin

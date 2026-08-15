@@ -104,10 +104,25 @@ export function topContributorsFromScored(scored, componentId) {
   const strong = pool.filter((s) => hasStrongCatalogLink(s, componentId));
   const ranked = (strong.length >= 3 ? strong : pool)
     .slice()
-    .sort((a, b) => contributorRankKey(b, componentId) - contributorRankKey(a, componentId))
-    .slice(0, TOP_CONTRIBUTOR_CAP);
+    .sort((a, b) => contributorRankKey(b, componentId) - contributorRankKey(a, componentId));
 
-  return ranked.map(displayRow);
+  // A tripped presence gate turns the component red (user_status
+  // 'critical_failure'). The row that tripped it is pinned ahead of ranking, or
+  // the reader sees a red component whose 15 visible contributors are all
+  // positive and nothing explains the flag. The gate only fires on grounded
+  // signals, so a pinned row is always in `pool` by construction — never from
+  // demoted_evidence.
+  const pinned = pool.filter((s) => s.presence_gate_trigger);
+  const out = [];
+  const seen = new Set();
+  for (const s of [...pinned, ...ranked]) {
+    if (seen.has(s)) continue;
+    seen.add(s);
+    out.push(s);
+    if (out.length >= TOP_CONTRIBUTOR_CAP) break;
+  }
+
+  return out.map(displayRow);
 }
 
 /**
@@ -194,6 +209,10 @@ export function demotedEvidenceFromScored(scored, componentId) {
  * @returns {object}
  */
 function displayRow(s) {
+  // Both extras are spread in only when set: they are null on almost every row,
+  // and the contributor list is repeated per component in every persisted report.
+  const gateTrigger = s.presence_gate_trigger ? { presence_gate_trigger: s.presence_gate_trigger } : {};
+  const outletCount = s._event_outlet_count ? { event_outlet_count: s._event_outlet_count } : {};
   return {
     signal_type: s.signal_type ?? s.type ?? null,
     source_type: s.source_type ?? null,
@@ -206,5 +225,7 @@ function displayRow(s) {
     grounding_reason: s.grounding_reason ?? null,
     intensity: s.intensity ?? null,
     _polarity: s._polarity ?? s.polarity ?? null,
+    ...gateTrigger,
+    ...outletCount,
   };
 }

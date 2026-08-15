@@ -65,6 +65,31 @@ const EXTREME_CONCENTRATION_SHARE = 0.9;
  */
 const THIN_REVIEW_SHARE = 0.5;
 
+/**
+ * Share of a component's primary evidence that is the assessed body reporting
+ * on itself, above which the volume band overstates what is actually known.
+ *
+ * Only fires on components where the PBO author IS the assessed object
+ * (leadership, information_communication — see sourceIndependence.js). The
+ * municipality asserting that its own leadership is trusted is not the same
+ * evidence as an outside observer saying so, however many municipalities say it.
+ */
+const SELF_ASSESSED_SHARE = 0.8;
+
+/**
+ * Share of independent-class evidence below which a component has essentially
+ * no outside corroboration. Deliberately behind a switch and OFF by default:
+ * on the current corpus PBO + visits dominate nearly every component, so
+ * enabling it blind would downgrade most of a report at once. The measurement
+ * ships now (source_class_exposure is always reported); acting on it waits for
+ * an epoch where the distribution has been looked at.
+ */
+const NO_INDEPENDENT_CORROBORATION_SHARE = 0.05;
+
+function independenceDowngradeEnabled(env = process.env) {
+  return env.RESILIENCE_INDEPENDENCE_DOWNGRADE === '1';
+}
+
 /** Human-readable reasons the sufficiency-derived band overstates confidence. */
 function confidenceDowngradeReasons(basis) {
   const reasons = [];
@@ -73,8 +98,18 @@ function confidenceDowngradeReasons(basis) {
     reasons.push(`${cw.layer.replaceAll('_', ' ')} "${cw.key}" holds ${Math.round(cw.share * 100)}% of signals`);
   }
   const rc = basis.review_completeness;
-  if (rc && rc.incomplete_share >= THIN_REVIEW_SHARE) {
+  if (rc && typeof rc.incomplete_share === 'number' && rc.incomplete_share >= THIN_REVIEW_SHARE) {
     reasons.push(`${Math.round(rc.incomplete_share * 100)}% of evidence from PBO reports reviewed as incomplete`);
+  }
+  const sce = basis.source_class_exposure;
+  if (sce) {
+    // else-if: both arms name the same validity deficit, and the caveat should
+    // not say it twice.
+    if (sce.self_assessed && sce.self_reported_share >= SELF_ASSESSED_SHARE) {
+      reasons.push(`${Math.round(sce.self_reported_share * 100)}% of evidence is the assessed body reporting on itself`);
+    } else if (independenceDowngradeEnabled() && sce.independent_share <= NO_INDEPENDENT_CORROBORATION_SHARE) {
+      reasons.push(`only ${Math.round(sce.independent_share * 100)}% of evidence comes from an independent source class`);
+    }
   }
   return reasons;
 }
