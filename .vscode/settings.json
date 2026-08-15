@@ -1,5 +1,4 @@
 {
-  "terminal.integrated.enableBell": true,
   "claudeNotifications.autoSetupHooks": true,
   "claudeNotifications.completed.action": "Sound + Notification",
   "claudeNotifications.waiting.action": "Sound + Notification",
@@ -32,5 +31,9 @@
   "sonarlint.analyzerProperties": {
     "sonar.javascript.node.maxspace": "1024"
   },
-  "sonarlint.ls.vmargs": "-Xmx512m"
+  "sonarlint.ls.vmargs": "-Xmx512m",
+  "accessibility.signals.terminalBell": {
+    "sound": "on"
+  },
+  "terminal.integrated.enableVisualBell": true
 }
