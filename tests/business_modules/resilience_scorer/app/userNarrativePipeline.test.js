@@ -203,6 +203,63 @@ describe('userNarrativePipeline', () => {
     );
   });
 
+  it('keeps judged claims when the polish stage throws', async () => {
+    process.env.RESILIENCE_NARRATIVE_PIPELINE = 'hybrid';
+    const signals = fixtures.scored_components.narrative.signals;
+    const registry = buildSignalRefRegistry({ narrative: { signals } });
+    const firstRef = [...registry.byRef.keys()][0];
+
+    const port = {
+      stream: async (params) => {
+        const feature = params?.callContext?.feature;
+        if (feature === 'narrative_polish') {
+          throw new Error('claude-cli exited with code 1: The response stopped arriving.');
+        }
+        const payload = feature === 'narrative_judge'
+          ? { verdicts: [{ i: 0, entailed: true, invented_relation: false }] }
+          : {
+            components: [{
+              component_id: 'narrative',
+              claims: [{ text: 'Residents reached shelters.', signal_refs: [firstRef], relation: 'parallel' }],
+            }],
+          };
+        return {
+          finalMessage: async () => ({
+            content: [{ type: 'text', text: JSON.stringify(payload) }],
+            usage: { input_tokens: 10, output_tokens: 10 },
+          }),
+          [Symbol.asyncIterator]: async function* () {},
+        };
+      },
+    };
+
+    const assessment = {
+      date: '2026-04-02',
+      components: [{ component_id: 'narrative' }],
+    };
+
+    await applyUserNarrativePipeline({
+      assessment,
+      narrativeScopeSignals: signals,
+      llmPort: port,
+    });
+
+    assert.ok(
+      (assessment.components[0].narrative_claims ?? []).length > 0,
+      'facts/judge output must survive a polish failure',
+    );
+    assert.equal(assessment.narrative_pipeline_degraded, true);
+    assert.ok(
+      (assessment.narrative_pipeline_degrade_reasons ?? []).some((r) => r.startsWith('Narrative polish: failed')),
+      'polish failure must be named in the degrade reasons',
+    );
+    assert.equal(
+      assessment.narrative_pipeline_error,
+      undefined,
+      'a polish fault is not a whole-pipeline error',
+    );
+  });
+
   it('applyUserNarrativePipeline stamps agent mode and finalizes surface', async () => {
     process.env.RESILIENCE_NARRATIVE_PIPELINE = 'agent';
     const assessment = {

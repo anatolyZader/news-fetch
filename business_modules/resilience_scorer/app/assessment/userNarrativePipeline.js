@@ -99,7 +99,9 @@ async function loadRagContext(narrativeScored, plan, retrievalService, reportDat
   });
 }
 
-async function resolveFactsByComponent(activePlan, narrativeScored, registry, llmOpts, rag, epistemicBlock) {
+async function resolveFactsByComponent(
+  activePlan, narrativeScored, registry, llmOpts, rag, epistemicBlock, feedback = '',
+) {
   if (activePlan.useStubClaims || !isNarrativeFactsPassEnabled()) {
     return buildDigestStubClaims(registry);
   }
@@ -110,6 +112,7 @@ async function resolveFactsByComponent(activePlan, narrativeScored, registry, ll
     ...llmOpts,
     retrievedSpansBlock: rag.block,
     epistemicBlock,
+    feedback,
     factsShardSize: activePlan.factsShardSize,
     promptBudget: {
       section: 'narrative_facts',
@@ -134,7 +137,7 @@ async function executeFactsAttempts(params) {
 
   for (let attempt = 0; attempt < MAX_FACTS_ATTEMPTS; attempt += 1) {
     factsByComponent = await resolveFactsByComponent(
-      activePlan, narrativeScored, registry, llmOpts, rag, epistemicBlock,
+      activePlan, narrativeScored, registry, llmOpts, rag, epistemicBlock, judgeFeedback,
     );
     factsByComponent = supplementFactsWithDigestStubs(factsByComponent, registry);
     mergedNarratives = mergeAgentClaimsWithFacts(assessment, factsByComponent);
@@ -145,7 +148,12 @@ async function executeFactsAttempts(params) {
     if (activePlan.judgeEnabled === false || !isNarrativeJudgeEnabled()) break;
 
     const judgeResult = await judgeNarrativeRelations(mergedNarratives, registry, llmOpts);
-    if (judgeResult.ok) break;
+    if (judgeResult.ok) {
+      // A later attempt that converges must not leave the earlier rejection behind:
+      // downstream treats a non-empty judgeFeedback as "unresolved" and degrades on it.
+      judgeFeedback = '';
+      break;
+    }
     judgeFeedback = formatJudgeFeedback(judgeResult.failures);
     if (attempt >= MAX_FACTS_ATTEMPTS - 1) {
       console.error(`[user-narrative] Relation judge failures after ${MAX_FACTS_ATTEMPTS} attempts`);
@@ -222,7 +230,9 @@ async function executePolishAttempts(params) {
   } = params;
 
   let polish = { components: [], cross_component_synthesis: '' };
-  let validationFeedback = judgeFeedback;
+  // Seeded empty, not from judgeFeedback: buildPolishFeedback already prepends the
+  // judge block, so seeding it here repeated the whole block verbatim on attempt 0.
+  let validationFeedback = '';
 
   for (let attempt = 0; attempt < MAX_POLISH_ATTEMPTS; attempt += 1) {
     const feedback = buildPolishFeedback(judgeFeedback, validationFeedback);
@@ -433,17 +443,34 @@ export async function runUserNarrativePipeline(params) {
 
   plan = factsResult.plan ?? plan;
 
-  const polishResult = await runPolishAndValidatePass({
-    mergedNarratives: factsResult.mergedNarratives,
-    registry,
-    narrativeScored,
-    rag,
-    llmOpts,
-    judgeFeedback: factsResult.judgeFeedback,
-    epistemicBlock,
-    plan,
-    pipelineParams,
-  });
+  // Polish is the last stage and the only one on Sonnet, so it is the most likely
+  // to die on a transport fault. Letting it throw used to discard the whole run —
+  // north 2026-04-02 shipped 0 claims across all 8 components because a mid-response
+  // disconnect in polish threw away a facts/judge pass that had already succeeded.
+  // Keep the judged claims; backfillUserNarrativeFromClaims renders prose from them.
+  let polishResult;
+  try {
+    polishResult = await runPolishAndValidatePass({
+      mergedNarratives: factsResult.mergedNarratives,
+      registry,
+      narrativeScored,
+      rag,
+      llmOpts,
+      judgeFeedback: factsResult.judgeFeedback,
+      epistemicBlock,
+      plan,
+      pipelineParams,
+    });
+  } catch (err) {
+    console.error(`[user-narrative] Polish failed (${err.message}); keeping judged claims`);
+    polishResult = {
+      components: [],
+      cross_component_synthesis: '',
+      pipelineDegrade: true,
+      degradeReasons: [`Narrative polish: failed (${err.message})`],
+      plan,
+    };
+  }
   const { pipelineDegrade, degradeReasons, plan: finalPlan, ...polish } = polishResult;
 
   const groundingScores = computeGroundingScores(polish, narrativeScored, registry);

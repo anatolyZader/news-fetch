@@ -7,7 +7,7 @@ import { resolveLlmPort, transportMeta } from '../../../cross-cut-modules/llm/re
 import { HAIKU_MODEL } from '../../../cross-cut-modules/llm/modelIds.js';
 import { extractJson } from './claudeJsonHelpers.js';
 import { streamMessageWithRetry } from './llmStreamCall.js';
-import { resolveRef } from '../domain/services/narrativeGrounding/index.js';
+import { resolveRef, signalArticleKey } from '../domain/services/narrativeGrounding/index.js';
 import { narrativeJudgeMaxTokens } from '../domain/services/narrativeGrounding/groundingConfig.js';
 
 const DEFAULT_JUDGE_MODEL = process.env.RESILIENCE_NARRATIVE_JUDGE_MODEL
@@ -18,6 +18,25 @@ function batchJudgeEnabled() {
   return process.env.RESILIENCE_NARRATIVE_JUDGE_BATCH !== '0';
 }
 
+/**
+ * Shared verdict rules for both prompt shapes.
+ *
+ * Every evidence line carries an `[article: <key>]` tag so "same article" is
+ * decidable from the prompt alone. Signals carry no URL of their own, so an
+ * earlier version asked the judge to check a shared article URL it was never
+ * shown — unverifiable by construction, which biased it toward rejecting.
+ */
+const INVENTED_RELATION_RULES =
+  'Each evidence line ends with [article: <key>]. Two lines share an article when\n' +
+  'their keys are identical; different keys mean independent articles.\n\n' +
+  'Set invented_relation=true when the claim:\n' +
+  '- Links two unrelated evidence items with causal language (because, therefore, led to, despite, etc.)\n' +
+  '- Asserts a connection across differing [article: <key>] values without explicit co-mention\n' +
+  '- Adds actors, events, or timelines absent from the evidence lines\n\n' +
+  'Do NOT set invented_relation=true merely because evidence lines come from different\n' +
+  'articles. Relation tag "parallel" asserts no link — independent observations listed\n' +
+  'side by side are correct and must pass.\n';
+
 
 function buildJudgeSystemPrompt() {
   return (
@@ -25,10 +44,7 @@ function buildJudgeSystemPrompt() {
     'You have NO world knowledge — judge text overlap and logical connection only.\n' +
     'Return ONLY valid JSON:\n' +
     '{ "verdicts": [ { "i": 0, "entailed": true|false, "invented_relation": true|false, "reason": "<optional>" }, ... ] }\n\n' +
-    'Set invented_relation=true when the claim:\n' +
-    '- Links two unrelated evidence items with causal language (because, therefore, led to, despite, etc.)\n' +
-    '- Asserts a connection not supported by shared article URL or explicit co-mention\n' +
-    '- Adds actors, events, or timelines absent from the evidence lines\n'
+    INVENTED_RELATION_RULES
   );
 }
 
@@ -38,21 +54,22 @@ function buildPerClaimSystemPrompt() {
     'You have NO world knowledge — judge text overlap and logical connection only.\n' +
     'Return ONLY valid JSON:\n' +
     '{ "entailed": true|false, "invented_relation": true|false, "reason": "<optional>" }\n\n' +
-    'Set invented_relation=true when the claim:\n' +
-    '- Links two unrelated evidence items with causal language (because, therefore, led to, despite, etc.)\n' +
-    '- Asserts a connection not supported by shared article URL or explicit co-mention\n' +
-    '- Adds actors, events, or timelines absent from the evidence lines\n'
+    INVENTED_RELATION_RULES
   );
 }
 
-function formatEvidenceLine(evidence, index) {
-  return `  ${index + 1}. "${evidence}"`;
+function formatEvidenceLine(line, index) {
+  const article = line.articleKey ? ` [article: ${line.articleKey}]` : '';
+  return `  ${index + 1}. "${line.evidence}"${article}`;
 }
 
 function formatClaimForJudge(claim, registry, caseIndex) {
   const evidenceLines = (claim.signal_refs ?? []).map((ref) => {
     const entry = resolveRef(ref, registry);
-    return entry?.signal?.evidence ?? ref;
+    return {
+      evidence: entry?.signal?.evidence ?? ref,
+      articleKey: entry?.signal ? signalArticleKey(entry.signal) : null,
+    };
   });
   const numberedEvidence = evidenceLines.map(formatEvidenceLine).join('\n');
   const prefix = caseIndex == null ? '' : `CASE ${caseIndex}\n`;

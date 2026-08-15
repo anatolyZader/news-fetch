@@ -60,6 +60,7 @@ export function formatFactsUserMessageForComponents(
   componentIds,
   retrievedSpansBlock = '',
   epistemicBlock = '',
+  feedback = '',
 ) {
   const blocks = componentIds.map((id) => {
     const def = RESILIENCE_COMPONENTS.find((c) => c.id === id);
@@ -73,15 +74,19 @@ export function formatFactsUserMessageForComponents(
   });
   const prefix = [retrievedSpansBlock, epistemicBlock].filter(Boolean).join('\n');
   const prefixBlock = prefix ? `${prefix}\n\n` : '';
-  return `${prefixBlock}Extract narrative_claims for each component.\n\n${blocks.join('\n\n---\n\n')}`;
+  const feedbackBlock = feedback
+    ? `━━━ FIX THESE ISSUES FROM PRIOR ATTEMPT ━━━\n${feedback}\n\n`
+    : '';
+  return `${prefixBlock}${feedbackBlock}Extract narrative_claims for each component.\n\n${blocks.join('\n\n---\n\n')}`;
 }
 
-function formatFactsUserMessage(registry, retrievedSpansBlock = '', epistemicBlock = '') {
+function formatFactsUserMessage(registry, retrievedSpansBlock = '', epistemicBlock = '', feedback = '') {
   return formatFactsUserMessageForComponents(
     registry,
     COMPONENT_IDS,
     retrievedSpansBlock,
     epistemicBlock,
+    feedback,
   );
 }
 
@@ -103,7 +108,7 @@ function validateFactsOutput(parsed, registry) {
 }
 
 async function extractFactsForShard(registry, componentIds, opts, shardLabel) {
-  const { onUsage, retrievedSpansBlock = '', epistemicBlock = '', promptBudget } = opts;
+  const { onUsage, retrievedSpansBlock = '', epistemicBlock = '', promptBudget, feedback = '' } = opts;
   const port = resolveLlmPort(opts);
   const message = await streamMessageWithRetry(port, {
     model: DEFAULT_FACTS_MODEL,
@@ -112,7 +117,9 @@ async function extractFactsForShard(registry, componentIds, opts, shardLabel) {
     system: buildFactsSystemPrompt(),
     messages: [{
       role: 'user',
-      content: formatFactsUserMessageForComponents(registry, componentIds, retrievedSpansBlock, epistemicBlock),
+      content: formatFactsUserMessageForComponents(
+        registry, componentIds, retrievedSpansBlock, epistemicBlock, feedback,
+      ),
     }],
     callContext: {
       feature: 'narrative_facts',
@@ -166,7 +173,7 @@ export async function extractNarrativeFacts(scoredComponents, opts = {}) {
   if (opts.factsShardSize && opts.factsShardSize < COMPONENT_IDS.length) {
     return extractNarrativeFactsSharded(scoredComponents, opts);
   }
-  const { onUsage, retrievedSpansBlock = '', epistemicBlock = '' } = opts;
+  const { onUsage, retrievedSpansBlock = '', epistemicBlock = '', feedback = '' } = opts;
   const registry = buildSignalRefRegistry(scoredComponents);
   if (registry.refCount === 0) return {};
 
@@ -176,7 +183,7 @@ export async function extractNarrativeFacts(scoredComponents, opts = {}) {
     max_tokens: narrativeFactsMaxTokens(),
     temperature: 0,
     system: buildFactsSystemPrompt(),
-    messages: [{ role: 'user', content: formatFactsUserMessage(registry, retrievedSpansBlock, epistemicBlock) }],
+    messages: [{ role: 'user', content: formatFactsUserMessage(registry, retrievedSpansBlock, epistemicBlock, feedback) }],
     callContext: { feature: 'narrative_facts', purpose: '[Step 2 — Facts]' },
   }, { label: '[Step 2 — Facts]' });
   if (onUsage) {

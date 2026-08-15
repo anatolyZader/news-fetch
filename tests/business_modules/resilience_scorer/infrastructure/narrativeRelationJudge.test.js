@@ -76,6 +76,45 @@ describe('narrativeRelationJudge', () => {
     assert.equal(result.failures[0].claim.text, 'B');
   });
 
+  it('shows each evidence line its article key so shared-article checks are decidable', async () => {
+    const sent = [];
+    const client = {
+      messages: {
+        stream: (params) => {
+          sent.push(params);
+          return {
+            finalMessage: async () => ({
+              content: [{ type: 'text', text: JSON.stringify({ verdicts: [{ i: 0, invented_relation: false }] }) }],
+              usage: { input_tokens: 10, output_tokens: 5 },
+            }),
+            [Symbol.asyncIterator]: async function* () {},
+          };
+        },
+      },
+    };
+
+    const narratives = {
+      components: [{
+        component_id: 'leadership',
+        narrative_claims: [{ text: 'A and B', signal_refs: ['r1', 'r2'], relation: 'same_article_only' }],
+      }],
+    };
+    const registry = {
+      byRef: new Map([
+        ['r1', { signal: { evidence: 'e1', article_index: 4 } }],
+        ['r2', { signal: { evidence: 'e2', article_index: 4 } }],
+      ]),
+    };
+
+    const result = await judgeNarrativeRelations(narratives, registry, { client, skipProgress: true });
+    assert.equal(result.ok, true);
+
+    const userContent = sent[0].messages[0].content;
+    assert.match(userContent, /"e1" \[article: idx:4\]/);
+    assert.match(userContent, /"e2" \[article: idx:4\]/);
+    assert.match(sent[0].system, /\[article: <key>\]/);
+  });
+
   it('formatJudgeFeedback lists failures', () => {
     const text = formatJudgeFeedback([
       {
