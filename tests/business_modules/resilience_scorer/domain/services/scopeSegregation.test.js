@@ -8,6 +8,7 @@ import {
   hasScopeMarker,
   isContextDerivedClaim,
   isScopeGateEnabled,
+  isScopeRepairEnabled,
 } from '../../../../../business_modules/resilience_scorer/domain/services/narrativeGrounding/scopeSegregation.js';
 
 const CONTEXT_SIGNAL = {
@@ -133,5 +134,61 @@ describe('isScopeGateEnabled', () => {
   it('defaults on and honours the kill switch', () => {
     assert.equal(isScopeGateEnabled({}), true);
     assert.equal(isScopeGateEnabled({ RESILIENCE_NARRATIVE_SCOPE_GATE: '0' }), false);
+  });
+});
+
+describe('isScopeRepairEnabled', () => {
+  it('defaults on, disables only on explicit 0', () => {
+    assert.equal(isScopeRepairEnabled({}), true);
+    assert.equal(isScopeRepairEnabled({ RESILIENCE_NARRATIVE_SCOPE_REPAIR: '1' }), true);
+    assert.equal(isScopeRepairEnabled({ RESILIENCE_NARRATIVE_SCOPE_REPAIR: '0' }), false);
+  });
+});
+
+/**
+ * The gate used to blank a whole component's prose over one misplaced sentence,
+ * which is what cost north 2026-04-03 three otherwise-good narratives. Repair is
+ * a re-ask against the same check, so the check must accept prose that moved the
+ * out-of-scope material behind the marker and nothing weaker.
+ */
+describe('scope repair acceptance', () => {
+  const registry = registryOf({ ctx: CONTEXT_SIGNAL, loc: LOCAL_SIGNAL });
+  const claims = [
+    { text: 'Council briefs residents.', signal_refs: ['loc'] },
+    { text: 'Alerts failed in the south.', signal_refs: ['ctx'] },
+  ];
+
+  it('rejects the pre-repair prose that buried context in the body', () => {
+    const check = checkComponentScopeSegregation({
+      prose: 'Council briefs residents. Alerts failed without advance warning.',
+      claims,
+      registry,
+    });
+    assert.equal(check.ok, false);
+    assert.ok(check.violations.includes(SCOPE_VIOLATION.missing_marker));
+  });
+
+  it('accepts repaired prose that moves context behind the marker', () => {
+    const check = checkComponentScopeSegregation({
+      prose: `Council briefs residents. ${SCOPE_MARKER_PREFIX} alerts failed without advance warning.`,
+      claims,
+      registry,
+    });
+    assert.equal(check.ok, true, JSON.stringify(check.violations));
+  });
+
+  it('still rejects when only some context claims moved behind the marker', () => {
+    const twoContext = [
+      { text: 'Council briefs residents.', signal_refs: ['loc'] },
+      { text: 'Alerts failed in the south.', signal_refs: ['ctx'] },
+      { text: 'Shelters shut in the south.', signal_refs: ['ctx'] },
+    ];
+    const check = checkComponentScopeSegregation({
+      prose: `Council briefs residents. Shelters shut elsewhere. ${SCOPE_MARKER_PREFIX} alerts failed.`,
+      claims: twoContext,
+      registry,
+    });
+    assert.equal(check.ok, false);
+    assert.ok(check.violations.includes(SCOPE_VIOLATION.context_outside_marker));
   });
 });

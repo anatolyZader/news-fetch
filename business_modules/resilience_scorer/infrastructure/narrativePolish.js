@@ -322,6 +322,43 @@ async function polishSharded(mergedNarratives, registry, narrativeScored, opts) 
     });
     mergedComponents.push(...partial.components);
     lastStopReason = partial.stopReason;
+
+    // A shard that answers for only some of its components used to be indistinguishable
+    // from a shard that answered fully: the survivors were pushed and the rest silently
+    // fell through to deterministic fallback prose. Ask once more for exactly the
+    // missing ids — one refill per shard, so a component the model will not write
+    // cannot spin the loop.
+    const missingIds = chunkIds.filter(
+      (id) => !mergedComponents.some((c) => c.component_id === id),
+    );
+    if (missingIds.length > 0) {
+      console.error(
+        `[user-narrative] Polish shard ${i + 1}/${idChunks.length} returned `
+        + `${chunkIds.length - missingIds.length}/${chunkIds.length}; refilling: ${missingIds.join(', ')}`,
+      );
+      const refill = await invokePolishStream({
+        port,
+        mergedNarratives,
+        registry,
+        narrativeScored,
+        opts: { ...opts, feedback: '' },
+        includeSynthesis: false,
+        componentIds: missingIds,
+        progressLabel: `[Step 3 — Polish ${i + 1}/${idChunks.length} refill]`,
+        priorNarrativesBlock: formatPriorNarrativesBlock(mergedComponents),
+      });
+      const recovered = refill.components.filter(
+        (c) => missingIds.includes(c.component_id)
+          && !mergedComponents.some((m) => m.component_id === c.component_id),
+      );
+      mergedComponents.push(...recovered);
+      if (recovered.length < missingIds.length) {
+        console.error(
+          `[user-narrative] Polish refill recovered ${recovered.length}/${missingIds.length}; `
+          + 'validation will re-ask',
+        );
+      }
+    }
   }
 
   const forSynthesis = {
@@ -352,6 +389,46 @@ async function polishSharded(mergedNarratives, registry, narrativeScored, opts) 
     components: mergedComponents,
     cross_component_synthesis: synthesisResult.cross_component_synthesis,
     stopReason: synthesisResult.stopReason ?? lastStopReason,
+  };
+}
+
+/**
+ * Re-ask polish for a named subset of components, no synthesis.
+ *
+ * Used to repair a component whose prose broke a contract (scope segregation)
+ * without discarding it: the sharding heuristics in polishNarrativeFromClaims
+ * decide their own component sets, so a targeted re-ask needs its own entry point.
+ * The full mergedNarratives is still passed so every signal ref resolves.
+ *
+ * @param {object} params
+ * @returns {Promise<{ components: object[], stopReason: string|null }>}
+ */
+export async function repolishComponents(params) {
+  const {
+    mergedNarratives,
+    registry,
+    narrativeScored,
+    componentIds,
+    feedback = '',
+    opts = {},
+    progressLabel = '[Step 3 — Polish repair]',
+  } = params;
+  if (!componentIds?.length) return { components: [], stopReason: null };
+
+  const port = resolveLlmPort(opts);
+  const result = await invokePolishStream({
+    port,
+    mergedNarratives,
+    registry,
+    narrativeScored,
+    opts: { ...opts, feedback },
+    includeSynthesis: false,
+    componentIds,
+    progressLabel,
+  });
+  return {
+    components: result.components.filter((c) => componentIds.includes(c.component_id)),
+    stopReason: result.stopReason ?? null,
   };
 }
 

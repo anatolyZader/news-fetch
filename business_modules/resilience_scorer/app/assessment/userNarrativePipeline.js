@@ -7,13 +7,14 @@ import {
   judgeNarrativeRelations,
   formatJudgeFeedback,
 } from '../../infrastructure/narrativeRelationJudge.js';
-import { polishNarrativeFromClaims } from '../../infrastructure/narrativePolish.js';
+import { polishNarrativeFromClaims, repolishComponents } from '../../infrastructure/narrativePolish.js';
 import { buildFullSignalDigest } from '../../domain/services/narrative/buildFullSignalDigest.js';
 import {
   SCOPE_MARKER_PREFIX,
   checkComponentScopeSegregation,
   isContextDerivedClaim,
   isScopeGateEnabled,
+  isScopeRepairEnabled,
 } from '../../domain/services/narrativeGrounding/scopeSegregation.js';
 import {
   buildDigestStubClaims,
@@ -240,6 +241,15 @@ async function executePolishAttempts(params) {
   // judge block, so seeding it here repeated the whole block verbatim on attempt 0.
   let validationFeedback = '';
 
+  // What we ASKED polish for. The validator needs this to notice a component that
+  // never came back; deriving it from the output can only ever confirm what is
+  // already there.
+  const requestedComponentIds = new Set(
+    (mergedNarratives.components ?? [])
+      .filter((c) => (c.narrative_claims ?? []).length > 0)
+      .map((c) => c.component_id),
+  );
+
   for (let attempt = 0; attempt < MAX_POLISH_ATTEMPTS; attempt += 1) {
     const feedback = buildPolishFeedback(judgeFeedback, validationFeedback);
     const polishResult = await polishNarrativeFromClaims(
@@ -266,6 +276,7 @@ async function executePolishAttempts(params) {
     const validation = validateNarrativeOutput(polish, {
       scoredComponents: narrativeScored,
       registry,
+      requestedComponentIds,
     });
 
     if (validation.ok) break;
@@ -283,7 +294,19 @@ async function executePolishAttempts(params) {
     }
   }
 
-  const polishOutput = { ...polish };
+  const scopeRepairs = await repairScopeViolations({
+    polish,
+    mergedNarratives,
+    registry,
+    narrativeScored,
+    rag,
+    llmOpts,
+    epistemicBlock,
+    activePlan,
+    degradeReasons,
+  });
+
+  const polishOutput = { ...polish, scopeRepairs };
   delete polishOutput.stopReason;
   return {
     ...polishOutput,
@@ -291,6 +314,106 @@ async function executePolishAttempts(params) {
     degradeReasons,
     plan: activePlan,
   };
+}
+
+/**
+ * Name the refs a component must move behind the scope marker.
+ *
+ * @param {object[]} claims
+ * @param {object} registry
+ * @returns {string}
+ */
+function formatScopeRepairFeedback(componentId, claims, registry) {
+  const contextRefs = (claims ?? [])
+    .filter((c) => isContextDerivedClaim(c, registry))
+    .flatMap((c) => c.signal_refs ?? []);
+  return `Scope violation in ${componentId}: these refs rest entirely on evidence from `
+    + `outside the report scope — ${[...new Set(contextRefs)].join(', ')}. `
+    + `Rewrite ${componentId} so every statement resting on them appears ONLY in trailing `
+    + `sentences that begin verbatim with "${SCOPE_MARKER_PREFIX}". `
+    + 'Local findings must not depend on those refs. Keep all other content unchanged.';
+}
+
+/**
+ * Give a component whose prose broke scope segregation one targeted re-ask.
+ *
+ * Discarding the whole narrative on a single misplaced sentence is what left
+ * north 2026-04-03 with deterministic claim-stack prose in three components that
+ * had perfectly good analysis behind them. Repair first; the discard in
+ * enforceScopeSegregation remains as the backstop for anything still violating.
+ *
+ * @param {object} params
+ * @returns {Promise<string[]>} component ids whose prose was successfully repaired
+ */
+async function repairScopeViolations(params) {
+  const {
+    polish, mergedNarratives, registry, narrativeScored, rag, llmOpts, epistemicBlock,
+    activePlan, degradeReasons,
+  } = params;
+  if (!isScopeGateEnabled() || !isScopeRepairEnabled()) return [];
+
+  const violating = (polish.components ?? []).filter((leg) => {
+    if (!String(leg?.narrative ?? '').trim()) return false;
+    const claims = leg.narrative_claims
+      ?? mergedNarratives.components?.find((c) => c.component_id === leg.component_id)?.narrative_claims
+      ?? [];
+    return !checkComponentScopeSegregation({ prose: leg.narrative, claims, registry }).ok;
+  });
+  if (violating.length === 0) return [];
+
+  const repairedIds = [];
+  for (const leg of violating) {
+    const claims = leg.narrative_claims
+      ?? mergedNarratives.components?.find((c) => c.component_id === leg.component_id)?.narrative_claims
+      ?? [];
+    let repaired = null;
+    try {
+      const result = await repolishComponents({
+        mergedNarratives,
+        registry,
+        narrativeScored,
+        componentIds: [leg.component_id],
+        feedback: formatScopeRepairFeedback(leg.component_id, claims, registry),
+        opts: {
+          ...llmOpts,
+          retrievedSpansBlock: rag.block,
+          epistemicBlock,
+          skipProgress: false,
+          promptBudget: {
+            section: 'narrative_polish',
+            degrade_level: activePlan.degradeLevel,
+            estimated_input_tokens: activePlan.section_estimates?.worst_polish_shard,
+          },
+        },
+        progressLabel: `[Step 3 — Polish scope repair ${leg.component_id}]`,
+      });
+      repaired = result.components[0] ?? null;
+    } catch (err) {
+      console.error(`[user-narrative] Scope repair failed for ${leg.component_id} (${err.message})`);
+    }
+
+    const stillViolating = !repaired
+      || !String(repaired.narrative ?? '').trim()
+      || !checkComponentScopeSegregation({
+        prose: repaired.narrative,
+        claims: repaired.narrative_claims ?? claims,
+        registry,
+      }).ok;
+
+    if (stillViolating) {
+      degradeReasons.push(`scope_repair_failed:${leg.component_id}`);
+      continue;
+    }
+    leg.narrative = repaired.narrative;
+    if (Array.isArray(repaired.evidence) && repaired.evidence.length > 0) {
+      leg.evidence = repaired.evidence;
+    }
+    if (Array.isArray(repaired.narrative_claims) && repaired.narrative_claims.length > 0) {
+      leg.narrative_claims = repaired.narrative_claims;
+    }
+    repairedIds.push(leg.component_id);
+  }
+  return repairedIds;
 }
 
 /**
@@ -501,6 +624,35 @@ export async function runUserNarrativePipeline(params) {
   };
 }
 
+/**
+ * Stamp user_epistemic_role onto claims for the deterministic fallback.
+ *
+ * buildDeterministicNarrativeFromClaims sections prose by this field, but claims
+ * come out of normalizeClaims carrying only text/signal_refs/relation — so every
+ * claim landed in one unsectioned bucket and the fallback read as a flat stack of
+ * quotes (north 2026-04-03: all 64 claims had a null role).
+ *
+ * Only `context_only` is assigned, and only from isContextDerivedClaim — the same
+ * "every ref is out of scope" test the scope gate uses, so the two agree by
+ * construction. Local claims are left unset and inherit the builder's
+ * `investigation_only` default: the scoring/quarantine sets that would separate
+ * `scored` from `investigation_only` are not built until attachRichUserSurface,
+ * which runs after this pipeline, and both render without a prefix anyway.
+ *
+ * @param {object[]} claims
+ * @param {object} registry
+ * @returns {object[]}
+ */
+export function claimsWithEpistemicRoles(claims, registry) {
+  if (!registry) return claims;
+  return claims.map((claim) => {
+    if (claim?.user_epistemic_role) return claim;
+    return isContextDerivedClaim(claim, registry)
+      ? { ...claim, user_epistemic_role: 'context_only' }
+      : claim;
+  });
+}
+
 function backfillUserNarrativeFromClaims(comp, mergedClaims, registry, assessment) {
   const hasUserNarrative = String(comp.narrative_user ?? '').trim()
     && !isStubNarrative(comp.narrative_user);
@@ -510,7 +662,7 @@ function backfillUserNarrativeFromClaims(comp, mergedClaims, registry, assessmen
   const claims = comp.narrative_claims ?? mergedClaims;
   if (claims.length === 0) return;
 
-  const prose = buildProseFromClaims(claims);
+  const prose = buildProseFromClaims(claimsWithEpistemicRoles(claims, registry));
   if (!prose) return;
 
   comp.narrative_user = resolveUserNarrativeCitations(
@@ -544,6 +696,11 @@ function backfillUserNarrativeFromClaims(comp, mergedClaims, registry, assessmen
  * finding. On violation the LLM prose is discarded and the component falls back
  * to deterministic claim prose, with context claims pushed last behind the
  * marker so the fallback is compliant by construction.
+ *
+ * This is the backstop, not the first response: repairScopeViolations already
+ * gave the component one targeted re-ask during polish. Discarding on the first
+ * misplaced sentence is what left north 2026-04-03 with claim-stack prose in
+ * three components whose analysis was sound.
  *
  * Per-component: one bad component does not cost the others their narrative.
  */
@@ -609,6 +766,10 @@ function applyNarrativePipelineMetadata(assessment, pipelineResult, mode) {
     if (legacyNarrativeOnly()) {
       assessment.cross_component_synthesis = assessment.cross_component_synthesis_user;
     }
+  }
+
+  if (polish.scopeRepairs?.length) {
+    assessment.narrative_scope_repairs = [...polish.scopeRepairs];
   }
 
   assessment.narrative_pipeline_mode = mode;

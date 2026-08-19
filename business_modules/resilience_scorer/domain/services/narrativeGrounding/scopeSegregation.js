@@ -54,6 +54,15 @@ export function isScopeGateEnabled(env = process.env) {
 }
 
 /**
+ * Whether a violating component gets one targeted re-ask before its prose is
+ * discarded. Costs at most one extra polish call per violating component, so
+ * set RESILIENCE_NARRATIVE_SCOPE_REPAIR=0 on a run that must not spend them.
+ */
+export function isScopeRepairEnabled(env = process.env) {
+  return env.RESILIENCE_NARRATIVE_SCOPE_REPAIR !== '0';
+}
+
+/**
  * Whether a claim rests ENTIRELY on out-of-scope evidence.
  *
  * Deliberately "every ref", not "any ref": a claim that combines local and

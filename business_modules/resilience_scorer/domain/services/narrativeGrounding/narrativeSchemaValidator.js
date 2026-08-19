@@ -139,10 +139,16 @@ function validateResilienceComponent(comp, def, ctx) {
   const { errors, warnings, manifestMap, scoredComponents } = ctx;
   const scored = scoredComponents[def.id] ?? {};
   const signalCount = scored.signal_count ?? scored.signals?.length ?? 0;
-  const inPolishOutput = (ctx.polishedComponentIds ?? new Set()).has(def.id);
+  // Must be the set that went INTO polish, not the set that came out: `comp` is
+  // looked up in the output list, so an output-derived flag is false by
+  // construction inside `if (!comp)` and this error was unreachable from the day
+  // the file was written. A polish shard that silently dropped a component
+  // therefore validated clean, broke the retry loop, and fell to deterministic
+  // fallback prose — north 2026-04-03 lost community_capital and leadership that way.
+  const wasRequested = ctx.requestedComponentIds?.has(def.id) ?? false;
 
   if (!comp) {
-    if (signalCount > 0 && inPolishOutput) {
+    if (signalCount > 0 && wasRequested) {
       errors.push(`${def.id}: missing component block`);
     }
     return;
@@ -174,20 +180,24 @@ function validateResilienceComponent(comp, def, ctx) {
  * @param {object} opts
  * @param {Record<string, object>} opts.scoredComponents
  * @param {{ byRef: Map<string, object> }} opts.registry
+ * @param {Iterable<string>} [opts.requestedComponentIds] Components sent to polish.
+ *   Omit to skip the missing-block check entirely (callers that do not shard).
  * @returns {{ ok: boolean, errors: string[], warnings: string[] }}
  */
 export function validateNarrativeOutput(narratives, opts = {}) {
   const errors = [];
   const warnings = [];
-  const { scoredComponents = {}, registry } = opts;
+  const { scoredComponents = {}, registry, requestedComponentIds = null } = opts;
   const manifestMap = Object.fromEntries(
     RESILIENCE_COMPONENTS.map((d) => [d.id, new Set(d.behavioral_manifestations ?? [])]),
   );
-  const polishedComponentIds = new Set(
-    (narratives.components ?? []).map((c) => c.component_id).filter(Boolean),
-  );
   const ctx = {
-    errors, warnings, manifestMap, scoredComponents, registry, polishedComponentIds,
+    errors,
+    warnings,
+    manifestMap,
+    scoredComponents,
+    registry,
+    requestedComponentIds: requestedComponentIds ? new Set(requestedComponentIds) : null,
   };
 
   for (const def of RESILIENCE_COMPONENTS) {

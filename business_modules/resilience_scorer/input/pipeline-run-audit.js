@@ -113,6 +113,12 @@ if (reportPath) {
   if (assessment?.narrative_pipeline_degraded) {
     console.log(`  ⚠ narrative_pipeline_degraded: ${(assessment.narrative_pipeline_degrade_reasons ?? []).join('; ')}`);
   }
+  if (assessment?.narrative_scope_repairs?.length) {
+    console.log(
+      `  narrative_scope_repairs: ${assessment.narrative_scope_repairs.join(', ')} `
+      + '(prose re-asked and kept, not degraded)',
+    );
+  }
   if (assessment?.narrative_prompt_budget) {
     const pb = assessment.narrative_prompt_budget;
     console.log(
