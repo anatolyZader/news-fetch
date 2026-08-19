@@ -1,0 +1,1 @@
+{"ts":"2026-08-18T20:50:55.605Z","severity":"warn","action":"auth.denied","resource":"/api/openapi.json","userEmail":null,"uid":null,"ip":"35.240.94.146","userAgent":"Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; ChatGPT-User/1.0; +https://openai.com/bot","meta":{"statusCode":401,"method":"GET"}}
